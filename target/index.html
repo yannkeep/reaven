@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Écosystème OuaisFi - Tableau de Bord Interactif</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
+    <!-- 
+    Chosen Palette: Vibrant Tech Community (Tailwind Blue-600 #2563EB & Orange-500 #F97316) 
+    -->
+
+    <!-- 
+    Application Structure Plan: 
+    The application is designed as a vertical scrolling dashboard (SPA) optimized for mobile and desktop.
+    1. Header/Hero: Immediate context and "wow" factor with high-level KPIs.
+    2. Section "Infrastructure": Focuses on the physical layer (Nodes, Hardware). Uses Donut and Scatter plots.
+    3. Section "Performance & Trafic": Focuses on usage data. Uses Line and Bar charts with interactive time filters.
+    4. Section "Le Dépôt (dl.ouaisfieu)": specific analysis of the file server ecosystem.
+    5. Section "Architecture": A CSS-based conceptual diagram to explain the mesh technology.
+    This structure moves from "What is the status?" to "How is it used?" to "How does it work?", facilitating understanding for both technical and non-technical members.
+    -->
+
+    <!-- 
+    Visualization & Content Choices:
+    1. Node Growth -> Goal: Change -> Line Chart (Chart.js) -> Shows community expansion over time.
+    2. Hardware Mix -> Goal: Compare -> Donut Chart (Chart.js) -> Highlights diversity of devices (Ubiquiti vs DIY).
+    3. Signal vs Distance -> Goal: Relationships -> 3D Scatter Plot (Plotly Canvas) -> correlating physical distance with link quality.
+    4. Download Stats -> Goal: Organize -> Horizontal Bar Chart (Chart.js) -> Ranking most popular firmware from dl.ouaisfieu.
+    5. Mesh Topology -> Goal: Organize -> CSS Grid/Flex Diagram -> Visualizing peer-to-peer connections without SVG/Mermaid.
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        /* Custom Font Setup */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC; /* Slate-50 */
+            color: #1E293B; /* Slate-800 */
+        }
+
+        /* Chart Container Styling Rules (Mandatory) */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%; /* Constraints handled by grid columns */
+            height: 300px;
+            max-height: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        }
+
+        /* Mobile adjustment */
+        @media (max-width: 640px) {
+            .chart-container {
+                height: 250px;
+            }
+        }
+
+        /* Desktop adjustment */
+        @media (min-width: 1024px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Utility for Diagram Nodes (CSS Shapes) */
+        .mesh-node {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #2563EB;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            transition: transform 0.3s ease;
+        }
+        .mesh-node:hover {
+            transform: scale(1.1);
+        }
+        .connection-line {
+            position: absolute;
+            background-color: #94A3B8;
+            height: 2px;
+            z-index: 0;
+            transform-origin: left center;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Navigation / Header -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">O</div>
+                    <span class="font-bold text-xl tracking-tight text-slate-800">OuaisFi<span class="text-blue-600">.eu</span></span>
+                </div>
+                <div class="hidden md:flex space-x-8 text-sm font-medium text-slate-600">
+                    <a href="#overview" class="hover:text-blue-600 transition-colors">Vue d'Ensemble</a>
+                    <a href="#infrastructure" class="hover:text-blue-600 transition-colors">Infrastructure</a>
+                    <a href="#traffic" class="hover:text-blue-600 transition-colors">Trafic & Perf</a>
+                    <a href="#downloads" class="hover:text-blue-600 transition-colors">Dépôt (DL)</a>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        ● En Ligne
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+        <!-- Intro Section -->
+        <section id="overview" class="text-center space-y-4">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
+                L'Internet Libre et <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-orange-500">Communautaire</span>
+            </h1>
+            <p class="max-w-2xl mx-auto text-lg text-slate-600">
+                Analyse en temps réel de l'écosystème <strong>OuaisFi</strong>. De la topologie du réseau maillé aux ressources disponibles sur <strong>dl.ouaisfieu</strong>, explorez comment notre communauté connecte le monde, un nœud à la fois.
+            </p>
+        </section>
+
+        <!-- KPI Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- KPI 1 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-600 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-500">Nœuds Actifs</p>
+                        <p class="text-3xl font-bold text-slate-900">42</p>
+                    </div>
+                    <div class="text-2xl">📡</div>
+                </div>
+                <div class="mt-2 text-xs text-green-600 font-semibold">
+                    +3 nouveaux cette semaine
+                </div>
+            </div>
+            <!-- KPI 2 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-orange-500 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-500">Clients Connectés</p>
+                        <p class="text-3xl font-bold text-slate-900">156</p>
+                    </div>
+                    <div class="text-2xl">📱</div>
+                </div>
+                <div class="mt-2 text-xs text-slate-500">
+                    Pic à 189 hier soir
+                </div>
+            </div>
+            <!-- KPI 3 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-teal-500 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-500">Données Échangées</p>
+                        <p class="text-3xl font-bold text-slate-900">4.2 TB</p>
+                    </div>
+                    <div class="text-2xl">⚡</div>
+                </div>
+                <div class="mt-2 text-xs text-slate-500">
+                    Sur les 30 derniers jours
+                </div>
+            </div>
+            <!-- KPI 4 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-indigo-500 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-500">Versions Firmware</p>
+                        <p class="text-3xl font-bold text-slate-900">12</p>
+                    </div>
+                    <div class="text-2xl">💾</div>
+                </div>
+                <div class="mt-2 text-xs text-slate-500">
+                    Dispo sur dl.ouaisfieu
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Infrastructure -->
+        <section id="infrastructure" class="space-y-6 scroll-mt-24">
+            <div class="border-b border-slate-200 pb-2">
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 p-1 rounded">🛠️</span> Infrastructure Physique
+                </h2>
+            </div>
+            <p class="text-slate-600">
+                La résilience du réseau repose sur la diversité du matériel. Le graphique ci-dessous illustre la répartition des équipements utilisés par les membres, allant du matériel professionnel Ubiquiti aux solutions DIY basées sur Raspberry Pi.
+            </p>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Chart: Hardware Distribution -->
+                <div class="flex flex-col">
+                    <h3 class="text-lg font-semibold text-slate-700 mb-2">Distribution Matérielle</h3>
+                    <div class="chart-container">
+                        <canvas id="hardwareChart"></canvas>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2 text-center">Les routeurs Ubiquiti dominent le cœur du réseau, tandis que les Gl.iNet sont populaires pour les nœuds mobiles.</p>
+                </div>
+
+                <!-- Plotly Chart: Signal Analysis -->
+                <div class="flex flex-col">
+                    <h3 class="text-lg font-semibold text-slate-700 mb-2">Analyse Signal vs Distance</h3>
+                    <!-- Using a div for Plotly, styling to match chart-container -->
+                    <div id="signalPlot" class="chart-container overflow-hidden">
+                        <!-- Plotly renders here -->
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2 text-center">Corrélation entre la distance des liens (mètres) et la qualité du signal (dBm). Visualisation 3D avancée.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Trafic & Performance -->
+        <section id="traffic" class="space-y-6 scroll-mt-24">
+            <div class="border-b border-slate-200 pb-2 flex justify-between items-end">
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="bg-orange-100 text-orange-600 p-1 rounded">📊</span> Trafic & Performance
+                </h2>
+                <!-- Interaction: Time Filter -->
+                <div class="flex bg-slate-100 rounded-lg p-1 gap-1">
+                    <button onclick="updateTraffic('24h')" class="px-3 py-1 text-xs font-semibold rounded-md bg-white shadow text-slate-800 hover:bg-slate-50 transition-all focus:ring-2 ring-blue-500" id="btn-24h">24h</button>
+                    <button onclick="updateTraffic('7d')" class="px-3 py-1 text-xs font-semibold rounded-md text-slate-600 hover:bg-white hover:shadow transition-all focus:ring-2 ring-blue-500" id="btn-7d">7j</button>
+                    <button onclick="updateTraffic('30d')" class="px-3 py-1 text-xs font-semibold rounded-md text-slate-600 hover:bg-white hover:shadow transition-all focus:ring-2 ring-blue-500" id="btn-30d">30j</button>
+                </div>
+            </div>
+            
+            <p class="text-slate-600">
+                Observation dynamique de la charge réseau. Utilisez les filtres ci-dessus pour basculer entre la vue journalière, hebdomadaire et mensuelle. Les données reflètent le trafic agrégé passant par les passerelles principales.
+            </p>
+
+            <!-- Chart: Traffic History -->
+            <div class="flex flex-col w-full">
+                <div class="chart-container" style="max-height: 400px; height: 350px;">
+                    <canvas id="trafficChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Latency Grid (Visual Representation using HTML/Tailwind) -->
+            <div class="mt-8">
+                <h3 class="text-lg font-semibold text-slate-700 mb-4">Carte Thermique de Latence (Zones)</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- Zone A -->
+                    <div class="bg-white border border-slate-200 rounded-lg p-4 flex flex-col items-center justify-center">
+                        <span class="text-sm font-bold text-slate-500">Zone Nord</span>
+                        <div class="text-2xl font-bold text-green-500">12ms</div>
+                        <span class="text-xs text-slate-400">Excellent</span>
+                    </div>
+                    <!-- Zone B -->
+                    <div class="bg-white border border-slate-200 rounded-lg p-4 flex flex-col items-center justify-center">
+                        <span class="text-sm font-bold text-slate-500">Centre Ville</span>
+                        <div class="text-2xl font-bold text-green-600">18ms</div>
+                        <span class="text-xs text-slate-400">Bon</span>
+                    </div>
+                    <!-- Zone C -->
+                    <div class="bg-white border border-slate-200 rounded-lg p-4 flex flex-col items-center justify-center">
+                        <span class="text-sm font-bold text-slate-500">Zone Ouest</span>
+                        <div class="text-2xl font-bold text-yellow-500">45ms</div>
+                        <span class="text-xs text-slate-400">Congestion</span>
+                    </div>
+                    <!-- Zone D -->
+                    <div class="bg-white border border-slate-200 rounded-lg p-4 flex flex-col items-center justify-center">
+                        <span class="text-sm font-bold text-slate-500">Extension Sud</span>
+                        <div class="text-2xl font-bold text-orange-500">85ms</div>
+                        <span class="text-xs text-slate-400">Liaison Longue</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Le Dépôt (dl.ouaisfieu) -->
+        <section id="downloads" class="space-y-6 scroll-mt-24">
+            <div class="border-b border-slate-200 pb-2">
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="bg-teal-100 text-teal-600 p-1 rounded">💾</span> Le Dépôt Central (dl.ouaisfieu)
+                </h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                <div>
+                    <p class="text-slate-600 mb-4">
+                        Le serveur <code>dl.ouaisfieu</code> est le cœur logistique du projet. Il héberge les firmwares personnalisés (basés sur OpenWRT), les fichiers de configuration pour les protocoles de routage (Batman-adv, Babel), et des ressources utiles pour la communauté.
+                    </p>
+                    <ul class="space-y-3">
+                        <li class="flex items-center justify-between bg-white p-3 rounded shadow-sm border border-slate-100">
+                            <span class="text-slate-700 font-medium">Uptime Serveur</span>
+                            <span class="text-green-600 font-mono font-bold">99.98%</span>
+                        </li>
+                        <li class="flex items-center justify-between bg-white p-3 rounded shadow-sm border border-slate-100">
+                            <span class="text-slate-700 font-medium">Capacité Stockage</span>
+                            <span class="text-blue-600 font-mono font-bold">1.8 TB / 4 TB</span>
+                        </li>
+                        <li class="flex items-center justify-between bg-white p-3 rounded shadow-sm border border-slate-100">
+                            <span class="text-slate-700 font-medium">Miroirs Actifs</span>
+                            <span class="text-orange-600 font-mono font-bold">3</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="flex flex-col">
+                    <h3 class="text-lg font-semibold text-slate-700 mb-2">Top Téléchargements</h3>
+                    <div class="chart-container">
+                        <canvas id="downloadsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Architecture Diagram (CSS only, NO SVG) -->
+        <section id="architecture" class="bg-white rounded-2xl shadow-lg p-6 md:p-10 scroll-mt-24 border border-slate-200">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6 text-center">Topologie du Réseau Maillé</h2>
+            <p class="text-center text-slate-500 mb-8 max-w-3xl mx-auto">
+                Contrairement à un réseau classique centralisé, chaque nœud OuaisFi communique avec ses voisins pour trouver le meilleur chemin. Voici une représentation simplifiée de notre routage dynamique.
+            </p>
+
+            <!-- Diagram Container -->
+            <div class="relative w-full h-80 bg-slate-50 rounded-xl overflow-hidden border border-slate-100 flex items-center justify-center">
+                
+                <!-- Simple CSS Diagram Logic -->
+                <!-- Connection Lines (Absolute positioning based on percentage) -->
+                <!-- Line 1: Gateway to Node A -->
+                <div class="connection-line" style="width: 20%; top: 50%; left: 20%; transform: rotate(0deg);"></div>
+                <!-- Line 2: Gateway to Node B -->
+                <div class="connection-line" style="width: 20%; top: 50%; left: 20%; transform: rotate(45deg); transform-origin: 0 0;"></div>
+                <!-- Line 3: Node A to Node C -->
+                <div class="connection-line" style="width: 20%; top: 50%; left: 45%; transform: rotate(0deg);"></div>
+
+                <!-- Nodes -->
+                <!-- Gateway -->
+                <div class="mesh-node bg-orange-500" style="position: absolute; left: 15%; top: 45%;">
+                    <span style="font-size: 20px;">🌐</span>
+                    <div class="absolute -bottom-8 w-24 text-center text-xs font-bold text-slate-600">Passerelle</div>
+                </div>
+
+                <!-- Node A -->
+                <div class="mesh-node" style="position: absolute; left: 40%; top: 45%;">
+                    <span style="font-size: 20px;">📶</span>
+                    <div class="absolute -bottom-8 w-24 text-center text-xs font-bold text-slate-600">Nœud A</div>
+                </div>
+
+                <!-- Node B -->
+                <div class="mesh-node bg-teal-500" style="position: absolute; left: 35%; top: 70%;">
+                    <span style="font-size: 20px;">💻</span>
+                    <div class="absolute -bottom-8 w-24 text-center text-xs font-bold text-slate-600">Client B</div>
+                </div>
+
+                <!-- Node C -->
+                <div class="mesh-node" style="position: absolute; left: 65%; top: 45%;">
+                    <span style="font-size: 20px;">📶</span>
+                    <div class="absolute -bottom-8 w-24 text-center text-xs font-bold text-slate-600">Nœud C</div>
+                </div>
+
+            </div>
+            
+            <div class="mt-6 flex justify-center gap-6 text-sm text-slate-500">
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-orange-500"></div> Internet (Passerelle)
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-blue-600"></div> Nœud Mesh (Relais)
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-teal-500"></div> Client (Ordi/Tel)
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center text-slate-400 py-8 text-sm">
+            <p>&copy; 2024 Écosystème OuaisFi. Propulsé par la communauté.</p>
+            <p class="mt-2">Accès direct au dépôt: <a href="#" class="text-blue-500 hover:underline">dl.ouaisfieu</a></p>
+        </footer>
+
+    </main>
+
+    <script>
+        // --- UTILITY: Label Wrapping for Chart.js (Mandatory) ---
+        function wrapLabel(str, maxLen = 16) {
+            if (str.length <= maxLen) return str;
+            const words = str.split(' ');
+            const lines = [];
+            let currentLine = words[0];
+
+            for (let i = 1; i < words.length; i++) {
+                if (currentLine.length + 1 + words[i].length <= maxLen) {
+                    currentLine += ' ' + words[i];
+                } else {
+                    lines.push(currentLine);
+                    currentLine = words[i];
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+
+        // --- GLOBAL CONFIG: Colors ---
+        const colors = {
+            blue: '#2563EB',
+            orange: '#F97316',
+            teal: '#14B8A6',
+            slate: '#64748B',
+            bgGrid: '#E2E8F0'
+        };
+
+        // --- DATA OBJECTS ---
+        
+        // Data for Traffic Chart (Interactive)
+        const trafficDataSets = {
+            '24h': {
+                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '23:59'],
+                data: [120, 80, 250, 400, 380, 550, 480],
+                max: 600
+            },
+            '7d': {
+                labels: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'],
+                data: [2100, 2300, 2150, 2400, 2800, 3500, 3200],
+                max: 4000
+            },
+            '30d': {
+                labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
+                data: [12500, 13200, 11800, 14500],
+                max: 16000
+            }
+        };
+
+        // --- CHART INITIALIZATION ---
+
+        // 1. Hardware Distribution (Donut)
+        const ctxHardware = document.getElementById('hardwareChart').getContext('2d');
+        // Pre-process labels
+        const rawHwLabels = ['Ubiquiti NanoStation', 'TP-Link CPE210', 'Gl.iNet GL-AR300M', 'Raspberry Pi DIY', 'Autres (Mikrotik)'];
+        const processedHwLabels = rawHwLabels.map(l => wrapLabel(l));
+
+        new Chart(ctxHardware, {
+            type: 'doughnut',
+            data: {
+                labels: processedHwLabels,
+                datasets: [{
+                    data: [40, 25, 20, 10, 5],
+                    backgroundColor: [colors.blue, colors.orange, colors.teal, '#818CF8', colors.slate],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { boxWidth: 12, font: { size: 11 } }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                const label = item.chart.data.labels[item.dataIndex];
+                                return Array.isArray(label) ? label.join(' ') : label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 2. Traffic Chart (Line/Area)
+        const ctxTraffic = document.getElementById('trafficChart').getContext('2d');
+        const trafficChart = new Chart(ctxTraffic, {
+            type: 'line',
+            data: {
+                labels: trafficDataSets['24h'].labels,
+                datasets: [{
+                    label: 'Trafic (Mbps)',
+                    data: trafficDataSets['24h'].data,
+                    borderColor: colors.orange,
+                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: colors.orange
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: colors.bgGrid, borderDash: [5, 5] },
+                        title: { display: true, text: 'Bande Passante' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                const label = item.chart.data.labels[item.dataIndex];
+                                return Array.isArray(label) ? label.join(' ') : label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Function to update Traffic Chart
+        function updateTraffic(period) {
+            // Update Data
+            const set = trafficDataSets[period];
+            trafficChart.data.labels = set.labels;
+            trafficChart.data.datasets[0].data = set.data;
+            trafficChart.update();
+
+            // Update UI State (Buttons)
+            ['24h', '7d', '30d'].forEach(id => {
+                const btn = document.getElementById(`btn-${id}`);
+                if (id === period) {
+                    btn.classList.add('bg-white', 'shadow', 'text-slate-800');
+                    btn.classList.remove('text-slate-600', 'hover:bg-white');
+                } else {
+                    btn.classList.remove('bg-white', 'shadow', 'text-slate-800');
+                    btn.classList.add('text-slate-600', 'hover:bg-white');
+                }
+            });
+        }
+
+        // 3. Downloads Chart (Horizontal Bar)
+        const ctxDownloads = document.getElementById('downloadsChart').getContext('2d');
+        const rawDlLabels = ['Firmware v2.1 (Stable)', 'Firmware v3.0 (Beta)', 'Config Babeld Optimisée', 'Script Auto-Install', 'Doc PDF: Guide Démarrage'];
+        const processedDlLabels = rawDlLabels.map(l => wrapLabel(l, 20));
+
+        new Chart(ctxDownloads, {
+            type: 'bar',
+            data: {
+                labels: processedDlLabels,
+                datasets: [{
+                    label: 'Téléchargements',
+                    data: [1240, 450, 890, 600, 2100],
+                    backgroundColor: [colors.teal, '#2DD4BF', '#5EEAD4', '#99F6E4', colors.blue],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y', // Horizontal
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { display: false }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                const label = item.chart.data.labels[item.dataIndex];
+                                return Array.isArray(label) ? label.join(' ') : label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 4. Plotly 3D Scatter Plot (Canvas)
+        // Demonstrating advanced relationships: Distance vs Signal Strength vs Throughput
+        const signalData = {
+            x: [100, 200, 300, 50, 400, 150, 250, 350, 500, 80], // Distance (m)
+            y: [-40, -55, -65, -35, -75, -45, -60, -70, -80, -38], // RSSI (dBm)
+            z: [50, 30, 15, 80, 5, 45, 25, 10, 2, 70], // Throughput (Mbps)
+            mode: 'markers',
+            marker: {
+                size: 8,
+                color: [50, 30, 15, 80, 5, 45, 25, 10, 2, 70],
+                colorscale: 'Viridis',
+                opacity: 0.8
+            },
+            type: 'scatter3d'
+        };
+
+        const layoutPlotly = {
+            margin: { l: 0, r: 0, b: 0, t: 0 },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            scene: {
+                xaxis: { title: 'Dist (m)' },
+                yaxis: { title: 'Signal (dBm)' },
+                zaxis: { title: 'Vitesse (Mbps)' },
+                camera: { eye: { x: 1.5, y: 1.5, z: 1.5 } }
+            },
+            autosize: true
+        };
+
+        // Render Plotly to the div, ensuring config uses webgl/canvas
+        Plotly.newPlot('signalPlot', [signalData], layoutPlotly, {responsive: true, displayModeBar: false});
+
+    </script>
+</body>
+</html>
