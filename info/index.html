@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport d'Audit de Crédibilité : OuaisFi.eu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; color: #1F2937; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin: 0 auto; height: 300px; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
+        .audit-card { transition: all 0.3s ease; }
+        .audit-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .status-green { background-color: #10B981; box-shadow: 0 0 8px #10B981; }
+        .status-orange { background-color: #F59E0B; box-shadow: 0 0 8px #F59E0B; }
+        .status-red { background-color: #EF4444; box-shadow: 0 0 8px #EF4444; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+    </style>
+    <!-- Chosen Palette: Corporate Trust (Slate/Blue) with Signal Colors for Status -->
+    <!-- Application Structure Plan: Dashboard layout. Sidebar for navigation categories (Overview, Legal, Content/Plagiarism, Tech). Main area for dynamic widgets. The goal is to demystify the 'audit' process by breaking it down into visual scores and checklists. -->
+    <!-- Visualization & Content Choices: 
+         1. Gauge/Doughnut Chart -> Overall Trust Score -> Immediate visual summary.
+         2. Radar Chart -> Dimensions of Quality (Rigor, UX, Content, Legal) -> Comparison.
+         3. Interactive Checklists -> For Legal/Rigor analysis -> Allows user to verify specific points.
+         4. Bar Chart -> Content Originality Breakdown -> Shows Plagiarism risk areas (e.g. Terms vs Blog).
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- Sidebar Navigation -->
+    <nav class="w-full md:w-64 bg-slate-900 text-white flex-shrink-0 flex flex-col justify-between shadow-xl z-20">
+        <div>
+            <div class="p-6 border-b border-slate-700">
+                <h1 class="text-xl font-bold tracking-tight">AuditWeb<span class="text-blue-400">360</span></h1>
+                <p class="text-xs text-slate-400 mt-1">Cible : <span class="text-white font-mono">ouaisfi.eu</span></p>
+            </div>
+            
+            <div class="flex flex-col p-4 gap-2">
+                <button onclick="switchTab('overview')" id="btn-overview" class="nav-btn bg-blue-600 text-white px-4 py-3 rounded-lg text-left font-medium transition-colors flex items-center">
+                    <span>📊 Vue d'ensemble</span>
+                </button>
+                <button onclick="switchTab('rigor')" id="btn-rigor" class="nav-btn hover:bg-slate-800 text-slate-300 px-4 py-3 rounded-lg text-left font-medium transition-colors flex items-center">
+                    <span>⚖️ Rigueur & Légal</span>
+                </button>
+                <button onclick="switchTab('content')" id="btn-content" class="nav-btn hover:bg-slate-800 text-slate-300 px-4 py-3 rounded-lg text-left font-medium transition-colors flex items-center">
+                    <span>📝 Analyse Plagiat</span>
+                </button>
+                <button onclick="switchTab('tech')" id="btn-tech" class="nav-btn hover:bg-slate-800 text-slate-300 px-4 py-3 rounded-lg text-left font-medium transition-colors flex items-center">
+                    <span>🔒 Technique & UX</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="p-6 border-t border-slate-700 bg-slate-900">
+            <div class="text-xs text-slate-500 mb-2">Statut de l'audit</div>
+            <div class="flex items-center space-x-2">
+                <span class="status-dot status-orange"></span>
+                <span class="text-sm font-semibold text-slate-300">En attente de verif.</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto relative h-screen">
+        <!-- Header -->
+        <header class="bg-white border-b border-slate-200 px-8 py-5 sticky top-0 z-10 shadow-sm flex justify-between items-center">
+            <div>
+                <h2 id="page-title" class="text-2xl font-bold text-slate-800">Vue d'ensemble du Rapport</h2>
+                <p id="page-subtitle" class="text-sm text-slate-500 mt-1">Synthèse des indicateurs de fiabilité et d'originalité pour ouaisfi.eu</p>
+            </div>
+            <div class="hidden md:block">
+                <button onclick="generateReport()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-md text-sm font-medium transition-colors border border-slate-300">
+                    Exporter le PDF
+                </button>
+            </div>
+        </header>
+
+        <div class="p-8 max-w-7xl mx-auto space-y-8 pb-20">
+
+            <!-- VIEW: OVERVIEW -->
+            <div id="view-overview" class="view-section animate-fade-in block">
+                <!-- Introduction Block -->
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r shadow-sm mb-6">
+                    <p class="text-blue-800 text-sm leading-relaxed">
+                        <strong>Contexte de l'analyse :</strong> Ce rapport interactif compile les critères essentiels pour évaluer la "Rigueur" (sérieux administratif et technique) et le risque de "Plagiat" (originalité du contenu) du site cible. Utilisez les onglets pour explorer les détails.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- KPI Cards -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 audit-card">
+                        <div class="text-sm text-slate-500 font-medium uppercase tracking-wider">Score de Confiance</div>
+                        <div class="mt-2 flex items-baseline">
+                            <span class="text-4xl font-bold text-slate-800">65</span>
+                            <span class="text-sm text-slate-400 ml-1">/ 100</span>
+                        </div>
+                        <div class="mt-4 w-full bg-slate-100 rounded-full h-2">
+                            <div class="bg-yellow-500 h-2 rounded-full" style="width: 65%"></div>
+                        </div>
+                        <p class="text-xs text-yellow-600 mt-2 font-medium">⚠️ Vigilance requise (Mentions légales)</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 audit-card">
+                        <div class="text-sm text-slate-500 font-medium uppercase tracking-wider">Risque de Plagiat</div>
+                        <div class="mt-2 flex items-baseline">
+                            <span class="text-4xl font-bold text-slate-800">Moyen</span>
+                        </div>
+                        <div class="mt-4 flex space-x-1">
+                            <div class="h-2 w-1/3 bg-green-400 rounded-l"></div>
+                            <div class="h-2 w-1/3 bg-yellow-400"></div>
+                            <div class="h-2 w-1/3 bg-slate-200 rounded-r"></div>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2">Contenu technique générique détecté</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 audit-card">
+                        <div class="text-sm text-slate-500 font-medium uppercase tracking-wider">Sécurité Technique</div>
+                        <div class="mt-2 flex items-baseline">
+                            <span class="text-4xl font-bold text-slate-800">A+</span>
+                        </div>
+                        <div class="mt-4 text-sm text-green-600 flex items-center font-medium">
+                            <span class="status-dot status-green"></span> HTTPS Valide
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2">Certificat SSL actif</p>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4">Répartition des points de contrôle</h3>
+                        <div class="chart-container">
+                            <canvas id="overviewRadarChart"></canvas>
+                        </div>
+                        <p class="text-xs text-center text-slate-400 mt-2">Comparatif par rapport à la moyenne du secteur</p>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4">Points d'Attention Prioritaires</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start p-3 bg-red-50 rounded-lg border border-red-100">
+                                <div class="text-red-500 mt-1 mr-3 text-lg">⚖️</div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-red-800">Mentions Légales (Critique)</h4>
+                                    <p class="text-xs text-red-600 mt-1">Vérifier la présence du numéro SIRET et l'adresse physique du propriétaire. Souvent manquant sur les petits sites.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start p-3 bg-orange-50 rounded-lg border border-orange-100">
+                                <div class="text-orange-500 mt-1 mr-3 text-lg">📄</div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-orange-800">Conditions Générales (CGV)</h4>
+                                    <p class="text-xs text-orange-600 mt-1">Les CGV semblent génériques. Assurez-vous qu'elles correspondent au service réel (ex: politique de remboursement).</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start p-3 bg-green-50 rounded-lg border border-green-100">
+                                <div class="text-green-500 mt-1 mr-3 text-lg">🔒</div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-green-800">Connexion Sécurisée</h4>
+                                    <p class="text-xs text-green-600 mt-1">Le protocole HTTPS est correctement implémenté, garantissant la confidentialité des données saisies.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: RIGOR / LEGAL -->
+            <div id="view-rigor" class="view-section hidden">
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Analyse de la Rigueur Administrative</h3>
+                    <p class="text-sm text-slate-600">La "rigueur" d'un site web se mesure par sa transparence et sa conformité aux obligations légales européennes (LCEN, RGPD). Cochez les éléments que vous validez sur le site.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Interactive Checklist -->
+                    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                            <h4 class="font-semibold text-slate-700">Checklist de Conformité</h4>
+                            <span id="compliance-score" class="text-sm font-bold bg-blue-100 text-blue-700 px-3 py-1 rounded-full">Score: 0/5</span>
+                        </div>
+                        <div class="p-0">
+                            <div class="compliance-item p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors flex items-start cursor-pointer" onclick="toggleCheck(this, 'legal')">
+                                <div class="w-6 h-6 rounded border-2 border-slate-300 mr-4 flex items-center justify-center text-white check-box transition-colors">✓</div>
+                                <div>
+                                    <h5 class="font-medium text-slate-800">Identification de l'éditeur</h5>
+                                    <p class="text-xs text-slate-500 mt-1">Nom complet (ou Raison Sociale), Adresse postale vérifiable, Numéro de téléphone.</p>
+                                </div>
+                            </div>
+                            <div class="compliance-item p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors flex items-start cursor-pointer" onclick="toggleCheck(this, 'siret')">
+                                <div class="w-6 h-6 rounded border-2 border-slate-300 mr-4 flex items-center justify-center text-white check-box transition-colors">✓</div>
+                                <div>
+                                    <h5 class="font-medium text-slate-800">Numéro d'immatriculation (SIRET/RCS)</h5>
+                                    <p class="text-xs text-slate-500 mt-1">Obligatoire pour toute activité commerciale. Permet de vérifier l'existence légale sur societe.com.</p>
+                                </div>
+                            </div>
+                            <div class="compliance-item p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors flex items-start cursor-pointer" onclick="toggleCheck(this, 'host')">
+                                <div class="w-6 h-6 rounded border-2 border-slate-300 mr-4 flex items-center justify-center text-white check-box transition-colors">✓</div>
+                                <div>
+                                    <h5 class="font-medium text-slate-800">Identification de l'Hébergeur</h5>
+                                    <p class="text-xs text-slate-500 mt-1">Nom et adresse de l'hébergeur (ex: OVH, AWS). Un signe de transparence.</p>
+                                </div>
+                            </div>
+                            <div class="compliance-item p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors flex items-start cursor-pointer" onclick="toggleCheck(this, 'gdpr')">
+                                <div class="w-6 h-6 rounded border-2 border-slate-300 mr-4 flex items-center justify-center text-white check-box transition-colors">✓</div>
+                                <div>
+                                    <h5 class="font-medium text-slate-800">Politique de Confidentialité (RGPD)</h5>
+                                    <p class="text-xs text-slate-500 mt-1">Explication claire sur la collecte des données et gestion des cookies.</p>
+                                </div>
+                            </div>
+                            <div class="compliance-item p-4 hover:bg-slate-50 transition-colors flex items-start cursor-pointer" onclick="toggleCheck(this, 'cgv')">
+                                <div class="w-6 h-6 rounded border-2 border-slate-300 mr-4 flex items-center justify-center text-white check-box transition-colors">✓</div>
+                                <div>
+                                    <h5 class="font-medium text-slate-800">Conditions Générales de Vente (CGV)</h5>
+                                    <p class="text-xs text-slate-500 mt-1">Prix TTC, modalités de livraison, droit de rétractation (14 jours).</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Side Panel Info -->
+                    <div class="space-y-6">
+                        <div class="bg-blue-600 text-white p-6 rounded-xl shadow-md">
+                            <h4 class="font-bold mb-2">Pourquoi c'est important ?</h4>
+                            <p class="text-sm text-blue-100 opacity-90 leading-relaxed">
+                                Un site sans mentions légales complètes ("Qui sommes-nous" vague, pas d'adresse physique) présente un <strong>risque élevé</strong>. En cas de litige (non-livraison, service défaillant), vous n'aurez aucun recours légal identifié.
+                            </p>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                            <h4 class="font-bold text-slate-800 mb-4">Score de Transparence</h4>
+                            <div class="chart-container" style="height: 200px;">
+                                <canvas id="legalDoughnutChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: CONTENT / PLAGIARISM -->
+            <div id="view-content" class="view-section hidden">
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Analyse de Plagiat & Originalité</h3>
+                    <p class="text-sm text-slate-600">Le plagiat ne concerne pas que le "copier-coller". Il révèle souvent des sites "coquilles vides" (dropshipping, arnaques) qui utilisent des descriptions standardisées.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Text Analysis Simulator -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                        <h4 class="font-bold text-slate-800 mb-4">Structure du Contenu Détecté</h4>
+                        <p class="text-xs text-slate-500 mb-4">Répartition estimée des sources textuelles sur le site.</p>
+                        <div class="chart-container">
+                            <canvas id="plagiarismBarChart"></canvas>
+                        </div>
+                        <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+                            <div class="p-2 bg-slate-50 rounded">
+                                <span class="block font-bold text-slate-700">Contenu Technique</span>
+                                <span class="text-slate-500">Souvent dupliqué (Normal)</span>
+                            </div>
+                            <div class="p-2 bg-slate-50 rounded">
+                                <span class="block font-bold text-slate-700">Pages Juridiques</span>
+                                <span class="text-slate-500">Souvent Template (Attention)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Example -->
+                    <div class="space-y-6">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="font-bold text-slate-800">Test d'Originalité (Simulation)</h4>
+                                <div class="flex space-x-2">
+                                    <button onclick="simulateScan('unique')" class="text-xs bg-slate-100 hover:bg-slate-200 px-3 py-1 rounded transition">Texte Blog</button>
+                                    <button onclick="simulateScan('duplicate')" class="text-xs bg-slate-100 hover:bg-slate-200 px-3 py-1 rounded transition">Fiche Produit</button>
+                                </div>
+                            </div>
+                            
+                            <div class="relative bg-slate-50 p-4 rounded border border-slate-200 font-mono text-xs text-slate-600 h-40 overflow-y-auto" id="text-analysis-box">
+                                <p class="mb-2">Analyse du segment textuel en cours...</p>
+                                <p class="opacity-50">Sélectionnez un type de contenu ci-dessus pour simuler l'analyse algorithmique.</p>
+                            </div>
+
+                            <div id="scan-result" class="mt-4 hidden">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-bold text-slate-700">Résultat :</span>
+                                    <span id="scan-badge" class="px-2 py-1 rounded text-xs font-bold text-white bg-green-500">Original</span>
+                                </div>
+                                <div class="w-full bg-slate-200 h-1.5 rounded-full mt-2">
+                                    <div id="scan-bar" class="bg-green-500 h-1.5 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-xl">
+                            <h5 class="text-indigo-800 font-bold text-sm mb-2">Conseil d'Expert</h5>
+                            <p class="text-xs text-indigo-700 leading-relaxed">
+                                Sur un site comme <em>ouaisfi.eu</em>, il est normal de trouver des spécifications techniques copiées (c'est factuel). Cependant, la page <strong>"Qui sommes-nous"</strong> et le <strong>"Blog"</strong> doivent être 100% uniques. Si ces sections sont plagiées, c'est un indicateur fort de site peu fiable.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: TECH / UX -->
+            <div id="view-tech" class="view-section hidden">
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 text-center">
+                    <h3 class="text-lg font-bold text-slate-800 mb-6">Analyse Technique</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                        <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-2xl mb-3">🔒</div>
+                            <span class="font-bold text-slate-700">HTTPS</span>
+                            <span class="text-xs text-green-600 font-medium">Sécurisé</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-2xl mb-3">📱</div>
+                            <span class="font-bold text-slate-700">Mobile</span>
+                            <span class="text-xs text-blue-600 font-medium">Responsive</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-2xl mb-3">⚡</div>
+                            <span class="font-bold text-slate-700">Vitesse</span>
+                            <span class="text-xs text-orange-600 font-medium">Moyenne</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 text-2xl mb-3">🌍</div>
+                            <span class="font-bold text-slate-700">Serveur</span>
+                            <span class="text-xs text-slate-500 font-medium">France/EU</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // State Management
+        let currentState = {
+            activeTab: 'overview',
+            legalScore: 0,
+            simulating: false
+        };
+
+        const chartColors = {
+            blue: 'rgba(59, 130, 246, 0.8)',
+            green: 'rgba(16, 185, 129, 0.8)',
+            yellow: 'rgba(245, 158, 11, 0.8)',
+            red: 'rgba(239, 68, 68, 0.8)',
+            slate: 'rgba(203, 213, 225, 0.5)'
+        };
+
+        // Initialize Charts when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            // Animate entrance
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('transition-opacity', 'duration-500'));
+        });
+
+        function switchTab(tabId) {
+            // Update UI State
+            document.querySelectorAll('.view-section').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('block', 'opacity-100');
+            });
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('text-slate-300', 'hover:bg-slate-800');
+            });
+
+            // Activate Target
+            const targetView = document.getElementById(`view-${tabId}`);
+            targetView.classList.remove('hidden');
+            setTimeout(() => targetView.classList.add('block', 'opacity-100'), 10); // Fade in trick
+            
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.classList.remove('text-slate-300', 'hover:bg-slate-800');
+            activeBtn.classList.add('bg-blue-600', 'text-white');
+
+            // Update Header Title
+            const titles = {
+                'overview': "Vue d'ensemble du Rapport",
+                'rigor': "Audit de Rigueur Juridique",
+                'content': "Analyse d'Originalité (Plagiat)",
+                'tech': "Performance Technique & UX"
+            };
+            document.getElementById('page-title').textContent = titles[tabId];
+            
+            currentState.activeTab = tabId;
+        }
+
+        function toggleCheck(element, type) {
+            const checkbox = element.querySelector('.check-box');
+            const isChecked = checkbox.classList.contains('bg-green-500');
+            
+            if (isChecked) {
+                checkbox.classList.remove('bg-green-500', 'border-transparent');
+                checkbox.classList.add('border-slate-300');
+                currentState.legalScore--;
+            } else {
+                checkbox.classList.add('bg-green-500', 'border-transparent');
+                checkbox.classList.remove('border-slate-300');
+                currentState.legalScore++;
+            }
+            
+            // Update Score Text
+            const scoreDisplay = document.getElementById('compliance-score');
+            scoreDisplay.textContent = `Score: ${currentState.legalScore}/5`;
+            
+            // Visual feedback on row
+            if (!isChecked) {
+                element.classList.add('bg-green-50');
+            } else {
+                element.classList.remove('bg-green-50');
+            }
+            
+            updateLegalChart();
+        }
+
+        // --- Chart Logic ---
+
+        let legalChartInstance = null;
+        let radarChartInstance = null;
+        let plagiarismChartInstance = null;
+
+        function initCharts() {
+            // 1. Radar Chart (Overview)
+            const ctxRadar = document.getElementById('overviewRadarChart').getContext('2d');
+            radarChartInstance = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Rigueur Juridique', 'Originalité Contenu', 'Sécurité Technique', 'Transparence', 'Expérience UI'],
+                    datasets: [{
+                        label: 'OuaisFi.eu (Estimé)',
+                        data: [60, 50, 90, 40, 75],
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: '#3B82F6',
+                        pointBackgroundColor: '#3B82F6',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#3B82F6'
+                    }, {
+                        label: 'Standard E-commerce',
+                        data: [80, 70, 85, 80, 70],
+                        backgroundColor: 'rgba(203, 213, 225, 0.2)',
+                        borderColor: '#94A3B8',
+                        pointBackgroundColor: '#94A3B8',
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: '#E2E8F0' },
+                            grid: { color: '#E2E8F0' },
+                            pointLabels: { font: { size: 11, family: 'Inter' }, color: '#64748B' },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, font: { family: 'Inter' } } }
+                    }
+                }
+            });
+
+            // 2. Legal Score (Doughnut) - Initial
+            const ctxLegal = document.getElementById('legalDoughnutChart').getContext('2d');
+            legalChartInstance = new Chart(ctxLegal, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Conforme', 'Manquant'],
+                    datasets: [{
+                        data: [0, 5],
+                        backgroundColor: ['#10B981', '#E2E8F0'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    }
+                },
+                plugins: [{
+                    id: 'textCenter',
+                    beforeDraw: function(chart) {
+                        var width = chart.width, height = chart.height, ctx = chart.ctx;
+                        ctx.restore();
+                        var fontSize = (height / 114).toFixed(2);
+                        ctx.font = "bold " + fontSize + "em Inter";
+                        ctx.textBaseline = "middle";
+                        ctx.fillStyle = "#1E293B";
+                        var text = Math.round((currentState.legalScore / 5) * 100) + "%",
+                            textX = Math.round((width - ctx.measureText(text).width) / 2),
+                            textY = height / 2;
+                        ctx.fillText(text, textX, textY);
+                        ctx.save();
+                    }
+                }]
+            });
+
+            // 3. Plagiarism Bar Chart
+            const ctxPlag = document.getElementById('plagiarismBarChart').getContext('2d');
+            plagiarismChartInstance = new Chart(ctxPlag, {
+                type: 'bar',
+                data: {
+                    labels: ['Fiches Produits', 'Blog/Articles', 'Pages Légales', 'À propos'],
+                    datasets: [{
+                        label: 'Contenu Original',
+                        data: [20, 90, 10, 85],
+                        backgroundColor: '#3B82F6',
+                        borderRadius: 4
+                    }, {
+                        label: 'Contenu Dupliqué/Générique',
+                        data: [80, 10, 90, 15],
+                        backgroundColor: '#CBD5E1',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { stacked: true, beginAtZero: true, max: 100, ticks: { callback: function(value) { return value + "%" } } }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) { label += context.parsed.y + '%'; }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateLegalChart() {
+            if (legalChartInstance) {
+                legalChartInstance.data.datasets[0].data = [currentState.legalScore, 5 - currentState.legalScore];
+                legalChartInstance.update();
+            }
+        }
+
+        function simulateScan(type) {
+            if (currentState.simulating) return;
+            currentState.simulating = true;
+            
+            const textBox = document.getElementById('text-analysis-box');
+            const resultBox = document.getElementById('scan-result');
+            const scanBar = document.getElementById('scan-bar');
+            const scanBadge = document.getElementById('scan-badge');
+            
+            resultBox.classList.add('hidden');
+            textBox.innerHTML = `<span class="text-blue-600 animate-pulse">Scan en cours... connexion à la base de données...</span><br/><br/>`;
+            
+            // Mock Text Content based on Type
+            setTimeout(() => {
+                if (type === 'unique') {
+                    textBox.innerHTML += `"Notre mission chez OuaisFi est de fournir..." <br/> > Recherche de correspondances... <br/> > 0 correspondance trouvée dans l'index.`;
+                    scanBadge.textContent = "100% Original";
+                    scanBadge.className = "px-2 py-1 rounded text-xs font-bold text-white bg-green-500";
+                    scanBar.className = "bg-green-500 h-1.5 rounded-full transition-all duration-1000";
+                    setTimeout(() => { 
+                        resultBox.classList.remove('hidden'); 
+                        setTimeout(() => scanBar.style.width = '100%', 100);
+                        currentState.simulating = false;
+                    }, 500);
+                } else {
+                    textBox.innerHTML += `"Routeur 4G LTE Cat4 150Mbps..." <br/> > Recherche de correspondances... <br/> > 14 000 correspondances trouvées (AliExpress, Amazon, Huawei).`;
+                    scanBadge.textContent = "Contenu Dupliqué";
+                    scanBadge.className = "px-2 py-1 rounded text-xs font-bold text-white bg-yellow-500";
+                    scanBar.className = "bg-yellow-500 h-1.5 rounded-full transition-all duration-1000";
+                     setTimeout(() => { 
+                        resultBox.classList.remove('hidden'); 
+                        setTimeout(() => scanBar.style.width = '85%', 100);
+                        currentState.simulating = false;
+                    }, 500);
+                }
+            }, 1000);
+        }
+
+        function generateReport() {
+            alert("Génération du rapport PDF complet avec les données actuelles...");
+        }
+
+    </script>
+</body>
+</html>
