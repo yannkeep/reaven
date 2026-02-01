@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>◇ DÉMOGARCHIE — Simulateur Électoral</title>
+<meta name="description" content="Comment fonctionne le vote en Belgique ? Pourquoi votre voix se perd ? Simulation interactive.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Bitter:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#080606;--surface:#0e0b0b;--panel:#141010;--border:#241e1e;
+  --text:#c0b4b0;--dim:#6b5c58;--white:#f5ece8;
+  --sky:#0ea5e9;--sky-dim:rgba(14,165,233,0.1);
+  --red:#ef4444;--green:#22c55e;--amber:#eab308;--violet:#8b5cf6;
+  --mono:'IBM Plex Mono',monospace;--serif:'Bitter',Georgia,serif;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+.header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.logo{font-family:var(--serif);font-weight:900;font-size:1.4rem;color:var(--sky)}
+.logo span{color:var(--dim);font-weight:400;font-size:.8rem}
+.badge{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;padding:.25rem .6rem;border:1px solid var(--sky);color:var(--sky);border-radius:2px}
+.container{max-width:860px;margin:0 auto;padding:2rem 1.5rem 6rem}
+.intro{padding:2rem 0;border-bottom:1px solid var(--border);margin-bottom:2rem}
+.intro h1{font-family:var(--serif);font-weight:900;font-size:2.1rem;line-height:1.15;color:var(--white);margin-bottom:1rem}
+.intro h1 em{font-style:normal;color:var(--sky)}
+.intro p{font-size:.82rem;line-height:1.7;color:var(--dim);max-width:620px}
+
+.tabs{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:2rem}
+.tab{padding:.5rem 1rem;font-family:var(--mono);font-size:.7rem;font-weight:600;background:var(--panel);border:1px solid var(--border);color:var(--dim);cursor:pointer;border-radius:2px;transition:all .15s}
+.tab:hover{border-color:var(--dim);color:var(--text)}
+.tab.active{border-color:var(--sky);color:var(--sky);background:var(--sky-dim)}
+
+.panel{display:none;animation:fadeIn .4s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.sec-title{font-family:var(--serif);font-weight:700;font-size:1.15rem;color:var(--white);margin-bottom:.5rem}
+.sec-sub{font-size:.78rem;color:var(--dim);line-height:1.6;margin-bottom:1.5rem}
+
+/* SIMULATOR */
+.sim-grid{display:flex;flex-direction:column;gap:.5rem;margin:1.5rem 0}
+.sim-row{display:flex;align-items:center;gap:.6rem;padding:.6rem .8rem;background:var(--panel);border:1px solid var(--border);border-radius:2px}
+.sim-party{font-weight:700;font-size:.78rem;color:var(--white);min-width:80px}
+.sim-slider{flex:1;-webkit-appearance:none;height:6px;background:var(--border);border-radius:3px;outline:none}
+.sim-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--sky);cursor:pointer}
+.sim-val{font-family:var(--serif);font-weight:700;font-size:.82rem;color:var(--sky);min-width:40px;text-align:right}
+.sim-seats{font-family:var(--serif);font-weight:900;font-size:.85rem;min-width:50px;text-align:center;padding:.2rem .4rem;background:var(--surface);border-radius:2px}
+
+.sim-total{margin:1rem 0;padding:1rem;background:var(--surface);border:1px solid var(--border);border-radius:2px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem}
+.sim-total-lbl{font-size:.7rem;color:var(--dim)}
+.sim-total-val{font-family:var(--serif);font-weight:900;font-size:1.2rem;color:var(--sky)}
+.sim-warning{font-size:.72rem;color:var(--red);margin-top:.3rem}
+
+/* HEMICYCLE */
+.hemi{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin:1.5rem 0;padding:1rem;background:var(--surface);border-radius:50% 50% 0 0/30% 30% 0 0}
+.seat{width:10px;height:10px;border-radius:50%;transition:background .3s}
+
+.keyfact{margin:1.5rem 0;padding:1.2rem;border-left:3px solid var(--sky);background:var(--sky-dim);border-radius:0 2px 2px 0;font-size:.8rem;line-height:1.7}
+.keyfact strong{color:var(--white)}
+.keyfact em{color:var(--amber);font-style:normal}
+
+.data-table{width:100%;border-collapse:collapse;font-size:.7rem;margin:1.5rem 0}
+.data-table th{text-align:left;padding:.5rem;background:var(--panel);color:var(--dim);text-transform:uppercase;letter-spacing:.06em;font-size:.56rem;border-bottom:1px solid var(--border)}
+.data-table td{padding:.5rem;border-bottom:1px solid rgba(36,30,30,0.5)}
+.num{font-weight:700;color:var(--white);font-family:var(--serif)}
+
+.cmp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin:1.5rem 0}
+.cmp-card{padding:1rem;background:var(--panel);border:1px solid var(--border);border-radius:2px;text-align:center}
+.cmp-val{font-family:var(--serif);font-weight:900;font-size:1.4rem;line-height:1}
+.cmp-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:.3rem}
+
+.footer{margin-top:4rem;padding:1.5rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;font-size:.65rem;color:var(--dim)}
+.footer a{color:var(--green);text-decoration:none}
+@media(max-width:600px){.container{padding:1.5rem 1rem 4rem}.intro h1{font-size:1.7rem}.cmp-grid{grid-template-columns:1fr}.sim-party{min-width:60px;font-size:.68rem}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="display:flex;align-items:center;gap:1rem"><div class="logo">◇ DÉMOGARCHIE <span>/ élections</span></div><div class="badge">舆论战 OPINION</div></div>
+  <div style="font-size:.7rem;color:var(--dim)">MACRO · Module 14/17</div>
+</div>
+<div class="container">
+  <div class="intro">
+    <h1>Simulateur <em>électoral</em></h1>
+    <p>Comprenez comment votre vote se transforme (ou se perd). Simulez des résultats. Découvrez pourquoi le système favorise les gros partis et étouffe les petits.</p>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="showP('sim')">🗳 Simuler</button>
+    <button class="tab" onclick="showP('dhondt')">📐 Clé de Hondt</button>
+    <button class="tab" onclick="showP('seuil')">🚧 Seuil & barrage</button>
+    <button class="tab" onclick="showP('particratie')">🎭 La particratie</button>
+  </div>
+
+  <!-- SIMULATEUR -->
+  <div class="panel active" id="p-sim">
+    <div class="sec-title">Simulez une élection fédérale</div>
+    <div class="sec-sub">Ajustez les pourcentages. L'algorithme D'Hondt calcule les sièges en temps réel. Observez comment de petits changements redistribuent le pouvoir.</div>
+    <div class="sim-grid" id="sim-grid"></div>
+    <div class="sim-total"><div><div class="sim-total-lbl">Total votes</div><div id="sim-total-pct" class="sim-total-val">100%</div><div id="sim-warning" class="sim-warning"></div></div><div><div class="sim-total-lbl">Sièges attribués</div><div id="sim-total-seats" class="sim-total-val">150/150</div></div></div>
+    <div class="hemi" id="hemi"></div>
+    <div class="keyfact"><strong>Ce que la simulation montre :</strong> un parti à 4,9% obtient <em>zéro siège</em> dans une circonscription avec seuil de 5%. Un parti à 5,1% en obtient plusieurs. La différence entre influence et néant = <em>0,2 points</em>. C'est le seuil électoral — et c'est un choix politique, pas une loi de la nature.</div>
+  </div>
+
+  <!-- D'HONDT -->
+  <div class="panel" id="p-dhondt">
+    <div class="sec-title">La clé de D'Hondt — comment ça marche</div>
+    <div class="sec-sub">Le système D'Hondt est utilisé en Belgique pour convertir les votes en sièges. Il favorise systématiquement les gros partis.</div>
+    <div style="padding:1.2rem;background:var(--panel);border:1px solid var(--border);border-radius:2px;font-size:.78rem;line-height:1.8;margin-bottom:1.5rem">
+      <strong style="color:var(--sky)">Principe :</strong><br>
+      1. On divise les votes de chaque parti par 1, 2, 3, 4, 5...<br>
+      2. On attribue les sièges aux quotients les plus élevés<br>
+      3. Les gros partis ont des quotients élevés même divisés par 3 ou 4<br>
+      4. Les petits partis ont des quotients trop faibles dès la division par 2<br><br>
+      <strong style="color:var(--amber)">Résultat :</strong> un parti avec 30% des voix peut obtenir 35-40% des sièges. Un parti avec 4% peut obtenir 0% des sièges. <strong>Le système D'Hondt est un mécanisme de prime aux gros.</strong>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>Parti</th><th>Voix</th><th>÷1</th><th>÷2</th><th>÷3</th><th>÷4</th><th>Sièges</th></tr></thead>
+      <tbody>
+        <tr><td>Parti A</td><td class="num">40.000</td><td class="num" style="color:var(--green)">40.000①</td><td class="num" style="color:var(--green)">20.000③</td><td class="num" style="color:var(--green)">13.333⑤</td><td class="num">10.000</td><td class="num" style="color:var(--sky)">3</td></tr>
+        <tr><td>Parti B</td><td class="num">25.000</td><td class="num" style="color:var(--green)">25.000②</td><td class="num" style="color:var(--green)">12.500⑥</td><td class="num">8.333</td><td class="num">6.250</td><td class="num" style="color:var(--sky)">2</td></tr>
+        <tr><td>Parti C</td><td class="num">15.000</td><td class="num" style="color:var(--green)">15.000④</td><td class="num">7.500</td><td class="num">5.000</td><td class="num">3.750</td><td class="num" style="color:var(--sky)">1</td></tr>
+        <tr><td>Parti D</td><td class="num">5.000</td><td class="num">5.000</td><td class="num">2.500</td><td class="num">1.666</td><td class="num">1.250</td><td class="num" style="color:var(--red)">0</td></tr>
+      </tbody>
+    </table>
+    <div class="keyfact"><strong>Le Parti D</strong> a reçu 5.000 voix (5,9%) mais obtient <em>0 siège</em>. Les 5.000 électeurs ne sont pas représentés. Leur vote est perdu. C'est le prix de la "stabilité" selon les défenseurs du système. C'est le prix de la <em>démocratie confisquée</em> selon ses critiques.</div>
+  </div>
+
+  <!-- SEUIL -->
+  <div class="panel" id="p-seuil">
+    <div class="sec-title">Le seuil électoral de 5%</div>
+    <div class="sec-sub">Depuis 2003, un parti doit atteindre 5% des voix dans une circonscription pour accéder à la répartition des sièges.</div>
+    <div class="cmp-grid">
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--red)">5%</div><div class="cmp-lbl">Seuil électoral belge</div></div>
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--green)">0,67%</div><div class="cmp-lbl">Seuil effectif Pays-Bas</div></div>
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--amber)">~200.000</div><div class="cmp-lbl">Voix perdues par élection</div></div>
+    </div>
+    <div style="padding:1.2rem;background:var(--panel);border:1px solid var(--border);border-radius:2px;font-size:.78rem;line-height:1.8;margin:1.5rem 0">
+      <strong style="color:var(--amber)">Qui en profite ?</strong><br>
+      Le seuil a été introduit en 2003 par les partis au pouvoir (PS, MR, VLD, SP.A). Il a été conçu pour empêcher la fragmentation — mais en pratique, il protège les partis établis et élimine les nouveaux venus. Le PTB a failli disparaître à cause de ce seuil avant de percer en 2014.
+      <br><br>
+      <strong style="color:var(--sky)">Comparaison :</strong> Aux Pays-Bas, il suffit de 0,67% des voix pour un siège. Résultat : 15+ partis au parlement, coalition de 4 partis, mais représentation réelle de la diversité politique. En Belgique, le seuil + D'Hondt créent un oligopole partisan.
+    </div>
+    <div class="keyfact">Environ <strong>200.000 votes</strong> sont "perdus" à chaque élection fédérale à cause du seuil de 5%. Ces électeurs ne sont représentés par personne. <em>La "stabilité" se paie en démocratie confisquée.</em></div>
+  </div>
+
+  <!-- PARTICRATIE -->
+  <div class="panel" id="p-particratie">
+    <div class="sec-title">La particratie — la démocratie des partis</div>
+    <div class="sec-sub">En Belgique, ce n'est pas vous qui choisissez votre représentant. C'est le parti.</div>
+    <table class="data-table">
+      <thead><tr><th>Mécanisme</th><th>Théorie</th><th>Réalité</th></tr></thead>
+      <tbody>
+        <tr><td>Composition des listes</td><td>Les candidats se présentent librement</td><td class="num" style="color:var(--red)">Le président de parti compose la liste et détermine l'ordre</td></tr>
+        <tr><td>Vote de préférence</td><td>Vous choisissez votre candidat favori</td><td class="num" style="color:var(--red)">L'effet dévolutif de la case de tête avantage le 1er de liste</td></tr>
+        <tr><td>Vote au Parlement</td><td>Les députés votent en conscience</td><td class="num" style="color:var(--red)">97% de discipline de parti. Le dissident est éjecté de la liste</td></tr>
+        <tr><td>Négociations coalition</td><td>Le résultat des urnes détermine le gouvernement</td><td class="num" style="color:var(--red)">Les présidents de parti négocient entre eux. Le citoyen n'intervient pas</td></tr>
+        <tr><td>Nominations</td><td>Les meilleurs candidats obtiennent les postes</td><td class="num" style="color:var(--red)">Nominations politiques systématiques (magistrature, entreprises publiques, universités)</td></tr>
+      </tbody>
+    </table>
+    <div class="keyfact">
+      La particratie belge fonctionne ainsi : <strong>4 à 6 présidents de parti</strong>, élus par quelques dizaines de milliers de membres, contrôlent les listes, les coalitions, les votes et les nominations. Le citoyen vote tous les 4-5 ans pour un menu imposé. Le reste du temps, il est spectateur. <em>Ce n'est pas de la démocratie — c'est une franchise électorale.</em>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>◇ DÉMOGARCHIE · <a href="https://ouaisfi.eu">ouaisfieu</a> · CC BY-NC 4.0</div>
+    <div>舆论战 Module 14/17 · Fork • Hack • Spread</div>
+  </div>
+</div>
+<script>
+const PARTIES=[
+  {name:'N-VA',pct:24,color:'#FFCD00'},{name:'Vlaams B.',pct:14,color:'#FFE500'},
+  {name:'Vooruit',pct:10,color:'#FF2900'},{name:'CD&V',pct:8,color:'#FF6600'},
+  {name:'Open VLD',pct:5,color:'#003DA5'},{name:'MR',pct:13,color:'#0047AB'},
+  {name:'PS',pct:8,color:'#FF0000'},{name:'PTB',pct:7,color:'#DD0000'},
+  {name:'Ecolo',pct:3,color:'#00A550'},{name:'Les Eng.',pct:5,color:'#00A5CF'},
+  {name:'DéFI',pct:1,color:'#C20078'},{name:'Autres',pct:2,color:'#666'}
+];
+const TOTAL_SEATS=150;const SEUIL=5;
+
+function dhondt(parties,seats){
+  const eligible=parties.filter(p=>p.pct>=SEUIL);
+  const result=eligible.map(p=>({...p,seats:0}));
+  for(let s=0;s<seats;s++){
+    let maxQ=-1,maxI=0;
+    result.forEach((p,i)=>{const q=p.pct/(p.seats+1);if(q>maxQ){maxQ=q;maxI=i}});
+    result[maxI].seats++;
+  }
+  return parties.map(p=>{const r=result.find(x=>x.name===p.name);return{...p,seats:r?r.seats:0}});
+}
+
+function renderSim(){
+  const grid=document.getElementById('sim-grid');
+  grid.innerHTML=PARTIES.map((p,i)=>`
+    <div class="sim-row">
+      <div class="sim-party" style="color:${p.color}">${p.name}</div>
+      <input type="range" class="sim-slider" min="0" max="40" value="${p.pct}" data-idx="${i}" oninput="updateSim(this)">
+      <div class="sim-val" id="val-${i}">${p.pct}%</div>
+      <div class="sim-seats" id="seats-${i}" style="color:${p.color}">-</div>
+    </div>
+  `).join('');
+  calcSim();
+}
+
+function updateSim(el){
+  const idx=parseInt(el.dataset.idx);
+  PARTIES[idx].pct=parseInt(el.value);
+  document.getElementById('val-'+idx).textContent=el.value+'%';
+  calcSim();
+}
+
+function calcSim(){
+  const total=PARTIES.reduce((s,p)=>s+p.pct,0);
+  const results=dhondt(PARTIES,TOTAL_SEATS);
+  const totalSeats=results.reduce((s,p)=>s+p.seats,0);
+  results.forEach((p,i)=>{
+    const el=document.getElementById('seats-'+i);
+    el.textContent=p.seats+' sièges';
+    el.style.color=p.seats===0&&p.pct>0?'var(--red)':p.color;
+  });
+  document.getElementById('sim-total-pct').textContent=total+'%';
+  document.getElementById('sim-total-pct').style.color=total===100?'var(--sky)':'var(--red)';
+  document.getElementById('sim-total-seats').textContent=totalSeats+'/'+TOTAL_SEATS;
+  document.getElementById('sim-warning').textContent=total!==100?'⚠ Le total devrait être 100%':'';
+  // Hemicycle
+  const hemi=document.getElementById('hemi');
+  let dots='';
+  results.forEach(p=>{for(let i=0;i<p.seats;i++)dots+=`<div class="seat" style="background:${p.color}" title="${p.name}"></div>`});
+  hemi.innerHTML=dots;
+}
+
+function showP(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('p-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+renderSim();
+</script>
+</body>
+</html>

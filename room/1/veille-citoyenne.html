@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>◇ DÉMOGARCHIE — Veille Citoyenne</title>
+<meta name="description" content="Ce que le pouvoir fait pendant que vous ne regardez pas. Système de veille citoyenne.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Bitter:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#050508;--surface:#0a0a0f;--panel:#0e0e18;--border:#1a1a2e;--text:#b0b4c8;--dim:#555878;--white:#eceef8;--warn:#f97316;--warn-dim:rgba(249,115,22,0.1);--red:#ef4444;--green:#22c55e;--amber:#eab308;--cyan:#06b6d4;--mono:'IBM Plex Mono',monospace;--serif:'Bitter',Georgia,serif}
+html{font-size:16px;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+.header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.logo{font-family:var(--serif);font-weight:900;font-size:1.4rem;color:var(--warn)}
+.logo span{color:var(--dim);font-weight:400;font-size:.8rem}
+.badge{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;padding:.25rem .6rem;border:1px solid var(--warn);color:var(--warn);border-radius:2px}
+.container{max-width:860px;margin:0 auto;padding:2rem 1.5rem 6rem}
+.intro{padding:2rem 0;border-bottom:1px solid var(--border);margin-bottom:2rem}
+.intro h1{font-family:var(--serif);font-weight:900;font-size:2.1rem;line-height:1.15;color:var(--white);margin-bottom:1rem}
+.intro h1 em{font-style:normal;color:var(--warn)}
+.intro p{font-size:.82rem;line-height:1.7;color:var(--dim);max-width:620px}
+
+.filter-row{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:1.5rem}
+.filter-btn{padding:.4rem .7rem;font-family:var(--mono);font-size:.65rem;background:var(--panel);border:1px solid var(--border);color:var(--dim);cursor:pointer;border-radius:2px;transition:all .12s}
+.filter-btn:hover{border-color:var(--dim);color:var(--text)}
+.filter-btn.active{border-color:var(--warn);color:var(--warn);background:var(--warn-dim)}
+
+.alert-list{display:flex;flex-direction:column;gap:.6rem}
+.alert-card{padding:1.2rem;background:var(--panel);border:1px solid var(--border);border-radius:2px;cursor:pointer;transition:all .15s}
+.alert-card:hover{border-color:var(--dim)}
+.alert-card.open{border-color:var(--warn)}
+.ac-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.8rem}
+.ac-left{flex:1}
+.ac-severity{display:inline-block;font-size:.55rem;padding:.15rem .5rem;border-radius:2px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem}
+.sev-critical{background:rgba(239,68,68,0.15);color:var(--red)}
+.sev-high{background:rgba(249,115,22,0.15);color:var(--warn)}
+.sev-medium{background:rgba(234,179,8,0.15);color:var(--amber)}
+.sev-low{background:rgba(6,182,212,0.15);color:var(--cyan)}
+.ac-title{font-weight:700;font-size:.85rem;color:var(--white);line-height:1.35}
+.ac-meta{font-size:.62rem;color:var(--dim);margin-top:.3rem}
+.ac-tags{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.3rem}
+.ac-tag{font-size:.55rem;padding:.1rem .4rem;background:var(--surface);border-radius:2px;color:var(--dim)}
+.ac-detail{display:none;margin-top:.8rem;padding-top:.8rem;border-top:1px solid var(--border);font-size:.75rem;line-height:1.75}
+.alert-card.open .ac-detail{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.ac-detail strong{color:var(--white)}
+.ac-impact{margin-top:.6rem;padding:.6rem;background:var(--surface);border-left:2px solid var(--warn);border-radius:0 2px 2px 0;font-size:.72rem}
+.ac-action{margin-top:.6rem;padding:.6rem;background:rgba(34,197,94,0.05);border-left:2px solid var(--green);border-radius:0 2px 2px 0;font-size:.72rem}
+.ac-action strong{color:var(--green)}
+
+.keyfact{margin:2rem 0;padding:1.2rem;border-left:3px solid var(--warn);background:var(--warn-dim);border-radius:0 2px 2px 0;font-size:.8rem;line-height:1.7}
+.keyfact strong{color:var(--white)}
+.keyfact em{color:var(--amber);font-style:normal}
+
+.sources-box{margin:2rem 0;padding:1.2rem;background:var(--panel);border:1px solid var(--border);border-radius:2px}
+.sources-box h3{font-family:var(--serif);font-weight:700;font-size:.9rem;color:var(--warn);margin-bottom:.6rem}
+.src-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.src-item{font-size:.7rem;color:var(--dim);padding:.3rem 0}
+.src-item strong{color:var(--cyan)}
+
+.footer{margin-top:4rem;padding:1.5rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;font-size:.65rem;color:var(--dim)}
+.footer a{color:var(--green);text-decoration:none}
+@media(max-width:600px){.container{padding:1.5rem 1rem 4rem}.intro h1{font-size:1.7rem}.src-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="display:flex;align-items:center;gap:1rem"><div class="logo">◇ DÉMOGARCHIE <span>/ veille</span></div><div class="badge">舆论战 OPINION</div></div>
+  <div style="font-size:.7rem;color:var(--dim)">MACRO · Module 15/17</div>
+</div>
+<div class="container">
+  <div class="intro">
+    <h1>Veille <em>citoyenne</em></h1>
+    <p>Ce que le pouvoir fait pendant que vous ne regardez pas. Chaque alerte est sourcée, expliquée, et accompagnée d'une action possible. Parce que l'information est la première ligne de défense.</p>
+  </div>
+  <div class="filter-row" id="filters"></div>
+  <div class="alert-list" id="alert-list"></div>
+
+  <div class="keyfact">
+    <strong>Pourquoi cette veille est nécessaire :</strong> les décisions les plus importantes sont souvent prises pendant les vacances, enterrées dans des annexes budgétaires, ou annoncées un vendredi soir. La <em>stratégie de l'enfouissement</em> est la première arme du pouvoir. La veille citoyenne est le contre-feu.
+  </div>
+
+  <div class="sources-box">
+    <h3>Sources de veille recommandées</h3>
+    <div class="src-grid">
+      <div class="src-item"><strong>Moniteur belge</strong> — ejustice.just.fgov.be (lois publiées)</div>
+      <div class="src-item"><strong>Chambre.be</strong> — ordres du jour, PV, votes</div>
+      <div class="src-item"><strong>Cumuleo.be</strong> — mandats et rémunérations</div>
+      <div class="src-item"><strong>CRISP</strong> — analyses politiques indépendantes</div>
+      <div class="src-item"><strong>Cour constitutionnelle</strong> — arrêts et recours</div>
+      <div class="src-item"><strong>RTBF Info</strong> — couverture quotidienne</div>
+      <div class="src-item"><strong>Apache.be</strong> — journalisme d'investigation flamand</div>
+      <div class="src-item"><strong>Médor</strong> — journalisme d'investigation wallon</div>
+      <div class="src-item"><strong>Conseil d'État</strong> — avis sur projets de loi</div>
+      <div class="src-item"><strong>BNB</strong> — données économiques officielles</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>◇ DÉMOGARCHIE · <a href="https://ouaisfi.eu">ouaisfieu</a> · CC BY-NC 4.0</div>
+    <div>舆论战 Module 15/17 · Fork • Hack • Spread</div>
+  </div>
+</div>
+<script>
+const ALERTS=[
+  {sev:'critical',title:'Limitation chômage à 24 mois — implémentation 2026',date:'Accord Arizona 2025',tags:['social','chômage','CPAS'],
+   detail:'La mesure phare Arizona entre en application progressive. <strong>90.000 personnes</strong> basculeront vers les CPAS d\'ici 2027. Les CPAS alertent : la compensation fédérale (518€/an/personne) couvre moins de 5% du coût réel.',
+   impact:'Basculement massif vers les CPAS. Les communes devront financer la différence — ou laisser les gens sans rien.',
+   action:'<strong>Recours constitutionnel</strong> déposé (art. 23 standstill). Contactez votre CPAS pour anticiper. Signez la pétition.'},
+  {sev:'critical',title:'Sanctions malades longue durée : -2,5% d\'indemnité',date:'Accord Arizona 2025',tags:['santé','INAMI','emploi'],
+   detail:'Les personnes en incapacité qui ne suivent pas le "Trajet Retour au Travail" perdent 2,5% d\'indemnité. <strong>500.000 personnes</strong> concernées. Causes : burn-out, troubles musculosquelettiques — liés aux conditions de travail.',
+   impact:'Pénalisation financière des malades. Les médecins s\'opposent massivement à la mesure.',
+   action:'<strong>Tribunal du Travail</strong> pour contester. Attestation du médecin traitant. Contact mutuelle pour médiation.'},
+  {sev:'high',title:'Budget austérité : 23 milliards d\'ajustement budgétaire',date:'Trajectoire UE 2025-2029',tags:['budget','austérité','UE'],
+   detail:'La Commission européenne impose à la Belgique un ajustement de <strong>23 milliards €</strong> sur 4 ans. Le gouvernement Arizona a choisi de faire 70% de l\'effort sur les dépenses (coupes) et 30% sur les recettes.',
+   impact:'Coupes dans les services publics, sécurité sociale, investissements. Les plus vulnérables absorbent l\'essentiel de l\'effort.',
+   action:'<strong>Exigez la transparence</strong> sur la répartition de l\'effort. Demandez les alternatives (taxe fortune, fraude fiscale). Utilisez le Simulateur Budget Alternatif.'},
+  {sev:'high',title:'Projet de loi données biométriques — extension surveillance',date:'2025-2026',tags:['vie privée','surveillance','RGPD'],
+   detail:'Extension du cadre légal pour la collecte de données biométriques par les forces de l\'ordre. Reconnaissance faciale dans les espaces publics en discussion. L\'APD a émis un <strong>avis négatif</strong> largement ignoré.',
+   impact:'Surveillance de masse normalisée. Effet dissuasif sur la liberté de manifester.',
+   action:'<strong>Plainte APD</strong>. Contactez la Ligue des droits humains. Soutenez les recours en cours.'},
+  {sev:'medium',title:'Réforme financement partis politiques',date:'Discussion 2025-2026',tags:['démocratie','partis','transparence'],
+   detail:'Projet de réforme du financement public des partis. Le budget actuel : <strong>~70 millions €/an</strong> de dotations publiques. La transparence sur l\'utilisation reste minimale. Les partis se financent eux-mêmes via les lois qu\'ils votent.',
+   impact:'Sans transparence accrue, le financement public reste un self-service politique.',
+   action:'<strong>Exigez la publication des comptes détaillés.</strong> Consultez Cumuleo. Interpellez votre député.'},
+  {sev:'medium',title:'Privatisation rampante SNCB — ouverture à la concurrence',date:'Directive UE, transposition en cours',tags:['transport','privatisation','UE'],
+   detail:'La 4e paquet ferroviaire européen impose l\'ouverture à la concurrence du transport de passagers. Risque : <strong>abandon des lignes non rentables</strong>, augmentation des prix, dégradation du service public.',
+   impact:'Les lignes rurales et les petites gares sont les premières menacées. Le transport public comme droit devient un marché.',
+   action:'<strong>Pétition pour le maintien du service public.</strong> Mobilisation avec les syndicats SNCB. Comparaison avec le désastre britannique.'},
+  {sev:'low',title:'Numérisation administration — fracture numérique',date:'Tendance continue',tags:['numérique','accès','administration'],
+   detail:'La digitalisation croissante des services publics (Tax-on-web, eBox, myPension, CSAM) exclut les personnes sans compétences numériques ou sans accès internet. Estimation : <strong>15-20% de la population</strong> en difficulté numérique.',
+   impact:'Le non-recours aux droits augmente. Les plus vulnérables sont les plus exclus.',
+   action:'<strong>Exigez le maintien des guichets physiques.</strong> Soutenez les EPN (Espaces Publics Numériques). Signalez les problèmes d\'accessibilité.'},
+  {sev:'high',title:'Réforme pensions — recul de l\'âge et conditions durcies',date:'Accord Arizona 2025',tags:['pension','social','travail'],
+   detail:'Durcissement des conditions d\'accès à la pension anticipée. <strong>Allongement de la durée de carrière requise</strong>. Pension minimum pas relevée au-dessus du seuil de pauvreté.',
+   impact:'Les carrières longues dans les métiers pénibles sont les plus touchées. Le recul de l\'âge bénéficie aux cadres, pas aux ouvriers.',
+   action:'<strong>Vérifiez vos droits</strong> sur mypension.be. Contactez votre syndicat. Recours possible si droits acquis violés.'},
+];
+
+const CATS=['tous','social','santé','budget','démocratie','vie privée','transport','numérique','pension'];
+let activeCat='tous';
+
+function renderFilters(){
+  document.getElementById('filters').innerHTML=CATS.map(c=>`<button class="filter-btn ${c==='tous'?'active':''}" onclick="filterAlerts('${c}',this)">${c}</button>`).join('');
+}
+
+function filterAlerts(cat,btn){
+  activeCat=cat;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAlerts();
+}
+
+function renderAlerts(){
+  const filtered=activeCat==='tous'?ALERTS:ALERTS.filter(a=>a.tags.some(t=>t.includes(activeCat)));
+  document.getElementById('alert-list').innerHTML=filtered.map((a,i)=>`
+    <div class="alert-card" onclick="this.classList.toggle('open')">
+      <div class="ac-top">
+        <div class="ac-left">
+          <div class="ac-severity sev-${a.sev}">${a.sev==='critical'?'🔴 Critique':a.sev==='high'?'🟠 Élevé':a.sev==='medium'?'🟡 Moyen':'🔵 Info'}</div>
+          <div class="ac-title">${a.title}</div>
+          <div class="ac-meta">${a.date}</div>
+          <div class="ac-tags">${a.tags.map(t=>`<span class="ac-tag">${t}</span>`).join('')}</div>
+        </div>
+      </div>
+      <div class="ac-detail">
+        ${a.detail}
+        <div class="ac-impact"><strong style="color:var(--warn)">Impact :</strong> ${a.impact}</div>
+        <div class="ac-action">${a.action}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+renderFilters();
+renderAlerts();
+</script>
+</body>
+</html>

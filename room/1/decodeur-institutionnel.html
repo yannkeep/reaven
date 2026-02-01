@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>◇ DÉMOGARCHIE — Décodeur Institutionnel</title>
+<meta name="description" content="Qui est responsable de quoi en Belgique ? La réponse que personne ne vous donne clairement.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Bitter:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060608;--surface:#0a0a0f;--panel:#0f0f18;--border:#1a1a2e;
+  --text:#b0b4c8;--dim:#555878;--white:#eceef8;
+  --indigo:#6366f1;--indigo-dim:rgba(99,102,241,0.1);
+  --red:#ef4444;--green:#22c55e;--amber:#eab308;--cyan:#06b6d4;--rose:#e11d48;
+  --mono:'IBM Plex Mono',monospace;--serif:'Bitter',Georgia,serif;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+.header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.logo{font-family:var(--serif);font-weight:900;font-size:1.4rem;color:var(--indigo)}
+.logo span{color:var(--dim);font-weight:400;font-size:.8rem}
+.badge{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;padding:.25rem .6rem;border:1px solid var(--indigo);color:var(--indigo);border-radius:2px}
+.container{max-width:880px;margin:0 auto;padding:2rem 1.5rem 6rem}
+.intro{padding:2rem 0;border-bottom:1px solid var(--border);margin-bottom:2rem}
+.intro h1{font-family:var(--serif);font-weight:900;font-size:2.1rem;line-height:1.15;color:var(--white);margin-bottom:1rem}
+.intro h1 em{font-style:normal;color:var(--indigo)}
+.intro p{font-size:.82rem;line-height:1.7;color:var(--dim);max-width:620px}
+
+/* SEARCH */
+.search-box{width:100%;padding:.8rem 1rem;margin-bottom:1.5rem;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.82rem;border-radius:2px;outline:none}
+.search-box:focus{border-color:var(--indigo)}
+.search-box::placeholder{color:var(--dim)}
+
+/* PROBLEM GRID */
+.problem-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:2.5rem}
+.prob-btn{
+  padding:.9rem 1rem;background:var(--panel);border:1px solid var(--border);
+  color:var(--text);font-family:var(--mono);font-size:.75rem;cursor:pointer;
+  border-radius:2px;transition:all .15s;text-align:left
+}
+.prob-btn:hover{border-color:var(--dim)}
+.prob-btn .pb-icon{font-size:1.1rem;margin-bottom:.2rem}
+.prob-btn .pb-label{font-weight:700;font-size:.78rem;color:var(--white)}
+.prob-btn .pb-examples{font-size:.62rem;color:var(--dim);margin-top:.15rem;line-height:1.3}
+
+/* RESULT */
+#result{display:none}
+.result-header{font-family:var(--serif);font-weight:900;font-size:1.3rem;color:var(--indigo);margin-bottom:1rem}
+
+.level-card{
+  padding:1.2rem;margin-bottom:.6rem;background:var(--panel);border:1px solid var(--border);
+  border-radius:2px;cursor:pointer;transition:all .15s
+}
+.level-card:hover{border-color:var(--dim)}
+.level-card.open{border-color:var(--indigo)}
+.lc-top{display:flex;justify-content:space-between;align-items:center}
+.lc-level{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:.2rem}
+.lc-name{font-weight:700;font-size:.85rem;color:var(--white)}
+.lc-role{font-size:.7rem;color:var(--dim);margin-top:.15rem}
+.lc-arrow{color:var(--dim);transition:transform .2s}
+.level-card.open .lc-arrow{transform:rotate(180deg)}
+.lc-detail{display:none;margin-top:.8rem;padding-top:.8rem;border-top:1px solid var(--border);font-size:.75rem;line-height:1.7}
+.level-card.open .lc-detail{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.lc-detail strong{color:var(--white)}
+.lc-contact{margin-top:.5rem;padding:.5rem;background:var(--surface);border-radius:2px;font-size:.68rem;color:var(--dim)}
+.lc-contact strong{color:var(--indigo)}
+
+.keyfact{margin:1.5rem 0;padding:1.2rem;border-left:3px solid var(--indigo);background:var(--indigo-dim);border-radius:0 2px 2px 0;font-size:.8rem;line-height:1.7}
+.keyfact strong{color:var(--white)}
+.keyfact em{color:var(--amber);font-style:normal}
+
+.reset-btn{display:block;margin:2rem auto;padding:.8rem 2rem;font-family:var(--mono);font-size:.78rem;background:var(--panel);border:1px solid var(--border);color:var(--dim);cursor:pointer;border-radius:2px}
+.reset-btn:hover{border-color:var(--indigo);color:var(--indigo)}
+
+.footer{margin-top:4rem;padding:1.5rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;font-size:.65rem;color:var(--dim)}
+.footer a{color:var(--green);text-decoration:none}
+@media(max-width:600px){.container{padding:1.5rem 1rem 4rem}.intro h1{font-size:1.7rem}.problem-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="display:flex;align-items:center;gap:1rem"><div class="logo">◇ DÉMOGARCHIE <span>/ institutions</span></div><div class="badge">心理战 PSYCHO</div></div>
+  <div style="font-size:.7rem;color:var(--dim)">MACRO · Module 13/17</div>
+</div>
+<div class="container">
+  <div class="intro">
+    <h1>Décodeur <em>institutionnel</em></h1>
+    <p>Vous avez un problème. Qui est responsable ? À quel niveau de pouvoir ? Qui contacter ? En Belgique, la réponse est toujours plus compliquée que nécessaire. Cet outil la simplifie.</p>
+  </div>
+  <input type="text" class="search-box" id="search" placeholder="🔍 Tapez votre problème : loyer, chômage, école, route, bruit..." oninput="searchProblems()">
+  <div class="problem-grid" id="problem-grid"></div>
+  <div id="result"></div>
+  <div class="footer">
+    <div>◇ DÉMOGARCHIE · <a href="https://ouaisfi.eu">ouaisfieu</a> · CC BY-NC 4.0</div>
+    <div>心理战 Module 13/17 · Fork • Hack • Spread</div>
+  </div>
+</div>
+<script>
+const PROBLEMS=[
+{id:'logement',icon:'🏠',label:'Logement / Loyer',examples:'Loyer abusif, expulsion, insalubrité, logement social',
+levels:[
+{level:'Commune',color:'var(--green)',name:'Service urbanisme / Logement',role:'Permis, salubrité locale, logement social communal',detail:'Le bourgmestre peut ordonner la fermeture d\'un logement insalubre. Le CPAS peut intervenir en urgence pour un relogement. Le service urbanisme gère les permis de bâtir.',contact:'<strong>Contact :</strong> Maison communale → Service logement ou urbanisme'},
+{level:'Région',color:'var(--cyan)',name:'SPW Logement (Wallonie) / SLRB (Bruxelles) / Wonen Vlaanderen',role:'Politique du logement, logement social, primes rénovation, bail',detail:'Les <strong>Régions sont compétentes</strong> pour le logement depuis la 6e réforme de l\'État. Bail d\'habitation, logement social, primes énergie, inspection salubrité — tout est régional. C\'est ici que se décident les politiques de construction et d\'encadrement des loyers (qui n\'existent pas en Belgique).',contact:'<strong>Wallonie :</strong> 1718 (numéro vert) · <strong>Bruxelles :</strong> SLRB 02/533.19.11 · <strong>Recours :</strong> Justice de Paix (bail) ou Tribunal du Travail (logement social)'},
+{level:'Fédéral',color:'var(--amber)',name:'SPF Finances (fiscalité immobilière)',role:'Précompte immobilier (base), TVA construction, déductions fiscales',detail:'Le fédéral ne gère presque plus le logement directement, mais il contrôle la <strong>fiscalité immobilière</strong> (précompte, TVA 6% rénovation, déductions hypothécaires). Les additionnels au précompte sont communaux et régionaux.'}
+]},
+{id:'emploi',icon:'💼',label:'Emploi / Chômage',examples:'Licenciement, allocations, sanctions ONEM, discrimination',
+levels:[
+{level:'Fédéral',color:'var(--amber)',name:'ONEM / SPF Emploi',role:'Allocations chômage, droit du travail, inspection sociale',detail:'Le <strong>droit du travail reste fédéral</strong> : contrats, licenciement, salaire minimum, conventions collectives. L\'ONEM gère les allocations et les sanctions. L\'Inspection sociale (CLS) contrôle les employeurs. Le Tribunal du Travail juge les litiges — gratuitement.',contact:'<strong>ONEM :</strong> 02/515.41.11 · <strong>Inspection :</strong> SPF ETCS (plainte anonyme possible) · <strong>Recours :</strong> Tribunal du Travail (gratuit, 3 mois)'},
+{level:'Région',color:'var(--cyan)',name:'Forem (W) / Actiris (BXL) / VDAB (VL)',role:'Placement, formation, accompagnement, contrôle recherche active',detail:'Depuis la 6e réforme : le <strong>contrôle de la disponibilité</strong> des chômeurs est régionalisé. C\'est le Forem/Actiris/VDAB qui vous convoque, pas l\'ONEM. La formation professionnelle est aussi régionale. Confusion maximale : l\'allocation est fédérale mais le contrôle est régional.',contact:'<strong>Forem :</strong> 0800/93.947 · <strong>Actiris :</strong> 0800/35.123'},
+{level:'Syndicats',color:'var(--green)',name:'FGTB / CSC / CGSLB',role:'Paiement allocations, défense juridique, négociation',detail:'En Belgique, ce sont les <strong>syndicats qui paient les allocations de chômage</strong> (système Ghent). Ils assurent aussi la défense juridique devant le Tribunal du Travail. Si vous n\'êtes pas syndiqué : la CAPAC (Caisse auxiliaire) paie les allocations.'}
+]},
+{id:'sante',icon:'🏥',label:'Santé / Mutuelle',examples:'Remboursement, incapacité, médecin-conseil, médicaments',
+levels:[
+{level:'Fédéral',color:'var(--amber)',name:'INAMI / SPF Santé',role:'Assurance maladie, remboursements, normes, médicaments',detail:'L\'<strong>INAMI fixe les remboursements</strong>, le prix des médicaments, les conventions avec médecins. Le SPF Santé réglemente les professions de santé et les hôpitaux. Le contentieux INAMI (refus de remboursement, invalidité) se traite au Tribunal du Travail.',contact:'<strong>INAMI :</strong> 02/739.71.11 · <strong>Recours :</strong> Tribunal du Travail (gratuit, 3 mois après notification)'},
+{level:'Mutuelle',color:'var(--green)',name:'MC / Solidaris / Partenamut / Helan / OZ...',role:'Paiement remboursements, complémentaire, BIM, médecin-conseil',detail:'Les <strong>mutuelles gèrent au quotidien</strong> vos remboursements, le statut BIM, l\'incapacité de travail et le médecin-conseil. Le médecin-conseil de la mutuelle peut vous déclarer apte au travail — contre l\'avis de votre médecin traitant. Recours : Tribunal du Travail.',contact:'<strong>Médiation :</strong> service médiation interne de votre mutuelle · <strong>Recours :</strong> Tribunal du Travail'},
+{level:'Communauté',color:'var(--violet)',name:'ONE (FWB) / Kind & Gezin (VL)',role:'Prévention, petite enfance, santé scolaire',detail:'Les Communautés gèrent la <strong>prévention et la promotion de la santé</strong>, la médecine scolaire, les crèches (ONE en FWB). C\'est un niveau souvent oublié mais crucial pour l\'accès aux soins.'}
+]},
+{id:'ecole',icon:'🎓',label:'École / Enseignement',examples:'Inscription, exclusion, frais scolaires, harcèlement, orientation',
+levels:[
+{level:'Communauté',color:'var(--violet)',name:'FWB (Ministère Éducation) / Onderwijs Vlaanderen',role:'Programmes, diplômes, financement écoles, inspection',detail:'L\'enseignement est une compétence <strong>100% communautaire</strong>. C\'est la FWB (pas la Wallonie, pas le fédéral) qui gère les programmes, les diplômes, le financement des écoles, l\'inspection. Confusion fréquente : un ministre wallon n\'a AUCUN pouvoir sur les écoles.',contact:'<strong>FWB :</strong> 02/690.80.00 · <strong>Recours inscription :</strong> Commission inter-réseaux des inscriptions'},
+{level:'Pouvoir organisateur',color:'var(--cyan)',name:'Commune / Réseau libre / WBE',role:'Gestion de l\'école, personnel, discipline',detail:'Chaque école dépend d\'un <strong>pouvoir organisateur</strong> : la commune (officiel), le réseau libre (catholique souvent), ou WBE (ex-Communauté). Le PO gère le personnel, la discipline, les bâtiments. Pour contester une exclusion ou une décision : recours au PO puis au Conseil d\'État.'},
+{level:'École',color:'var(--green)',name:'Direction / Centre PMS',role:'Quotidien, orientation, harcèlement',detail:'Le premier interlocuteur est la direction. Le <strong>Centre PMS</strong> (psycho-médico-social) peut intervenir pour l\'orientation, le harcèlement, les difficultés d\'apprentissage. Service gratuit et confidentiel.'}
+]},
+{id:'fiscal',icon:'💰',label:'Impôts / Taxes',examples:'Déclaration, réclamation, précompte, taxe communale, contrôle fiscal',
+levels:[
+{level:'Fédéral',color:'var(--amber)',name:'SPF Finances',role:'IPP, ISOC, TVA, précompte immobilier (base), contrôle fiscal',detail:'Le <strong>SPF Finances</strong> gère l\'impôt des personnes physiques (IPP), l\'impôt des sociétés, la TVA, et la base du précompte immobilier. Réclamation : 6 mois après l\'avertissement-extrait de rôle pour l\'IPP, 3 mois pour le précompte. Courrier recommandé au Directeur régional.',contact:'<strong>Contact :</strong> 02/572.57.57 · <strong>Réclamation :</strong> Directeur régional contributions · <strong>Recours :</strong> Tribunal 1re instance (si réclamation rejetée)'},
+{level:'Région',color:'var(--cyan)',name:'Fiscalité régionale',role:'Additionnels IPP, droits d\'enregistrement, droits de succession, taxe circulation',detail:'Les Régions fixent les <strong>additionnels à l\'IPP</strong> (qui modifient votre impôt final), les droits d\'enregistrement (achat immobilier), les droits de succession, et la taxe de circulation. C\'est pourquoi acheter à Bruxelles ou en Flandre a un impact fiscal différent.'},
+{level:'Commune',color:'var(--green)',name:'Taxes communales',role:'Additionnels précompte, taxes locales (immondices, parking...)',detail:'La commune ajoute des <strong>centimes additionnels au précompte immobilier</strong> (variable : 1.500 à 3.200 selon commune) et vote des taxes propres (immondices, force motrice, enseignes). Contestation : réclamation au collège communal, puis Tribunal 1re instance.'}
+]},
+{id:'route',icon:'🛣',label:'Route / Transport / Mobilité',examples:'Nid-de-poule, transport en commun, permis, stationnement',
+levels:[
+{level:'Commune',color:'var(--green)',name:'Service voirie / Travaux publics',role:'Voiries communales, signalisation, éclairage, stationnement',detail:'Les <strong>voiries communales</strong> (la majorité des routes en ville) sont de compétence communale. Nid-de-poule, éclairage, trottoir, signalisation, zones 30 — c\'est la commune. Pour signaler : service travaux publics ou application Fix My Street.',contact:'<strong>Fix My Street :</strong> fixmystreet.be · <strong>Service voirie :</strong> maison communale'},
+{level:'Région',color:'var(--cyan)',name:'SPW Mobilité (W) / Bruxelles Mobilité / AWV (VL)',role:'Routes régionales, TEC/STIB/De Lijn, politique mobilité',detail:'Les <strong>routes régionales et autoroutes</strong> sont gérées par la Région. Les transports en commun aussi : TEC (Wallonie), STIB (Bruxelles), De Lijn (Flandre). Le permis de conduire est fédéral mais les examens sont régionaux. Plainte TEC : tec-wl.be/contact.'},
+{level:'Fédéral',color:'var(--amber)',name:'SNCB / SPF Mobilité',role:'Chemins de fer, code de la route, immatriculation, contrôle technique',detail:'Le <strong>rail reste fédéral</strong> (SNCB/Infrabel). Le code de la route est fédéral. Le contrôle technique est régionalisé depuis 2015 mais les normes restent fédérales. Plainte SNCB : belgiantrain.be/fr/contact.'}
+]},
+{id:'environnement',icon:'🌳',label:'Environnement / Nuisances',examples:'Bruit, pollution, déchets, permis environnement, amiante',
+levels:[
+{level:'Commune',color:'var(--green)',name:'Service environnement / Police',role:'Bruit, dépôts sauvages, animaux, propreté',detail:'Le <strong>bruit de voisinage</strong>, les dépôts sauvages, la propreté publique — c\'est la commune (police administrative). Le bourgmestre peut prendre des arrêtés. Pour les nuisances sonores : constat par agent de police, puis amende administrative communale (SAC).',contact:'<strong>Contact :</strong> service environnement de la commune · <strong>Urgence :</strong> police locale'},
+{level:'Région',color:'var(--cyan)',name:'SPW Environnement (W) / Bruxelles Environnement / OVAM (VL)',role:'Permis environnement, pollution sol/air/eau, déchets industriels',detail:'Les <strong>permis d\'environnement</strong> sont régionaux. La pollution industrielle, la qualité de l\'air, le traitement des déchets — c\'est la Région. Pour signaler une pollution : SOS Environnement (0800/11.901 Wallonie). Les intercommunales de gestion des déchets sont supervisées par la Région.'},
+{level:'Fédéral',color:'var(--amber)',name:'SPF Santé (produits chimiques) / AFCN (nucléaire)',role:'Normes produits, amiante, nucléaire, REACH',detail:'Le fédéral gère les <strong>normes produits</strong> (chimiques, amiante) et le nucléaire (AFCN). La protection contre les rayonnements, les risques Seveso, et la réglementation REACH sont fédéraux.'}
+]},
+{id:'donnees',icon:'🔒',label:'Vie privée / Données',examples:'RGPD, caméras, fichage, données personnelles, surveillance',
+levels:[
+{level:'Fédéral',color:'var(--amber)',name:'APD (Autorité Protection Données)',role:'RGPD, plaintes données personnelles, contrôle fichiers',detail:'L\'<strong>APD</strong> est l\'autorité de contrôle RGPD en Belgique. Toute plainte concernant vos données personnelles (entreprise, administration, réseau social) passe par l\'APD. Gratuit. Backlog important (6-18 mois). Peut infliger des amendes jusqu\'à 20M€.',contact:'<strong>APD :</strong> autoriteprotectiondonnees.be · <strong>1re étape :</strong> demande directe au DPO de l\'organisme (art. 15 RGPD, réponse 30 jours)'},
+{level:'Commune',color:'var(--green)',name:'Caméras de surveillance communales',role:'CCTV, reconnaissance faciale, sécurité locale',detail:'Les communes installent les <strong>caméras de surveillance</strong> sur la voie publique. Elles doivent déclarer leurs caméras à la police et à l\'APD. Vous avez le droit de savoir si vous êtes filmé et de demander l\'accès aux images vous concernant.'}
+]}
+];
+
+function renderProblems(data){
+  document.getElementById('problem-grid').innerHTML=data.map(p=>`
+    <div class="prob-btn" onclick="showResult('${p.id}')">
+      <div class="pb-icon">${p.icon}</div>
+      <div class="pb-label">${p.label}</div>
+      <div class="pb-examples">${p.examples}</div>
+    </div>`).join('');
+}
+
+function searchProblems(){
+  const q=document.getElementById('search').value.toLowerCase();
+  if(!q){renderProblems(PROBLEMS);return}
+  renderProblems(PROBLEMS.filter(p=>p.label.toLowerCase().includes(q)||p.examples.toLowerCase().includes(q)||p.levels.some(l=>l.detail.toLowerCase().includes(q))));
+}
+
+function showResult(id){
+  const p=PROBLEMS.find(x=>x.id===id);if(!p)return;
+  document.getElementById('problem-grid').style.display='none';
+  document.getElementById('search').style.display='none';
+  const el=document.getElementById('result');
+  el.innerHTML=`
+    <div class="result-header">${p.icon} ${p.label}</div>
+    ${p.levels.map((l,i)=>`
+      <div class="level-card" onclick="this.classList.toggle('open')">
+        <div class="lc-top">
+          <div>
+            <div class="lc-level" style="color:${l.color}">${l.level}</div>
+            <div class="lc-name">${l.name}</div>
+            <div class="lc-role">${l.role}</div>
+          </div>
+          <div class="lc-arrow">▾</div>
+        </div>
+        <div class="lc-detail">${l.detail}${l.contact?`<div class="lc-contact">${l.contact}</div>`:''}</div>
+      </div>
+    `).join('')}
+    <div class="keyfact">
+      <strong>Pourquoi c'est si compliqué ?</strong> Parce que la complexité institutionnelle belge n'est pas un accident — c'est un <em>mécanisme de pouvoir</em>. Plus le système est opaque, moins le citoyen peut l'interpeller, et plus les intermédiaires (partis, cabinets, lobbies) sont indispensables. Simplifier les institutions réduirait leur pouvoir. C'est pourquoi ils ne le font pas.
+    </div>
+    <button class="reset-btn" onclick="resetView()">← Autre problème</button>
+  `;
+  el.style.display='block';
+  el.scrollIntoView({behavior:'smooth'});
+}
+
+function resetView(){
+  document.getElementById('problem-grid').style.display='';
+  document.getElementById('search').style.display='';
+  document.getElementById('result').style.display='none';
+  document.getElementById('search').value='';
+  renderProblems(PROBLEMS);
+}
+
+renderProblems(PROBLEMS);
+</script>
+</body>
+</html>
