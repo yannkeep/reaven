@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>◇ DÉMOGARCHIE — Atlas des Inégalités</title>
+<meta name="description" content="La Belgique en chiffres : revenus, santé, logement, éducation, accès aux droits. Commune par commune.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Bitter:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#050508;--surface:#0a0a0f;--panel:#0e0e16;--border:#1b1b2b;
+  --text:#b0b4c8;--dim:#555878;--white:#eceef8;
+  --rose:#e11d48;--rose-dim:rgba(225,29,72,0.1);
+  --amber:#f59e0b;--green:#10b981;--blue:#3b82f6;--cyan:#06b6d4;--violet:#8b5cf6;
+  --mono:'IBM Plex Mono',monospace;--serif:'Bitter',Georgia,serif;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+.header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.logo{font-family:var(--serif);font-weight:900;font-size:1.4rem;color:var(--rose)}
+.logo span{color:var(--dim);font-weight:400;font-size:.8rem}
+.badge{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;padding:.25rem .6rem;border:1px solid var(--rose);color:var(--rose);border-radius:2px}
+
+.container{max-width:900px;margin:0 auto;padding:2rem 1.5rem 6rem}
+
+.intro{padding:2rem 0;border-bottom:1px solid var(--border);margin-bottom:2rem}
+.intro h1{font-family:var(--serif);font-weight:900;font-size:2.1rem;line-height:1.15;color:var(--white);margin-bottom:1rem}
+.intro h1 em{font-style:normal;color:var(--rose)}
+.intro p{font-size:.82rem;line-height:1.7;color:var(--dim);max-width:620px}
+
+/* THEME TABS */
+.theme-tabs{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:2rem}
+.ttab{
+  padding:.5rem 1rem;font-family:var(--mono);font-size:.7rem;font-weight:600;
+  background:var(--panel);border:1px solid var(--border);color:var(--dim);
+  cursor:pointer;border-radius:2px;transition:all .15s
+}
+.ttab:hover{border-color:var(--dim);color:var(--text)}
+.ttab.active{border-color:var(--rose);color:var(--rose);background:var(--rose-dim)}
+
+.theme{display:none;animation:fadeIn .4s ease}
+.theme.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.th-title{font-family:var(--serif);font-weight:900;font-size:1.3rem;color:var(--white);margin-bottom:.3rem}
+.th-sub{font-size:.78rem;color:var(--dim);line-height:1.6;margin-bottom:1.5rem}
+
+/* BAR CHART */
+.bar-section{margin-bottom:2rem}
+.bar-title{font-size:.72rem;font-weight:700;color:var(--white);margin-bottom:.8rem;text-transform:uppercase;letter-spacing:.06em}
+.bar-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem}
+.bar-label{font-size:.68rem;color:var(--dim);min-width:130px;text-align:right}
+.bar-track{flex:1;height:22px;background:var(--border);border-radius:2px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:2px;display:flex;align-items:center;padding-left:.5rem;font-size:.6rem;font-weight:700;color:var(--bg);transition:width 1.2s cubic-bezier(0.22,1,0.36,1);min-width:fit-content}
+.bar-val{font-size:.68rem;color:var(--white);font-weight:700;min-width:60px;text-align:right}
+
+/* KEYFACT */
+.keyfact{margin:1.5rem 0;padding:1.2rem;border-left:3px solid var(--rose);background:var(--rose-dim);border-radius:0 2px 2px 0;font-size:.8rem;line-height:1.7}
+.keyfact strong{color:var(--white)}
+.keyfact em{color:var(--amber);font-style:normal}
+
+/* COMPARE CARDS */
+.cmp-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin:1.5rem 0}
+.cmp-card{padding:1rem;background:var(--panel);border:1px solid var(--border);border-radius:2px;text-align:center}
+.cmp-val{font-family:var(--serif);font-weight:900;font-size:1.5rem;line-height:1}
+.cmp-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-top:.3rem}
+.cmp-sub{font-size:.65rem;color:var(--text);margin-top:.3rem}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:.7rem;margin:1.5rem 0}
+.data-table th{text-align:left;padding:.5rem;background:var(--panel);color:var(--dim);text-transform:uppercase;letter-spacing:.06em;font-size:.56rem;border-bottom:1px solid var(--border)}
+.data-table td{padding:.5rem;border-bottom:1px solid rgba(27,27,43,0.4)}
+.data-table tr:hover td{background:rgba(225,29,72,0.03)}
+.num{font-weight:700;color:var(--white);font-family:var(--serif)}
+
+/* GRADIENT BAR LEGEND */
+.gradient-legend{display:flex;align-items:center;gap:.5rem;margin:1rem 0;font-size:.62rem;color:var(--dim)}
+.gradient-bar{height:8px;width:200px;border-radius:4px}
+
+.footer{margin-top:4rem;padding:1.5rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;font-size:.65rem;color:var(--dim)}
+.footer a{color:var(--green);text-decoration:none}
+
+@media(max-width:600px){
+  .container{padding:1.5rem 1rem 4rem}
+  .intro h1{font-size:1.7rem}
+  .cmp-grid{grid-template-columns:1fr}
+  .bar-label{min-width:80px;font-size:.6rem}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:1rem">
+    <div class="logo">◇ DÉMOGARCHIE <span>/ atlas</span></div>
+    <div class="badge">心理战 PSYCHO</div>
+  </div>
+  <div style="font-size:.7rem;color:var(--dim)">MACRO · Module 11/17</div>
+</div>
+
+<div class="container">
+
+  <div class="intro">
+    <h1>Atlas des <em>inégalités</em></h1>
+    <p>La Belgique est l'un des pays les plus riches d'Europe. Mais la richesse est concentrée, la pauvreté est structurelle, et les inégalités se lisent dans chaque indicateur — si on prend la peine de regarder.</p>
+  </div>
+
+  <div class="theme-tabs">
+    <button class="ttab active" onclick="showTheme('revenus')">Revenus</button>
+    <button class="ttab" onclick="showTheme('sante')">Santé</button>
+    <button class="ttab" onclick="showTheme('logement')">Logement</button>
+    <button class="ttab" onclick="showTheme('education')">Éducation</button>
+    <button class="ttab" onclick="showTheme('emploi')">Emploi</button>
+    <button class="ttab" onclick="showTheme('acces')">Accès aux droits</button>
+    <button class="ttab" onclick="showTheme('patrimoine')">Patrimoine</button>
+  </div>
+
+  <!-- ===== REVENUS ===== -->
+  <div class="theme active" id="th-revenus">
+    <div class="th-title">Revenus : la fracture invisible</div>
+    <div class="th-sub">Le revenu médian belge cache des écarts vertigineux entre communes, entre régions, entre générations.</div>
+
+    <div class="bar-section">
+      <div class="bar-title">Revenu médian par commune (extrêmes)</div>
+      <div id="bars-revenus"></div>
+    </div>
+
+    <div class="cmp-grid">
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--green)">41.200 €</div><div class="cmp-lbl">Lasne</div><div class="cmp-sub">Commune la plus riche</div></div>
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--text)">20.600 €</div><div class="cmp-lbl">Médiane nationale</div><div class="cmp-sub">La moitié gagne moins</div></div>
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--rose)">11.800 €</div><div class="cmp-lbl">Saint-Josse</div><div class="cmp-sub">Commune la plus pauvre</div></div>
+    </div>
+
+    <div class="keyfact">
+      Le rapport est de <strong>1 à 3,5</strong> entre la commune la plus riche et la plus pauvre. Naître à Lasne ou à Saint-Josse ne détermine pas seulement votre revenu — cela détermine votre espérance de vie, le niveau d'éducation de vos enfants, et votre accès aux soins. <em>Le code postal est un destin en Belgique.</em>
+    </div>
+
+    <div class="bar-section">
+      <div class="bar-title">Taux de pauvreté par région</div>
+      <div id="bars-pauvrete"></div>
+    </div>
+
+    <table class="data-table">
+      <thead><tr><th>Indicateur</th><th>Flandre</th><th>Wallonie</th><th>Bruxelles</th><th>Belgique</th></tr></thead>
+      <tbody>
+        <tr><td>Taux de risque de pauvreté</td><td class="num">10%</td><td class="num">24%</td><td class="num">33%</td><td class="num">14,5%</td></tr>
+        <tr><td>Revenu médian</td><td class="num">23.400 €</td><td class="num">18.900 €</td><td class="num">15.500 €</td><td class="num">20.600 €</td></tr>
+        <tr><td>Coefficient de Gini</td><td class="num">0.26</td><td class="num">0.29</td><td class="num">0.34</td><td class="num">0.28</td></tr>
+        <tr><td>Déprivation matérielle sévère</td><td class="num">3%</td><td class="num">8%</td><td class="num">12%</td><td class="num">5,5%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== SANTÉ ===== -->
+  <div class="theme" id="th-sante">
+    <div class="th-title">Santé : mourir plus tôt selon votre code postal</div>
+    <div class="th-sub">L'espérance de vie varie de plus de 5 ans entre communes belges. Ce n'est pas de la génétique — c'est de la politique.</div>
+
+    <div class="cmp-grid">
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--green)">84,2 ans</div><div class="cmp-lbl">Woluwe-Saint-Pierre</div><div class="cmp-sub">Commune avec la plus haute espérance de vie</div></div>
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--text)">81,7 ans</div><div class="cmp-lbl">Moyenne nationale</div><div class="cmp-sub">Belgique</div></div>
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--rose)">77,4 ans</div><div class="cmp-lbl">Farciennes</div><div class="cmp-sub">Sillon industriel</div></div>
+    </div>
+
+    <div class="keyfact">
+      <strong>6,8 ans d'écart</strong> d'espérance de vie entre Woluwe-Saint-Pierre et Farciennes. La géographie de la santé en Belgique épouse parfaitement la géographie de la richesse. Les communes du Brabant wallon vivent aussi longtemps que les Scandinaves. Les communes du sillon industriel meurent comme les pays de l'Est.
+    </div>
+
+    <div class="bar-section">
+      <div class="bar-title">Report de soins pour raisons financières</div>
+      <div id="bars-soins"></div>
+    </div>
+
+    <table class="data-table">
+      <thead><tr><th>Indicateur</th><th>Quintile 1 (pauvres)</th><th>Quintile 5 (riches)</th><th>Ratio</th></tr></thead>
+      <tbody>
+        <tr><td>Report de soins dentaires</td><td class="num">22%</td><td class="num">3%</td><td class="num">×7,3</td></tr>
+        <tr><td>Report de soins médicaux</td><td class="num">8,4%</td><td class="num">1,1%</td><td class="num">×7,6</td></tr>
+        <tr><td>Obésité</td><td class="num">22%</td><td class="num">9%</td><td class="num">×2,4</td></tr>
+        <tr><td>Dépression diagnostiquée</td><td class="num">14%</td><td class="num">5%</td><td class="num">×2,8</td></tr>
+        <tr><td>Sans médecin traitant</td><td class="num">11%</td><td class="num">2%</td><td class="num">×5,5</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== LOGEMENT ===== -->
+  <div class="theme" id="th-logement">
+    <div class="th-title">Logement : le premier poste de dépense, le dernier poste d'investissement</div>
+    <div class="th-sub">En Belgique, le logement absorbe une part croissante des revenus des ménages pauvres — et l'offre publique est dérisoire.</div>
+
+    <div class="cmp-grid">
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--rose)">55%</div><div class="cmp-lbl">Part du loyer / revenu</div><div class="cmp-sub">Locataires pauvres à Bruxelles</div></div>
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--amber)">50.000+</div><div class="cmp-lbl">Ménages en attente</div><div class="cmp-sub">Logement social (toutes régions)</div></div>
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--blue)">6,5%</div><div class="cmp-lbl">Part logement social</div><div class="cmp-sub">Belgique (vs 30% Pays-Bas)</div></div>
+    </div>
+
+    <div class="bar-section">
+      <div class="bar-title">Part du logement social dans le parc total</div>
+      <div id="bars-social"></div>
+    </div>
+
+    <div class="keyfact">
+      La Belgique a <strong>6,5% de logements sociaux</strong> contre 30% aux Pays-Bas et 60% à Vienne. Un ménage bruxellois pauvre consacre <em>55% de son revenu au loyer</em> — quand la norme acceptable est de 30%. Le logement est le premier facteur de pauvreté en Belgique, et le dernier poste d'investissement public.
+    </div>
+
+    <table class="data-table">
+      <thead><tr><th>Indicateur</th><th>Belgique</th><th>Pays-Bas</th><th>France</th><th>Vienne</th></tr></thead>
+      <tbody>
+        <tr><td>Logements sociaux (% parc)</td><td class="num">6,5%</td><td class="num">30%</td><td class="num">17%</td><td class="num">60%</td></tr>
+        <tr><td>Délai attente logement social</td><td class="num">8-12 ans</td><td class="num">5-8 ans</td><td class="num">3-6 ans</td><td class="num">~2 ans</td></tr>
+        <tr><td>Encadrement des loyers</td><td class="num">Non</td><td class="num">Oui</td><td class="num">Partiel</td><td class="num">Oui</td></tr>
+        <tr><td>SDF estimés</td><td class="num">~7.000</td><td class="num">~32.000</td><td class="num">~330.000</td><td class="num">~12.000</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== ÉDUCATION ===== -->
+  <div class="theme" id="th-education">
+    <div class="th-title">Éducation : le grand ascenseur en panne</div>
+    <div class="th-sub">La Belgique a l'un des systèmes éducatifs les plus inégalitaires de l'OCDE. L'école reproduit les inégalités au lieu de les corriger.</div>
+
+    <div class="cmp-grid">
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--rose)">40%</div><div class="cmp-lbl">Revenu parental → revenu enfant</div><div class="cmp-sub">Élasticité intergénérationnelle (OCDE)</div></div>
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--amber)">130 pts</div><div class="cmp-lbl">Écart PISA riche/pauvre</div><div class="cmp-sub">FWB — un des plus élevés OCDE</div></div>
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--blue)">8%</div><div class="cmp-lbl">Chance de mobilité ascendante</div><div class="cmp-sub">Q1 → Q4 en une génération</div></div>
+    </div>
+
+    <div class="keyfact">
+      En Fédération Wallonie-Bruxelles, l'écart PISA entre élèves riches et pauvres est de <strong>130 points</strong> — l'équivalent de 3 années scolaires. Un enfant issu du quartile le plus pauvre n'a que <em>8% de chances</em> d'atteindre le quartile le plus riche. L'école belge ne corrige pas les inégalités — elle les certifie.
+    </div>
+
+    <table class="data-table">
+      <thead><tr><th>Indicateur</th><th>FWB</th><th>Flandre</th><th>Finlande</th><th>Moyenne OCDE</th></tr></thead>
+      <tbody>
+        <tr><td>Score PISA maths</td><td class="num">483</td><td class="num">527</td><td class="num">507</td><td class="num">489</td></tr>
+        <tr><td>Écart socio-économique PISA</td><td class="num">130 pts</td><td class="num">99 pts</td><td class="num">70 pts</td><td class="num">89 pts</td></tr>
+        <tr><td>Redoublement (15 ans)</td><td class="num">48%</td><td class="num">28%</td><td class="num">3%</td><td class="num">11%</td></tr>
+        <tr><td>Ségrégation scolaire (index)</td><td class="num">0.35</td><td class="num">0.28</td><td class="num">0.12</td><td class="num">0.22</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== EMPLOI ===== -->
+  <div class="theme" id="th-emploi">
+    <div class="th-title">Emploi : travailler et rester pauvre</div>
+    <div class="th-sub">Le marché du travail belge combine un chômage structurel, un coin fiscal record et une pauvreté laborieuse en hausse.</div>
+
+    <div class="cmp-grid">
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--amber)">52,6%</div><div class="cmp-lbl">Coin fiscal</div><div class="cmp-sub">Le plus élevé OCDE</div></div>
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--rose)">15%</div><div class="cmp-lbl">Working poor</div><div class="cmp-sub">Travailleurs sous le seuil pauvreté</div></div>
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--blue)">72%</div><div class="cmp-lbl">Taux d'emploi</div><div class="cmp-sub">Objectif UE : 80%</div></div>
+    </div>
+
+    <div class="bar-section">
+      <div class="bar-title">Taux de chômage par groupe</div>
+      <div id="bars-chomage"></div>
+    </div>
+
+    <div class="keyfact">
+      Le chômage des jeunes d'origine non-UE atteint <strong>35%</strong> — non par manque de volonté mais par <em>discrimination documentée à l'embauche</em> (testing Unia). Le coin fiscal de 52,6% signifie qu'un employeur paie plus de 2× le net que reçoit le travailleur. L'écart va dans les cotisations — qui financent votre sécurité sociale. Le problème n'est pas le coût du travail, c'est que le capital n'est pas taxé à proportion.
+    </div>
+  </div>
+
+  <!-- ===== ACCÈS AUX DROITS ===== -->
+  <div class="theme" id="th-acces">
+    <div class="th-title">Accès aux droits : la grande dépossession</div>
+    <div class="th-sub">Des millions de Belges ne réclament pas les droits auxquels ils ont droit. Ce n'est pas de la paresse — c'est de l'architecture.</div>
+
+    <div class="bar-section">
+      <div class="bar-title">Taux de non-recours estimé par prestation</div>
+      <div id="bars-nonrecours"></div>
+    </div>
+
+    <div class="keyfact">
+      <strong>Le non-recours est le budget invisible de l'État.</strong> Chaque euro non réclamé est un euro économisé. La complexité administrative n'est pas un accident — c'est un mécanisme de rationnement. Formulaires opaques, guichets surchargés, jargon juridique, fracture numérique, stigmatisation : autant de barrières qui empêchent les plus vulnérables d'accéder à leurs droits. <em>Votre ignorance est leur budget.</em>
+    </div>
+
+    <table class="data-table">
+      <thead><tr><th>Prestation</th><th>Éligibles estimés</th><th>Bénéficiaires réels</th><th>Non-recours</th></tr></thead>
+      <tbody>
+        <tr><td>RIS / Aide CPAS</td><td class="num">~600.000</td><td class="num">~350.000</td><td class="num" style="color:var(--rose)">~40%</td></tr>
+        <tr><td>Statut BIM (intervention majorée)</td><td class="num">~2.000.000</td><td class="num">~1.200.000</td><td class="num" style="color:var(--rose)">~40%</td></tr>
+        <tr><td>Tarif social énergie</td><td class="num">~900.000</td><td class="num">~700.000</td><td class="num" style="color:var(--amber)">~22%</td></tr>
+        <tr><td>GRAPA (garantie revenus personnes âgées)</td><td class="num">~150.000</td><td class="num">~110.000</td><td class="num" style="color:var(--amber)">~27%</td></tr>
+        <tr><td>Allocations familiales majorées</td><td class="num">~350.000</td><td class="num">~230.000</td><td class="num" style="color:var(--rose)">~34%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== PATRIMOINE ===== -->
+  <div class="theme" id="th-patrimoine">
+    <div class="th-title">Patrimoine : la richesse invisible et non taxée</div>
+    <div class="th-sub">La Belgique ne taxe ni la fortune, ni les plus-values. Le patrimoine des 1% les plus riches est à peine connu.</div>
+
+    <div class="cmp-grid">
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--amber)">22%</div><div class="cmp-lbl">Part du patrimoine total</div><div class="cmp-sub">Détenue par les 1% les plus riches</div></div>
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--rose)">0%</div><div class="cmp-lbl">Impôt sur la fortune</div><div class="cmp-sub">Belgique — quasi unique en Europe</div></div>
+      <div class="cmp-card"><div class="cmp-val" style="color:var(--green)">0%</div><div class="cmp-lbl">Taxe plus-values actions</div><div class="cmp-sub">Gains en capital non imposés</div></div>
+    </div>
+
+    <div class="bar-section">
+      <div class="bar-title">Distribution du patrimoine net (déciles)</div>
+      <div id="bars-patrimoine"></div>
+    </div>
+
+    <div class="keyfact">
+      Les <strong>10% les plus riches</strong> détiennent autant de patrimoine que les <strong>90% restants</strong>. Et ce patrimoine n'est quasi pas taxé : pas d'impôt sur la fortune, pas de taxe sur les plus-values, des rulings qui permettent aux multinationales de payer 0,5% d'impôt. Pendant ce temps, un salarié au coin fiscal de 52,6% paie <em>plus de la moitié de son revenu brut</em> en prélèvements.
+    </div>
+
+    <table class="data-table">
+      <thead><tr><th>Décile</th><th>Part du patrimoine</th><th>Patrimoine médian</th><th>Taxation effective</th></tr></thead>
+      <tbody>
+        <tr><td>Décile 1-3 (les 30% les plus pauvres)</td><td class="num">~1%</td><td class="num">~2.000 €</td><td class="num">Élevée (TVA, accises)</td></tr>
+        <tr><td>Décile 4-6</td><td class="num">~12%</td><td class="num">~110.000 €</td><td class="num">Très élevée (travail)</td></tr>
+        <tr><td>Décile 7-9</td><td class="num">~37%</td><td class="num">~380.000 €</td><td class="num">Élevée (travail + immobilier)</td></tr>
+        <tr><td style="color:var(--amber)">Décile 10 (top 10%)</td><td class="num" style="color:var(--amber)">~50%</td><td class="num" style="color:var(--amber)">~900.000 €</td><td class="num" style="color:var(--rose)">Faible (capital)</td></tr>
+        <tr><td style="color:var(--rose)">Top 1%</td><td class="num" style="color:var(--rose)">~22%</td><td class="num" style="color:var(--rose)">~3.500.000 €</td><td class="num" style="color:var(--rose)">Très faible</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <div>◇ DÉMOGARCHIE · <a href="https://ouaisfi.eu">ouaisfieu</a> · CC BY-NC 4.0</div>
+    <div>心理战 Module 11/17 · Fork • Hack • Spread</div>
+  </div>
+</div>
+
+<script>
+function showTheme(id) {
+  document.querySelectorAll('.theme').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.ttab').forEach(t => t.classList.remove('active'));
+  document.getElementById('th-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function renderBars(containerId, data, maxVal, color) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = data.map(d => {
+    const pct = (d.val / maxVal) * 100;
+    return `<div class="bar-row">
+      <div class="bar-label">${d.label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${d.color || color}">${d.val > maxVal * 0.15 ? d.display || d.val : ''}</div></div>
+      <div class="bar-val">${d.display || d.val}</div>
+    </div>`;
+  }).join('');
+}
+
+// INIT BARS
+renderBars('bars-revenus', [
+  { label: 'Lasne', val: 41200, display: '41.200 €', color: 'var(--green)' },
+  { label: 'Uccle', val: 32500, display: '32.500 €', color: 'var(--green)' },
+  { label: 'Waterloo', val: 30800, display: '30.800 €', color: 'var(--cyan)' },
+  { label: 'Gent', val: 21300, display: '21.300 €', color: 'var(--blue)' },
+  { label: 'MÉDIANE BE', val: 20600, display: '20.600 €', color: 'var(--amber)' },
+  { label: 'Liège', val: 17200, display: '17.200 €', color: 'var(--violet)' },
+  { label: 'Charleroi', val: 15400, display: '15.400 €', color: 'var(--rose)' },
+  { label: 'Molenbeek', val: 13100, display: '13.100 €', color: 'var(--rose)' },
+  { label: 'Saint-Josse', val: 11800, display: '11.800 €', color: 'var(--rose)' },
+], 45000, 'var(--blue)');
+
+renderBars('bars-pauvrete', [
+  { label: 'Bruxelles', val: 33, display: '33%', color: 'var(--rose)' },
+  { label: 'Wallonie', val: 24, display: '24%', color: 'var(--amber)' },
+  { label: 'Belgique', val: 14.5, display: '14,5%', color: 'var(--blue)' },
+  { label: 'Flandre', val: 10, display: '10%', color: 'var(--green)' },
+], 40, 'var(--rose)');
+
+renderBars('bars-soins', [
+  { label: 'Quintile 1 (pauvres)', val: 22, display: '22%', color: 'var(--rose)' },
+  { label: 'Quintile 2', val: 12, display: '12%', color: 'var(--amber)' },
+  { label: 'Quintile 3', val: 7, display: '7%', color: 'var(--blue)' },
+  { label: 'Quintile 4', val: 4, display: '4%', color: 'var(--cyan)' },
+  { label: 'Quintile 5 (riches)', val: 3, display: '3%', color: 'var(--green)' },
+], 25, 'var(--rose)');
+
+renderBars('bars-social', [
+  { label: 'Vienne', val: 60, display: '60%', color: 'var(--green)' },
+  { label: 'Pays-Bas', val: 30, display: '30%', color: 'var(--green)' },
+  { label: 'France', val: 17, display: '17%', color: 'var(--cyan)' },
+  { label: 'Belgique', val: 6.5, display: '6,5%', color: 'var(--rose)' },
+], 65, 'var(--blue)');
+
+renderBars('bars-chomage', [
+  { label: 'Jeunes non-UE', val: 35, display: '35%', color: 'var(--rose)' },
+  { label: 'Jeunes (< 25 ans)', val: 18, display: '18%', color: 'var(--amber)' },
+  { label: 'Bruxelles', val: 14, display: '14%', color: 'var(--amber)' },
+  { label: 'Wallonie', val: 11, display: '11%', color: 'var(--blue)' },
+  { label: 'Belgique', val: 5.5, display: '5,5%', color: 'var(--cyan)' },
+  { label: 'Flandre', val: 3.2, display: '3,2%', color: 'var(--green)' },
+], 40, 'var(--blue)');
+
+renderBars('bars-nonrecours', [
+  { label: 'RIS / CPAS', val: 40, display: '~40%', color: 'var(--rose)' },
+  { label: 'Statut BIM', val: 40, display: '~40%', color: 'var(--rose)' },
+  { label: 'Alloc. familiales majorées', val: 34, display: '~34%', color: 'var(--amber)' },
+  { label: 'GRAPA', val: 27, display: '~27%', color: 'var(--amber)' },
+  { label: 'Tarif social énergie', val: 22, display: '~22%', color: 'var(--blue)' },
+], 50, 'var(--rose)');
+
+renderBars('bars-patrimoine', [
+  { label: 'Top 1%', val: 22, display: '22%', color: 'var(--rose)' },
+  { label: 'Décile 10 (top 10%)', val: 50, display: '50%', color: 'var(--amber)' },
+  { label: 'Déciles 7-9', val: 37, display: '37%', color: 'var(--blue)' },
+  { label: 'Déciles 4-6', val: 12, display: '12%', color: 'var(--cyan)' },
+  { label: 'Déciles 1-3 (30% + pauvres)', val: 1, display: '~1%', color: 'var(--dim)' },
+], 55, 'var(--rose)');
+</script>
+
+</body>
+</html>
