@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>◇ DÉMOGARCHIE — Observatoire Parlementaire</title>
+<meta name="description" content="Que font vos élus ? Que votent-ils ? Combien gagnent-ils ? Combien de fois sont-ils présents ? Réponse.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Bitter:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#06060a;--surface:#0a0a10;--panel:#0f0f18;--border:#1a1a2e;
+  --text:#b4b8cc;--dim:#555878;--white:#eceef8;
+  --blue:#3b82f6;--blue-dim:rgba(59,130,246,0.1);
+  --red:#ef4444;--green:#22c55e;--amber:#eab308;--violet:#a78bfa;--cyan:#06b6d4;
+  --mono:'IBM Plex Mono',monospace;--serif:'Bitter',Georgia,serif;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+.header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.logo{font-family:var(--serif);font-weight:900;font-size:1.4rem;color:var(--blue)}
+.logo span{color:var(--dim);font-weight:400;font-size:.8rem}
+.badge{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;padding:.25rem .6rem;border:1px solid var(--blue);color:var(--blue);border-radius:2px}
+
+.container{max-width:900px;margin:0 auto;padding:2rem 1.5rem 6rem}
+
+.intro{padding:2rem 0;border-bottom:1px solid var(--border);margin-bottom:2rem}
+.intro h1{font-family:var(--serif);font-weight:900;font-size:2.1rem;line-height:1.15;color:var(--white);margin-bottom:1rem}
+.intro h1 em{font-style:normal;color:var(--blue)}
+.intro p{font-size:.82rem;line-height:1.7;color:var(--dim);max-width:620px}
+
+/* TABS */
+.tabs{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:2rem}
+.tab{
+  padding:.5rem 1rem;font-family:var(--mono);font-size:.72rem;font-weight:600;
+  background:var(--panel);border:1px solid var(--border);color:var(--dim);
+  cursor:pointer;border-radius:2px;transition:all .15s
+}
+.tab:hover{border-color:var(--dim);color:var(--text)}
+.tab.active{border-color:var(--blue);color:var(--blue);background:var(--blue-dim)}
+
+.panel{display:none;animation:fadeIn .4s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.section-title{font-family:var(--serif);font-weight:700;font-size:1.15rem;color:var(--white);margin-bottom:.5rem}
+.section-sub{font-size:.78rem;color:var(--dim);line-height:1.6;margin-bottom:1.5rem}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin-bottom:2rem}
+.stat-card{padding:1rem;background:var(--panel);border:1px solid var(--border);border-radius:2px;text-align:center}
+.st-val{font-family:var(--serif);font-weight:900;font-size:1.6rem;line-height:1}
+.st-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-top:.3rem}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:.72rem;margin:1.5rem 0}
+.data-table th{text-align:left;padding:.6rem .6rem;background:var(--panel);color:var(--dim);text-transform:uppercase;letter-spacing:.06em;font-size:.58rem;border-bottom:1px solid var(--border);position:sticky;top:0}
+.data-table td{padding:.5rem .6rem;border-bottom:1px solid rgba(26,26,46,0.5)}
+.data-table tr:hover td{background:rgba(59,130,246,0.03)}
+.data-table .num{font-weight:700;color:var(--white);font-family:var(--serif);text-align:right}
+.data-table .party{font-size:.6rem;padding:.15rem .4rem;border-radius:2px;font-weight:600;display:inline-block}
+.p-nva{background:#FFCD00;color:#000}.p-mr{background:#0047AB;color:#fff}
+.p-ps{background:#FF0000;color:#fff}.p-ecolo{background:#00A550;color:#fff}
+.p-ptb{background:#DD0000;color:#fff}.p-les{background:#00A5CF;color:#fff}
+.p-vooruit{background:#FF2900;color:#fff}.p-cdv{background:#FF6600;color:#fff}
+.p-vb{background:#FFE500;color:#000}.p-ovld{background:#003DA5;color:#fff}
+.p-defi{background:#C20078;color:#fff}
+
+/* METER INLINE */
+.meter-inline{display:inline-flex;align-items:center;gap:.3rem}
+.meter-track{width:60px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;display:inline-block}
+.meter-fill{height:100%;border-radius:3px}
+
+/* VOTE CARDS */
+.vote-grid{display:flex;flex-direction:column;gap:.8rem}
+.vote-card{padding:1.2rem;background:var(--panel);border:1px solid var(--border);border-radius:2px;cursor:pointer;transition:border-color .15s}
+.vote-card:hover{border-color:var(--dim)}
+.vote-card.open{border-color:var(--blue)}
+.vc-header{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+.vc-title{font-weight:600;font-size:.85rem;color:var(--white);flex:1}
+.vc-date{font-size:.65rem;color:var(--dim);white-space:nowrap}
+.vc-result{margin-top:.5rem;display:flex;gap:.3rem}
+.vc-badge{font-size:.6rem;padding:.2rem .5rem;border-radius:2px;font-weight:600}
+.vc-badge.pour{background:rgba(34,197,94,0.15);color:var(--green)}
+.vc-badge.contre{background:rgba(239,68,68,0.15);color:var(--red)}
+.vc-badge.abs{background:rgba(234,179,8,0.15);color:var(--amber)}
+.vc-detail{display:none;margin-top:.8rem;padding-top:.8rem;border-top:1px solid var(--border);font-size:.75rem;line-height:1.7;color:var(--text)}
+.vote-card.open .vc-detail{display:block}
+.vc-impact{margin-top:.6rem;padding:.6rem;background:var(--surface);border-radius:2px;font-size:.72rem;color:var(--dim)}
+.vc-impact strong{color:var(--amber)}
+
+/* KEYFACT */
+.keyfact{margin:1.5rem 0;padding:1.2rem;border-left:3px solid var(--blue);background:var(--blue-dim);border-radius:0 2px 2px 0;font-size:.8rem;line-height:1.7;color:var(--text)}
+.keyfact strong{color:var(--white)}
+.keyfact em{color:var(--amber);font-style:normal}
+
+/* COMPARE */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.5rem 0}
+.cmp-card{padding:1.2rem;background:var(--panel);border:1px solid var(--border);border-radius:2px;text-align:center}
+.cmp-val{font-family:var(--serif);font-weight:900;font-size:2rem;line-height:1}
+.cmp-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-top:.3rem}
+.cmp-sub{font-size:.7rem;color:var(--text);margin-top:.4rem}
+
+.footer{margin-top:4rem;padding:1.5rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;font-size:.65rem;color:var(--dim)}
+.footer a{color:var(--green);text-decoration:none}
+
+@media(max-width:650px){
+  .container{padding:1.5rem 1rem 4rem}
+  .intro h1{font-size:1.7rem}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .compare-grid{grid-template-columns:1fr}
+  .data-table{font-size:.65rem}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:1rem">
+    <div class="logo">◇ DÉMOGARCHIE <span>/ parlement</span></div>
+    <div class="badge">舆论战 OPINION</div>
+  </div>
+  <div style="font-size:.7rem;color:var(--dim)">MACRO · Module 09/17</div>
+</div>
+
+<div class="container">
+
+  <div class="intro">
+    <h1>Observatoire <em>parlementaire</em></h1>
+    <p>Vos élus gagnent 9.364 €/mois + 28% exonérés. En échange, ils votent selon la discipline de parti dans 97% des cas. Cet outil rend visible ce que le Parlement fait réellement — et ce qu'il ne fait pas.</p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="st-val" style="color:var(--blue)">150</div><div class="st-lbl">Députés fédéraux</div></div>
+    <div class="stat-card"><div class="st-val" style="color:var(--amber)">9.364€</div><div class="st-lbl">Salaire mensuel</div></div>
+    <div class="stat-card"><div class="st-val" style="color:var(--red)">97%</div><div class="st-lbl">Discipline de vote</div></div>
+    <div class="stat-card"><div class="st-val" style="color:var(--green)">44,5M€</div><div class="st-lbl">Budget Sénat/an</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showPanel('salaires')">💰 Rémunérations</button>
+    <button class="tab" onclick="showPanel('votes')">🗳 Votes-clés</button>
+    <button class="tab" onclick="showPanel('presence')">📊 Présence</button>
+    <button class="tab" onclick="showPanel('cumul')">🎭 Cumuls</button>
+    <button class="tab" onclick="showPanel('systeme')">⚙ Le système</button>
+  </div>
+
+  <!-- ===== SALAIRES ===== -->
+  <div class="panel active" id="panel-salaires">
+    <div class="section-title">Ce que gagnent vos représentants</div>
+    <div class="section-sub">Tout compris : salaire, indemnités, avantages. Comparé à ce que vous gagnez.</div>
+
+    <table class="data-table">
+      <thead><tr><th>Poste</th><th style="text-align:right">Brut/mois</th><th style="text-align:right">Net estimé</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td>Député fédéral</td><td class="num">9.364 €</td><td class="num">~6.500 €</td><td>+ 28% indemnité forfaitaire non taxée (2.622 €)</td></tr>
+        <tr><td>Sénateur coopté</td><td class="num">9.364 €</td><td class="num">~6.500 €</td><td>Chambre quasi inactive, 44,5M€ budget/an</td></tr>
+        <tr><td>Député régional (FWB/Wallonie)</td><td class="num">8.600 €</td><td class="num">~6.000 €</td><td>+ frais de bureau + assistant</td></tr>
+        <tr><td>Ministre fédéral</td><td class="num">15.800 €</td><td class="num">~10.000 €</td><td>+ voiture fonction + cabinet 30-80 pers.</td></tr>
+        <tr><td>Premier Ministre</td><td class="num">17.600 €</td><td class="num">~11.500 €</td><td>+ résidence officielle Lambermont</td></tr>
+        <tr><td>Bourgmestre (grande ville)</td><td class="num">11.000-15.000 €</td><td class="num">~8.000 €</td><td>Cumulable avec mandat parlementaire</td></tr>
+        <tr style="background:rgba(59,130,246,0.05)"><td><strong>Salaire moyen belge</strong></td><td class="num" style="color:var(--dim)">4.076 €</td><td class="num" style="color:var(--dim)">~2.600 €</td><td>Coin fiscal OCDE le plus élevé</td></tr>
+        <tr style="background:rgba(59,130,246,0.05)"><td><strong>Salaire médian belge</strong></td><td class="num" style="color:var(--dim)">3.486 €</td><td class="num" style="color:var(--dim)">~2.300 €</td><td>La moitié des travailleurs gagne moins</td></tr>
+        <tr style="background:rgba(239,68,68,0.05)"><td><strong>Revenu d'intégration (isolé)</strong></td><td class="num" style="color:var(--red)">1.187 €</td><td class="num" style="color:var(--red)">1.187 €</td><td>Sous le seuil de pauvreté</td></tr>
+      </tbody>
+    </table>
+
+    <div class="compare-grid">
+      <div class="cmp-card">
+        <div class="cmp-val" style="color:var(--red)">×2,3</div>
+        <div class="cmp-lbl">Député vs salaire moyen</div>
+        <div class="cmp-sub">Sans compter les 28% exonérés</div>
+      </div>
+      <div class="cmp-card">
+        <div class="cmp-val" style="color:var(--red)">×7,9</div>
+        <div class="cmp-lbl">Député vs RIS isolé</div>
+        <div class="cmp-sub">L'écart avec les plus fragiles</div>
+      </div>
+    </div>
+
+    <div class="keyfact">
+      <strong>Le 28% :</strong> chaque député reçoit automatiquement <em>28% de son indemnité en frais forfaitaires non taxés</em> — soit ~2.622 €/mois. Sans justificatif. Sans facture. C'est de l'argent de poche institutionnel. Essayez de demander la même chose à votre employeur.
+    </div>
+  </div>
+
+  <!-- ===== VOTES ===== -->
+  <div class="panel" id="panel-votes">
+    <div class="section-title">Votes-clés récents</div>
+    <div class="section-sub">Les décisions qui vous affectent directement — et comment elles ont été votées.</div>
+
+    <div class="vote-grid" id="vote-grid">
+      <div class="vote-card" onclick="this.classList.toggle('open')">
+        <div class="vc-header"><div class="vc-title">Limitation allocations chômage à 24 mois</div><div class="vc-date">2025</div></div>
+        <div class="vc-result"><span class="vc-badge pour">N-VA ✓</span><span class="vc-badge pour">MR ✓</span><span class="vc-badge pour">Les Engagés ✓</span><span class="vc-badge pour">CD&V ✓</span><span class="vc-badge pour">Vooruit ✓</span><span class="vc-badge contre">PS ✗</span><span class="vc-badge contre">Ecolo ✗</span><span class="vc-badge contre">PTB ✗</span></div>
+        <div class="vc-detail">
+          Mesure phare de l'accord Arizona. 90.000 personnes basculeront au CPAS d'ici 2027. La compensation fédérale prévue est de 518€/an/personne alors que le coût réel pour un CPAS est de 12.000-15.000€/an. Recours constitutionnel introduit (article 23 standstill).
+          <div class="vc-impact"><strong>Impact sur vous :</strong> Si vous perdez votre emploi, 24 mois max d'allocations. Après : CPAS ou rien.</div>
+        </div>
+      </div>
+
+      <div class="vote-card" onclick="this.classList.toggle('open')">
+        <div class="vc-header"><div class="vc-title">Sanctions malades longue durée (-2,5% indemnité)</div><div class="vc-date">2025</div></div>
+        <div class="vc-result"><span class="vc-badge pour">Arizona ✓</span><span class="vc-badge contre">Opposition ✗</span></div>
+        <div class="vc-detail">
+          Les personnes en incapacité de travail perdent 2,5% de leur indemnité si elles ne suivent pas le "Trajet Retour au Travail". 500.000 personnes concernées. Causes principales : burn-out, troubles musculosquelettiques — liés aux conditions de travail.
+          <div class="vc-impact"><strong>Impact sur vous :</strong> Si vous tombez malade longtemps, vous serez pénalisé financièrement en plus de votre maladie.</div>
+        </div>
+      </div>
+
+      <div class="vote-card" onclick="this.classList.toggle('open')">
+        <div class="vc-header"><div class="vc-title">Économie de 26,2M€ sur médicaments vitaux</div><div class="vc-date">2025</div></div>
+        <div class="vc-result"><span class="vc-badge pour">Arizona ✓</span><span class="vc-badge contre">Opposition ✗</span></div>
+        <div class="vc-detail">
+          Suppression de la gratuité pour certains médicaments considérés "vitaux" (catégorie A). Les patients chroniques sont les premiers touchés.
+          <div class="vc-impact"><strong>Impact sur vous :</strong> Vos médicaments essentiels pourraient coûter plus cher. L'économie = 26,2M€ sur le dos des patients.</div>
+        </div>
+      </div>
+
+      <div class="vote-card" onclick="this.classList.toggle('open')">
+        <div class="vc-header"><div class="vc-title">Pension Wijninckx — dépassement du plafond légal</div><div class="vc-date">2013</div></div>
+        <div class="vc-result"><span class="vc-badge pour">PS ✓</span><span class="vc-badge pour">MR ✓</span><span class="vc-badge pour">N-VA ✓</span><span class="vc-badge pour">Ecolo ✓</span><span class="vc-badge pour">CD&V ✓</span><span class="vc-badge contre">PTB ✗</span></div>
+        <div class="vc-detail">
+          Tous les partis sauf le PTB ont signé un accord permettant aux parlementaires de dépasser de 20% le plafond légal de pension. Révélé publiquement 10 ans plus tard. Gauche et droite, flamands et francophones : unanimité sur les privilèges.
+          <div class="vc-impact"><strong>Impact sur vous :</strong> Votre pension est plafonnée. La leur ne l'est pas. Ils ont voté pour eux-mêmes.</div>
+        </div>
+      </div>
+
+      <div class="vote-card" onclick="this.classList.toggle('open')">
+        <div class="vc-header"><div class="vc-title">Maintien du régime voitures de société</div><div class="vc-date">Récurrent</div></div>
+        <div class="vc-result"><span class="vc-badge pour">Majorités successives ✓</span></div>
+        <div class="vc-detail">
+          Le système des voitures de société coûte 4 milliards €/an au Trésor. Aucune majorité n'a jamais osé le supprimer. Il profite aux salaires élevés et aux sociétés de leasing. C'est un substitut salarial défiscalisé qui alimente la congestion et le sous-investissement en transport public.
+          <div class="vc-impact"><strong>Impact sur vous :</strong> 4 milliards/an = transport public gratuit + reste. Vous payez les embouteillages des autres.</div>
+        </div>
+      </div>
+
+      <div class="vote-card" onclick="this.classList.toggle('open')">
+        <div class="vc-header"><div class="vc-title">Refus de l'impôt sur la fortune</div><div class="vc-date">Récurrent</div></div>
+        <div class="vc-result"><span class="vc-badge pour">N-VA ✓</span><span class="vc-badge pour">MR ✓</span><span class="vc-badge pour">Open VLD ✓</span><span class="vc-badge contre">PS ✗</span><span class="vc-badge contre">PTB ✗</span><span class="vc-badge contre">Ecolo ✗</span><span class="vc-badge abs">Les Engagés ?</span></div>
+        <div class="vc-detail">
+          La Belgique est l'un des seuls pays européens sans impôt sur la fortune et sans taxation des plus-values. Chaque proposition a été rejetée par la droite. Recettes estimées : 8 à 10 milliards €/an.
+          <div class="vc-impact"><strong>Impact sur vous :</strong> Votre travail est taxé à 50%+. Le patrimoine des ultra-riches : quasi 0%. Le choix est politique.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PRESENCE ===== -->
+  <div class="panel" id="panel-presence">
+    <div class="section-title">Taux de présence</div>
+    <div class="section-sub">Les députés sont payés pour siéger, légiférer et contrôler. Combien sont réellement présents ?</div>
+
+    <table class="data-table">
+      <thead><tr><th>Assemblée</th><th style="text-align:right">Présence moyenne</th><th style="text-align:right">Séances plénières/an</th><th>Observation</th></tr></thead>
+      <tbody>
+        <tr><td>Chambre fédérale</td><td class="num">~75%</td><td class="num">~45</td><td>Forte variation individuelle (30-100%)</td></tr>
+        <tr><td>Sénat</td><td class="num">~60%</td><td class="num">~12</td><td>Compétences quasi nulles, 44,5M€ budget</td></tr>
+        <tr><td>Parlement wallon</td><td class="num">~72%</td><td class="num">~35</td><td>Absentéisme chronique certain élus</td></tr>
+        <tr><td>Parlement FWB</td><td class="num">~68%</td><td class="num">~30</td><td>Double mandat avec PW fréquent</td></tr>
+        <tr><td>Parlement bruxellois</td><td class="num">~70%</td><td class="num">~30</td><td>Commissions souvent désertées</td></tr>
+      </tbody>
+    </table>
+
+    <div class="keyfact">
+      <strong>Le calcul citoyen :</strong> un député fédéral à 9.364 €/mois pour ~45 séances plénières/an = <em>~2.500 € par séance plénière</em>. Et les séances en commission ? Souvent quasi vides. Le contrôle démocratique se fait en salle déserte.
+    </div>
+
+    <div class="compare-grid">
+      <div class="cmp-card">
+        <div class="cmp-val" style="color:var(--amber)">~2.500 €</div>
+        <div class="cmp-lbl">Par séance plénière</div>
+        <div class="cmp-sub">Coût d'un député par présence</div>
+      </div>
+      <div class="cmp-card">
+        <div class="cmp-val" style="color:var(--red)">0 €</div>
+        <div class="cmp-lbl">Sanction pour absence</div>
+        <div class="cmp-sub">Aucune retenue de salaire prévue</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CUMUL ===== -->
+  <div class="panel" id="panel-cumul">
+    <div class="section-title">Cumul des mandats</div>
+    <div class="section-sub">Un élu, plusieurs casquettes, plusieurs salaires. Le plafond existe mais il est généreux.</div>
+
+    <table class="data-table">
+      <thead><tr><th>Règle</th><th style="text-align:right">Montant</th><th>Commentaire</th></tr></thead>
+      <tbody>
+        <tr><td>Plafond de cumul</td><td class="num">194.749 €/an</td><td>150% de l'indemnité parlementaire</td></tr>
+        <tr><td>Mandats rémunérés max</td><td class="num">Pas de limite</td><td>Le plafond porte sur le montant, pas le nombre</td></tr>
+        <tr><td>Transparence</td><td class="num">Déclaration</td><td>Via Cumuleo — mais souvent incomplète</td></tr>
+        <tr><td>Intercommunales</td><td class="num">Variable</td><td>Jetons de présence parfois > 5.000 €/séance</td></tr>
+      </tbody>
+    </table>
+
+    <div class="keyfact">
+      <strong>Le problème du cumul</strong> n'est pas seulement financier. Un élu qui cumule député + bourgmestre + administrateur d'intercommunale ne peut physiquement pas faire trois jobs. Résultat : ce sont les <em>cabinets et collaborateurs non élus</em> qui font le travail — et qui détiennent le pouvoir réel.
+    </div>
+
+    <div style="margin-top:1.5rem;padding:1rem;background:var(--panel);border:1px solid var(--border);border-radius:2px;font-size:.78rem;color:var(--text);line-height:1.7">
+      <strong style="color:var(--blue)">Cumuleo.be</strong> — Le site citoyen qui traque les mandats et rémunérations des élus belges. Données issues des déclarations légales. Outil indispensable de surveillance citoyenne. <em>Utilisez-le.</em>
+    </div>
+  </div>
+
+  <!-- ===== SYSTÈME ===== -->
+  <div class="panel" id="panel-systeme">
+    <div class="section-title">Le système en chiffres</div>
+    <div class="section-sub">Vue d'ensemble de la machine parlementaire belge.</div>
+
+    <div class="stats-row" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card"><div class="st-val" style="color:var(--blue)">6</div><div class="st-lbl">Parlements</div></div>
+      <div class="stat-card"><div class="st-val" style="color:var(--amber)">6</div><div class="st-lbl">Gouvernements</div></div>
+      <div class="stat-card"><div class="st-val" style="color:var(--violet)">~550</div><div class="st-lbl">Parlementaires (total)</div></div>
+    </div>
+
+    <table class="data-table">
+      <thead><tr><th>Institution</th><th style="text-align:right">Membres</th><th style="text-align:right">Budget</th><th>Population desservie</th></tr></thead>
+      <tbody>
+        <tr><td>Chambre fédérale</td><td class="num">150</td><td class="num">~110 M€</td><td>11,7 millions</td></tr>
+        <tr><td>Sénat</td><td class="num">60</td><td class="num">44,5 M€</td><td>Compétences résiduelles</td></tr>
+        <tr><td>Parlement flamand</td><td class="num">124</td><td class="num">~75 M€</td><td>6,7 millions</td></tr>
+        <tr><td>Parlement wallon</td><td class="num">75</td><td class="num">~45 M€</td><td>3,6 millions</td></tr>
+        <tr><td>Parlement FWB</td><td class="num">94</td><td class="num">~35 M€</td><td>4,5 millions</td></tr>
+        <tr><td>Parlement bruxellois</td><td class="num">89</td><td class="num">~40 M€</td><td>1,2 millions</td></tr>
+        <tr><td>Parlement germanophone</td><td class="num">25</td><td class="num">~8 M€</td><td>78.000</td></tr>
+        <tr style="background:rgba(59,130,246,0.05)"><td><strong>TOTAL</strong></td><td class="num" style="color:var(--blue)">~550+</td><td class="num" style="color:var(--blue)">~360 M€</td><td>11,7 millions d'habitants</td></tr>
+      </tbody>
+    </table>
+
+    <div class="compare-grid">
+      <div class="cmp-card">
+        <div class="cmp-val" style="color:var(--red)">1 / 21.000</div>
+        <div class="cmp-lbl">1 parlementaire pour 21.000 habitants (BE)</div>
+      </div>
+      <div class="cmp-card">
+        <div class="cmp-val" style="color:var(--green)">1 / 113.000</div>
+        <div class="cmp-lbl">1 parlementaire pour 113.000 habitants (NL)</div>
+      </div>
+    </div>
+
+    <div class="keyfact">
+      La Belgique a <strong>5× plus de parlementaires par habitant</strong> que les Pays-Bas. La densité d'élus ne se traduit pas par une meilleure représentation mais par une <em>dilution du pouvoir dans la complexité</em>. Plus le système est opaque, plus il profite à ceux qui le maîtrisent — les partis, pas les citoyens.
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>◇ DÉMOGARCHIE · <a href="https://ouaisfi.eu">ouaisfieu</a> · CC BY-NC 4.0</div>
+    <div>舆论战 Module 09/17 · Fork • Hack • Spread</div>
+  </div>
+</div>
+
+<script>
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>

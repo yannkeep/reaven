@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>◇ DÉMOGARCHIE — Générateur de Plaidoyer</title>
+<meta name="description" content="Construisez un argumentaire structuré pour interpeller un élu, un média ou une institution. En 5 minutes.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Bitter:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#080606;--surface:#0e0a0a;--panel:#141010;--border:#241c1c;
+  --text:#c0b4b4;--dim:#6b5858;--white:#f5ece8;
+  --crimson:#dc2626;--crimson-dim:rgba(220,38,38,0.1);
+  --green:#16a34a;--amber:#eab308;--cyan:#0891b2;--violet:#7c3aed;
+  --mono:'IBM Plex Mono',monospace;--serif:'Bitter',Georgia,serif;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+.header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.logo{font-family:var(--serif);font-weight:900;font-size:1.4rem;color:var(--crimson)}
+.logo span{color:var(--dim);font-weight:400;font-size:.8rem}
+.badge{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;padding:.25rem .6rem;border:1px solid var(--crimson);color:var(--crimson);border-radius:2px}
+
+.container{max-width:800px;margin:0 auto;padding:2rem 1.5rem 6rem}
+
+.intro{padding:2rem 0;border-bottom:1px solid var(--border);margin-bottom:2rem}
+.intro h1{font-family:var(--serif);font-weight:900;font-size:2.1rem;line-height:1.15;color:var(--white);margin-bottom:1rem}
+.intro h1 em{font-style:normal;color:var(--crimson)}
+.intro p{font-size:.82rem;line-height:1.7;color:var(--dim);max-width:620px}
+
+/* WIZARD */
+.step{display:none;animation:fadeIn .4s ease}
+.step.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.step-bar{display:flex;gap:.3rem;margin-bottom:2rem}
+.step-dot{height:3px;flex:1;background:var(--border);border-radius:2px;transition:background .3s}
+.step-dot.done{background:var(--crimson)}
+.step-dot.current{background:var(--crimson);box-shadow:0 0 8px var(--crimson-dim)}
+
+.step-title{font-family:var(--serif);font-weight:700;font-size:1.1rem;color:var(--white);margin-bottom:.4rem}
+.step-desc{font-size:.78rem;color:var(--dim);line-height:1.6;margin-bottom:1.5rem}
+
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.opt-btn{
+  padding:1rem;background:var(--panel);border:1px solid var(--border);
+  color:var(--text);font-family:var(--mono);font-size:.78rem;cursor:pointer;
+  border-radius:2px;transition:all .15s;text-align:left
+}
+.opt-btn:hover{border-color:var(--dim)}
+.opt-btn.selected{border-color:var(--crimson);background:var(--crimson-dim);color:var(--white)}
+.opt-btn .ob-title{font-weight:700;font-size:.8rem;color:var(--white);margin-bottom:.15rem}
+.opt-btn .ob-desc{font-size:.65rem;color:var(--dim);line-height:1.3}
+
+.text-input{
+  width:100%;min-height:100px;padding:1rem;
+  background:var(--panel);border:1px solid var(--border);color:var(--text);
+  font-family:var(--mono);font-size:.82rem;line-height:1.7;
+  border-radius:2px;resize:vertical;outline:none
+}
+.text-input:focus{border-color:var(--crimson)}
+.text-input::placeholder{color:var(--dim)}
+
+.checkbox-list{display:flex;flex-direction:column;gap:.4rem}
+.cb-item{
+  padding:.7rem 1rem;background:var(--panel);border:1px solid var(--border);
+  color:var(--text);font-family:var(--mono);font-size:.78rem;cursor:pointer;
+  border-radius:2px;transition:all .12s;display:flex;align-items:center;gap:.6rem
+}
+.cb-item:hover{border-color:var(--dim)}
+.cb-item.checked{border-color:var(--crimson);background:var(--crimson-dim)}
+.cb-box{width:16px;height:16px;border:2px solid var(--border);border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.cb-item.checked .cb-box{border-color:var(--crimson);background:var(--crimson)}
+.cb-item.checked .cb-box::after{content:'✓';color:var(--bg);font-size:.6rem;font-weight:700}
+
+.nav-row{display:flex;gap:.6rem;margin-top:2rem}
+.nav-btn{
+  padding:.8rem 1.5rem;font-family:var(--mono);font-size:.8rem;font-weight:600;
+  cursor:pointer;border-radius:2px;transition:all .15s
+}
+.nav-btn.next{background:var(--crimson);color:var(--white);border:1px solid var(--crimson)}
+.nav-btn.next:hover{background:#b91c1c}
+.nav-btn.back{background:transparent;color:var(--dim);border:1px solid var(--border)}
+
+/* OUTPUT */
+#output{display:none}
+.output-doc{
+  padding:2rem;background:#faf8f5;color:#1a1a1a;
+  font-family:'Bitter',Georgia,serif;font-size:.82rem;line-height:1.85;
+  border-radius:2px;border:1px solid #ddd;max-height:700px;overflow-y:auto
+}
+.output-doc h2{font-size:1.1rem;margin:1.5rem 0 .5rem;color:#1a1a1a;border-bottom:1px solid #ddd;padding-bottom:.3rem}
+.output-doc h3{font-size:.9rem;margin:1rem 0 .3rem;color:#333}
+.output-doc p{margin-bottom:.7rem;text-align:justify}
+.output-doc .placeholder{color:#b91c1c;font-weight:700;background:rgba(220,38,38,0.08);padding:0 3px;border-radius:2px}
+.output-doc ul{margin:.5rem 0 .8rem 1.2rem;font-size:.78rem}
+.output-doc li{margin-bottom:.3rem}
+.output-doc .section-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:#888;margin-top:1.5rem}
+
+.action-row{display:flex;gap:.6rem;margin-top:1.5rem;flex-wrap:wrap}
+.action-btn{
+  padding:.8rem 1.5rem;font-family:var(--mono);font-size:.75rem;font-weight:600;
+  cursor:pointer;border-radius:2px
+}
+.action-btn.primary{background:var(--crimson);color:var(--white);border:1px solid var(--crimson)}
+.action-btn.secondary{background:transparent;color:var(--text);border:1px solid var(--border)}
+
+.footer{margin-top:4rem;padding:1.5rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;font-size:.65rem;color:var(--dim)}
+.footer a{color:var(--green);text-decoration:none}
+
+@media(max-width:600px){
+  .container{padding:1.5rem 1rem 4rem}
+  .intro h1{font-size:1.7rem}
+  .opt-grid{grid-template-columns:1fr}
+  .action-row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:1rem">
+    <div class="logo">◇ DÉMOGARCHIE <span>/ plaidoyer</span></div>
+    <div class="badge">法律战 JURIDIQUE</div>
+  </div>
+  <div style="font-size:.7rem;color:var(--dim)">MACRO · Module 10/17</div>
+</div>
+
+<div class="container">
+
+  <div class="intro">
+    <h1>Générateur de <em>plaidoyer</em></h1>
+    <p>Interpellez un élu, un média ou une institution avec un argumentaire structuré, sourcé et professionnel. En 5 étapes.</p>
+  </div>
+
+  <div class="step-bar" id="step-bar">
+    <div class="step-dot current" data-s="0"></div>
+    <div class="step-dot" data-s="1"></div>
+    <div class="step-dot" data-s="2"></div>
+    <div class="step-dot" data-s="3"></div>
+    <div class="step-dot" data-s="4"></div>
+  </div>
+
+  <!-- STEP 0: TARGET -->
+  <div class="step active" id="s-0">
+    <div class="step-title">Qui interpellez-vous ?</div>
+    <div class="step-desc">Choisissez votre cible. Le ton et la structure s'adapteront.</div>
+    <div class="opt-grid" id="target-grid">
+      <div class="opt-btn" data-val="depute" onclick="sel(this,'target')">
+        <div class="ob-title">Député / Parlementaire</div>
+        <div class="ob-desc">Interpellation formelle d'un élu</div>
+      </div>
+      <div class="opt-btn" data-val="ministre" onclick="sel(this,'target')">
+        <div class="ob-title">Ministre / Cabinet</div>
+        <div class="ob-desc">Demande d'action à l'exécutif</div>
+      </div>
+      <div class="opt-btn" data-val="commune" onclick="sel(this,'target')">
+        <div class="ob-title">Bourgmestre / Commune</div>
+        <div class="ob-desc">Interpellation locale</div>
+      </div>
+      <div class="opt-btn" data-val="media" onclick="sel(this,'target')">
+        <div class="ob-title">Rédaction / Journaliste</div>
+        <div class="ob-desc">Droit de réponse ou carte blanche</div>
+      </div>
+      <div class="opt-btn" data-val="institution" onclick="sel(this,'target')">
+        <div class="ob-title">Institution (CPAS, ONEM, INAMI...)</div>
+        <div class="ob-desc">Réclamation ou demande d'explication</div>
+      </div>
+      <div class="opt-btn" data-val="petition" onclick="sel(this,'target')">
+        <div class="ob-title">Pétition / Lettre ouverte</div>
+        <div class="ob-desc">Appel collectif public</div>
+      </div>
+    </div>
+    <div class="nav-row"><button class="nav-btn next" onclick="goStep(1)">Suivant →</button></div>
+  </div>
+
+  <!-- STEP 1: SUBJECT -->
+  <div class="step" id="s-1">
+    <div class="step-title">Quel est le sujet ?</div>
+    <div class="step-desc">Choisissez un thème ou décrivez librement votre cause.</div>
+    <div class="opt-grid" id="subject-grid">
+      <div class="opt-btn" data-val="chomage" onclick="sel(this,'subject')"><div class="ob-title">Chômage / Arizona</div><div class="ob-desc">Limitation 24 mois, exclusions, CPAS</div></div>
+      <div class="opt-btn" data-val="sante" onclick="sel(this,'subject')"><div class="ob-title">Santé / Malades</div><div class="ob-desc">Sanctions MLT, médicaments, INAMI</div></div>
+      <div class="opt-btn" data-val="logement" onclick="sel(this,'subject')"><div class="ob-title">Logement</div><div class="ob-desc">Loyers, insalubrité, logement social</div></div>
+      <div class="opt-btn" data-val="fiscal" onclick="sel(this,'subject')"><div class="ob-title">Justice fiscale</div><div class="ob-desc">Fraude, fortune, coin fiscal, rulings</div></div>
+      <div class="opt-btn" data-val="democratie" onclick="sel(this,'subject')"><div class="ob-title">Démocratie / Institutions</div><div class="ob-desc">Particratie, cumul, transparence</div></div>
+      <div class="opt-btn" data-val="autre" onclick="sel(this,'subject')"><div class="ob-title">Autre sujet</div><div class="ob-desc">Je décrirai ma cause</div></div>
+    </div>
+    <div style="margin-top:1rem"><textarea class="text-input" id="subject-free" placeholder="Décrivez brièvement votre cause ou le problème spécifique..."></textarea></div>
+    <div class="nav-row"><button class="nav-btn back" onclick="goStep(0)">← Retour</button><button class="nav-btn next" onclick="goStep(2)">Suivant →</button></div>
+  </div>
+
+  <!-- STEP 2: TONE -->
+  <div class="step" id="s-2">
+    <div class="step-title">Quel ton ?</div>
+    <div class="step-desc">Le ton détermine l'impact. Choisissez selon votre objectif.</div>
+    <div class="opt-grid" id="tone-grid">
+      <div class="opt-btn" data-val="formel" onclick="sel(this,'tone')"><div class="ob-title">Formel / Institutionnel</div><div class="ob-desc">Professionnel, références juridiques</div></div>
+      <div class="opt-btn" data-val="citoyen" onclick="sel(this,'tone')"><div class="ob-title">Citoyen / Direct</div><div class="ob-desc">Accessible, humain, personnel</div></div>
+      <div class="opt-btn" data-val="combatif" onclick="sel(this,'tone')"><div class="ob-title">Combatif / Militant</div><div class="ob-desc">Ferme, revendicatif, mobilisateur</div></div>
+      <div class="opt-btn" data-val="technique" onclick="sel(this,'tone')"><div class="ob-title">Technique / Expert</div><div class="ob-desc">Chiffré, sourcé, analytique</div></div>
+    </div>
+    <div class="nav-row"><button class="nav-btn back" onclick="goStep(1)">← Retour</button><button class="nav-btn next" onclick="goStep(3)">Suivant →</button></div>
+  </div>
+
+  <!-- STEP 3: ARGUMENTS -->
+  <div class="step" id="s-3">
+    <div class="step-title">Vos arguments</div>
+    <div class="step-desc">Cochez les éléments à intégrer dans votre plaidoyer. Plus vous en sélectionnez, plus le document sera complet.</div>
+    <div class="checkbox-list" id="args-list">
+      <div class="cb-item" onclick="this.classList.toggle('checked')"><div class="cb-box"></div>Données chiffrées et statistiques officielles</div>
+      <div class="cb-item" onclick="this.classList.toggle('checked')"><div class="cb-box"></div>Références juridiques (Constitution, lois, CEDH)</div>
+      <div class="cb-item" onclick="this.classList.toggle('checked')"><div class="cb-box"></div>Comparaisons internationales (Pays-Bas, France, Scandinavie)</div>
+      <div class="cb-item" onclick="this.classList.toggle('checked')"><div class="cb-box"></div>Témoignage / vécu personnel</div>
+      <div class="cb-item" onclick="this.classList.toggle('checked')"><div class="cb-box"></div>Alternatives budgétaires concrètes</div>
+      <div class="cb-item" onclick="this.classList.toggle('checked')"><div class="cb-box"></div>Impact sur les populations vulnérables</div>
+      <div class="cb-item" onclick="this.classList.toggle('checked')"><div class="cb-box"></div>Demande d'action précise (pas juste dénonciation)</div>
+      <div class="cb-item" onclick="this.classList.toggle('checked')"><div class="cb-box"></div>Rappel des engagements électoraux non tenus</div>
+    </div>
+    <div class="nav-row"><button class="nav-btn back" onclick="goStep(2)">← Retour</button><button class="nav-btn next" onclick="goStep(4)">Suivant →</button></div>
+  </div>
+
+  <!-- STEP 4: PERSONAL -->
+  <div class="step" id="s-4">
+    <div class="step-title">Votre situation (optionnel)</div>
+    <div class="step-desc">Un plaidoyer avec un vécu personnel est plus fort. Ajoutez quelques lignes sur votre situation si vous le souhaitez.</div>
+    <textarea class="text-input" id="personal-input" placeholder="Exemple : Je suis mère célibataire de 2 enfants, locataire à Charleroi. Mon loyer représente 55% de mes revenus. Je suis en incapacité de travail depuis 8 mois suite à un burn-out..."></textarea>
+    <div class="nav-row"><button class="nav-btn back" onclick="goStep(3)">← Retour</button><button class="nav-btn next" onclick="generatePlaidoyer()">⚡ Générer le plaidoyer</button></div>
+  </div>
+
+  <!-- OUTPUT -->
+  <div id="output"></div>
+
+  <div class="footer">
+    <div>◇ DÉMOGARCHIE · <a href="https://ouaisfi.eu">ouaisfieu</a> · CC BY-NC 4.0</div>
+    <div>法律战 Module 10/17 · Fork • Hack • Spread</div>
+  </div>
+</div>
+
+<script>
+let state = { target:'', subject:'', tone:'', args:[], personal:'' };
+
+function sel(el, field) {
+  el.parentElement.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  state[field] = el.dataset.val;
+}
+
+function goStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('s-' + n).classList.add('active');
+  document.querySelectorAll('.step-dot').forEach((d, i) => {
+    d.classList.remove('done','current');
+    if (i < n) d.classList.add('done');
+    if (i === n) d.classList.add('current');
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+const SUBJECT_DATA = {
+  chomage: {
+    titre: 'Limitation des allocations de chômage à 24 mois',
+    faits: ['90.000 personnes concernées d\'ici 2027', '30.122 familles basculeront vers les CPAS dès 2026', 'Compensation fédérale de 518€/an/personne vs coût réel CPAS de 12.000-15.000€/an', '3,7 demandeurs d\'emploi par poste vacant en Wallonie (Forem 2024)', '60% des chômeurs longue durée ont des freins objectifs à l\'emploi'],
+    legal: ['Constitution belge art. 23 — droit à la dignité, principe de standstill', 'Charte sociale européenne art. 12 — droit à la sécurité sociale', 'CEDH art. 14 combiné Protocole 1 art. 1 — non-discrimination dans la jouissance des biens', 'Recours constitutionnel introduit le 29 octobre 2025'],
+    comparaisons: ['Pays-Bas : durée adaptée au parcours, pas de couperet', 'Danemark : flexicurity — indemnités élevées + accompagnement intensif', 'Allemagne : Bürgergeld remplace Hartz IV, fin de la logique punitive'],
+    alternatives: ['Taxe sur les patrimoines > 1M€ : 8-10 milliards €/an', 'Suppression voitures de société : 4 milliards €/an', 'Lutte effective contre fraude fiscale : 20+ milliards €/an']
+  },
+  sante: {
+    titre: 'Sanctions contre les malades de longue durée et réduction des remboursements',
+    faits: ['500.000+ personnes en incapacité de travail en Belgique', 'Causes principales : burn-out, troubles musculosquelettiques — liés aux conditions de travail', 'Réduction de 2,5% des indemnités prévue par l\'accord Arizona', 'Économie de 26,2M€ sur les médicaments vitaux (catégorie A)', 'Suppléments d\'honoraires non conventionnés pouvant atteindre 300% du tarif INAMI'],
+    legal: ['Constitution belge art. 23 — droit à la protection de la santé', 'Loi coordonnée 14 juillet 1994 — assurance soins de santé', 'Convention OMS — droit au meilleur état de santé susceptible d\'être atteint'],
+    comparaisons: ['France : pas de sanctions financières pour les malades longue durée', 'Scandinavie : accompagnement au retour, pas de punition', 'L\'OMS recommande de traiter les causes (conditions de travail), pas les symptômes (malades)'],
+    alternatives: ['Investir dans la prévention et les conditions de travail', 'Encadrer les suppléments d\'honoraires', 'Taxer les dividendes du secteur pharmaceutique']
+  },
+  logement: {
+    titre: 'Crise du logement et précarité locative',
+    faits: ['85% des logements bruxellois datent d\'avant 1960', '50% des émissions CO₂ résidentielles liées au bâti ancien', 'Liste d\'attente logement social : 50.000+ ménages', 'Absence de régulation effective des loyers (contrairement à Allemagne, Pays-Bas)', '40 ans de sous-investissement public dans le logement'],
+    legal: ['Constitution belge art. 23 — droit à un logement décent', 'Code régional du logement — obligation de salubrité', 'CEDH art. 8 — droit au respect du domicile'],
+    comparaisons: ['Allemagne : Mietpreisbremse (frein aux loyers)', 'Pays-Bas : 75% du parc locatif régulé', 'Vienne : 60% de logements sociaux ou communaux'],
+    alternatives: ['Rénovation massive : 100.000 logements/an', 'Construction de 10.000 logements sociaux/an', 'Encadrement des loyers indexé sur l\'état du logement']
+  },
+  fiscal: {
+    titre: 'Injustice fiscale et absence de taxation du patrimoine',
+    faits: ['Coin fiscal sur le travail : le plus élevé de l\'OCDE', 'Pas d\'impôt sur la fortune en Belgique', 'Pas de taxation des plus-values sur actions', 'Fraude fiscale estimée à 20-30 milliards €/an', 'Indemnité forfaitaire parlementaire de 28% exonérée d\'impôt'],
+    legal: ['Constitution belge art. 170-172 — égalité devant l\'impôt', 'Principe de capacité contributive', 'Recommandations OCDE et Commission européenne'],
+    comparaisons: ['France : ISF puis IFI sur l\'immobilier', 'Norvège : impôt sur la fortune de 0,95%', 'Espagne : impôt sur la fortune progressif'],
+    alternatives: ['Impôt fortune > 1M€ : 8-10 milliards', 'Taxation plus-values : 2-3 milliards', 'Registre des bénéficiaires effectifs : transparence']
+  },
+  democratie: {
+    titre: 'Réforme démocratique et lutte contre la particratie',
+    faits: ['97% des votes parlementaires suivent la discipline de parti', '6 parlements, 6 gouvernements pour 11,7 millions d\'habitants', 'Cabinets ministériels : 2.000+ collaborateurs non élus', '541 jours sans gouvernement en 2010-2011', '5× plus de parlementaires par habitant que les Pays-Bas'],
+    legal: ['Constitution belge art. 33 — tous les pouvoirs émanent de la Nation', 'Constitution art. 42 — les membres des Chambres représentent la Nation', 'CEDH Protocole 1 art. 3 — droit à des élections libres'],
+    comparaisons: ['Suisse : démocratie directe, référendums contraignants', 'Pays-Bas : 1 Parlement, 1 gouvernement, 150 députés pour 17M habitants', 'Irlande : assemblées citoyennes pour les réformes constitutionnelles'],
+    alternatives: ['Suppression du Sénat : 44,5M€/an', 'Fusion provinces/régions', 'Référendum d\'initiative citoyenne contraignant']
+  },
+  autre: {
+    titre: '[VOTRE SUJET]',
+    faits: ['[Ajoutez vos données chiffrées]', '[Source officielle 1]', '[Source officielle 2]'],
+    legal: ['Constitution belge art. 23 — droits économiques, sociaux et culturels', 'CEDH — Convention européenne des droits de l\'homme', '[Article de loi pertinent]'],
+    comparaisons: ['[Comparaison avec un pays voisin]', '[Bonne pratique internationale]'],
+    alternatives: ['[Alternative concrète 1]', '[Alternative concrète 2]']
+  }
+};
+
+const TARGET_FORMATS = {
+  depute: { salutation: 'Madame/Monsieur le/la Député·e', closing: 'Je vous prie d\'agréer, Madame/Monsieur le/la Député·e, l\'expression de ma considération citoyenne.' },
+  ministre: { salutation: 'Madame/Monsieur le/la Ministre', closing: 'Je vous prie d\'agréer, Madame/Monsieur le/la Ministre, l\'expression de ma haute considération.' },
+  commune: { salutation: 'Madame/Monsieur le Bourgmestre', closing: 'Veuillez agréer, Madame/Monsieur le Bourgmestre, mes salutations distinguées.' },
+  media: { salutation: 'Madame/Monsieur le/la Rédacteur·rice en chef', closing: 'Cordialement,' },
+  institution: { salutation: 'Madame, Monsieur', closing: 'Veuillez agréer, Madame, Monsieur, mes salutations distinguées.' },
+  petition: { salutation: 'Citoyennes, Citoyens,', closing: '— Les signataires' }
+};
+
+function generatePlaidoyer() {
+  const t = state.target || 'depute';
+  const s = state.subject || 'autre';
+  const tone = state.tone || 'citoyen';
+  const personal = document.getElementById('personal-input')?.value || '';
+  const freeSubject = document.getElementById('subject-free')?.value || '';
+  const checkedArgs = Array.from(document.querySelectorAll('#args-list .cb-item.checked')).map(el => el.textContent.trim());
+
+  const data = SUBJECT_DATA[s] || SUBJECT_DATA.autre;
+  const format = TARGET_FORMATS[t] || TARGET_FORMATS.depute;
+
+  const includeStats = checkedArgs.some(a => a.includes('Données'));
+  const includeLegal = checkedArgs.some(a => a.includes('juridiques'));
+  const includeCompare = checkedArgs.some(a => a.includes('Comparaisons'));
+  const includeAlternatives = checkedArgs.some(a => a.includes('Alternatives'));
+  const includeVulnerable = checkedArgs.some(a => a.includes('vulnérables'));
+  const includeAction = checkedArgs.some(a => a.includes('action'));
+  const includeEngagements = checkedArgs.some(a => a.includes('engagements'));
+
+  let html = `<div class="output-doc" id="plaidoyer-content">`;
+  html += `<p style="text-align:right;color:#888;font-size:.75rem"><span class="placeholder">[Votre nom]</span><br><span class="placeholder">[Votre adresse]</span><br><span class="placeholder">[Date]</span></p>`;
+  html += `<p style="color:#555;font-size:.75rem">${format.salutation}<br><span class="placeholder">[Nom et fonction]</span><br><span class="placeholder">[Adresse]</span></p>`;
+  html += `<h2>Objet : ${data.titre}</h2>`;
+  html += `<p>${format.salutation},</p>`;
+
+  // INTRO
+  if (t === 'petition') {
+    html += `<p>Nous, citoyennes et citoyens de Belgique, nous adressons à vous pour dénoncer une situation inacceptable et exiger des changements concrets concernant <strong>${data.titre.toLowerCase()}</strong>.</p>`;
+  } else {
+    html += `<p>Je me permets de vous interpeller en tant que citoyen·ne concerné·e par la question de <strong>${data.titre.toLowerCase()}</strong>. ${freeSubject ? freeSubject : ''}</p>`;
+  }
+
+  // PERSONAL
+  if (personal) {
+    html += `<h3>Mon vécu</h3><p>${personal}</p>`;
+  }
+
+  // FACTS
+  if (includeStats) {
+    html += `<h3>Les faits</h3><ul>${data.faits.map(f => `<li>${f}</li>`).join('')}</ul>`;
+  }
+
+  // LEGAL
+  if (includeLegal) {
+    html += `<h3>Fondements juridiques</h3><ul>${data.legal.map(l => `<li>${l}</li>`).join('')}</ul>`;
+  }
+
+  // COMPARE
+  if (includeCompare) {
+    html += `<h3>Ce qui se fait ailleurs</h3><ul>${data.comparaisons.map(c => `<li>${c}</li>`).join('')}</ul>`;
+  }
+
+  // VULNERABLE
+  if (includeVulnerable) {
+    html += `<h3>Impact sur les populations vulnérables</h3>`;
+    html += `<p>Les premières victimes de cette situation sont les personnes les plus fragiles : familles monoparentales, personnes âgées isolées, personnes en situation de handicap, travailleurs précaires. Le taux de non-recours aux droits sociaux en Belgique (20 à 50% selon les prestations) montre que la complexité administrative aggrave les inégalités existantes.</p>`;
+  }
+
+  // ALTERNATIVES
+  if (includeAlternatives) {
+    html += `<h3>Des alternatives existent</h3><ul>${data.alternatives.map(a => `<li>${a}</li>`).join('')}</ul>`;
+    html += `<p>L'argent existe. Le choix de ne pas l'utiliser est politique.</p>`;
+  }
+
+  // ENGAGEMENTS
+  if (includeEngagements) {
+    html += `<h3>Vos engagements</h3>`;
+    html += `<p>Votre parti s'était engagé lors de la campagne électorale à <span class="placeholder">[engagement précis]</span>. Les faits ci-dessus montrent que cet engagement n'a pas été tenu. Les citoyens ont le droit de demander des comptes.</p>`;
+  }
+
+  // ACTION
+  if (includeAction) {
+    html += `<h3>Demande d'action</h3>`;
+    html += `<p>Concrètement, je vous demande de :</p>`;
+    html += `<ul>
+      <li><span class="placeholder">[Action concrète 1 — ex: voter contre / déposer un amendement / interpeller le ministre]</span></li>
+      <li><span class="placeholder">[Action concrète 2 — ex: organiser une audition en commission / rendre public votre vote]</span></li>
+      <li>Me répondre par écrit dans un délai raisonnable</li>
+    </ul>`;
+  }
+
+  // CLOSING
+  html += `<p>Je me tiens à votre disposition pour tout échange complémentaire. Je rendrai cette correspondance publique si nécessaire.</p>`;
+  html += `<p>${format.closing}</p>`;
+  html += `<p style="margin-top:1.5rem"><span class="placeholder">[Votre signature]</span></p>`;
+  html += `</div>`;
+
+  const el = document.getElementById('output');
+  el.innerHTML = html + `
+    <div class="action-row">
+      <button class="action-btn primary" onclick="copyPlaidoyer()">📋 Copier le texte</button>
+      <button class="action-btn secondary" onclick="printPlaidoyer()">🖨 Imprimer</button>
+      <button class="action-btn secondary" onclick="location.reload()">Nouveau plaidoyer</button>
+    </div>
+  `;
+  el.style.display = 'block';
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 200);
+}
+
+function copyPlaidoyer() {
+  const text = document.getElementById('plaidoyer-content').innerText;
+  navigator.clipboard.writeText(text).then(() => alert('Plaidoyer copié !')).catch(() => alert('Erreur'));
+}
+
+function printPlaidoyer() {
+  const content = document.getElementById('plaidoyer-content').innerHTML;
+  const win = window.open('', '', 'width=800,height=600');
+  win.document.write(`<html><head><title>Plaidoyer</title><style>body{font-family:Georgia,serif;font-size:14px;line-height:1.8;padding:40px;color:#1a1a1a}h2{font-size:16px;border-bottom:1px solid #ddd;padding-bottom:4px}h3{font-size:14px;margin-top:1em}.placeholder{color:#b91c1c;font-weight:bold}</style></head><body>${content}</body></html>`);
+  win.document.close();
+  win.print();
+}
+</script>
+
+</body>
+</html>
