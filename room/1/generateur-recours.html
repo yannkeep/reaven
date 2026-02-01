@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>◇ DÉMOGARCHIE — Générateur de Recours</title>
+<meta name="description" content="Décrivez votre situation. L'outil identifie vos voies de recours et génère une lettre structurée.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Bitter:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#080906;--surface:#0e0f0b;--panel:#141511;--border:#222318;
+  --text:#c5c6b8;--dim:#6b6c5e;--white:#f0f0e5;
+  --gold:#d4a017;--gold-dim:rgba(212,160,23,0.12);
+  --red:#dc2626;--red-dim:rgba(220,38,38,0.1);
+  --green:#16a34a;--green-dim:rgba(22,163,74,0.1);
+  --cyan:#0891b2;--cyan-dim:rgba(8,145,178,0.1);
+  --mono:'IBM Plex Mono',monospace;--serif:'Bitter',Georgia,serif;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+.header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.logo{font-family:var(--serif);font-weight:900;font-size:1.4rem;color:var(--gold)}
+.logo span{color:var(--dim);font-weight:400;font-size:.8rem}
+.badge{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;padding:.25rem .6rem;border:1px solid var(--gold);color:var(--gold);border-radius:2px}
+.header-right{font-size:.7rem;color:var(--dim);text-align:right}
+
+.container{max-width:780px;margin:0 auto;padding:2rem 1.5rem 6rem}
+
+.intro{padding:2.5rem 0 2rem;border-bottom:1px solid var(--border);margin-bottom:2rem}
+.intro h1{font-family:var(--serif);font-weight:900;font-size:2.2rem;line-height:1.15;color:var(--white);margin-bottom:1rem}
+.intro h1 em{font-style:normal;color:var(--gold)}
+.intro p{font-size:.82rem;line-height:1.7;color:var(--dim);max-width:600px}
+.disclaimer{margin-top:1rem;padding:.8rem 1rem;background:var(--gold-dim);border:1px solid rgba(212,160,23,0.25);border-radius:2px;font-size:.72rem;color:var(--gold);line-height:1.5}
+
+/* WIZARD STEPS */
+.wizard-step{display:none;animation:fadeIn .4s ease}
+.wizard-step.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+
+.step-indicator{display:flex;gap:.3rem;margin-bottom:2rem}
+.step-dot{height:3px;flex:1;background:var(--border);border-radius:2px;transition:background .3s}
+.step-dot.done{background:var(--gold)}
+.step-dot.current{background:var(--gold);box-shadow:0 0 8px var(--gold-dim)}
+
+.step-title{font-family:var(--serif);font-weight:700;font-size:1.15rem;color:var(--white);margin-bottom:.4rem}
+.step-desc{font-size:.78rem;color:var(--dim);line-height:1.6;margin-bottom:1.5rem}
+
+/* CATEGORY CARDS */
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.cat-card{
+  padding:1.2rem;background:var(--panel);border:1px solid var(--border);
+  cursor:pointer;border-radius:2px;transition:all .15s;text-align:left
+}
+.cat-card:hover{border-color:var(--dim);background:#1a1b15}
+.cat-card.selected{border-color:var(--gold);background:var(--gold-dim)}
+.cat-card .cc-icon{font-size:1.3rem;margin-bottom:.5rem}
+.cat-card .cc-title{font-weight:700;font-size:.82rem;color:var(--white);margin-bottom:.2rem}
+.cat-card .cc-desc{font-size:.65rem;color:var(--dim);line-height:1.4}
+
+/* TEXT INPUT */
+.text-input{
+  width:100%;min-height:120px;padding:1rem;
+  background:var(--panel);border:1px solid var(--border);color:var(--text);
+  font-family:var(--mono);font-size:.82rem;line-height:1.7;
+  border-radius:2px;resize:vertical;outline:none;transition:border-color .2s
+}
+.text-input:focus{border-color:var(--gold)}
+.text-input::placeholder{color:var(--dim)}
+
+/* SELECT */
+.select-grid{display:flex;flex-direction:column;gap:.5rem}
+.select-btn{
+  padding:.9rem 1.2rem;background:var(--panel);border:1px solid var(--border);
+  color:var(--text);font-family:var(--mono);font-size:.8rem;cursor:pointer;
+  border-radius:2px;transition:all .15s;text-align:left
+}
+.select-btn:hover{border-color:var(--dim)}
+.select-btn.selected{border-color:var(--gold);background:var(--gold-dim);color:var(--white)}
+
+/* NAV BUTTONS */
+.nav-row{display:flex;gap:.6rem;margin-top:2rem}
+.nav-btn{
+  padding:.8rem 1.5rem;font-family:var(--mono);font-size:.8rem;font-weight:600;
+  cursor:pointer;border-radius:2px;transition:all .15s
+}
+.nav-btn.next{background:var(--gold);color:var(--bg);border:1px solid var(--gold)}
+.nav-btn.next:hover{background:#b8860b}
+.nav-btn.next:disabled{background:var(--panel);color:var(--dim);border-color:var(--border);cursor:not-allowed}
+.nav-btn.back{background:transparent;color:var(--dim);border:1px solid var(--border)}
+.nav-btn.back:hover{border-color:var(--dim);color:var(--text)}
+
+/* RESULTS */
+#results{display:none}
+
+.routes-section{margin-bottom:2.5rem}
+.route-card{
+  padding:1.5rem;margin-bottom:1rem;
+  background:var(--panel);border:1px solid var(--border);border-radius:2px
+}
+.route-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem}
+.route-name{font-family:var(--serif);font-weight:700;font-size:1rem;color:var(--white)}
+.route-badges{display:flex;gap:.4rem;flex-wrap:wrap}
+.rbadge{font-size:.6rem;padding:.2rem .5rem;border-radius:2px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.rbadge.free{background:var(--green-dim);color:var(--green);border:1px solid rgba(22,163,74,0.3)}
+.rbadge.paid{background:var(--red-dim);color:var(--red);border:1px solid rgba(220,38,38,0.3)}
+.rbadge.fast{background:var(--cyan-dim);color:var(--cyan);border:1px solid rgba(8,145,178,0.3)}
+.rbadge.slow{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(212,160,23,0.3)}
+.route-body{font-size:.78rem;line-height:1.7;color:var(--text)}
+.route-body strong{color:var(--white)}
+.route-details{margin-top:.8rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem}
+.rd-item{padding:.5rem;background:var(--surface);border-radius:2px;text-align:center}
+.rd-value{font-weight:700;font-size:.85rem;color:var(--white)}
+.rd-label{font-size:.6rem;color:var(--dim);text-transform:uppercase;letter-spacing:.08em}
+
+/* GENERATED LETTER */
+.letter-section{margin:2.5rem 0}
+.letter-box{
+  padding:2rem;background:#faf9f5;color:#1a1a1a;
+  font-family:'Bitter',Georgia,serif;font-size:.82rem;line-height:1.8;
+  border-radius:2px;border:1px solid #ddd;
+  max-height:600px;overflow-y:auto
+}
+.letter-box .l-header{text-align:right;margin-bottom:2rem;font-size:.75rem;color:#555}
+.letter-box .l-dest{margin-bottom:1.5rem;font-size:.75rem;color:#333}
+.letter-box .l-object{font-weight:700;margin-bottom:1.5rem;font-size:.85rem}
+.letter-box .l-body{margin-bottom:1.5rem}
+.letter-box .l-body p{margin-bottom:.8rem;text-align:justify}
+.letter-box .l-footer{margin-top:2rem;font-size:.75rem;color:#555}
+.letter-box .l-placeholder{color:#b88a00;font-weight:700;background:rgba(212,160,23,0.15);padding:0 3px;border-radius:2px}
+
+/* COPY BTN */
+.copy-row{display:flex;gap:.6rem;margin-top:1rem}
+.copy-btn{
+  padding:.8rem 1.5rem;font-family:var(--mono);font-size:.75rem;font-weight:600;
+  cursor:pointer;border-radius:2px;transition:all .15s
+}
+.copy-btn.primary{background:var(--gold);color:var(--bg);border:1px solid var(--gold)}
+.copy-btn.primary:hover{background:#b8860b}
+.copy-btn.secondary{background:transparent;color:var(--text);border:1px solid var(--border)}
+.copy-btn.secondary:hover{border-color:var(--dim)}
+
+/* RIGHTS CHECKLIST */
+.rights-box{
+  margin:2rem 0;padding:1.5rem;
+  background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:0 2px 2px 0
+}
+.rights-box h3{font-family:var(--serif);font-weight:700;font-size:.95rem;color:var(--green);margin-bottom:.8rem}
+.rights-list{font-size:.78rem;line-height:1.8;color:var(--text)}
+.rights-list li{list-style:none;margin-bottom:.3rem}
+.rights-list li::before{content:'✓ ';color:var(--green);font-weight:700}
+
+/* TIMELINE */
+.timeline{margin:2rem 0}
+.tl-item{display:flex;gap:1rem;padding:.8rem 0;border-bottom:1px solid rgba(34,35,24,0.5)}
+.tl-when{font-size:.7rem;font-weight:700;color:var(--gold);min-width:100px}
+.tl-what{font-size:.78rem;color:var(--text);line-height:1.5}
+
+.footer{margin-top:4rem;padding:1.5rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;font-size:.65rem;color:var(--dim)}
+.footer a{color:var(--green);text-decoration:none}
+
+@media(max-width:600px){
+  .container{padding:1.5rem 1rem 4rem}
+  .intro h1{font-size:1.7rem}
+  .cat-grid{grid-template-columns:1fr}
+  .route-details{grid-template-columns:1fr}
+  .copy-row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:1rem">
+    <div class="logo">◇ DÉMOGARCHIE <span>/ recours</span></div>
+    <div class="badge">法律战 JURIDIQUE</div>
+  </div>
+  <div class="header-right">MICRO · Module 04/17</div>
+</div>
+
+<div class="container">
+
+  <div class="intro">
+    <h1>Générateur de <em>recours</em></h1>
+    <p>
+      Décrivez votre situation. L'outil identifie les voies de recours disponibles, les délais, les coûts — et génère un modèle de lettre structurée avec les articles de loi pertinents.
+    </p>
+    <div class="disclaimer">
+      ⚠ Cet outil est éducatif. Il ne remplace pas un avocat. Mais il vous met en position de savoir <em>que vous avez des droits</em>, <em>lesquels</em>, et <em>comment les activer</em>. En Belgique, 20 à 50% des éligibles ne font pas valoir leurs droits (source : CPAS / Eurofound). Cet outil existe pour réduire ce chiffre.
+    </div>
+  </div>
+
+  <!-- STEP INDICATOR -->
+  <div class="step-indicator" id="step-indicator">
+    <div class="step-dot current" data-step="0"></div>
+    <div class="step-dot" data-step="1"></div>
+    <div class="step-dot" data-step="2"></div>
+    <div class="step-dot" data-step="3"></div>
+  </div>
+
+  <!-- STEP 0: DOMAIN -->
+  <div class="wizard-step active" id="ws-0">
+    <div class="step-title">Quel domaine ?</div>
+    <div class="step-desc">Sélectionnez le domaine qui concerne votre problème.</div>
+    <div class="cat-grid" id="domain-grid">
+      <div class="cat-card" data-val="social" onclick="selectDomain(this)">
+        <div class="cc-icon">🏥</div>
+        <div class="cc-title">Social / CPAS / Chômage</div>
+        <div class="cc-desc">Refus d'aide, radiation, sanction ONEM, revenu d'intégration</div>
+      </div>
+      <div class="cat-card" data-val="logement" onclick="selectDomain(this)">
+        <div class="cc-icon">🏠</div>
+        <div class="cc-title">Logement</div>
+        <div class="cc-desc">Expulsion, insalubrité, loyer abusif, bail, logement social</div>
+      </div>
+      <div class="cat-card" data-val="admin" onclick="selectDomain(this)">
+        <div class="cc-icon">📋</div>
+        <div class="cc-title">Administration / Commune</div>
+        <div class="cc-desc">Refus, retard, permis, urbanisme, état civil</div>
+      </div>
+      <div class="cat-card" data-val="fiscal" onclick="selectDomain(this)">
+        <div class="cc-icon">💰</div>
+        <div class="cc-title">Fiscalité / Impôts</div>
+        <div class="cc-desc">Avertissement-extrait de rôle, taxation d'office, contrôle</div>
+      </div>
+      <div class="cat-card" data-val="media" onclick="selectDomain(this)">
+        <div class="cc-icon">📺</div>
+        <div class="cc-title">Médias / Presse</div>
+        <div class="cc-desc">Diffamation, atteinte vie privée, déontologie, CSA</div>
+      </div>
+      <div class="cat-card" data-val="travail" onclick="selectDomain(this)">
+        <div class="cc-icon">⚖️</div>
+        <div class="cc-title">Travail / Emploi</div>
+        <div class="cc-desc">Licenciement, harcèlement, discrimination, contrat</div>
+      </div>
+      <div class="cat-card" data-val="sante" onclick="selectDomain(this)">
+        <div class="cc-icon">💊</div>
+        <div class="cc-title">Santé / Mutuelle / INAMI</div>
+        <div class="cc-desc">Refus remboursement, incapacité, contrôle médecin-conseil</div>
+      </div>
+      <div class="cat-card" data-val="donnees" onclick="selectDomain(this)">
+        <div class="cc-icon">🔒</div>
+        <div class="cc-title">Données personnelles / RGPD</div>
+        <div class="cc-desc">Droit d'accès, suppression, violation vie privée</div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="nav-btn next" id="next-0" disabled onclick="goStep(1)">Suivant →</button>
+    </div>
+  </div>
+
+  <!-- STEP 1: SITUATION -->
+  <div class="wizard-step" id="ws-1">
+    <div class="step-title">Décrivez votre situation</div>
+    <div class="step-desc">En quelques phrases : que s'est-il passé ? Quand ? Quelle décision contestez-vous ?</div>
+    <textarea class="text-input" id="situation-input" placeholder="Exemple : Le CPAS de ma commune a refusé ma demande de revenu d'intégration le 15 janvier 2026. La décision m'a été notifiée par courrier recommandé le 20 janvier. Le motif invoqué est que je suis propriétaire d'un bien, mais il s'agit d'un terrain non constructible que j'ai hérité."></textarea>
+    <div class="nav-row">
+      <button class="nav-btn back" onclick="goStep(0)">← Retour</button>
+      <button class="nav-btn next" id="next-1" onclick="goStep(2)">Suivant →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: DETAILS -->
+  <div class="wizard-step" id="ws-2">
+    <div class="step-title">Précisions</div>
+    <div class="step-desc" id="detail-desc">Sélectionnez ce qui correspond le mieux.</div>
+    <div class="select-grid" id="detail-grid">
+      <!-- Filled by JS -->
+    </div>
+    <div class="nav-row">
+      <button class="nav-btn back" onclick="goStep(1)">← Retour</button>
+      <button class="nav-btn next" id="next-2" onclick="goStep(3)">Suivant →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: URGENCY & GENERATE -->
+  <div class="wizard-step" id="ws-3">
+    <div class="step-title">Quand avez-vous reçu la décision ?</div>
+    <div class="step-desc">Le délai de recours court souvent à partir de la notification. C'est crucial.</div>
+    <div class="select-grid" id="urgency-grid">
+      <button class="select-btn" data-val="recent" onclick="selectUrgency(this)">Il y a moins de 2 semaines</button>
+      <button class="select-btn" data-val="month" onclick="selectUrgency(this)">Il y a 2 à 4 semaines</button>
+      <button class="select-btn" data-val="old" onclick="selectUrgency(this)">Il y a plus d'un mois</button>
+      <button class="select-btn" data-val="unknown" onclick="selectUrgency(this)">Je ne sais pas / pas de notification formelle</button>
+    </div>
+    <div class="nav-row">
+      <button class="nav-btn back" onclick="goStep(2)">← Retour</button>
+      <button class="nav-btn next" id="generate-btn" disabled onclick="generate()">⚖ Générer mes recours</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results"></div>
+
+</div>
+
+<script>
+// ============================================================
+// RECOURSE DATABASE — Belgian law
+// ============================================================
+const ROUTES = {
+  social: {
+    details: [
+      {val:'cpas_refus', label:'Refus de revenu d\'intégration (RIS)'},
+      {val:'cpas_radiation', label:'Radiation / suppression d\'aide'},
+      {val:'onem_sanction', label:'Sanction ONEM (chômage)'},
+      {val:'onem_exclusion', label:'Exclusion des allocations de chômage'},
+      {val:'allocations_familiales', label:'Problème allocations familiales'},
+      {val:'autre_social', label:'Autre problème social'}
+    ],
+    routes: [
+      {
+        name: 'Recours au Tribunal du Travail',
+        badges: ['free','fast'],
+        body: 'Le Tribunal du Travail est compétent pour <strong>tous les litiges avec le CPAS et l\'ONEM</strong>. La procédure est gratuite (pas de mise au rôle pour les affaires sociales). Vous pouvez vous y présenter sans avocat.',
+        delay: '3 mois',
+        cost: 'Gratuit',
+        strength: 'Contraignant',
+        articles: ['Loi organique CPAS du 8 juillet 1976, art. 71', 'Loi du 26 mai 2002 sur le RIS', 'Code judiciaire, art. 580-582'],
+        how: 'Envoyez une requête par courrier recommandé au greffe du Tribunal du Travail de votre arrondissement. La requête peut être manuscrite. Indiquez vos nom, adresse, la décision contestée, et ce que vous demandez.'
+      },
+      {
+        name: 'Réclamation auprès du Médiateur fédéral',
+        badges: ['free','fast'],
+        body: 'Le Médiateur fédéral traite les plaintes contre les administrations fédérales (ONEM, INAMI, SPF). Il peut intervenir, formuler des recommandations et même signaler des dysfonctionnements au Parlement.',
+        delay: '2-6 semaines',
+        cost: 'Gratuit',
+        strength: 'Recommandation',
+        articles: ['Loi du 22 mars 1995 instaurant les médiateurs fédéraux'],
+        how: 'Plainte en ligne sur mediateurfederal.be, par courrier, par téléphone ou en personne. Joignez copie de la décision contestée et de vos échanges.'
+      },
+      {
+        name: 'Aide juridique de 1re et 2e ligne',
+        badges: ['free'],
+        body: 'Avant tout recours, consultez le <strong>Bureau d\'Aide Juridique (BAJ)</strong> de votre barreau. Aide de 1re ligne : consultation gratuite pour tous. Aide de 2e ligne (avocat pro deo) : accessible si revenus inférieurs à <strong>1 582 €/mois</strong> (isolé) ou 1 838 € (ménage).',
+        delay: 'Immédiat',
+        cost: 'Gratuit',
+        strength: 'Conseil',
+        articles: ['Code judiciaire, art. 508/1 à 508/25'],
+        how: 'Contactez le BAJ du barreau le plus proche. Permanences sans rendez-vous dans la plupart des palais de justice. Munissez-vous d\'une preuve de revenus.'
+      }
+    ],
+    letterTemplate: {
+      dest: '[Nom du Tribunal / CPAS / ONEM]\n[Adresse]',
+      object: 'Recours contre la décision du [DATE] — [TYPE DE DÉCISION]',
+      body: `Madame, Monsieur le Président,\n\nJe soussigné·e, [VOTRE NOM], domicilié·e à [VOTRE ADRESSE], ai l'honneur de former un recours contre la décision de [ORGANISME] en date du [DATE DÉCISION], notifiée le [DATE NOTIFICATION], portant [OBJET DE LA DÉCISION].\n\n**EXPOSÉ DES FAITS :**\n[SITUATION DÉCRITE PAR L'UTILISATEUR]\n\n**MOYENS :**\nCette décision est contestable pour les motifs suivants :\n\n1. Sur le plan de la légalité : la décision ne respecte pas les conditions prévues par [ARTICLE DE LOI PERTINENT], qui dispose que [PRINCIPE].\n\n2. Sur le plan de la proportionnalité : la décision ne tient pas compte de ma situation particulière, à savoir [CIRCONSTANCES ATTÉNUANTES].\n\n3. Sur le plan de la motivation : la décision est insuffisamment motivée au regard de la loi du 29 juillet 1991 relative à la motivation formelle des actes administratifs.\n\n**DEMANDE :**\nPar ces motifs, je vous demande de bien vouloir :\n— Annuler la décision du [DATE] ;\n— [RÉTABLIR MES DROITS / M'ACCORDER L'AIDE DEMANDÉE] ;\n— Subsidiairement, ordonner un nouvel examen de ma situation.\n\nJe me tiens à votre disposition pour tout complément d'information.\n\nVeuillez agréer, Madame, Monsieur le Président, l'expression de ma considération distinguée.`
+    }
+  },
+  logement: {
+    details: [
+      {val:'expulsion', label:'Menace d\'expulsion'},
+      {val:'insalubrite', label:'Logement insalubre / dangereux'},
+      {val:'loyer', label:'Augmentation abusive de loyer'},
+      {val:'garantie', label:'Non-restitution de garantie locative'},
+      {val:'social', label:'Problème logement social'},
+      {val:'autre_logement', label:'Autre problème logement'}
+    ],
+    routes: [
+      {
+        name: 'Justice de Paix',
+        badges: ['paid','fast'],
+        body: 'Le Juge de Paix est compétent pour <strong>tous les litiges locatifs</strong> : loyer, expulsion, garantie, insalubrité. Procédure rapide et accessible.',
+        delay: '1-3 mois',
+        cost: '~165 € (mise au rôle)',
+        strength: 'Contraignant',
+        articles: ['Code civil, art. 1708-1762bis', 'Décret wallon bail d\'habitation 2018', 'Code bruxellois du logement'],
+        how: 'Requête au greffe de la Justice de Paix du canton où se situe le logement. Formulaire disponible sur justicedepaix.be.'
+      },
+      {
+        name: 'Inspection régionale du Logement',
+        badges: ['free'],
+        body: 'En cas d\'insalubrité, vous pouvez saisir le <strong>Service d\'Inspection régionale du Logement</strong> (DIRL en Wallonie, Inspection régionale à Bruxelles). L\'inspecteur peut ordonner des travaux au propriétaire.',
+        delay: '2-8 semaines',
+        cost: 'Gratuit',
+        strength: 'Contraignant (travaux)',
+        articles: ['Code wallon du logement, art. 3-13', 'Code bruxellois du logement, art. 4-8'],
+        how: 'Plainte par courrier ou en ligne auprès de votre Service régional du logement. Joignez photos et preuves.'
+      },
+      {
+        name: 'Aide juridique + Associations',
+        badges: ['free'],
+        body: 'Le <strong>Syndicat des Locataires</strong> et les associations de droit au logement offrent accompagnement gratuit. Le BAJ offre consultations gratuites.',
+        delay: 'Immédiat',
+        cost: 'Gratuit',
+        strength: 'Conseil',
+        articles: [],
+        how: 'Contactez le Syndicat des Locataires de votre région, le RBDL (Bruxelles) ou le Réseau wallon de Lutte contre la Pauvreté.'
+      }
+    ],
+    letterTemplate: {
+      dest: '[Propriétaire / Agence / Justice de Paix]\n[Adresse]',
+      object: 'Mise en demeure — [TYPE DE PROBLÈME]',
+      body: `Madame, Monsieur,\n\nJe soussigné·e, [VOTRE NOM], locataire du bien situé [ADRESSE DU LOGEMENT] en vertu du bail signé le [DATE], me permets de vous adresser la présente mise en demeure.\n\n**CONSTAT :**\n[SITUATION DÉCRITE PAR L'UTILISATEUR]\n\n**FONDEMENT JURIDIQUE :**\nConformément aux dispositions du [CODE RÉGIONAL DU LOGEMENT / CODE CIVIL], le bailleur est tenu de [OBLIGATION LÉGALE]. En l'espèce, cette obligation n'est pas respectée.\n\n**DEMANDE :**\nJe vous mets en demeure de [ACTION DEMANDÉE] dans un délai de [15/30 JOURS] à compter de la réception de la présente.\n\nÀ défaut de réponse satisfaisante dans ce délai, je me réserve le droit de saisir la Justice de Paix compétente et/ou le Service d'Inspection du Logement, sans autre avertissement.\n\nVeuillez agréer, Madame, Monsieur, mes salutations distinguées.`
+    }
+  },
+  admin: {
+    details: [
+      {val:'refus_permis', label:'Refus de permis (urbanisme, environnement)'},
+      {val:'retard', label:'Retard excessif de traitement'},
+      {val:'erreur', label:'Erreur administrative'},
+      {val:'acces_documents', label:'Refus d\'accès à un document administratif'},
+      {val:'autre_admin', label:'Autre problème administratif'}
+    ],
+    routes: [
+      {
+        name: 'Recours administratif (tutelle)',
+        badges: ['free','fast'],
+        body: 'Tout acte communal peut faire l\'objet d\'un recours auprès de la <strong>tutelle régionale</strong>. Le Gouverneur de Province peut aussi intervenir.',
+        delay: '30-60 jours',
+        cost: 'Gratuit',
+        strength: 'Peut annuler',
+        articles: ['CDLD art. L3111-1 et suiv. (Wallonie)', 'Ordonnance du 14 mai 1998 (Bruxelles)'],
+        how: 'Courrier recommandé au Gouverneur de Province ou à la tutelle régionale. Détaillez l\'acte contesté, le motif et votre demande.'
+      },
+      {
+        name: 'Commission d\'Accès aux Documents Administratifs (CADA)',
+        badges: ['free','fast'],
+        body: 'Si une administration refuse de vous communiquer un document, la <strong>CADA</strong> peut l\'y contraindre. Transparence administrative garantie par la Constitution.',
+        delay: '30 jours',
+        cost: 'Gratuit',
+        strength: 'Avis contraignant',
+        articles: ['Constitution belge, art. 32', 'Décret wallon du 30 mars 1995', 'Ordonnance bruxelloise du 30 mars 1995'],
+        how: 'Demande écrite à la CADA de votre Région. Joignez preuve de votre demande initiale et du refus.'
+      },
+      {
+        name: 'Médiateur communal / régional',
+        badges: ['free'],
+        body: 'Certaines communes et toutes les Régions ont un ombudsman. Il intervient en cas de dysfonctionnement administratif.',
+        delay: '2-6 semaines',
+        cost: 'Gratuit',
+        strength: 'Recommandation',
+        articles: ['Décret wallon du 1er avril 2004 (médiateur régional)'],
+        how: 'Contactez le médiateur de votre commune (si existant) ou le médiateur régional. Procédure informelle.'
+      }
+    ],
+    letterTemplate: {
+      dest: '[Administration concernée]\n[Adresse]',
+      object: 'Recours gracieux / Demande de réexamen — [OBJET]',
+      body: `Madame, Monsieur,\n\nJe soussigné·e, [VOTRE NOM], domicilié·e à [VOTRE ADRESSE], conteste par la présente la décision / le refus de [OBJET] en date du [DATE].\n\n**EXPOSÉ :**\n[SITUATION DÉCRITE PAR L'UTILISATEUR]\n\n**FONDEMENT :**\nEn vertu du principe de bonne administration et de la loi du 29 juillet 1991 relative à la motivation formelle des actes administratifs, toute décision doit être motivée de manière adéquate. La Constitution belge (art. 32) garantit par ailleurs le droit d'accès aux documents administratifs.\n\n**DEMANDE :**\nJe vous demande de bien vouloir :\n— Réexaminer ma demande ;\n— Motiver précisément le refus, le cas échéant ;\n— Me communiquer l'ensemble des documents relatifs à mon dossier.\n\nÀ défaut de réponse dans un délai de 30 jours, je saisirai la tutelle régionale compétente.\n\nVeuillez agréer, Madame, Monsieur, l'expression de ma considération distinguée.`
+    }
+  },
+  fiscal: {
+    details: [
+      {val:'aer_contestation', label:'Contestation avertissement-extrait de rôle'},
+      {val:'taxation_office', label:'Taxation d\'office'},
+      {val:'precompte', label:'Précompte immobilier contesté'},
+      {val:'autre_fiscal', label:'Autre problème fiscal'}
+    ],
+    routes: [
+      {
+        name: 'Réclamation administrative (1re instance)',
+        badges: ['free','fast'],
+        body: 'Tout contribuable peut contester son imposition par <strong>réclamation écrite au Directeur régional</strong> dans un délai de 6 mois (IPP) ou 3 mois (précompte) après l\'envoi de l\'avertissement-extrait de rôle.',
+        delay: '6 mois max.',
+        cost: 'Gratuit',
+        strength: 'Peut annuler/modifier',
+        articles: ['CIR 1992, art. 366-375', 'Code des impôts sur les revenus'],
+        how: 'Courrier recommandé au Directeur régional des contributions. Indiquez le numéro d\'article de rôle, le motif de contestation et joignez les preuves.'
+      },
+      {
+        name: 'Tribunal de 1re instance (fiscal)',
+        badges: ['paid','slow'],
+        body: 'Si la réclamation est rejetée ou sans réponse après 6 mois, recours devant le <strong>Tribunal de 1re instance</strong>.',
+        delay: '1-2 ans',
+        cost: '165 € + avocat recommandé',
+        strength: 'Contraignant',
+        articles: ['CIR 1992, art. 1385undecies Code judiciaire'],
+        how: 'Requête au greffe du Tribunal de 1re instance compétent. Conseil : consultez le BAJ pour aide juridique.'
+      }
+    ],
+    letterTemplate: {
+      dest: 'Monsieur le Directeur régional\nAdministration des contributions directes\n[Adresse du bureau de taxation]',
+      object: 'Réclamation — Exercice d\'imposition [ANNÉE] — Article de rôle n° [NUMÉRO]',
+      body: `Monsieur le Directeur,\n\nJe soussigné·e, [VOTRE NOM], numéro national [NN], domicilié·e à [ADRESSE], ai l'honneur de former une réclamation contre l'imposition établie à mon nom pour l'exercice [ANNÉE], article de rôle n° [NUMÉRO], dont l'avertissement-extrait de rôle m'a été envoyé le [DATE].\n\n**MOTIFS DE LA RÉCLAMATION :**\n[SITUATION DÉCRITE PAR L'UTILISATEUR]\n\n**FONDEMENT JURIDIQUE :**\nConformément à l'article 366 du CIR 1992, la présente réclamation est introduite dans le délai légal de six mois. Je conteste l'imposition pour les motifs suivants :\n\n1. [MOTIF 1]\n2. [MOTIF 2]\n\n**DEMANDE :**\nJe demande le dégrèvement [TOTAL / PARTIEL] de l'imposition contestée, soit un montant de [MONTANT] €.\n\nJe reste à votre disposition pour fournir tout document complémentaire.\n\nVeuillez agréer, Monsieur le Directeur, mes salutations distinguées.`
+    }
+  },
+  media: {
+    details: [
+      {val:'deontologie', label:'Manquement déontologique (CDJ)'},
+      {val:'audiovisuel', label:'Contenu audiovisuel problématique (CSA)'},
+      {val:'vie_privee', label:'Atteinte à la vie privée'},
+      {val:'diffamation', label:'Diffamation'},
+      {val:'autre_media', label:'Autre problème médiatique'}
+    ],
+    routes: [
+      {
+        name: 'Plainte au CDJ (Conseil de Déontologie Journalistique)',
+        badges: ['free','fast'],
+        body: 'Le CDJ examine les plaintes déontologiques contre <strong>tous les médias francophones</strong>. Délai de dépôt : <strong>2 mois</strong> après publication. 57% des décisions sont favorables aux plaignants.',
+        delay: '2-4 mois',
+        cost: 'Gratuit',
+        strength: 'Moral (publication décision)',
+        articles: ['Code de déontologie journalistique (CDJ)'],
+        how: 'Formulaire en ligne sur lecdj.be. Identifiez précisément l\'article/émission, le passage contesté, et le principe déontologique violé.'
+      },
+      {
+        name: 'Plainte au CSA',
+        badges: ['free'],
+        body: 'Le CSA peut sanctionner les médias audiovisuels : avertissement, communiqué obligatoire, <strong>amendes</strong>. Il a déjà sanctionné RTL Belgium par le passé.',
+        delay: '3-6 mois',
+        cost: 'Gratuit',
+        strength: 'Sanctions possibles',
+        articles: ['Décret SMA, art. 2.4-1 (interdiction discrimination)', 'Décret coordonné sur les médias audiovisuels'],
+        how: 'Plainte en ligne sur csa.be. Décrivez précisément le contenu contesté et la règle que vous estimez violée.'
+      },
+      {
+        name: 'Signalement à Unia',
+        badges: ['free'],
+        body: 'Pour les contenus discriminatoires, <strong>Unia</strong> peut ouvrir un dossier, tenter une médiation, et dans des cas graves, ester en justice gratuitement.',
+        delay: 'Variable',
+        cost: 'Gratuit',
+        strength: 'Médiation + action judiciaire possible',
+        articles: ['Loi du 10 mai 2007 (anti-discrimination)', 'Loi du 30 juillet 1981 (racisme)'],
+        how: 'Signalement en ligne sur unia.be. Joignez le contenu problématique et expliquez en quoi il est discriminatoire.'
+      }
+    ],
+    letterTemplate: {
+      dest: '[CDJ / CSA / Rédaction du média]\n[Adresse]',
+      object: 'Plainte — [TITRE DE L\'ARTICLE/ÉMISSION] diffusé le [DATE]',
+      body: `Madame, Monsieur,\n\nJe soussigné·e, [VOTRE NOM], souhaite porter plainte concernant [TITRE] publié/diffusé le [DATE] par [NOM DU MÉDIA].\n\n**CONTENU CONTESTÉ :**\n[SITUATION DÉCRITE PAR L'UTILISATEUR]\n\n**PRINCIPES DÉONTOLOGIQUES / LÉGAUX POTENTIELLEMENT VIOLÉS :**\n1. [PRINCIPE — ex: respect de la dignité, vérification des sources, droit de réponse]\n2. [PRINCIPE]\n\n**DEMANDE :**\nJe demande que le Conseil examine ce contenu au regard des principes déontologiques applicables et, le cas échéant, prononce un avis.\n\nJe reste à disposition pour tout complément.\n\nCordialement,`
+    }
+  },
+  travail: {
+    details: [
+      {val:'licenciement', label:'Licenciement (contestation)'},
+      {val:'harcelement', label:'Harcèlement moral ou sexuel'},
+      {val:'discrimination', label:'Discrimination'},
+      {val:'salaire', label:'Non-paiement de salaire / arriérés'},
+      {val:'autre_travail', label:'Autre problème au travail'}
+    ],
+    routes: [
+      {
+        name: 'Tribunal du Travail',
+        badges: ['free','fast'],
+        body: 'Compétent pour <strong>tous les litiges employeur-travailleur</strong>. Procédure gratuite en matière sociale.',
+        delay: '3-12 mois',
+        cost: 'Gratuit (social)',
+        strength: 'Contraignant',
+        articles: ['Loi du 3 juillet 1978 sur les contrats de travail', 'Code judiciaire, art. 578-583'],
+        how: 'Requête au greffe du Tribunal du Travail. Possibilité de se présenter sans avocat. BAJ pour aide juridique gratuite.'
+      },
+      {
+        name: 'Inspection sociale (Contrôle des lois sociales)',
+        badges: ['free'],
+        body: 'Le CLS peut intervenir pour non-respect du droit du travail : heures, salaire, sécurité. Pouvoir de sanction.',
+        delay: '2-8 semaines',
+        cost: 'Gratuit',
+        strength: 'Contraignant',
+        articles: ['Code pénal social'],
+        how: 'Plainte au Contrôle des lois sociales (Direction générale du SPF ETCS). Peut être anonyme.'
+      }
+    ],
+    letterTemplate: {
+      dest: '[Employeur / Tribunal du Travail]\n[Adresse]',
+      object: 'Contestation de [LICENCIEMENT / DÉCISION] — Mise en demeure',
+      body: `Madame, Monsieur,\n\nJe soussigné·e, [VOTRE NOM], engagé·e depuis le [DATE D'ENTRÉE] en qualité de [FONCTION], conteste par la présente [OBJET DE LA CONTESTATION].\n\n**EXPOSÉ :**\n[SITUATION DÉCRITE PAR L'UTILISATEUR]\n\n**FONDEMENT :**\nConformément à la loi du 3 juillet 1978 sur les contrats de travail, [ARTICLE PERTINENT].\n\n**DEMANDE :**\n[DEMANDE SPÉCIFIQUE]\n\nÀ défaut de réponse dans les 15 jours, je saisirai le Tribunal du Travail compétent.\n\nVeuillez agréer, Madame, Monsieur, mes salutations distinguées.`
+    }
+  },
+  sante: {
+    details: [
+      {val:'remboursement', label:'Refus de remboursement mutuelle/INAMI'},
+      {val:'incapacite', label:'Contestation de décision d\'incapacité'},
+      {val:'medecin_conseil', label:'Convocation médecin-conseil'},
+      {val:'autre_sante', label:'Autre problème santé'}
+    ],
+    routes: [
+      {
+        name: 'Tribunal du Travail (contentieux INAMI)',
+        badges: ['free'],
+        body: 'Le Tribunal du Travail est compétent pour les litiges INAMI/mutuelle. Expertise médicale judiciaire possible.',
+        delay: '3-12 mois',
+        cost: 'Gratuit',
+        strength: 'Contraignant',
+        articles: ['Loi coordonnée du 14 juillet 1994 (assurance soins de santé)', 'Code judiciaire, art. 580, 2°'],
+        how: 'Requête au Tribunal du Travail dans les 3 mois suivant la notification de la décision contestée.'
+      },
+      {
+        name: 'Médiation mutuelle',
+        badges: ['free','fast'],
+        body: 'Chaque mutuelle dispose d\'un service de médiation interne. Première étape recommandée.',
+        delay: '2-4 semaines',
+        cost: 'Gratuit',
+        strength: 'Conciliation',
+        articles: [],
+        how: 'Contactez le service de médiation de votre mutuelle. Demandez un réexamen motivé de la décision.'
+      }
+    ],
+    letterTemplate: {
+      dest: '[Mutuelle / INAMI / Tribunal du Travail]\n[Adresse]',
+      object: 'Contestation de la décision du [DATE] — [OBJET]',
+      body: `Madame, Monsieur,\n\nJe soussigné·e, [VOTRE NOM], affilié·e sous le n° [NUMÉRO], conteste la décision du [DATE] concernant [OBJET].\n\n**EXPOSÉ :**\n[SITUATION DÉCRITE PAR L'UTILISATEUR]\n\n**FONDEMENT :**\nConformément à la loi coordonnée du 14 juillet 1994, [ARTICLE]. Je joins à la présente [DOCUMENTS MÉDICAUX / ATTESTATION].\n\n**DEMANDE :**\nJe demande le réexamen de cette décision / la désignation d'un expert médical indépendant.\n\nVeuillez agréer, Madame, Monsieur, mes salutations distinguées.`
+    }
+  },
+  donnees: {
+    details: [
+      {val:'acces', label:'Demande d\'accès à mes données personnelles'},
+      {val:'suppression', label:'Demande de suppression de données'},
+      {val:'violation', label:'Violation de données / fuite'},
+      {val:'surveillance', label:'Surveillance / caméras'},
+      {val:'autre_donnees', label:'Autre problème RGPD'}
+    ],
+    routes: [
+      {
+        name: 'Plainte à l\'APD (Autorité de Protection des Données)',
+        badges: ['free'],
+        body: 'L\'APD peut imposer des <strong>sanctions allant jusqu\'à 20 millions d\'euros</strong> sous le RGPD. La plainte est gratuite.',
+        delay: '6-18 mois (backlog)',
+        cost: 'Gratuit',
+        strength: 'Sanctions lourdes possibles',
+        articles: ['RGPD, art. 15-17, 77', 'Loi du 30 juillet 2018'],
+        how: 'Formulaire en ligne sur autoriteprotectiondonnees.be. Joignez preuve de votre demande initiale auprès du responsable de traitement et de sa non-réponse (délai 30 jours).'
+      },
+      {
+        name: 'Demande directe au responsable de traitement',
+        badges: ['free','fast'],
+        body: 'Avant de saisir l\'APD, exercez d\'abord votre droit directement. Le responsable a <strong>30 jours</strong> pour répondre.',
+        delay: '30 jours',
+        cost: 'Gratuit',
+        strength: 'Obligatoire (RGPD)',
+        articles: ['RGPD, art. 12-15 (accès)', 'art. 17 (effacement)', 'art. 20 (portabilité)'],
+        how: 'Envoyez un courrier recommandé ou email formel au DPO de l\'organisme. Citez explicitement les articles du RGPD.'
+      }
+    ],
+    letterTemplate: {
+      dest: '[Responsable de traitement / DPO]\n[Adresse / Email]',
+      object: 'Exercice du droit [D\'ACCÈS / D\'EFFACEMENT / D\'OPPOSITION] — RGPD art. [15/17/21]',
+      body: `Madame, Monsieur,\n\nConformément au Règlement Général sur la Protection des Données (UE) 2016/679, j'exerce par la présente mon droit [D'ACCÈS / D'EFFACEMENT / D'OPPOSITION] prévu à l'article [15/17/21].\n\n**DEMANDE :**\n[SITUATION DÉCRITE PAR L'UTILISATEUR]\n\nJe vous rappelle que vous disposez d'un délai de 30 jours pour me répondre (art. 12§3 RGPD). En l'absence de réponse satisfaisante, j'introduirai une plainte auprès de l'Autorité de Protection des Données (autoriteprotectiondonnees.be).\n\nConformément à l'article 12§5, l'exercice de ce droit est gratuit.\n\nVeuillez agréer, Madame, Monsieur, mes salutations distinguées.\n\n[VOTRE NOM]\n[VOTRE ADRESSE]\n[Pièce d'identité jointe si nécessaire]`
+    }
+  }
+};
+
+// STATE
+let state = { domain: null, detail: null, urgency: null, situation: '' };
+
+function selectDomain(el) {
+  document.querySelectorAll('#domain-grid .cat-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.domain = el.dataset.val;
+  document.getElementById('next-0').disabled = false;
+}
+
+function goStep(n) {
+  // Save situation text
+  if (n >= 2) state.situation = document.getElementById('situation-input')?.value || state.situation;
+
+  // Populate detail grid for step 2
+  if (n === 2 && state.domain && ROUTES[state.domain]) {
+    const grid = document.getElementById('detail-grid');
+    grid.innerHTML = ROUTES[state.domain].details.map(d =>
+      `<button class="select-btn" data-val="${d.val}" onclick="selectDetail(this)">${d.label}</button>`
+    ).join('');
+  }
+
+  // Show/hide steps
+  document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('ws-' + n).classList.add('active');
+
+  // Update indicator
+  document.querySelectorAll('.step-dot').forEach((d, i) => {
+    d.classList.remove('done', 'current');
+    if (i < n) d.classList.add('done');
+    if (i === n) d.classList.add('current');
+  });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function selectDetail(el) {
+  document.querySelectorAll('#detail-grid .select-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  state.detail = el.dataset.val;
+}
+
+function selectUrgency(el) {
+  document.querySelectorAll('#urgency-grid .select-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  state.urgency = el.dataset.val;
+  document.getElementById('generate-btn').disabled = false;
+}
+
+function generate() {
+  const d = state.domain;
+  if (!d || !ROUTES[d]) return;
+
+  const data = ROUTES[d];
+  const situation = state.situation || '[Décrivez votre situation ici]';
+  const urgencyWarning = state.urgency === 'old'
+    ? '<div style="padding:1rem;background:var(--red-dim);border:1px solid rgba(220,38,38,0.3);border-radius:2px;font-size:.78rem;color:var(--red);margin-bottom:1.5rem"><strong>⚠ Attention délais :</strong> Certains recours ont des délais stricts (3 mois pour le Tribunal du Travail, 2 mois pour le CDJ, 6 mois pour les impôts). Si la notification date de plus d\'un mois, vérifiez en urgence que vous êtes encore dans les délais. Consultez le BAJ sans attendre.</div>'
+    : state.urgency === 'month'
+    ? '<div style="padding:1rem;background:var(--gold-dim);border:1px solid rgba(212,160,23,0.3);border-radius:2px;font-size:.78rem;color:var(--gold);margin-bottom:1.5rem"><strong>⏰ Délai en cours :</strong> Agissez rapidement. Certains délais de recours sont de 3 mois à compter de la notification.</div>'
+    : '';
+
+  // Generate letter
+  const tmpl = data.letterTemplate;
+  const letterText = tmpl.body
+    .replace(/\[SITUATION DÉCRITE PAR L'UTILISATEUR\]/g, situation)
+    .replace(/\n/g, '</p><p>');
+
+  const el = document.getElementById('results');
+  el.innerHTML = `
+    ${urgencyWarning}
+
+    <div class="routes-section">
+      <div class="step-title" style="margin-bottom:1.5rem">Vos voies de recours</div>
+      ${data.routes.map(r => `
+        <div class="route-card">
+          <div class="route-header">
+            <div class="route-name">${r.name}</div>
+            <div class="route-badges">
+              ${r.badges.map(b => `<span class="rbadge ${b}">${b === 'free' ? 'Gratuit' : b === 'paid' ? 'Payant' : b === 'fast' ? 'Rapide' : 'Long'}</span>`).join('')}
+            </div>
+          </div>
+          <div class="route-body">${r.body}</div>
+          <div class="route-details">
+            <div class="rd-item"><div class="rd-value">${r.delay}</div><div class="rd-label">Délai</div></div>
+            <div class="rd-item"><div class="rd-value">${r.cost}</div><div class="rd-label">Coût</div></div>
+            <div class="rd-item"><div class="rd-value">${r.strength}</div><div class="rd-label">Force</div></div>
+          </div>
+          ${r.articles.length > 0 ? `<div style="margin-top:.8rem;font-size:.68rem;color:var(--dim)"><strong>Base légale :</strong> ${r.articles.join(' · ')}</div>` : ''}
+          <div style="margin-top:.8rem;font-size:.75rem;color:var(--text);padding-top:.6rem;border-top:1px solid var(--border)"><strong>Comment :</strong> ${r.how}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- LETTER -->
+    <div class="letter-section">
+      <div class="step-title" style="margin-bottom:.5rem">Modèle de lettre</div>
+      <div style="font-size:.72rem;color:var(--dim);margin-bottom:1rem">Adaptez les champs en <span style="color:var(--gold)">[JAUNE]</span> à votre situation. Envoyez par courrier recommandé.</div>
+
+      <div class="letter-box" id="letter-content">
+        <div class="l-header">
+          <span class="l-placeholder">[VOTRE NOM]</span><br>
+          <span class="l-placeholder">[VOTRE ADRESSE]</span><br>
+          <span class="l-placeholder">[DATE]</span>
+        </div>
+        <div class="l-dest">${tmpl.dest.replace(/\[/g, '<span class="l-placeholder">[').replace(/\]/g, ']</span>').replace(/\n/g, '<br>')}</div>
+        <div class="l-object"><strong>Objet :</strong> ${tmpl.object.replace(/\[/g, '<span class="l-placeholder">[').replace(/\]/g, ']</span>')}</div>
+        <div class="l-body"><p>${letterText.replace(/\[/g, '<span class="l-placeholder">[').replace(/\]/g, ']</span>')}</p></div>
+        <div class="l-footer">
+          <span class="l-placeholder">[VOTRE SIGNATURE]</span><br>
+          <span class="l-placeholder">[PIÈCES JOINTES : copie décision, preuves]</span>
+        </div>
+      </div>
+
+      <div class="copy-row">
+        <button class="copy-btn primary" onclick="copyLetter()">📋 Copier la lettre (texte brut)</button>
+        <button class="copy-btn secondary" onclick="printLetter()">🖨 Imprimer</button>
+        <button class="copy-btn secondary" onclick="resetAll()">Nouveau recours</button>
+      </div>
+    </div>
+
+    <!-- RIGHTS -->
+    <div class="rights-box">
+      <h3>Vos droits fondamentaux en jeu</h3>
+      <ul class="rights-list">
+        <li>Constitution belge, art. 23 : droit à la dignité humaine (effet cliquet / standstill)</li>
+        <li>Constitution belge, art. 32 : droit d'accès aux documents administratifs</li>
+        <li>Loi du 29 juillet 1991 : obligation de motivation formelle des actes administratifs</li>
+        <li>CEDH, art. 6 : droit à un procès équitable</li>
+        <li>CEDH, art. 8 : droit au respect de la vie privée</li>
+        <li>CEDH, art. 14 : non-discrimination (y compris "origine sociale" et "fortune")</li>
+        <li>Charte des droits fondamentaux UE, art. 47 : droit à un recours effectif</li>
+        <li>RGPD : droit d'accès, d'effacement, de portabilité des données</li>
+      </ul>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="timeline">
+      <div class="step-title" style="margin-bottom:1rem">Calendrier d'action recommandé</div>
+      <div class="tl-item"><div class="tl-when">Jour 1</div><div class="tl-what">Rassemblez tous les documents : décision contestée, courriers, preuves, dates. Photocopiez tout.</div></div>
+      <div class="tl-item"><div class="tl-when">Jour 2-3</div><div class="tl-what">Consultez le BAJ (aide juridique gratuite) pour vérifier vos délais et la solidité de votre dossier.</div></div>
+      <div class="tl-item"><div class="tl-when">Jour 3-7</div><div class="tl-what">Envoyez le recours/la lettre par courrier recommandé. Gardez l'accusé de réception.</div></div>
+      <div class="tl-item"><div class="tl-when">Jour 7-14</div><div class="tl-what">Saisissez les voies parallèles (Médiateur, CDJ, CSA, Unia selon le cas).</div></div>
+      <div class="tl-item"><div class="tl-when">Jour 30+</div><div class="tl-what">Relancez si pas de réponse. L'absence de réponse dans le délai légal équivaut souvent à un refus, ce qui ouvre la voie judiciaire.</div></div>
+    </div>
+
+    <div class="footer">
+      <div>◇ DÉMOGARCHIE · <a href="https://ouaisfi.eu">ouaisfieu</a> · CC BY-NC 4.0</div>
+      <div>法律战 Module 04/17 · Fork • Hack • Spread</div>
+    </div>
+  `;
+
+  el.style.display = 'block';
+  document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
+  setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+}
+
+function copyLetter() {
+  const el = document.getElementById('letter-content');
+  const text = el.innerText;
+  navigator.clipboard.writeText(text).then(() => alert('Lettre copiée dans le presse-papier. Collez-la dans votre traitement de texte.')).catch(() => alert('Erreur'));
+}
+
+function printLetter() {
+  const content = document.getElementById('letter-content').innerHTML;
+  const win = window.open('', '', 'width=800,height=600');
+  win.document.write(`<html><head><title>Lettre de recours</title><style>body{font-family:Georgia,serif;font-size:14px;line-height:1.8;padding:40px;color:#1a1a1a}.l-placeholder{color:#b88a00;font-weight:bold}</style></head><body>${content}</body></html>`);
+  win.document.close();
+  win.print();
+}
+
+function resetAll() {
+  state = { domain: null, detail: null, urgency: null, situation: '' };
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('results').innerHTML = '';
+  document.querySelectorAll('.cat-card,.select-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('situation-input').value = '';
+  document.getElementById('next-0').disabled = true;
+  document.getElementById('generate-btn').disabled = true;
+  goStep(0);
+}
+</script>
+
+</body>
+</html>
