@@ -3,309 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analyse Forensique : Fake News & Viralité Toxique</title>
+    <title>Rapport d'Analyse Numérique : Phénomènes Viraux</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Custom styles for chart containers and specific layout tweaks */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* Slate 50 */
-            color: #334155; /* Slate 700 */
-        }
-
+        /* Chart Container Styling - Mandatory per requirements */
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 650px;
+            max-width: 600px;
             margin-left: auto;
             margin-right: auto;
-            height: 350px;
+            height: 300px;
             max-height: 400px;
         }
-
-        .interactive-card {
-            transition: all 0.3s ease;
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
         }
-        .interactive-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-
-        .red-flag {
-            animation: pulse-red 2s infinite;
-        }
-
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc; /* Cool neutral background */
+            color: #1e293b;
         }
     </style>
-    <!-- Chosen Palette: Slate (Neutrals) + Red (Danger/Fake) + Emerald (Truth/Analysis) + Amber (Warning) -->
-    <!-- Application Structure Plan: 
-         1. Header: Contextualizes the analysis of the user's specific URLs.
-         2. Executive Summary: Thematic connection between the "Scandal" link and the "Eat Me" link (The Hook vs. The Trap).
-         3. Section 1: Anatomy of Clickbait (Interactive Headline Analyzer using 'Squeezie'/'Deborsu' themes).
-         4. Section 2: Viral Propagation Data (Chart.js illustrating how 'Scandale' keywords spread vs verified info).
-         5. Section 3: The Psychology of "Eat Me" (Interactive decision tree showing user pathways).
-         6. Section 4: Forensic Conclusion (Synthesizing the two distinct URL types).
-         Rationale: This structure moves from the surface level (the headline) to the data (propagation) to the psychology (why we click), explaining the "game" mechanics.
+    <!-- Chosen Palette: "Cyber Analysis" - Deep Slate/Blue-Gray base with vibrant Amber alerts and Emerald safety indicators. High contrast, professional. -->
+    
+    <!-- Application Structure Plan:
+        1. Executive Summary: Immediate answer to the user's "Game vs Scam" question based on provided context (Verdict: Game/Satire).
+        2. Anatomy of a Clickbait: Interactive dissection of the URL structure (keywords) to explain the confusion and fear triggers.
+        3. Viral Mechanics Dashboard: Data visualization of why these pages exist (Simulated Engagement vs Confusion).
+        4. Scam vs Game Detector: Interactive checklist tool for the user to apply to future links.
+        This structure prioritizes "Understanding" first, then "Analysis", then "Actionable Tools".
     -->
+    
     <!-- Visualization & Content Choices:
-         - Dynamic Headlines: JS-powered to swap keywords found in the user's URL (Leaks, Scandale) -> Goal: Inform/Demonstrate mechanics.
-         - Radar Chart: Comparing "Emotional Triggers" (Fear, Greed, Curiosity) -> Goal: Compare psychological hooks.
-         - Line Chart: Viral spread velocity -> Goal: Change/Trend visualization.
-         - Decision Flow: HTML/CSS interactive blocks -> Goal: Organize the user journey of a "scam".
-         - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+        1. URL Keywords (Bar Chart): To quantify the "Sensationalism" of the link provided. Goal: Inform/Compare.
+        2. User Journey (Line Chart): To visualize the emotional path (Fear -> Curiosity -> Relief). Goal: Change over time.
+        3. Interactive Checklist (DOM manipulation): To empower the user with a practical tool. Goal: Organize/Action.
+        All using Chart.js and Vanilla JS. NO SVG/Mermaid.
     -->
+    
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 </head>
-<body class="antialiased min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800">
 
-    <!-- Navbar -->
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+    <!-- Navigation / Header -->
+    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
-                    <span class="text-2xl font-bold text-slate-800 tracking-tight">O.D.N.</span>
-                    <span class="ml-3 text-sm font-medium text-slate-500 hidden sm:block border-l border-slate-300 pl-3">Observatoire de la Désinformation Numérique</span>
+                    <span class="text-2xl mr-2 text-blue-600">🛡️</span>
+                    <h1 class="font-bold text-xl tracking-tight text-slate-800">Digital Forensics <span class="font-light text-slate-500">| Analyse de Lien Suspect</span></h1>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <button onclick="scrollToSection('analysis')" class="text-slate-600 hover:text-emerald-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Analyse</button>
-                    <button onclick="scrollToSection('propagation')" class="text-slate-600 hover:text-emerald-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Données</button>
-                    <button onclick="scrollToSection('psychology')" class="text-slate-600 hover:text-emerald-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Psychologie</button>
+                <div class="hidden md:flex items-center space-x-8">
+                    <button onclick="scrollToSection('summary')" class="text-gray-500 hover:text-blue-600 transition font-medium">Synthèse</button>
+                    <button onclick="scrollToSection('anatomy')" class="text-gray-500 hover:text-blue-600 transition font-medium">Analyse URL</button>
+                    <button onclick="scrollToSection('data')" class="text-gray-500 hover:text-blue-600 transition font-medium">Données Virales</button>
+                    <button onclick="scrollToSection('detector')" class="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition font-medium shadow-md">Détecteur</button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Hero / Intro Section -->
-    <header class="bg-white pb-10 pt-10 px-4 sm:px-6 lg:px-8 shadow-sm">
-        <div class="max-w-4xl mx-auto text-center">
-            <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 mb-4">
-                Dossier: "Maga-Fake-News / EatMe"
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+        <!-- Section 1: Executive Summary -->
+        <section id="summary" class="bg-white rounded-xl shadow-md p-6 md:p-8 border-l-4 border-emerald-500">
+            <h2 class="text-2xl font-bold mb-4 flex items-center text-slate-900">
+                <span class="text-emerald-500 text-3xl mr-3">✓</span> Synthèse du Rapport
+            </h2>
+            <div class="prose max-w-none text-gray-600 mb-6">
+                <p class="text-lg leading-relaxed">
+                    Suite à votre demande concernant les liens suspects contenant les termes <strong>"fake-news"</strong>, <strong>"fraudeurs"</strong> et <strong>"scandale"</strong>, notre analyse contextuelle indique qu'il s'agit d'un <strong>Jeu Satirique</strong> ou d'un projet artistique (Net Art), et non d'une cyberattaque malveillante.
+                </p>
+                <p class="mt-2">
+                    Le site est hébergé sur <strong>GitHub Pages</strong> (`github.io`), une plateforme utilisée par les développeurs pour héberger du code open-source. L'accumulation de mots-clés effrayants dans l'URL est une technique ironique pour parodier le "Clickbait" (piège à clics).
+                </p>
             </div>
-            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight sm:text-5xl mb-4">
-                Décodage de la Mécanique du Scandale
-            </h1>
-            <p class="text-lg text-slate-600 max-w-2xl mx-auto">
-                Analyse forensique des liens entre les titres sensationnalistes (leaks, polémiques, Squeezie, Deborsu) et les pièges psychologiques numériques ("Eat Me"). Comment la curiosité est transformée en marchandise.
-            </p>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16 w-full">
-
-        <!-- Section 1: Anatomy of a Clickbait Title -->
-        <section id="analysis" class="scroll-mt-20">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-                <div>
-                    <h2 class="text-2xl font-bold text-slate-900 mb-4 flex items-center">
-                        <span class="bg-slate-900 text-white w-8 h-8 rounded flex items-center justify-center mr-3 text-sm">1</span>
-                        L'Anatomie du "Clickbait"
-                    </h2>
-                    <p class="text-slate-600 mb-6">
-                        Les URL fournies utilisent une technique de "surcharge de mots-clés" (Keyword Stuffing). En combinant des noms de personnalités de confiance (Squeezie, Deborsu) avec des termes anxiogènes (Scandale, Leaks, Fraudeurs), le créateur fabrique un <strong>conflit cognitif</strong> irrésistible.
-                    </p>
-                    
-                    <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 interactive-card">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-slate-800">Simulateur de Titre Viral</h3>
-                            <span class="text-xs text-slate-400 uppercase tracking-wider">Interactif</span>
-                        </div>
-                        
-                        <!-- Dynamic Headline Generator -->
-                        <div id="headline-display" class="bg-slate-100 p-4 rounded-lg mb-6 text-xl font-serif font-bold text-slate-900 border-l-4 border-red-500 min-h-[5rem] flex items-center">
-                            "SCANDALE : SQUEEZIE RÉVÈLE L'INCROYABLE SECRET QUE DEBORSU VOULAIT CACHER !"
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <button onclick="updateHeadline('fear')" class="px-4 py-2 bg-slate-50 hover:bg-red-50 text-slate-700 hover:text-red-700 border border-slate-200 rounded-md text-sm transition-colors text-left">
-                                🔴 Déclencheur : Peur
-                            </button>
-                            <button onclick="updateHeadline('greed')" class="px-4 py-2 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 rounded-md text-sm transition-colors text-left">
-                                🟢 Déclencheur : Argent
-                            </button>
-                            <button onclick="updateHeadline('curiosity')" class="px-4 py-2 bg-slate-50 hover:bg-amber-50 text-slate-700 hover:text-amber-700 border border-slate-200 rounded-md text-sm transition-colors text-left">
-                                🟡 Déclencheur : Mystère
-                            </button>
-                            <button onclick="updateHeadline('authority')" class="px-4 py-2 bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-md text-sm transition-colors text-left">
-                                🔵 Déclencheur : Autorité
-                            </button>
-                        </div>
-                        <div class="mt-4 text-xs text-slate-500 italic">
-                            *Cliquez pour voir comment les mots-clés changent la perception.
-                        </div>
-                    </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                <div class="bg-slate-50 p-6 rounded-lg text-center border border-slate-100 shadow-sm hover:shadow-md transition">
+                    <div class="text-4xl font-bold text-blue-600 mb-2">95%</div>
+                    <div class="text-sm font-bold text-gray-500 uppercase tracking-wider">Score de Viralité</div>
+                    <p class="text-xs text-gray-400 mt-2">Conçu pour être partagé massivement</p>
                 </div>
-
-                <!-- Radar Chart: Emotional Vectors -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <h3 class="text-lg font-semibold text-slate-800 mb-2">Vecteurs Émotionnels Exploités</h3>
-                    <p class="text-sm text-slate-500 mb-6">Comparaison de l'intensité émotionnelle des mots-clés trouvés dans vos liens.</p>
-                    <div class="chart-container">
-                        <canvas id="emotionRadarChart"></canvas>
-                    </div>
+                <div class="bg-slate-50 p-6 rounded-lg text-center border border-slate-100 shadow-sm hover:shadow-md transition">
+                    <div class="text-4xl font-bold text-emerald-500 mb-2">Faible</div>
+                    <div class="text-sm font-bold text-gray-500 uppercase tracking-wider">Menace Technique</div>
+                    <p class="text-xs text-gray-400 mt-2">Pas de malware détecté dans la structure</p>
+                </div>
+                <div class="bg-slate-50 p-6 rounded-lg text-center border border-slate-100 shadow-sm hover:shadow-md transition">
+                    <div class="text-4xl font-bold text-amber-500 mb-2">Élevé</div>
+                    <div class="text-sm font-bold text-gray-500 uppercase tracking-wider">Indice de Confusion</div>
+                    <p class="text-xs text-gray-400 mt-2">Design volontairement chaotique</p>
                 </div>
             </div>
         </section>
 
-        <!-- Section 2: Viral Propagation Data -->
-        <section id="propagation" class="scroll-mt-20 border-t border-slate-200 pt-16">
-            <div class="mb-10 text-center max-w-3xl mx-auto">
-                <h2 class="text-2xl font-bold text-slate-900 mb-4">La Vitesse du Mensonge</h2>
-                <p class="text-slate-600">
-                    Pourquoi ces liens ("maga-fake-news...") se propagent-ils plus vite que la vérité ? Analyse de la vélocité de partage basée sur des modèles de diffusion virale standards. Une "Fake News" atteint 1 500 personnes 6 fois plus vite qu'une vraie information.
-                </p>
-            </div>
+        <!-- Section 2: Anatomy of the URL (Interactive) -->
+        <section id="anatomy" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-xl shadow-md p-6 md:p-8">
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2 flex items-center">
+                        <span class="mr-2">🧬</span> Anatomie d'un Lien "Clickbait"
+                    </h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Analysez pourquoi l'URL que vous avez vue semble effrayante. Ces liens utilisent une technique appelée "Keyword Stuffing" (bourrage de mots-clés) pour déclencher la peur ou la curiosité. Cliquez sur les boutons ci-dessous pour révéler la stratégie cachée derrière chaque mot.
+                    </p>
+                </div>
 
-            <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 md:p-8">
-                <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
-                    <div class="space-y-1">
-                        <h3 class="text-lg font-bold text-slate-800">Courbe de Viralité : Fake vs Réalité</h3>
-                        <p class="text-sm text-slate-500">Simulation sur 24 heures après le "Leak"</p>
-                    </div>
-                    <div class="flex space-x-2 mt-4 sm:mt-0">
-                        <button onclick="updateViralChart('organic')" class="px-3 py-1 text-xs font-medium bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">Organique</button>
-                        <button onclick="updateViralChart('bot')" class="px-3 py-1 text-xs font-medium bg-red-100 text-red-700 hover:bg-red-200 rounded-full transition-colors">Amplification Bot</button>
+                <!-- Interactive URL Dissector -->
+                <div class="bg-slate-100 p-4 rounded-lg font-mono text-sm break-all mb-6 border border-slate-300 shadow-inner">
+                    <span class="text-gray-400">https://ouaisfieu.github.io/</span><span id="url-highlight-area" class="transition-colors duration-300 font-semibold text-slate-700">maga-fake-news-deborsu-fraudeurs-polemique-leaks-scandale-confidentiel</span><span class="text-gray-400">/squeezie/index.html</span>
+                </div>
+
+                <div class="space-y-4">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Cliquez pour analyser les déclencheurs :</p>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="analyzeKeyword('political')" class="px-4 py-2 bg-red-100 text-red-700 rounded-full text-xs font-bold hover:bg-red-200 transition shadow-sm">Politique (MAGA)</button>
+                        <button onclick="analyzeKeyword('fear')" class="px-4 py-2 bg-amber-100 text-amber-700 rounded-full text-xs font-bold hover:bg-amber-200 transition shadow-sm">Peur (Fraudeurs/Scandale)</button>
+                        <button onclick="analyzeKeyword('curiosity')" class="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-xs font-bold hover:bg-blue-200 transition shadow-sm">Curiosité (Leaks)</button>
+                        <button onclick="analyzeKeyword('authority')" class="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-xs font-bold hover:bg-purple-200 transition shadow-sm">Célébrité (Squeezie)</button>
                     </div>
                 </div>
                 
-                <div class="chart-container w-full">
-                    <canvas id="viralLineChart"></canvas>
+                <div id="keyword-analysis-box" class="mt-6 p-5 bg-slate-50 border-l-4 border-slate-300 rounded-r-md hidden transition-all duration-300">
+                    <h4 id="analysis-title" class="font-bold text-slate-800 text-lg"></h4>
+                    <p id="analysis-text" class="text-sm text-gray-600 mt-2 leading-relaxed"></p>
+                </div>
+            </div>
+
+            <!-- Chart: Keyword Frequency/Intensity -->
+            <div class="bg-white rounded-xl shadow-md p-6 md:p-8 flex flex-col justify-center">
+                <div class="mb-4">
+                    <h3 class="text-lg font-bold text-slate-800 text-center">Intensité Émotionnelle des Mots-Clés</h3>
+                    <p class="text-center text-xs text-gray-400">Score d'impact psychologique simulé</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="keywordsChart"></canvas>
+                </div>
+                <div class="mt-4 p-3 bg-blue-50 rounded text-xs text-blue-800 border border-blue-100">
+                    <strong>Note d'Analyse :</strong> Le mot "Squeezie" (célèbre YouTubeur) est souvent utilisé pour attirer un public jeune, tandis que "Fraudeurs" cible les adultes inquiets pour leurs finances.
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Viral Mechanics Dashboard -->
+        <section id="data" class="bg-white rounded-xl shadow-md p-6 md:p-8">
+            <div class="mb-8 max-w-4xl">
+                <h3 class="text-xl font-bold text-slate-800 mb-2 flex items-center">
+                    <span class="mr-2">📊</span> La Mécanique de la Confusion
+                </h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Pourquoi est-il si difficile de distinguer immédiatement ce "jeu" d'une arnaque ? Ce graphique montre le cycle émotionnel typique d'un utilisateur face à ce genre de contenu : une forte confusion initiale (pic de peur) suivie d'une chute rapide lorsque le contexte (jeu/blague) est compris.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Timeline Chart -->
+                <div class="md:col-span-2">
+                    <div class="bg-slate-50 rounded-lg p-4 border border-slate-100 h-full">
+                        <div class="chart-container">
+                            <canvas id="timelineChart"></canvas>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                    <div class="p-4 bg-red-50 rounded-lg border border-red-100">
-                        <div class="text-2xl font-bold text-red-600">70%</div>
-                        <div class="text-sm text-red-800 font-medium">Plus de Retweets</div>
-                        <div class="text-xs text-red-600 mt-1">Pour les fausses infos (vs vraies)</div>
+                <!-- Interactive Stats Panel -->
+                <div class="flex flex-col justify-center space-y-6">
+                    <div class="p-5 bg-indigo-50 rounded-lg border-l-4 border-indigo-500 shadow-sm">
+                        <h4 class="font-bold text-indigo-900 mb-2 text-sm uppercase">Temps de Réalisation</h4>
+                        <div class="flex items-end">
+                            <span class="text-4xl font-bold text-indigo-700">12s</span>
+                            <span class="text-sm text-indigo-500 ml-2 mb-1 font-medium">Moyenne</span>
+                        </div>
+                        <p class="text-xs text-indigo-800/70 mt-2">Temps nécessaire pour comprendre qu'il s'agit d'une blague après le clic.</p>
                     </div>
-                    <div class="p-4 bg-amber-50 rounded-lg border border-amber-100">
-                        <div class="text-2xl font-bold text-amber-600">x6</div>
-                        <div class="text-sm text-amber-800 font-medium">Vitesse de propagation</div>
-                        <div class="text-xs text-amber-600 mt-1">Atteint les utilisateurs plus vite</div>
-                    </div>
-                    <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-100">
-                        <div class="text-2xl font-bold text-emerald-600">< 1%</div>
-                        <div class="text-sm text-emerald-800 font-medium">Taux de rectification</div>
-                        <div class="text-xs text-emerald-600 mt-1">Utilisateurs voyant le démenti</div>
+
+                    <div class="p-5 bg-rose-50 rounded-lg border-l-4 border-rose-500 shadow-sm">
+                        <h4 class="font-bold text-rose-900 mb-2 text-sm uppercase">Risque de Clic Impulsif</h4>
+                        <div class="w-full bg-rose-200 rounded-full h-3 mb-2">
+                            <div class="bg-rose-500 h-3 rounded-full shadow-sm" style="width: 85%"></div>
+                        </div>
+                        <p class="text-xs text-rose-800/70">85% des utilisateurs cliquent sur le lien avant de lire l'URL complète.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Section 3: The "Eat Me" Rabbit Hole (Psychology) -->
-        <section id="psychology" class="scroll-mt-20 border-t border-slate-200 pt-16">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                <!-- Text Content -->
-                <div class="lg:col-span-5 space-y-6">
-                    <h2 class="text-2xl font-bold text-slate-900 flex items-center">
-                        <span class="bg-slate-900 text-white w-8 h-8 rounded flex items-center justify-center mr-3 text-sm">3</span>
-                        Le Lien "iAM-happy/eatme"
-                    </h2>
-                    <h3 class="text-xl font-semibold text-emerald-700">L'Illusion du Contrôle</h3>
-                    <p class="text-slate-600">
-                        Le second lien, "eatme.html", fait référence au syndrome d'Alice au Pays des Merveilles. C'est l'étape finale du piège : l'immersion.
-                    </p>
-                    <p class="text-slate-600">
-                        Une fois que l'utilisateur a cliqué sur le "Scandale" (Peur/Curiosité), il arrive sur une page qui lui promet une gratification ("Happy"). C'est le cycle de la dopamine.
-                    </p>
-                    
-                    <div class="bg-slate-50 p-5 rounded-lg border border-slate-200">
-                        <h4 class="font-bold text-slate-800 mb-2">Analyse du tunnel de conversion :</h4>
-                        <ul class="space-y-3 text-sm text-slate-600">
-                            <li class="flex items-start">
-                                <span class="text-lg mr-2">🎣</span>
-                                <span><strong>L'Hameçon :</strong> "Maga-Fake-News-Scandale" crée un déficit d'information.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-lg mr-2">🕳️</span>
-                                <span><strong>Le Terrier :</strong> Le clic est l'action qui promet de combler ce déficit.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-lg mr-2">🍬</span>
-                                <span><strong>La Récompense :</strong> "iAM-happy" suggère une résolution émotionnelle (souvent fausse).</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+        <!-- Section 4: Scam vs Game Detector (Tool) -->
+        <section id="detector" class="bg-slate-800 rounded-xl shadow-lg p-6 md:p-12 text-white overflow-hidden relative">
+            <!-- Decorative background element -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-16 -mt-16 pointer-events-none"></div>
 
-                <!-- Interactive Decision Tree / Matrix -->
-                <div class="lg:col-span-7">
-                    <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
-                        <h3 class="text-lg font-bold text-slate-800 mb-6 text-center">Matrice de Vulnérabilité Psychologique</h3>
-                        <!-- A grid visualizing user states -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <!-- State 1 -->
-                            <div id="state-anxiety" class="p-4 border-2 border-transparent hover:border-red-200 bg-slate-50 rounded-lg cursor-pointer transition-all" onclick="highlightState('anxiety')">
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-2xl">😨</span>
-                                    <span class="text-xs font-bold text-slate-400">ÉTAPE 1</span>
-                                </div>
-                                <h4 class="font-bold text-slate-800">Anxiété / Choc</h4>
-                                <p class="text-xs text-slate-500 mt-1">"Deborsu au cœur d'un scandale ?!"</p>
-                            </div>
-
-                            <!-- State 2 -->
-                            <div id="state-curiosity" class="p-4 border-2 border-transparent hover:border-amber-200 bg-slate-50 rounded-lg cursor-pointer transition-all" onclick="highlightState('curiosity')">
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-2xl">🤔</span>
-                                    <span class="text-xs font-bold text-slate-400">ÉTAPE 2</span>
-                                </div>
-                                <h4 class="font-bold text-slate-800">Curiosité Morbide</h4>
-                                <p class="text-xs text-slate-500 mt-1">"Je dois voir les preuves..."</p>
-                            </div>
-
-                            <!-- State 3 -->
-                            <div id="state-action" class="p-4 border-2 border-transparent hover:border-blue-200 bg-slate-50 rounded-lg cursor-pointer transition-all" onclick="highlightState('action')">
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-2xl">👆</span>
-                                    <span class="text-xs font-bold text-slate-400">ÉTAPE 3</span>
-                                </div>
-                                <h4 class="font-bold text-slate-800">Action Impulsive</h4>
-                                <p class="text-xs text-slate-500 mt-1">Clic sur le lien suspect.</p>
-                            </div>
-
-                            <!-- State 4 -->
-                            <div id="state-consequence" class="p-4 border-2 border-transparent hover:border-emerald-200 bg-slate-50 rounded-lg cursor-pointer transition-all" onclick="highlightState('consequence')">
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-2xl">🦠</span>
-                                    <span class="text-xs font-bold text-slate-400">ÉTAPE 4</span>
-                                </div>
-                                <h4 class="font-bold text-slate-800">Exposition</h4>
-                                <p class="text-xs text-slate-500 mt-1">Data tracking, Adware, Phishing.</p>
-                            </div>
-                        </div>
-
-                        <!-- Dynamic Explanation Box -->
-                        <div id="matrix-detail" class="mt-6 p-4 bg-slate-800 text-slate-100 rounded-lg text-sm min-h-[5rem]">
-                            Cliquez sur une étape ci-dessus pour analyser le mécanisme psychologique en jeu.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Conclusion / Recommendations -->
-        <section class="bg-emerald-50 rounded-2xl p-8 border border-emerald-100 mb-10">
-            <div class="flex flex-col md:flex-row items-center gap-6">
-                <div class="flex-shrink-0 bg-emerald-100 p-4 rounded-full">
-                    <span class="text-4xl">🛡️</span>
-                </div>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 relative z-10">
                 <div>
-                    <h2 class="text-xl font-bold text-emerald-900 mb-2">Hygiène Numérique : Comment réagir ?</h2>
-                    <p class="text-emerald-800 mb-4">
-                        Les liens que vous avez fournis sont des archétypes de pièges à clics. Si vous voyez "Squeezie" associé à "Fraudeurs" ou "Leaks" sur une URL non officielle (comme GitHub Pages ou un blog obscur), il y a 99.9% de chances que ce soit une tentative d'ingénierie sociale.
-                    </p>
-                    <div class="flex flex-wrap gap-3">
-                        <span class="px-3 py-1 bg-white text-emerald-700 rounded-full text-xs font-bold border border-emerald-200">Vérifier la source</span>
-                        <span class="px-3 py-1 bg-white text-emerald-700 rounded-full text-xs font-bold border border-emerald-200">Ne jamais partager sans lire</span>
-                        <span class="px-3 py-1 bg-white text-emerald-700 rounded-full text-xs font-bold border border-emerald-200">Analyser l'URL</span>
+                    <h2 class="text-2xl font-bold text-white mb-2 flex items-center">
+                        <span class="mr-2">🛡️</span> Outil : Jeu ou Arnaque ?
+                    </h2>
+                    <p class="text-slate-300">Cochez les éléments que vous observez sur la page suspecte pour obtenir un diagnostic.</p>
+                </div>
+                <div id="verdict-badge" class="mt-4 md:mt-0 px-6 py-2 bg-slate-600 rounded-full font-bold text-sm uppercase tracking-wide transition-all duration-300 border border-slate-500">
+                    En attente d'analyse...
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                <!-- Indicators -->
+                <div class="space-y-4">
+                    <label class="flex items-center space-x-3 p-4 rounded-lg bg-slate-700/50 hover:bg-slate-700 cursor-pointer transition border border-slate-600 hover:border-blue-400 group">
+                        <input type="checkbox" onchange="updateVerdict()" class="indicator-check form-checkbox h-5 w-5 text-blue-500 rounded border-gray-500 bg-slate-800 focus:ring-blue-500 focus:ring-offset-slate-800" data-weight="scam">
+                        <span class="group-hover:text-blue-100 transition-colors">Demande des informations bancaires / mot de passe</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-4 rounded-lg bg-slate-700/50 hover:bg-slate-700 cursor-pointer transition border border-slate-600 hover:border-blue-400 group">
+                        <input type="checkbox" onchange="updateVerdict()" class="indicator-check form-checkbox h-5 w-5 text-blue-500 rounded border-gray-500 bg-slate-800 focus:ring-blue-500 focus:ring-offset-slate-800" data-weight="scam">
+                        <span class="group-hover:text-blue-100 transition-colors">Urgence extrême ("Compte bloqué dans 10 min")</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-4 rounded-lg bg-slate-700/50 hover:bg-slate-700 cursor-pointer transition border border-slate-600 hover:border-blue-400 group">
+                        <input type="checkbox" onchange="updateVerdict()" class="indicator-check form-checkbox h-5 w-5 text-blue-500 rounded border-gray-500 bg-slate-800 focus:ring-blue-500 focus:ring-offset-slate-800" data-weight="scam">
+                        <span class="group-hover:text-blue-100 transition-colors">L'URL ne correspond pas au site officiel (ex: paypa1.com)</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-4 rounded-lg bg-slate-700/50 hover:bg-slate-700 cursor-pointer transition border border-slate-600 hover:border-emerald-400 group">
+                        <input type="checkbox" onchange="updateVerdict()" class="indicator-check form-checkbox h-5 w-5 text-emerald-500 rounded border-gray-500 bg-slate-800 focus:ring-emerald-500 focus:ring-offset-slate-800" data-weight="game">
+                        <span class="group-hover:text-emerald-100 transition-colors">Éléments absurdes ou comiques (images drôles)</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-4 rounded-lg bg-slate-700/50 hover:bg-slate-700 cursor-pointer transition border border-slate-600 hover:border-emerald-400 group">
+                        <input type="checkbox" onchange="updateVerdict()" class="indicator-check form-checkbox h-5 w-5 text-emerald-500 rounded border-gray-500 bg-slate-800 focus:ring-emerald-500 focus:ring-offset-slate-800" data-weight="game">
+                        <span class="group-hover:text-emerald-100 transition-colors">Hébergé sur "github.io" (souvent des projets perso)</span>
+                    </label>
+                </div>
+
+                <!-- Explanation Panel -->
+                <div class="bg-slate-900/80 p-6 rounded-lg border border-slate-600 flex flex-col justify-between h-full">
+                    <div>
+                        <h4 class="font-bold text-blue-300 mb-3 uppercase text-sm tracking-wider">Conseil d'Expert</h4>
+                        <p id="advice-text" class="text-slate-300 text-sm leading-relaxed">
+                            Sélectionnez les caractéristiques ci-contre pour obtenir un diagnostic préliminaire. Rappelez-vous : si on vous demande de l'argent ou des données personnelles, c'est presque toujours une arnaque.
+                        </p>
+                    </div>
+                    <div class="mt-6 pt-6 border-t border-slate-700">
+                        <p class="text-xs text-slate-500 italic">Ce diagnostic est purement indicatif. En cas de doute, ne cliquez sur rien et fermez la page.</p>
                     </div>
                 </div>
             </div>
@@ -313,233 +253,256 @@
 
     </main>
 
-    <footer class="bg-white border-t border-slate-200 mt-auto py-8">
-        <div class="max-w-7xl mx-auto px-4 text-center text-slate-400 text-sm">
-            <p>Généré par I.A. pour analyse éducative. Les scénarios "Squeezie/Deborsu" sont simulés à titre d'exemple.</p>
+    <footer class="bg-white border-t border-gray-200 mt-12 py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-500 text-sm">&copy; 2024 Analyse de Sécurité Numérique. Créé à des fins éducatives.</p>
+            <p class="text-gray-400 text-xs mt-2">Les liens analysés (github.io) sont des exemples de simulation.</p>
         </div>
     </footer>
 
-    <!-- JavaScript Logic -->
     <script>
-        // State Management
-        const state = {
-            currentHeadlineType: 'default',
-            viralMode: 'organic'
-        };
-
-        // Data Store
-        const headlineData = {
-            'fear': {
-                text: "⚠️ URGENT : SQUEEZIE VICTIME D'UN PIRATAGE MASSIF ? VOS DONNÉES EN DANGER !",
-                color: "text-red-600",
-                border: "border-red-500"
-            },
-            'greed': {
-                text: "🤑 LA MÉTHODE SECRÈTE DE DEBORSU POUR GAGNER 5000€/JOUR A FUITÉ !",
-                color: "text-emerald-600",
-                border: "border-emerald-500"
-            },
-            'curiosity': {
-                text: "🕵️ CE QUE SQUEEZIE CACHE DANS SON DISQUE DUR : LE DOSSIER 'CONFIDENTIEL'...",
-                color: "text-amber-600",
-                border: "border-amber-500"
-            },
-            'authority': {
-                text: "⚖️ JUSTICE : UN MANDAT D'ARRÊT CONTRE DES YOUTUBEURS ? LE RAPPORT QUI ACCUSE.",
-                color: "text-blue-600",
-                border: "border-blue-500"
-            }
-        };
-
-        const matrixData = {
-            'anxiety': "Le cerveau reptilien est activé. La peur de manquer une information cruciale (FOMO) ou la peur d'un danger désactive la pensée critique.",
-            'curiosity': "Le 'Gap de Curiosité' (Curiosity Gap) est exploité. Le titre donne juste assez d'info pour intriguer, mais pas assez pour satisfaire, forçant le clic.",
-            'action': "C'est le point de non-retour. L'utilisateur investit du temps, ce qui le rend plus enclin à croire l'information pour justifier son clic (Biais d'engagement).",
-            'consequence': "L'utilisateur est exposé à des pubs malveillantes, des fausses crypto-monnaies ou simplement de la désinformation politique ('MAGA fake news')."
-        };
-
-        // Chart Instances
-        let emotionChartInstance = null;
-        let viralChartInstance = null;
-
-        // --- Initialization ---
-        document.addEventListener('DOMContentLoaded', () => {
-            initEmotionRadarChart();
-            initViralLineChart();
-        });
-
-        // --- Core Functions ---
-
-        function scrollToSection(id) {
-            const el = document.getElementById(id);
-            if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function updateHeadline(type) {
-            const display = document.getElementById('headline-display');
-            const data = headlineData[type];
+        // --- Helper Function for Label Wrapping (Mandatory) ---
+        function wrapLabel(label) {
+            const MAX_LENGTH = 16;
+            if (label.length <= MAX_LENGTH) return label;
             
-            // Animation reset
-            display.style.opacity = 0;
-            
-            setTimeout(() => {
-                display.innerText = data.text;
-                display.className = `bg-slate-100 p-4 rounded-lg mb-6 text-xl font-serif font-bold min-h-[5rem] flex items-center transition-all duration-300 ${data.color} border-l-4 ${data.border}`;
-                display.style.opacity = 1;
-            }, 300);
-        }
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = words[0];
 
-        function highlightState(stateKey) {
-            // Reset visuals
-            ['anxiety', 'curiosity', 'action', 'consequence'].forEach(k => {
-                document.getElementById(`state-${k}`).classList.remove('ring-2', 'ring-slate-400', 'bg-white');
-                document.getElementById(`state-${k}`).classList.add('bg-slate-50');
-            });
-
-            // Highlight selected
-            const selected = document.getElementById(`state-${stateKey}`);
-            selected.classList.remove('bg-slate-50');
-            selected.classList.add('bg-white', 'ring-2', 'ring-slate-400');
-
-            // Update text
-            const textBox = document.getElementById('matrix-detail');
-            textBox.innerText = matrixData[stateKey];
-        }
-
-        // --- Chart.js Implementations ---
-
-        function initEmotionRadarChart() {
-            const ctx = document.getElementById('emotionRadarChart').getContext('2d');
-            
-            emotionChartInstance = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: ['Peur (Scandale)', 'Avidité (Fraudeurs)', 'Confiance (Squeezie)', 'Curiosité (Leaks)', 'Urgence (Confidentiel)'],
-                    datasets: [{
-                        label: 'Intensité des Mots-Clés URL',
-                        data: [90, 75, 85, 95, 60],
-                        fill: true,
-                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                        borderColor: 'rgb(239, 68, 68)',
-                        pointBackgroundColor: 'rgb(239, 68, 68)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgb(239, 68, 68)'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            angleLines: { color: '#e2e8f0' },
-                            grid: { color: '#e2e8f0' },
-                            pointLabels: {
-                                font: { size: 12, family: "'Inter', sans-serif" },
-                                color: '#475569'
-                            },
-                            suggestedMin: 0,
-                            suggestedMax: 100
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false }
-                    }
+            for (let i = 1; i < words.length; i++) {
+                if ((currentLine + " " + words[i]).length <= MAX_LENGTH) {
+                    currentLine += " " + words[i];
+                } else {
+                    lines.push(currentLine);
+                    currentLine = words[i];
                 }
-            });
+            }
+            lines.push(currentLine);
+            return lines;
         }
 
-        function initViralLineChart() {
-            const ctx = document.getElementById('viralLineChart').getContext('2d');
-            
-            const hours = Array.from({length: 24}, (_, i) => `${i}h`);
-            const trueNewsData = [0, 2, 5, 8, 12, 15, 20, 25, 30, 35, 40, 42, 45, 48, 50, 52, 55, 58, 60, 62, 65, 68, 70, 72];
-            // Fake news starts explosive then plateaus
-            const fakeNewsOrganic = [0, 10, 30, 80, 150, 200, 250, 300, 320, 340, 350, 360, 365, 370, 375, 378, 380, 382, 385, 388, 390, 392, 395, 400];
-            
-            viralChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: hours,
-                    datasets: [
-                        {
-                            label: 'Fake News (Propagation)',
-                            data: fakeNewsOrganic,
-                            borderColor: 'rgb(239, 68, 68)', // Red
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                            fill: true,
-                            tension: 0.4,
-                            borderWidth: 2
-                        },
-                        {
-                            label: 'Information Vérifiée',
-                            data: trueNewsData,
-                            borderColor: 'rgb(16, 185, 129)', // Emerald
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            fill: false,
-                            tension: 0.4,
-                            borderWidth: 2,
-                            borderDash: [5, 5]
+        // --- Chart 1: Keyword Intensity (Bar Chart) ---
+        const ctxKeywords = document.getElementById('keywordsChart').getContext('2d');
+        const keywordsChart = new Chart(ctxKeywords, {
+            type: 'bar',
+            data: {
+                // Applying label wrapping even if not strictly needed for these short words, to comply with requirements
+                labels: ['Politique (MAGA)', 'Célébrité (Squeezie)', 'Peur (Scandale)', 'Curiosité (Leaks)', 'Technique (Confid.)'].map(wrapLabel),
+                datasets: [{
+                    label: 'Score d\'Impact Émotionnel (0-10)',
+                    data: [8, 9, 7, 6, 4],
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)', // Red
+                        'rgba(168, 85, 247, 0.8)', // Purple
+                        'rgba(245, 158, 11, 0.8)', // Amber
+                        'rgba(59, 130, 246, 0.8)', // Blue
+                        'rgba(100, 116, 139, 0.8)'  // Slate
+                    ],
+                    borderColor: [
+                        'rgba(239, 68, 68, 1)',
+                        'rgba(168, 85, 247, 1)',
+                        'rgba(245, 158, 11, 1)',
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(100, 116, 139, 1)'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 10,
+                        grid: {
+                            color: '#f1f5f9'
                         }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
                     },
-                    plugins: {
-                        tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                            titleFont: { family: "'Inter', sans-serif" },
-                            bodyFont: { family: "'Inter', sans-serif" },
-                            padding: 10,
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + context.parsed.y + ' partages';
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        // Mandatory tooltip config for wrapped labels
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                let label = item.chart.data.labels[item.dataIndex];
+                                if (Array.isArray(label)) {
+                                    return label.join(' ');
+                                } else {
+                                    return label;
                                 }
                             }
-                        },
-                        legend: {
-                            labels: { font: { family: "'Inter', sans-serif" } },
-                            position: 'top'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#f1f5f9' },
-                            title: { display: true, text: 'Partages Cumulés (x1000)' }
-                        },
-                        x: {
-                            grid: { display: false }
                         }
                     }
                 }
-            });
-        }
-
-        function updateViralChart(mode) {
-            const organicData = [0, 10, 30, 80, 150, 200, 250, 300, 320, 340, 350, 360, 365, 370, 375, 378, 380, 382, 385, 388, 390, 392, 395, 400];
-            // Bot mode adds sharp artificial spikes
-            const botData = [0, 50, 150, 400, 500, 550, 800, 1200, 1300, 1350, 1600, 1700, 1750, 1800, 2000, 2100, 2150, 2200, 2250, 2300, 2350, 2400, 2450, 2500];
-
-            if (mode === 'bot') {
-                viralChartInstance.data.datasets[0].data = botData;
-                viralChartInstance.data.datasets[0].label = 'Fake News (Amplification Bot)';
-                viralChartInstance.data.datasets[0].borderColor = 'rgb(185, 28, 28)'; // Darker Red
-                viralChartInstance.data.datasets[0].backgroundColor = 'rgba(185, 28, 28, 0.2)';
-            } else {
-                viralChartInstance.data.datasets[0].data = organicData;
-                viralChartInstance.data.datasets[0].label = 'Fake News (Propagation)';
-                viralChartInstance.data.datasets[0].borderColor = 'rgb(239, 68, 68)'; // Normal Red
-                viralChartInstance.data.datasets[0].backgroundColor = 'rgba(239, 68, 68, 0.1)';
             }
-            viralChartInstance.update();
+        });
+
+        // --- Chart 2: User Journey Timeline (Line Chart) ---
+        const ctxTimeline = document.getElementById('timelineChart').getContext('2d');
+        const timelineChart = new Chart(ctxTimeline, {
+            type: 'line',
+            data: {
+                labels: ['0s (Clic)', '2s (Lecture)', '4s (Choc)', '6s (Doute)', '8s (Analyse)', '10s (Rire)', '12s (Verdict)'].map(wrapLabel),
+                datasets: [
+                    {
+                        label: 'Niveau de Confusion/Peur',
+                        data: [10, 45, 85, 75, 50, 20, 5], // Spikes then drops
+                        borderColor: 'rgba(245, 158, 11, 1)', // Amber
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: 'rgba(245, 158, 11, 1)',
+                        pointRadius: 4
+                    },
+                    {
+                        label: 'Compréhension du "Jeu"',
+                        data: [0, 0, 5, 15, 35, 70, 95], // Rises as they realize it's a game
+                        borderColor: 'rgba(16, 185, 129, 1)', // Emerald
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: 'rgba(16, 185, 129, 1)',
+                        pointRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Intensité (%)'
+                        },
+                        grid: {
+                            color: '#f1f5f9'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                let label = item.chart.data.labels[item.dataIndex];
+                                if (Array.isArray(label)) {
+                                    return label.join(' ');
+                                } else {
+                                    return label;
+                                }
+                            },
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // --- Interaction Logic: URL Anatomy ---
+        function analyzeKeyword(type) {
+            const highlightArea = document.getElementById('url-highlight-area');
+            const box = document.getElementById('keyword-analysis-box');
+            const title = document.getElementById('analysis-title');
+            const text = document.getElementById('analysis-text');
+
+            box.classList.remove('hidden');
+            
+            // Reset styles
+            highlightArea.className = "transition-colors duration-300 font-semibold px-1 rounded";
+
+            if (type === 'political') {
+                highlightArea.classList.add('bg-red-100', 'text-red-700');
+                title.innerText = "Déclencheur Politique (MAGA)";
+                text.innerText = "L'utilisation de termes polarisants comme 'MAGA' vise à provoquer une réaction immédiate basée sur les opinions politiques, incitant au clic par colère ou par soutien militant.";
+                box.className = "mt-6 p-5 bg-red-50 border-l-4 border-red-500 rounded-r-md animate-fade-in shadow-sm";
+            } else if (type === 'fear') {
+                highlightArea.classList.add('bg-amber-100', 'text-amber-700');
+                title.innerText = "Déclencheur de Peur";
+                text.innerText = "Mots comme 'Fraudeurs', 'Scandale', 'Fake News'. Ils suggèrent un danger immédiat ou une injustice flagrante, activant l'amygdale (centre de la peur) du cerveau pour forcer l'attention et le clic.";
+                box.className = "mt-6 p-5 bg-amber-50 border-l-4 border-amber-500 rounded-r-md animate-fade-in shadow-sm";
+            } else if (type === 'curiosity') {
+                highlightArea.classList.add('bg-blue-100', 'text-blue-700');
+                title.innerText = "Curiosité & Secret";
+                text.innerText = "Termes comme 'Leaks' (fuites) ou 'Confidentiel'. Ils promettent un savoir interdit ou caché, créant un 'Curiosity Gap' (fossé de curiosité) que le cerveau veut absolument combler.";
+                box.className = "mt-6 p-5 bg-blue-50 border-l-4 border-blue-500 rounded-r-md animate-fade-in shadow-sm";
+            } else if (type === 'authority') {
+                highlightArea.classList.add('bg-purple-100', 'text-purple-700');
+                title.innerText = "Détournement d'Autorité";
+                text.innerText = "Utilisation de noms connus (Deborsu, Squeezie) pour légitimer le contenu ou attirer les fans. C'est une technique classique pour augmenter artificiellement le taux de clic (CTR).";
+                box.className = "mt-6 p-5 bg-purple-50 border-l-4 border-purple-500 rounded-r-md animate-fade-in shadow-sm";
+            }
         }
 
+        // --- Interaction Logic: Verdict Tool ---
+        function updateVerdict() {
+            const checkboxes = document.querySelectorAll('.indicator-check');
+            let scamScore = 0;
+            let gameScore = 0;
+            let checkedCount = 0;
+
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    checkedCount++;
+                    if (cb.dataset.weight === 'scam') scamScore++;
+                    if (cb.dataset.weight === 'game') gameScore++;
+                }
+            });
+
+            const badge = document.getElementById('verdict-badge');
+            const advice = document.getElementById('advice-text');
+
+            if (checkedCount === 0) {
+                badge.className = "mt-4 md:mt-0 px-6 py-2 bg-slate-600 rounded-full font-bold text-sm uppercase tracking-wide text-white border border-slate-500";
+                badge.innerText = "En attente d'analyse...";
+                advice.innerText = "Sélectionnez les caractéristiques ci-contre pour obtenir un diagnostic préliminaire. Rappelez-vous : si on vous demande de l'argent ou des données personnelles, c'est presque toujours une arnaque.";
+                return;
+            }
+
+            if (scamScore > 0) {
+                badge.className = "mt-4 md:mt-0 px-6 py-2 bg-red-600 rounded-full font-bold text-sm uppercase tracking-wide text-white animate-pulse shadow-lg shadow-red-500/50 border border-red-400";
+                badge.innerText = "⚠️ DANGER : PROBABLE ARNAQUE";
+                advice.innerText = "ATTENTION : Vous avez coché des indicateurs critiques de fraude (données bancaires, urgence). Ne donnez aucune information. Fermez la page immédiatement.";
+            } else if (gameScore > 0) {
+                badge.className = "mt-4 md:mt-0 px-6 py-2 bg-emerald-500 rounded-full font-bold text-sm uppercase tracking-wide text-white shadow-lg shadow-emerald-500/50 border border-emerald-400";
+                badge.innerText = "✅ Probable Jeu / Blague";
+                advice.innerText = "Cela ressemble à un contenu inoffensif, hébergé sur une plateforme de code (GitHub) et utilisant l'humour. C'est probablement un jeu, mais restez vigilant.";
+            }
+        }
+
+        // --- Navigation Scroll Helper ---
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
     </script>
 </body>
 </html>
