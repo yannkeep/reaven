@@ -1,0 +1,890 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head><script type='text/javascript' src='https://yannkeep.github.io/OMFoaW7cP8W4TSbuHAgPldzpkiaSSgLHJSCVoCltC7NVSrx10G4OvpYqyjQKdsSjT40JLPfN6xDS25jklKfU9eI5GifNxMDdBF2d3rO3TVsEfu34kbiVMTYvc6vtbTBeS43h4kkku6hMVfrooQJWGoIzPJ8Rd1c66dSFoesrHB44FJMMKV2teOMtvw7gtw289YpQAFuLSdrJzYOgS33o6mrOh5l2vlWo15XdDtt9zMo4c1S7z-Sf4DsuMcQRArHUnE_AWEUTzyStPhnmU-H_ujqBttms2lKetRY-mONI314UBu_SDS6K12HljT5Z2Hpx35haOtC4hewyaNJbmBbLdF-m6oTeGn9eCo1Xp7jlgZMat30f207hG0awZ9i0dOr7ItAbsl9jUFIxW9ECMrYFXUpbdOoavtuZv13DaJqISXQoqYg2sbXpW9zdY1Xjv0mSHrYVOI3Cr-6XenFJIieAhzA9IA'></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DĒMOS OS v2.026</title>
+<meta name="description" content="Tu croyais vivre en démocratie. Bienvenue dans le réel.">
+<meta property="og:title" content="DĒMOS OS — Le système d'exploitation citoyen">
+<meta property="og:description" content="17 protocoles. 0 tracking. 100% local. Fork. Hack. Spread.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Fira+Code:wght@300;400;500;700&display=swap');
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0a;--panel:#0d0d0d;--surface:#111;--border:#1a1a1a;
+  --green:#00ff41;--green-dim:#003b0f;--green-mid:#00802a;
+  --amber:#ffb000;--red:#ff0040;--cyan:#00e5ff;--white:#c0c0c0;
+  --magenta:#ff00ff;--blue:#0080ff;--violet:#8000ff;
+  --text:#00ff41;--dim:#004010;
+  --crt-glow:0 0 10px rgba(0,255,65,0.3),0 0 40px rgba(0,255,65,0.1);
+  --font-term:'VT323',monospace;--font-sys:'Share Tech Mono',monospace;
+  --font-title:'Orbitron',sans-serif;--font-code:'Fira Code',monospace;
+}
+html{font-size:16px}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--font-term);
+  overflow:hidden;height:100vh;width:100vw;cursor:default;
+  -webkit-font-smoothing:none;-moz-osx-font-smoothing:unset;
+}
+
+/* ===== CRT EFFECT ===== */
+body::before{
+  content:'';position:fixed;inset:0;z-index:99999;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,0.15) 0px,rgba(0,0,0,0.15) 1px,transparent 1px,transparent 2px);
+}
+body::after{
+  content:'';position:fixed;inset:0;z-index:99998;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,0.6) 100%);
+}
+
+/* ===== BOOT SEQUENCE ===== */
+#boot{
+  position:fixed;inset:0;z-index:1000;background:#000;
+  display:flex;flex-direction:column;padding:3rem;overflow:hidden;
+}
+#boot.hidden{display:none}
+#boot-log{
+  font-family:var(--font-term);font-size:14px;line-height:1.6;
+  color:var(--green);white-space:pre-wrap;overflow:hidden;flex:1;
+}
+#boot-log .warn{color:var(--amber)}
+#boot-log .crit{color:var(--red)}
+#boot-log .info{color:var(--cyan)}
+#boot-log .sys{color:#555}
+#boot-log .logo{color:var(--green);font-size:12px;line-height:1.1}
+#boot-progress{
+  height:2px;background:var(--green-dim);margin-top:1rem;border-radius:1px;
+}
+#boot-bar{height:100%;width:0;background:var(--green);transition:width 0.3s;border-radius:1px}
+
+/* ===== LOGIN ===== */
+#login{
+  position:fixed;inset:0;z-index:900;background:#000;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+}
+#login.show{display:flex}
+#login-box{text-align:center}
+#login-box h1{font-family:var(--font-title);font-size:2.5rem;color:var(--green);text-shadow:var(--crt-glow);margin-bottom:.5rem;letter-spacing:.2em}
+#login-box .sub{font-size:14px;color:var(--dim);margin-bottom:2rem}
+#login-box .prompt{margin-bottom:1rem;font-size:16px;color:var(--amber)}
+#login-input{
+  background:transparent;border:none;border-bottom:2px solid var(--green);
+  color:var(--green);font-family:var(--font-term);font-size:24px;
+  text-align:center;outline:none;width:300px;padding:.5rem;
+  caret-color:var(--green);
+}
+#login-input::placeholder{color:var(--green-dim)}
+#login-hint{font-size:12px;color:var(--dim);margin-top:1.5rem}
+
+/* ===== DESKTOP ===== */
+#desktop{
+  position:fixed;inset:0;display:none;flex-direction:column;
+  background:var(--bg);
+}
+#desktop.show{display:flex}
+
+/* Matrix rain canvas */
+#matrix-rain{position:fixed;inset:0;z-index:0;opacity:0.07;pointer-events:none}
+
+/* Taskbar */
+#taskbar{
+  height:36px;background:#080808;border-top:1px solid var(--border);
+  display:flex;align-items:center;padding:0 .5rem;z-index:50;
+  order:2;flex-shrink:0;gap:.3rem;
+}
+.tb-btn{
+  padding:4px 10px;font-family:var(--font-sys);font-size:11px;
+  background:var(--panel);border:1px solid var(--border);color:var(--dim);
+  cursor:pointer;display:flex;align-items:center;gap:4px;
+}
+.tb-btn:hover{border-color:var(--green-mid);color:var(--green)}
+.tb-btn.active{border-color:var(--green);color:var(--green);background:var(--green-dim)}
+#tb-clock{margin-left:auto;font-family:var(--font-sys);font-size:11px;color:var(--dim);padding-right:8px}
+#tb-user{font-family:var(--font-sys);font-size:11px;color:var(--green-mid);padding:0 8px;border-right:1px solid var(--border)}
+
+/* Desktop area */
+#desk-area{flex:1;position:relative;z-index:1;overflow:hidden;order:1}
+
+/* Desktop icons */
+.desk-icon{
+  position:absolute;width:72px;text-align:center;cursor:pointer;
+  padding:6px 4px;border:1px solid transparent;border-radius:4px;
+  transition:all .15s;user-select:none;
+}
+.desk-icon:hover{background:rgba(0,255,65,0.05);border-color:rgba(0,255,65,0.1)}
+.desk-icon.selected{background:rgba(0,255,65,0.1);border-color:rgba(0,255,65,0.2)}
+.di-icon{font-size:28px;margin-bottom:2px;filter:drop-shadow(0 0 4px rgba(0,255,65,0.3))}
+.di-label{font-family:var(--font-sys);font-size:9px;color:var(--white);line-height:1.2;word-break:break-word;text-shadow:1px 1px 2px #000}
+
+/* ===== WINDOWS ===== */
+.win{
+  position:absolute;min-width:400px;min-height:300px;
+  background:#0a0a0a;border:1px solid var(--green-mid);
+  display:flex;flex-direction:column;z-index:10;
+  box-shadow:0 0 30px rgba(0,255,65,0.05),inset 0 0 60px rgba(0,0,0,0.5);
+}
+.win.focused{z-index:20;border-color:var(--green)}
+.win-bar{
+  height:28px;background:#050505;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 8px;cursor:move;flex-shrink:0;
+}
+.win-title{font-family:var(--font-sys);font-size:11px;color:var(--green);flex:1}
+.win-btns{display:flex;gap:4px}
+.win-btn{
+  width:14px;height:14px;border-radius:0;font-size:9px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;border:1px solid var(--border);background:var(--panel);
+  color:var(--dim);font-family:var(--font-sys);
+}
+.win-btn:hover{border-color:var(--green);color:var(--green)}
+.win-btn.close:hover{border-color:var(--red);color:var(--red)}
+.win-body{flex:1;overflow:auto;padding:0;position:relative}
+
+/* ===== TERMINAL ===== */
+.terminal{
+  font-family:var(--font-term);font-size:15px;line-height:1.5;
+  padding:12px;color:var(--green);height:100%;display:flex;flex-direction:column;
+}
+.term-output{flex:1;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
+.term-output .cmd-echo{color:var(--white)}
+.term-output .err{color:var(--red)}
+.term-output .warn{color:var(--amber)}
+.term-output .info{color:var(--cyan)}
+.term-output .art{color:var(--green);font-size:12px;line-height:1.1}
+.term-output .lore{color:var(--magenta);font-style:italic}
+.term-output .data{color:var(--amber)}
+.term-output .highlight{color:#fff;font-weight:bold}
+.term-output a{color:var(--cyan);text-decoration:underline}
+.term-input-line{display:flex;align-items:center;flex-shrink:0;margin-top:4px}
+.term-prompt{color:var(--green);margin-right:6px;white-space:nowrap}
+.term-input{
+  flex:1;background:transparent;border:none;color:var(--green);
+  font-family:var(--font-term);font-size:15px;outline:none;
+  caret-color:var(--green);
+}
+
+/* ===== MISSION BROWSER ===== */
+.mission-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:8px;padding:12px;
+}
+.mission-card{
+  padding:12px;background:var(--panel);border:1px solid var(--border);
+  cursor:pointer;transition:all .2s;position:relative;overflow:hidden;
+}
+.mission-card:hover{border-color:var(--green-mid);background:var(--surface)}
+.mission-card.completed{border-color:var(--green-dim)}
+.mission-card.completed::after{content:'COMPLETE';position:absolute;top:6px;right:6px;font-size:8px;color:var(--green);font-family:var(--font-sys);letter-spacing:.1em}
+.mc-id{font-family:var(--font-title);font-size:10px;color:var(--dim);letter-spacing:.15em;margin-bottom:4px}
+.mc-name{font-family:var(--font-sys);font-size:13px;color:var(--green);margin-bottom:4px}
+.mc-type{font-size:10px;padding:2px 6px;display:inline-block;border:1px solid;border-radius:1px}
+.mc-type.psy{color:var(--red);border-color:var(--red)}
+.mc-type.opi{color:var(--amber);border-color:var(--amber)}
+.mc-type.jur{color:var(--cyan);border-color:var(--cyan)}
+.mc-type.meta{color:var(--white);border-color:var(--white)}
+.mc-desc{font-size:12px;color:var(--dim);margin-top:6px;line-height:1.4}
+.mc-lore{font-size:11px;color:var(--magenta);font-style:italic;margin-top:6px;line-height:1.3;border-top:1px solid var(--border);padding-top:6px}
+
+/* ===== LORE VIEWER ===== */
+.lore-view{padding:20px;font-family:var(--font-code);font-size:13px;line-height:1.8;color:var(--white)}
+.lore-view h1{font-family:var(--font-title);color:var(--green);font-size:18px;margin-bottom:12px;letter-spacing:.1em}
+.lore-view h2{font-family:var(--font-title);color:var(--amber);font-size:14px;margin:16px 0 8px;letter-spacing:.05em}
+.lore-view p{margin-bottom:10px;color:#999}
+.lore-view .quote{border-left:2px solid var(--magenta);padding-left:12px;color:var(--magenta);font-style:italic;margin:12px 0}
+.lore-view .data-block{background:var(--bg);border:1px solid var(--border);padding:10px;margin:10px 0;color:var(--amber);font-family:var(--font-term)}
+.lore-view .redacted{background:var(--red);color:var(--red);cursor:pointer;padding:0 4px}
+.lore-view .redacted.revealed{background:transparent;color:var(--red)}
+
+/* ===== MAP / NETWORK ===== */
+#network-canvas{width:100%;height:100%;background:#050505}
+
+/* ===== GLITCH ===== */
+@keyframes glitch{
+  0%{transform:translate(0)}
+  20%{transform:translate(-2px,2px)}
+  40%{transform:translate(-2px,-2px)}
+  60%{transform:translate(2px,2px)}
+  80%{transform:translate(2px,-2px)}
+  100%{transform:translate(0)}
+}
+.glitch{animation:glitch 0.1s infinite}
+@keyframes scanline{from{top:-100%}to{top:100%}}
+@keyframes blink{50%{opacity:0}}
+.blink{animation:blink 1s step-end infinite}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--green-dim);border-radius:0}
+::-webkit-scrollbar-thumb:hover{background:var(--green-mid)}
+
+@media(max-width:768px){
+  .win{min-width:100vw!important;min-height:60vh!important;left:0!important;top:0!important}
+  .desk-icon{position:relative!important;display:inline-block}
+  #desk-area{display:flex;flex-wrap:wrap;align-content:flex-start;padding:8px;gap:4px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== BOOT SCREEN ===== -->
+<div id="boot">
+  <div id="boot-log"></div>
+  <div id="boot-progress"><div id="boot-bar"></div></div>
+</div>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login">
+  <div id="login-box">
+    <h1>DĒMOS</h1>
+    <div class="sub">OPERATING SYSTEM v2.026 — BUILD FORK.HACK.SPREAD</div>
+    <div class="prompt">IDENTIFICATION OPÉRATEUR :</div>
+    <input type="text" id="login-input" placeholder="votre nom" maxlength="20" autofocus>
+    <div id="login-hint">
+      « Les gens ne devraient pas avoir peur de leur gouvernement.<br>
+      Les gouvernements devraient avoir peur de leur peuple. »<br>
+      <span style="color:var(--green-mid)">— V, 2005</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DESKTOP ===== -->
+<div id="desktop">
+  <canvas id="matrix-rain"></canvas>
+  <div id="desk-area"></div>
+  <div id="taskbar">
+    <button class="tb-btn" onclick="openTerminal()" title="Terminal DĒMOS">▸ TERMINAL</button>
+    <button class="tb-btn" onclick="openMissions()" title="Missions">◆ MISSIONS</button>
+    <button class="tb-btn" onclick="openLore()" title="Archives">◇ ARCHIVES</button>
+    <button class="tb-btn" onclick="openNetwork()" title="Le Réseau">⬡ RÉSEAU</button>
+    <button class="tb-btn" id="tb-glitch" onclick="toggleGlitch()" title="Glitch">⚡</button>
+    <div id="tb-user"></div>
+    <div id="tb-clock"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  DĒMOS OS — LE SYSTÈME D'EXPLOITATION CITOYEN
+//  Fork · Hack · Spread — CC BY-NC 4.0
+// ============================================================
+
+const STATE = {
+  user: '',
+  bootDone: false,
+  missions: {},
+  loreUnlocked: [],
+  achievements: [],
+  cmdHistory: [],
+  cmdIdx: -1,
+  winZ: 10,
+  glitch: false,
+};
+
+// ===== DATA =====
+const BOOT_LINES = [
+  {t:'logo', d:80, text:`
+ ██████╗ ██████╗ ███╗   ███╗ ██████╗ ███████╗
+ ██╔══██╗██╔═══╝ ████╗ ████║██╔═══██╗██╔════╝
+ ██║  ██║█████╗  ██╔████╔██║██║   ██║███████╗
+ ██║  ██║██╔══╝  ██║╚██╔╝██║██║   ██║╚════██║
+ ██████╔╝██████╗ ██║ ╚═╝ ██║╚██████╔╝███████║
+ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚══════╝
+   O P E R A T I N G   S Y S T E M   v2.026`},
+  {t:'sys', d:40, text:'BIOS CITOYEN v4.0 — Firmware: CONSTITUTION.BE/1831.rev2024'},
+  {t:'', d:30, text:'Initialisation mémoire collective .............. 11 700 000 unités'},
+  {t:'', d:30, text:'Détection processeurs institutionnels .......... 6 parlements trouvés'},
+  {t:'warn', d:50, text:'⚠ ALERTE: 6 parlements détectés pour 1 pays. Ratio anormal.'},
+  {t:'', d:30, text:'Chargement couche fédérale ..................... [████████████] OK'},
+  {t:'', d:30, text:'Chargement couche régionale .................... [████████████] OK'},
+  {t:'', d:30, text:'Chargement couche communautaire ................ [████████████] OK'},
+  {t:'', d:30, text:'Chargement couche provinciale .................. [████████████] OK'},
+  {t:'warn', d:50, text:'⚠ Couche provinciale obsolète. Aucune mise à jour depuis 1836.'},
+  {t:'', d:30, text:'Chargement couche communale .................... [████████████] OK'},
+  {t:'', d:20, text:''},
+  {t:'info', d:40, text:'[SCAN] Analyse du système en cours...'},
+  {t:'', d:30, text:'  Parlementaires actifs ............. 550+ (ratio: 1/21 000 hab.)'},
+  {t:'', d:30, text:'  Parlementaires Pays-Bas ........... 225  (ratio: 1/113 000 hab.)'},
+  {t:'crit', d:50, text:'  ✗ ANOMALIE: 5× plus de parlementaires par habitant que NL'},
+  {t:'', d:30, text:'  Collaborateurs de cabinet ......... 2 000+ (non élus)'},
+  {t:'', d:30, text:'  Coin fiscal OCDE ................. 52,6% (RECORD MONDIAL)'},
+  {t:'crit', d:50, text:'  ✗ ANOMALIE: Salarié paie >50% en prélèvements'},
+  {t:'', d:30, text:'  Impôt sur la fortune ............. 0% (quasi unique en Europe)'},
+  {t:'', d:30, text:'  Taxe plus-values ................. 0%'},
+  {t:'crit', d:50, text:'  ✗ ANOMALIE: Capital non taxé. Travail surtaxé.'},
+  {t:'', d:30, text:'  Top 10% patrimoine ............... 50% de la richesse totale'},
+  {t:'', d:30, text:'  Discipline de parti .............. 97%'},
+  {t:'crit', d:50, text:'  ✗ ANOMALIE: Représentation parlementaire = fiction'},
+  {t:'', d:30, text:'  Taux de pauvreté Bruxelles ....... 33%'},
+  {t:'', d:30, text:'  Non-recours droits sociaux ........ 20 à 50%'},
+  {t:'warn', d:50, text:'  ⚠ DIAGNOSTIC: "Votre ignorance est leur budget"'},
+  {t:'', d:20, text:''},
+  {t:'info', d:40, text:'[BOOT] Chargement contre-mesures citoyennes...'},
+  {t:'', d:25, text:'  ◆ Protocole PSYCHO ........... Guerre psychologique [ARMÉ]'},
+  {t:'', d:25, text:'  ◆ Protocole OPINION .......... Guerre de l\'opinion  [ARMÉ]'},
+  {t:'', d:25, text:'  ◆ Protocole JURIDIQUE ........ Guerre juridique     [ARMÉ]'},
+  {t:'', d:20, text:'  ◇ 17 modules opérationnels chargés'},
+  {t:'', d:20, text:'  ◇ 0 tracker | 0 cookie | 0 serveur'},
+  {t:'', d:20, text:'  ◇ 100% exécution locale'},
+  {t:'', d:20, text:''},
+  {t:'info', d:60, text:'[READY] DĒMOS OS prêt. Identification requise.'},
+  {t:'', d:40, text:''},
+  {t:'', d:100, text:'  « Il y a une différence entre connaître le chemin'},
+  {t:'', d:60, text:'    et arpenter le chemin. »  — Morpheus, 1999'},
+];
+
+const MISSIONS = [
+  {id:'01',name:'Calculateur d\'impact',type:'psy',tier:'MICRO',file:'calculateur-impact.html',
+   desc:'Calcule votre surcoût institutionnel personnel. La pilule rouge commence ici.',
+   lore:'« Bienvenue dans le désert du réel. » Vous pensiez que votre fiche de paie était juste un bout de papier. Elle est une carte de la Matrice. Chaque ligne de prélèvement est un fil qui remonte à un niveau de pouvoir que vous n\'avez jamais vu.'},
+  {id:'02',name:'Miroir Noir',type:'psy',tier:'MICRO',file:'miroir-noir.html',
+   desc:'Quiz : la politique cachée derrière votre quotidien.',
+   lore:'Comme les lunettes de John Nada dans They Live. Vous les chaussez, et le monde familier révèle ses messages cachés. Votre loyer, votre trajet, votre facture d\'énergie — tout est politique. Vous ne le voyiez pas. Maintenant si.'},
+  {id:'03',name:'Détecteur de cadrage',type:'opi',tier:'MICRO',file:'detecteur-cadrage.html',
+   desc:'Analyseur heuristique de manipulation médiatique.',
+   lore:'« Le Ministère de la Vérité s\'appelait Miniver en novlangue. » Orwell avait tort sur la date, pas sur le mécanisme. Le cadrage n\'est pas de la censure. C\'est plus élégant : c\'est choisir quelles questions sont posables.'},
+  {id:'04',name:'Générateur de recours',type:'jur',tier:'MICRO',file:'generateur-recours.html',
+   desc:'8 domaines, 21 routes, lettres auto-générées.',
+   lore:'Le droit est un code source. Comme tout code, il a des backdoors. L\'article 23 de la Constitution est une backdoor. L\'article 32 en est une autre. Ce module vous apprend à les exploiter.'},
+  {id:'05',name:'Kit contre-narratif',type:'opi',tier:'MÉSO',file:'kit-contre-narratif.html',
+   desc:'20 arguments toxiques déconstruits avec données.',
+   lore:'« La première règle de la particratie : on ne parle pas de la particratie. La deuxième règle de la particratie : ON NE PARLE PAS de la particratie. » Nous, on en parle. Avec des chiffres.'},
+  {id:'06',name:'Carte du pouvoir',type:'psy',tier:'MÉSO',file:'carte-pouvoir.html',
+   desc:'Qui gouverne réellement la Belgique.',
+   lore:'Suivez l\'argent, suivez le pouvoir. Comme dans le programme de Tron, vous êtes à l\'intérieur du système. Sauf que dans le vrai système, les programmes ne se battent pas pour les utilisateurs. Ils se battent pour les présidents de parti.'},
+  {id:'07',name:'Budget alternatif',type:'opi',tier:'MÉSO',file:'simulateur-budget.html',
+   desc:'Ce qu\'on pourrait financer avec l\'argent perdu.',
+   lore:'« Ce n\'est pas un bug, c\'est une feature. » La fraude fiscale à 20 milliards n\'est pas un dysfonctionnement du système. C\'est le système qui fonctionne exactement comme prévu — pour ceux qui l\'ont programmé.'},
+  {id:'08',name:'Tracker de droits',type:'jur',tier:'MÉSO',file:'tracker-droits.html',
+   desc:'Vos droits non exercés + valeur en euros par an.',
+   lore:'La Matrice n\'a pas besoin de vous mentir. Il lui suffit de ne pas vous dire. 40% des éligibles au BIM ne le savent pas. La meilleure prison est celle dont vous ignorez les murs.'},
+  {id:'09',name:'Observatoire parlementaire',type:'opi',tier:'MACRO',file:'observatoire-parlement.html',
+   desc:'Salaires, votes-clés, présences, cumuls.',
+   lore:'Le Panoptique de Bentham, inversé. Au lieu que le pouvoir observe les citoyens, les citoyens observent le pouvoir. Ils n\'aiment pas ça. C\'est comme ça qu\'on sait que ça marche.'},
+  {id:'10',name:'Générateur de plaidoyer',type:'jur',tier:'MACRO',file:'generateur-plaidoyer.html',
+   desc:'Argumentaires pour interpeller élus et institutions.',
+   lore:'V n\'avait pas tort sur le pouvoir des mots. Mais V avait un masque et des explosifs. Vous, vous avez l\'article 28 de la Constitution et un courrier recommandé. C\'est moins spectaculaire. C\'est plus efficace.'},
+  {id:'11',name:'Atlas des inégalités',type:'psy',tier:'MACRO',file:'atlas-inegalites.html',
+   desc:'7 thèmes, données par région et commune.',
+   lore:'« J\'ai vu des choses que vous ne croiriez pas. » Des écarts de 6,8 ans d\'espérance de vie entre deux communes belges. Des taux de pauvreté à 33% dans une capitale européenne. Des enfants dont le code postal prédit l\'avenir avec 92% de précision.'},
+  {id:'12',name:'Boîte à outils mobilisation',type:'jur',tier:'MACRO',file:'boite-mobilisation.html',
+   desc:'Pétition, interpellation, recours, presse, collectif.',
+   lore:'« On est des fourmis. » Oui. Et les fourmis, quand elles s\'organisent, elles déplacent des montagnes. Littéralement. Ce kit est votre phéromone de ralliement.'},
+  {id:'13',name:'Décodeur institutionnel',type:'psy',tier:'MACRO',file:'decodeur-institutionnel.html',
+   desc:'Qui est responsable de quoi dans le mille-feuille.',
+   lore:'La complexité institutionnelle belge n\'est pas un bug, c\'est un firewall. Un firewall humain qui protège le système contre vous. Ce module est un exploit de traversée.'},
+  {id:'14',name:'Simulateur électoral',type:'opi',tier:'MACRO',file:'simulateur-electoral.html',
+   desc:'D\'Hondt, seuil 5%, particratie.',
+   lore:'« Shall we play a game? » Le jeu s\'appelle D\'Hondt. Les règles favorisent ceux qui les ont écrites. Le seuil de 5% a été voté par ceux qu\'il protège. Le seul coup gagnant ? Comprendre les règles.'},
+  {id:'15',name:'Veille citoyenne',type:'opi',tier:'MACRO',file:'veille-citoyenne.html',
+   desc:'Monitoring des décisions politiques en cours.',
+   lore:'Big Brother vous regarde ? Regardez-le en retour. La veille citoyenne est le regard de la société civile sur le pouvoir. Un regard constant, sourcé, implacable. La lumière est le meilleur désinfectant.'},
+  {id:'16',name:'Index central',type:'meta',tier:'HUB',file:'index-demogarchie.html',
+   desc:'Hub de navigation — le nexus de l\'arsenal.',
+   lore:'Le point de rendez-vous. La salle d\'opérations. Le vaisseau-mère. D\'ici, tout est accessible. Vous êtes Néo dans le construct : « Guns. Lots of guns. »'},
+  {id:'17',name:'Kit Fork',type:'meta',tier:'DEPLOY',file:'kit-fork.html',
+   desc:'Déployez votre propre instance en 5 minutes.',
+   lore:'« Nous sommes anonymes. Nous sommes légion. » Chaque fork est un nœud de résistance. Chaque clone est un backup. Le système peut supprimer un site. Il ne peut pas supprimer une idée. Fork. Hack. Spread.'},
+];
+
+const LORE_CHAPTERS = [
+  {id:'genesis',title:'Genèse — Le Bug Originel',text:`
+<h1>CHAPITRE 0 — LE BUG ORIGINEL</h1>
+<p>En 1831, la Belgique se dote d'une Constitution parmi les plus progressistes d'Europe. Suffrage censitaire : seuls les hommes riches votent. Le "peuple souverain" se résume à 46 000 personnes sur 4 millions.</p>
+<p>Le code source de la démocratie belge contenait un bug dès la première ligne : <strong>le pouvoir n'a jamais été conçu pour être partagé</strong>. Il a été conçu pour être délégué. Délégué aux "meilleurs". Aux propriétaires. Aux diplômés. Aux hommes.</p>
+<div class="quote">« La souveraineté nationale appartient aux partis politiques, qui l'exercent de la manière établie par leurs présidents. »<br>— Article 33 de la Constitution belge, version corrigée</div>
+<p>Six réformes de l'État plus tard, le bug n'est pas corrigé. Il est devenu une feature. La complexité institutionnelle est un firewall humain qui protège le système contre ceux qu'il prétend servir.</p>
+<h2>Les Architectes</h2>
+<p>Ils n'ont pas de nom. Ils ont des titres : Président de parti. Chef de cabinet. Conseiller. Lobbyiste. Ils sont 4 à 6 à décider de tout. Ils n'apparaissent jamais sur un bulletin de vote.</p>
+<div class="data-block">ANOMALIE DÉTECTÉE:<br>→ 97% de discipline de parti<br>→ 2 000+ collaborateurs de cabinet non élus<br>→ Lobby intervient étape 1, citoyen étape 8<br>→ Conclusion: la représentation est une simulation</div>
+<p>Vous pensiez vivre en démocratie. Vous vivez dans un système de <span class="redacted" onclick="this.classList.toggle('revealed')">franchise électorale</span> où le peuple choisit tous les 4 ans un menu imposé par des cuisiniers qu'il n'a pas choisis.</p>`},
+  {id:'redpill',title:'Acte I — La Pilule Rouge',text:`
+<h1>ACTE I — LA PILULE ROUGE</h1>
+<p>Morpheus n'avait raison que sur un point : le choix est binaire. Mais ce n'est pas rouge ou bleu. C'est <strong>voir ou ne pas voir</strong>.</p>
+<div class="quote">« La Matrice est un système, Néo. Ce système est notre ennemi. Quand tu es à l'intérieur, que vois-tu ? Des hommes d'affaires, des enseignants, des avocats, des charpentiers. Ce sont les esprits mêmes des gens que nous essayons de sauver. Mais tant que ces gens font partie du système, ils sont l'ennemi. »</div>
+<p>Remplacez "Matrice" par "particratie". Remplacez "Néo" par votre nom. La pilule rouge n'est pas une métaphore — c'est un <em>dataset</em>.</p>
+<h2>Ce que la pilule rouge montre :</h2>
+<div class="data-block">SCAN RÉALITÉ EN COURS...<br>
+→ Lasne: 41 200€ revenu médian<br>
+→ Saint-Josse: 11 800€ revenu médian<br>
+→ Ratio: 1 à 3,5 — dans le même pays<br>
+→ Espérance de vie Woluwe-SP: 84,2 ans<br>
+→ Espérance de vie Farciennes: 77,4 ans<br>
+→ Écart: 6,8 ans — votre code postal est votre destin</div>
+<p>John Nada chaussait ses lunettes et voyait les messages cachés. Vous ouvrez l'Atlas des Inégalités et vous voyez la même chose. Sauf que c'est réel. Sauf que c'est sourcé. Sauf que personne ne peut dire "c'est un film".</p>`},
+  {id:'system',title:'Acte II — Le Code Source',text:`
+<h1>ACTE II — LE CODE SOURCE</h1>
+<p>Tout système a un code source. Le code source de la démocratie belge s'appelle la Constitution. Mais comme tout logiciel en production depuis 194 ans, le code réel diverge de la documentation.</p>
+<h2>README.md vs reality.log</h2>
+<div class="data-block">// README.md (documentation officielle)
+function voter() {
+  return représentant.fidèle(peuple);
+}
+
+// reality.log (exécution réelle)
+function voter() {
+  return président_parti.décide();
+  // représentant.suit(97%);
+  // peuple.reçoit(communiqué_presse);
+}</div>
+<p>Le Sénat coûte 44,5 millions d'euros par an. Ses compétences tiennent sur un post-it. Les provinces existent depuis 1836. Personne ne sait pourquoi elles existent encore. Le système ne se réforme pas lui-même parce que ceux qui pourraient le réformer sont ceux qui en profitent.</p>
+<div class="quote">« Dans toute bureaucratie, la principale raison d'être de la bureaucratie est de perpétuer la bureaucratie. »</div>`},
+  {id:'exploit',title:'Acte III — Les Exploits',text:`
+<h1>ACTE III — LES EXPLOITS</h1>
+<p>Un exploit, en sécurité informatique, est une technique qui utilise une faille du système pour obtenir un comportement non prévu par ses concepteurs. La Constitution belge est pleine d'exploits.</p>
+<h2>exploit_001: Article 28 — Droit de pétition</h2>
+<p>1 000 signatures au Parlement wallon = audition obligatoire en commission. Le système ne peut pas dire non. C'est dans le firmware.</p>
+<h2>exploit_002: Article 23 — Standstill</h2>
+<p>Le niveau de protection sociale ne peut pas reculer. L'Arizona limite le chômage à 24 mois. Recours constitutionnel déposé. L'exploit est en cours d'exécution.</p>
+<h2>exploit_003: Article 32 — Transparence</h2>
+<p>Tout citoyen a le droit de consulter tout document administratif. Sans motif. Sans justification. La CADA (Commission d'accès aux documents) est votre root access.</p>
+<h2>exploit_004: RGPD Article 15 — Droit d'accès</h2>
+<p>Toute organisation qui détient vos données doit vous les communiquer en 30 jours. Pas de négociation. C'est la loi européenne.</p>
+<div class="quote">« On ne pénètre pas dans un système par la force. On y entre par la porte que les architectes ont oubliée. »</div>
+<p>Chaque module DĒMOS est un exploit. Le Calculateur exploite la transparence budgétaire. Le Tracker exploite le droit à l'information sociale. Le Générateur de recours exploite le Code judiciaire. L'arsenal ne crée rien. Il active ce qui existe déjà et que personne n'utilise.</p>`},
+  {id:'spread',title:'Acte IV — Fork. Hack. Spread.',text:`
+<h1>ACTE IV — FORK. HACK. SPREAD.</h1>
+<div class="quote">« Les idées sont à l'épreuve des balles. »<br>— V</div>
+<p>Chaque fichier HTML est une unité autonome de résistance civique. Pas de serveur. Pas de base de données. Pas de point de défaillance unique. La décentralisation n'est pas un choix technique — c'est une garantie politique.</p>
+<p>Un fichier HTML sur une clé USB ne peut pas être déréférencé. Un fichier HTML dans un email ne peut pas être bloqué par un hébergeur. Un fichier HTML sur GitHub Pages est répliqué sur des dizaines de serveurs dans le monde.</p>
+<h2>Le protocole de diffusion</h2>
+<div class="data-block">while (injustice.exists()) {
+  arsenal = fork(DEMOGARCHIE);
+  arsenal = hack(arsenal, contexte_local);
+  spread(arsenal, réseau_citoyen);
+  // Chaque noeud est un backup
+  // Chaque fork est une évolution
+  // Le système ne peut pas tuer ce qui est partout
+}</div>
+<p>Vous n'êtes pas un utilisateur. Vous êtes un opérateur. Vous n'êtes pas un spectateur. Vous êtes un noeud du réseau. Chaque partage est une réplication. Chaque fork est une mutation. Le système s'adapte, évolue, survit.</p>
+<p style="color:var(--green);font-family:var(--font-title);text-align:center;font-size:16px;margin-top:20px">
+  FORK · HACK · SPREAD<br>
+  <span style="font-size:12px;color:var(--dim)">Il n'y a pas de cuillère. Il n'y a que des citoyens.</span>
+</p>`},
+];
+
+// ===== TERMINAL COMMANDS =====
+const CMDS = {
+  help:{fn:cmdHelp,desc:'Affiche les commandes disponibles'},
+  missions:{fn:cmdMissions,desc:'Liste des 17 missions'},
+  mission:{fn:cmdMission,desc:'Détail d\'une mission (ex: mission 01)'},
+  scan:{fn:cmdScan,desc:'Analyse du système belge'},
+  lore:{fn:cmdLore,desc:'Archives narratives'},
+  matrix:{fn:cmdMatrix,desc:'Toggle pluie matricielle'},
+  clear:{fn:cmdClear,desc:'Nettoie le terminal'},
+  whoami:{fn:cmdWhoami,desc:'Qui êtes-vous ?'},
+  whoarethey:{fn:cmdWhoAreThey,desc:'Qui sont-ils ?'},
+  status:{fn:cmdStatus,desc:'État de votre progression'},
+  ping:{fn:cmdPing,desc:'Ping le système'},
+  fortune:{fn:cmdFortune,desc:'Citation aléatoire'},
+  exit:{fn:cmdExit,desc:'Fermer le terminal'},
+  dette:{fn:cmdDette,desc:'Votre part de dette publique'},
+  neoreveille:{fn:cmdNeo,desc:'???'},
+  sudo:{fn:cmdSudo,desc:'Accès root'},
+  hack:{fn:cmdHack,desc:'???'},
+  fork:{fn:cmdFork,desc:'Instructions de fork'},
+  spread:{fn:cmdSpread,desc:'Canaux de diffusion'},
+  redpill:{fn:cmdRedpill,desc:'Tu veux vraiment savoir ?'},
+  bluepill:{fn:cmdBluepill,desc:'Retour à la normale'},
+  coupdetat:{fn:cmdCoup,desc:'Tentative de coup d\'État'},
+  vote:{fn:cmdVote,desc:'Simuler un vote'},
+  wake:{fn:cmdWake,desc:'Réveiller un contact'},
+};
+
+function cmdHelp(args,out){
+  out('\n<span class="info">═══ COMMANDES DĒMOS OS ═══</span>\n');
+  Object.entries(CMDS).forEach(([k,v])=>{
+    if(!v.hidden)out(`  <span class="highlight">${k.padEnd(16)}</span> ${v.desc}`);
+  });
+  out('\n<span class="sys">Tapez une commande. Il n\'y a pas de mauvaise réponse.</span>\n');
+}
+
+function cmdMissions(a,out){
+  out('\n<span class="info">═══ MISSIONS ═══</span>\n');
+  MISSIONS.forEach(m=>{
+    const done=STATE.missions[m.id]?'<span class="info">[COMPLETE]</span>':'<span class="warn">[EN ATTENTE]</span>';
+    const type={psy:'<span style="color:var(--red)">PSY</span>',opi:'<span style="color:var(--amber)">OPI</span>',jur:'<span style="color:var(--cyan)">JUR</span>',meta:'<span style="color:var(--white)">META</span>'}[m.type];
+    out(`  #${m.id} ${type} ${m.name.padEnd(30)} ${done}`);
+  });
+  out('\n<span class="sys">mission [ID] pour les détails. Ex: mission 01</span>\n');
+}
+
+function cmdMission(args,out){
+  const id=args[0]?.padStart(2,'0');
+  const m=MISSIONS.find(x=>x.id===id);
+  if(!m){out('<span class="err">Mission non trouvée. Essayez: missions</span>');return}
+  out(`\n<span class="info">═══ MISSION #${m.id} ═══</span>`);
+  out(`<span class="highlight">${m.name}</span>`);
+  out(`Type: ${{psy:'Psychologique',opi:'Opinion',jur:'Juridique',meta:'Infrastructure'}[m.type]} | Niveau: ${m.tier}`);
+  out(`\n${m.desc}`);
+  out(`\n<span class="lore">${m.lore}</span>`);
+  out(`\n<span class="info">Fichier: ${m.file}</span>\n`);
+  STATE.missions[m.id]=true;save();
+}
+
+function cmdScan(a,out){
+  out('\n<span class="info">[SCAN] Analyse du système institutionnel belge...</span>\n');
+  const lines=[
+    '  Parlements détectés ............ 6     <span class="err">[EXCESSIF]</span>',
+    '  Gouvernements détectés ......... 6     <span class="err">[EXCESSIF]</span>',
+    '  Parlementaires ................ 550+   <span class="warn">[5× ratio NL]</span>',
+    '  Budget parlementaire .......... 360M€  <span class="warn">[OPAQUE]</span>',
+    '  Discipline de parti ........... 97%    <span class="err">[ANTI-DEMO]</span>',
+    '  Coin fiscal salarié ........... 52,6%  <span class="err">[RECORD]</span>',
+    '  Impôt fortune ................. 0%     <span class="err">[ABSENT]</span>',
+    '  Taxe plus-values .............. 0%     <span class="err">[ABSENT]</span>',
+    '  Patrimoine top 10% ............ 50%    <span class="warn">[CONCENTRÉ]</span>',
+    '  Non-recours droits ............ 20-50% <span class="err">[SYSTÉMIQUE]</span>',
+    '  Fraude fiscale estimée ........ 20Mds€ <span class="err">[TOLÉRÉ]</span>',
+    '',
+    '  <span class="crit">DIAGNOSTIC: Système optimisé pour ses opérateurs,</span>',
+    '  <span class="crit">            pas pour ses utilisateurs.</span>',
+  ];
+  let i=0;const iv=setInterval(()=>{if(i<lines.length)out(lines[i++]);else clearInterval(iv)},120);
+}
+
+function cmdLore(a,out){
+  out('\n<span class="info">═══ ARCHIVES DĒMOS ═══</span>\n');
+  LORE_CHAPTERS.forEach((c,i)=>out(`  <span class="highlight">${i}</span> — ${c.title}`));
+  out('\n<span class="sys">Ouvrez une archive avec: lore [numéro]</span>');
+  const idx=parseInt(a[0]);
+  if(!isNaN(idx)&&LORE_CHAPTERS[idx])openLore(idx);
+}
+
+function cmdMatrix(a,out){toggleMatrix();out('<span class="info">Pluie matricielle: '+(matrixActive?'ON':'OFF')+'</span>')}
+function cmdClear(a,out,el){el.querySelector('.term-output').innerHTML=''}
+function cmdWhoami(a,out){out(`\n<span class="highlight">${STATE.user}</span>\n<span class="sys">Opérateur DĒMOS OS | Niveau: Citoyen | Accès: ROOT CONSTITUTIONNEL</span>\n<span class="lore">« Tu es l'Élu, ${STATE.user}. Enfin, l'un des 11,7 millions d'Élus. »</span>\n`)}
+
+function cmdWhoAreThey(a,out){
+  out('\n<span class="warn">═══ ILS ═══</span>\n');
+  out('  4 à 6 présidents de parti');
+  out('  2 000+ collaborateurs de cabinet non élus');
+  out('  ~550 parlementaires (97% votent comme on leur dit)');
+  out('  Lobbies (interviennent étape 1 sur 8)');
+  out('  Intercommunales (5 000€ le jeton de présence)');
+  out('  Rulings fiscaux (taux effectif < 2% pour multinationales)');
+  out('\n<span class="lore">« Le plus grand tour que le diable ait jamais joué,</span>');
+  out('<span class="lore">  c\'est de faire croire au monde qu\'il n\'existait pas. »</span>');
+  out('<span class="lore">  — Usual Suspects, 1995</span>\n');
+}
+
+function cmdStatus(a,out){
+  const done=Object.keys(STATE.missions).length;
+  const pct=Math.round(done/17*100);
+  out(`\n<span class="info">═══ STATUS OPÉRATEUR ═══</span>`);
+  out(`  Opérateur: <span class="highlight">${STATE.user}</span>`);
+  out(`  Missions: ${done}/17 (${pct}%)`);
+  out(`  [${'█'.repeat(Math.round(pct/5))}${'░'.repeat(20-Math.round(pct/5))}] ${pct}%`);
+  out(`  Archives: ${STATE.loreUnlocked.length}/${LORE_CHAPTERS.length}`);
+  if(pct===100)out('\n<span class="info">★ ARSENAL COMPLET — Vous êtes prêt. Fork. Hack. Spread.</span>');
+  else out(`\n<span class="sys">Continuez les missions. Le système ne se déconstruit pas tout seul.</span>`);
+}
+
+function cmdPing(a,out){
+  out('<span class="info">PING parlement.be...</span>');
+  setTimeout(()=>out('<span class="warn">Délai: 541 jours (temps moyen formation gouvernement)</span>'),500);
+}
+
+function cmdFortune(a,out){
+  const q=[
+    ['Les gens ne devraient pas avoir peur de leur gouvernement. Les gouvernements devraient avoir peur de leur peuple.','V, 2005'],
+    ['Il y a une différence entre connaître le chemin et arpenter le chemin.','Morpheus, 1999'],
+    ['Dans un monde de mensonge universel, dire la vérité est un acte révolutionnaire.','George Orwell'],
+    ['Ils ne savaient pas que c\'était impossible, alors ils l\'ont fait.','Mark Twain'],
+    ['Le plus grand danger pour la démocratie est l\'indifférence.','Stéphane Hessel'],
+    ['I\'m not Mr. Robot. I\'m the silent majority who got off their ass to do something.','fsociety, 2015'],
+    ['La liberté, c\'est le droit de dire aux gens ce qu\'ils ne veulent pas entendre.','George Orwell'],
+    ['Premier ils vous ignorent, puis ils rient de vous, puis ils vous combattent, puis vous gagnez.','attribué à Gandhi'],
+    ['Un peuple qui élit des corrompus n\'est pas victime. Il est complice.','George Orwell'],
+    ['La démocratie n\'est pas une faveur qu\'on vous accorde. C\'est un droit qu\'on exerce.','DĒMOS OS'],
+    ['There is no spoon. Il n\'y a pas de représentation.','Adaptation libre, 1999'],
+    ['We are fsociety. We are finally free. We are finally awake.','Mr. Robot, 2015'],
+    ['52,6% de coin fiscal. 0% d\'impôt fortune. Ce n\'est pas un bug.','DĒMOS SCAN, 2026'],
+    ['Le code postal est un destin en Belgique.','Atlas des Inégalités, 2026'],
+  ];
+  const [t,a2]=q[Math.floor(Math.random()*q.length)];
+  out(`\n<span class="lore">  « ${t} »</span>\n<span class="sys">  — ${a2}</span>\n`);
+}
+
+function cmdExit(a,out){out('<span class="err">Il n\'y a pas de sortie. Il n\'y a que des réveils.</span>')}
+function cmdDette(a,out){out(`\n<span class="data">Votre part de dette publique: 53 146€</span>\n<span class="sys">Intérêts annuels: ~1 200€/citoyen</span>\n<span class="sys">Sur 40 ans: ~190 000€ — pour un système que vous n\'avez pas choisi.</span>\n`)}
+function cmdNeo(a,out){out('\n<span class="lore">  Wake up, '+STATE.user+'...</span>\n<span class="lore">  The Matrix has you...</span>\n<span class="lore">  Follow the white rabbit.</span>\n<span class="info">  Le lapin blanc est dans les données.</span>\n')}
+function cmdSudo(a,out){out('<span class="err">Permission refusée. En Belgique, personne n\'a root.</span>\n<span class="sys">Même la Cour constitutionnelle ne peut pas tout.</span>\n<span class="sys">Mais l\'article 23 est ce qui s\'en rapproche le plus.</span>')}
+function cmdHack(a,out){out('<span class="warn">DĒMOS OS ne hacke pas les systèmes informatiques.</span>\n<span class="info">DĒMOS OS hacke les systèmes d\'information.</span>\n<span class="sys">La différence ? L\'un est illégal. L\'autre est un droit constitutionnel.</span>')}
+function cmdFork(a,out){out('\n<span class="info">═══ FORK PROTOCOL ═══</span>\n  1. Téléchargez les 17 fichiers HTML\n  2. Déposez-les sur GitHub (repository public)\n  3. Activez GitHub Pages\n  4. Votre instance est en ligne\n\n<span class="sys">Alternative: clé USB → double-cliquez index.html</span>\n<span class="lore">Chaque fork est un noeud de résistance.</span>\n')}
+function cmdSpread(a,out){out('\n<span class="info">═══ SPREAD CHANNELS ═══</span>\n  ◆ GitHub Pages — permanent, forkable\n  ◆ Email + PJ — direct, universel\n  ◆ USB — offline, résilient\n  ◆ Signal/Telegram — chiffré\n  ◆ QR Code — pont physique→numérique\n  ◆ Réseau social — viralité\n\n<span class="warn">Règle d\'or: 1 module pertinent > 17 modules en vrac</span>\n')}
+function cmdRedpill(a,out){out('\n<span class="crit">  ██████████████████████████</span>\n<span class="crit">  ██  TU VEUX SAVOIR ?   ██</span>\n<span class="crit">  ██████████████████████████</span>\n\n<span class="data">→ 52,6% de ton salaire brut part en prélèvements</span>\n<span class="data">→ 0% d\'impôt sur la fortune</span>\n<span class="data">→ 0% de taxe sur les plus-values</span>\n<span class="data">→ 20 milliards de fraude fiscale tolérée</span>\n<span class="data">→ 550 parlementaires pour 11,7M d\'habitants</span>\n<span class="data">→ 97% de discipline de parti</span>\n<span class="data">→ 6,8 ans d\'écart d\'espérance de vie</span>\n<span class="data">→ 40% de non-recours aux droits sociaux</span>\n\n<span class="lore">« Bienvenue dans le désert du réel. »</span>\n')}
+function cmdBluepill(a,out){out('\n<span class="sys">Vous choisissez de ne pas voir.</span>\n<span class="sys">L\'histoire se termine.</span>\n<span class="sys">Vous vous réveillez dans votre lit.</span>\n<span class="sys">Et vous croyez ce que vous voulez croire.</span>\n\n<span class="err">...mais la dette de 53 146€ est toujours là.</span>\n<span class="err">...et le coin fiscal de 52,6% aussi.</span>\n<span class="err">...et votre code postal détermine toujours votre espérance de vie.</span>\n\n<span class="info">Il n\'y a pas de pilule bleue. Il n\'y a que le déni.</span>\n')}
+function cmdCoup(a,out){out('<span class="err">ERREUR 418 — JE SUIS UNE THÉIÈRE</span>\n\n<span class="sys">DĒMOS OS ne propose pas de coup d\'État.</span>\n<span class="sys">DĒMOS OS propose quelque chose de pire pour le pouvoir:</span>\n<span class="highlight">des citoyens informés.</span>\n\n<span class="lore">« La plume est plus forte que l\'épée.</span>\n<span class="lore">  Le code est plus fort que la plume. »</span>\n')}
+function cmdVote(a,out){out('<span class="warn">Simuler un vote...</span>\n\n<span class="sys">  Étape 1: Vous entrez dans l\'isoloir</span>\n<span class="sys">  Étape 2: Vous choisissez une liste</span>\n<span class="sys">  Étape 3: Le président de parti a déjà choisi l\'ordre</span>\n<span class="sys">  Étape 4: L\'effet dévolutif favorise le premier</span>\n<span class="sys">  Étape 5: D\'Hondt favorise les gros</span>\n<span class="sys">  Étape 6: Le seuil de 5% élimine les petits</span>\n<span class="sys">  Étape 7: Le député vote à 97% selon son parti</span>\n<span class="sys">  Étape 8: Le cabinet rédige la loi</span>\n\n<span class="err">Votre influence effective: étape 2 sur 8.</span>\n<span class="info">Pour les 6 autres étapes, utilisez DĒMOS OS.</span>\n')}
+function cmdWake(a,out){out(`\n<span class="lore">  Wake up, ${a[0]||'citoyen'}...</span>\n<span class="lore">  The particratie has you...</span>\n<span class="lore">  Follow the data.</span>\n<span class="info">  Envoyez-lui un module DĒMOS.</span>\n`)}
+
+// ===== BOOT SEQUENCE =====
+async function boot(){
+  const log=document.getElementById('boot-log');
+  const bar=document.getElementById('boot-bar');
+  for(let i=0;i<BOOT_LINES.length;i++){
+    const l=BOOT_LINES[i];
+    const el=document.createElement('div');
+    if(l.t==='logo')el.classList.add('logo');
+    else if(l.t)el.classList.add(l.t);
+    el.innerHTML=l.text;
+    log.appendChild(el);
+    log.scrollTop=log.scrollHeight;
+    bar.style.width=Math.round((i+1)/BOOT_LINES.length*100)+'%';
+    await sleep(l.d);
+  }
+  await sleep(800);
+  document.getElementById('boot').classList.add('hidden');
+  document.getElementById('login').classList.add('show');
+  document.getElementById('login-input').focus();
+}
+
+// ===== LOGIN =====
+document.getElementById('login-input').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    const name=e.target.value.trim();
+    if(!name)return;
+    STATE.user=name;save();
+    document.getElementById('login').classList.remove('show');
+    document.getElementById('desktop').classList.add('show');
+    document.getElementById('tb-user').textContent='◆ '+name;
+    initDesktop();
+    startClock();
+    initMatrixRain();
+    setTimeout(()=>openTerminal(),500);
+  }
+});
+
+// ===== DESKTOP =====
+function initDesktop(){
+  const area=document.getElementById('desk-area');
+  const icons=[
+    {icon:'▸',label:'Terminal',x:20,y:20,action:openTerminal},
+    {icon:'◆',label:'Missions',x:20,y:110,action:openMissions},
+    {icon:'◇',label:'Archives',x:20,y:200,action:()=>openLore(0)},
+    {icon:'⬡',label:'Le Réseau',x:20,y:290,action:openNetwork},
+    {icon:'⚖',label:'Recours',x:100,y:20,action:()=>window.open('generateur-recours.html')},
+    {icon:'🗺',label:'Carte Pouvoir',x:100,y:110,action:()=>window.open('carte-pouvoir.html')},
+    {icon:'📊',label:'Budget Alt.',x:100,y:200,action:()=>window.open('simulateur-budget.html')},
+    {icon:'📡',label:'Détecteur',x:100,y:290,action:()=>window.open('detecteur-cadrage.html')},
+  ];
+  icons.forEach(ic=>{
+    const el=document.createElement('div');
+    el.className='desk-icon';
+    el.style.cssText=`left:${ic.x}px;top:${ic.y}px`;
+    el.innerHTML=`<div class="di-icon">${ic.icon}</div><div class="di-label">${ic.label}</div>`;
+    el.ondblclick=ic.action;
+    el.onclick=()=>{area.querySelectorAll('.desk-icon').forEach(d=>d.classList.remove('selected'));el.classList.add('selected')};
+    area.appendChild(el);
+  });
+}
+
+// ===== WINDOW MANAGEMENT =====
+let winCount=0;
+function createWindow(title,content,w=650,h=450){
+  const win=document.createElement('div');
+  win.className='win focused';
+  win.id='win-'+(winCount++);
+  win.style.cssText=`width:${w}px;height:${h}px;left:${80+winCount*30}px;top:${40+winCount*20}px`;
+  win.innerHTML=`
+    <div class="win-bar" onmousedown="startDrag(event,'${win.id}')">
+      <div class="win-title">${title}</div>
+      <div class="win-btns">
+        <div class="win-btn" onclick="this.closest('.win').style.height=this.closest('.win').style.height==='28px'?'${h}px':'28px'">─</div>
+        <div class="win-btn close" onclick="this.closest('.win').remove()">×</div>
+      </div>
+    </div>
+    <div class="win-body">${content}</div>`;
+  win.onmousedown=()=>{
+    document.querySelectorAll('.win').forEach(w=>w.classList.remove('focused'));
+    win.classList.add('focused');win.style.zIndex=++STATE.winZ;
+  };
+  document.getElementById('desk-area').appendChild(win);
+  win.onmousedown();
+  return win;
+}
+
+let dragWin=null,dragOff={x:0,y:0};
+function startDrag(e,id){
+  dragWin=document.getElementById(id);
+  dragOff={x:e.clientX-dragWin.offsetLeft,y:e.clientY-dragWin.offsetTop};
+  document.onmousemove=e2=>{dragWin.style.left=(e2.clientX-dragOff.x)+'px';dragWin.style.top=(e2.clientY-dragOff.y)+'px'};
+  document.onmouseup=()=>{dragWin=null;document.onmousemove=null;document.onmouseup=null};
+}
+
+// ===== TERMINAL WINDOW =====
+function openTerminal(){
+  const win=createWindow('DĒMOS://terminal',`
+    <div class="terminal">
+      <div class="term-output"></div>
+      <div class="term-input-line">
+        <span class="term-prompt">${STATE.user}@demos:~$</span>
+        <input type="text" class="term-input" autofocus>
+      </div>
+    </div>`,650,420);
+  const output=win.querySelector('.term-output');
+  const input=win.querySelector('.term-input');
+  const out=(html)=>{const d=document.createElement('div');d.innerHTML=html;output.appendChild(d);output.scrollTop=output.scrollHeight};
+  out(`<span class="info">DĒMOS OS v2.026 — Terminal opérateur</span>`);
+  out(`<span class="sys">Tapez "help" pour la liste des commandes.</span>\n`);
+  input.focus();
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){
+      const cmd=input.value.trim();if(!cmd){input.value='';return}
+      STATE.cmdHistory.unshift(cmd);STATE.cmdIdx=-1;
+      out(`<span class="cmd-echo">${STATE.user}@demos:~$ ${cmd}</span>`);
+      const [name,...args]=cmd.split(/\s+/);
+      if(CMDS[name.toLowerCase()])CMDS[name.toLowerCase()].fn(args,out,win);
+      else out(`<span class="err">Commande inconnue: ${name}. Tapez "help".</span>`);
+      input.value='';
+    }
+    if(e.key==='ArrowUp'){e.preventDefault();STATE.cmdIdx=Math.min(STATE.cmdIdx+1,STATE.cmdHistory.length-1);input.value=STATE.cmdHistory[STATE.cmdIdx]||''}
+    if(e.key==='ArrowDown'){e.preventDefault();STATE.cmdIdx=Math.max(STATE.cmdIdx-1,-1);input.value=STATE.cmdIdx>=0?STATE.cmdHistory[STATE.cmdIdx]:''}
+  });
+  win.querySelector('.win-body').onclick=()=>input.focus();
+}
+
+// ===== MISSIONS WINDOW =====
+function openMissions(){
+  let cards=MISSIONS.map(m=>{
+    const typeClass={psy:'psy',opi:'opi',jur:'jur',meta:'meta'}[m.type];
+    const typeName={psy:'PSYCHO',opi:'OPINION',jur:'JURIDIQUE',meta:'META'}[m.type];
+    return `<div class="mission-card ${STATE.missions[m.id]?'completed':''}" ondblclick="window.open('${m.file}')">
+      <div class="mc-id">MISSION #${m.id} — ${m.tier}</div>
+      <div class="mc-name">${m.name}</div>
+      <div class="mc-type ${typeClass}">${typeName}</div>
+      <div class="mc-desc">${m.desc}</div>
+      <div class="mc-lore">${m.lore.substring(0,100)}...</div>
+    </div>`;
+  }).join('');
+  createWindow('DĒMOS://missions — Arsenal citoyen',`<div class="mission-grid">${cards}</div>`,780,520);
+}
+
+// ===== LORE WINDOW =====
+function openLore(idx=0){
+  const ch=LORE_CHAPTERS[idx]||LORE_CHAPTERS[0];
+  let nav=LORE_CHAPTERS.map((c,i)=>`<span style="cursor:pointer;${i===idx?'color:var(--green)':'color:var(--dim)'};margin-right:12px;font-size:11px;font-family:var(--font-sys)" onclick="this.closest('.win').querySelector('.lore-view').innerHTML=LORE_CHAPTERS[${i}].text;STATE.loreUnlocked.push(${i});save()">[${i}] ${c.title.split('—')[0]}</span>`).join('');
+  createWindow('DĒMOS://archives — '+ch.title,`<div style="padding:8px;border-bottom:1px solid var(--border);background:#080808">${nav}</div><div class="lore-view">${ch.text}</div>`,700,500);
+  if(!STATE.loreUnlocked.includes(idx)){STATE.loreUnlocked.push(idx);save()}
+}
+
+// ===== NETWORK / MAP =====
+function openNetwork(){
+  const win=createWindow('DĒMOS://réseau — Cartographie du pouvoir','<canvas id="net-canvas" style="width:100%;height:100%"></canvas>',700,480);
+  setTimeout(()=>{
+    const c=win.querySelector('#net-canvas');
+    if(!c)return;
+    c.width=c.offsetWidth;c.height=c.offsetHeight;
+    const ctx=c.getContext('2d');
+    const nodes=[
+      {x:.5,y:.12,label:'PRÉSIDENT DE PARTI',r:22,color:'#ff0040'},
+      {x:.25,y:.3,label:'CABINET',r:16,color:'#ff6600'},
+      {x:.75,y:.3,label:'LOBBYISTE',r:16,color:'#ff6600'},
+      {x:.5,y:.35,label:'PARLEMENT',r:20,color:'#ffb000'},
+      {x:.2,y:.55,label:'MÉDIAS',r:14,color:'#00e5ff'},
+      {x:.8,y:.55,label:'INTERCOMMUNALES',r:14,color:'#8000ff'},
+      {x:.5,y:.58,label:'GOUVERNEMENT',r:18,color:'#ffb000'},
+      {x:.35,y:.75,label:'ADMINISTRATION',r:14,color:'#555'},
+      {x:.65,y:.75,label:'JUSTICE',r:14,color:'#00ff41'},
+      {x:.5,y:.92,label:'CITOYEN (VOUS)',r:18,color:'#00ff41'},
+    ];
+    const edges=[[0,1],[0,2],[0,3],[1,3],[2,3],[3,6],[6,7],[6,8],[4,3],[5,6],[7,9],[8,9]];
+    ctx.fillStyle='#050505';ctx.fillRect(0,0,c.width,c.height);
+    edges.forEach(([a,b])=>{
+      const na=nodes[a],nb=nodes[b];
+      ctx.beginPath();ctx.moveTo(na.x*c.width,na.y*c.height);
+      ctx.lineTo(nb.x*c.width,nb.y*c.height);
+      ctx.strokeStyle='rgba(0,255,65,0.15)';ctx.lineWidth=1;ctx.stroke();
+    });
+    // Big arrow showing power flows DOWN, influence flows UP
+    ctx.beginPath();ctx.moveTo(c.width*.5,c.height*.05);ctx.lineTo(c.width*.5,c.height*.95);
+    ctx.strokeStyle='rgba(255,0,64,0.08)';ctx.lineWidth=30;ctx.stroke();
+    ctx.font='10px Share Tech Mono';ctx.fillStyle='rgba(255,0,64,0.3)';ctx.textAlign='center';
+    ctx.fillText('POUVOIR ▼',c.width*.5,c.height*.5);
+    nodes.forEach(n=>{
+      const x=n.x*c.width,y=n.y*c.height;
+      ctx.beginPath();ctx.arc(x,y,n.r,0,Math.PI*2);
+      ctx.fillStyle=n.color+'20';ctx.fill();
+      ctx.strokeStyle=n.color;ctx.lineWidth=1.5;ctx.stroke();
+      ctx.font='bold 9px Share Tech Mono';ctx.fillStyle=n.color;ctx.textAlign='center';
+      ctx.fillText(n.label,x,y+n.r+14);
+    });
+    ctx.font='11px Share Tech Mono';ctx.fillStyle='#333';ctx.textAlign='left';
+    ctx.fillText('Le pouvoir descend. L\'information monte (si vous la cherchez).',10,c.height-10);
+  },100);
+}
+
+// ===== MATRIX RAIN =====
+let matrixActive=false,matrixAnim=null;
+function initMatrixRain(){
+  const c=document.getElementById('matrix-rain');
+  c.width=window.innerWidth;c.height=window.innerHeight;
+  const ctx=c.getContext('2d');
+  const chars='DEMOGARCHIE01アイウエオカキクケコ§¶∞≠≤≥±∂∫∑∏';
+  const cols=Math.floor(c.width/14);
+  const drops=Array(cols).fill(1);
+  function draw(){
+    ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,c.width,c.height);
+    ctx.fillStyle='#00ff41';ctx.font='12px VT323';
+    drops.forEach((y,i)=>{
+      ctx.fillText(chars[Math.floor(Math.random()*chars.length)],i*14,y*14);
+      if(y*14>c.height&&Math.random()>0.975)drops[i]=0;
+      drops[i]++;
+    });
+  }
+  matrixAnim=setInterval(draw,50);matrixActive=true;
+}
+function toggleMatrix(){
+  const c=document.getElementById('matrix-rain');
+  if(matrixActive){clearInterval(matrixAnim);c.style.opacity='0';matrixActive=false}
+  else{initMatrixRain();c.style.opacity='0.07'}
+}
+
+// ===== GLITCH =====
+function toggleGlitch(){
+  STATE.glitch=!STATE.glitch;
+  document.body.classList.toggle('glitch',STATE.glitch);
+  document.getElementById('tb-glitch').classList.toggle('active',STATE.glitch);
+}
+
+// ===== CLOCK =====
+function startClock(){
+  const cl=document.getElementById('tb-clock');
+  setInterval(()=>{
+    const d=new Date();
+    cl.textContent=d.toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' — DETTE: 53 146€/citoyen';
+  },1000);
+}
+
+// ===== UTILS =====
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function save(){try{localStorage.setItem('demos_state',JSON.stringify(STATE))}catch(e){}}
+function load(){try{const s=localStorage.getItem('demos_state');if(s){const d=JSON.parse(s);Object.assign(STATE,d)}}catch(e){}}
+
+// ===== INIT =====
+load();
+if(STATE.user){
+  document.getElementById('boot').classList.add('hidden');
+  document.getElementById('desktop').classList.add('show');
+  document.getElementById('tb-user').textContent='◆ '+STATE.user;
+  initDesktop();startClock();initMatrixRain();
+}else{
+  boot();
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey&&e.key==='`'){e.preventDefault();openTerminal()}
+  if(e.key==='F1'){e.preventDefault();cmdHelp([],console.log)}
+});
+// Resize
+window.addEventListener('resize',()=>{
+  const c=document.getElementById('matrix-rain');
+  if(c){c.width=window.innerWidth;c.height=window.innerHeight}
+});
+</script>
+</body>
+</html>
