@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>◇ DÉMOGARCHIE — Simulateur Budget Alternatif</title>
+<meta name="description" content="Avec l'argent perdu chaque année, on pourrait financer quoi exactement ? Réponse chiffrée.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Bitter:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060806;--surface:#0b0e0b;--panel:#101410;--border:#1c221c;
+  --text:#b4bfb4;--dim:#5a6b5a;--white:#eef5ee;
+  --emerald:#059669;--emerald-dim:rgba(5,150,105,0.1);
+  --red:#ef4444;--red-dim:rgba(239,68,68,0.1);
+  --amber:#eab308;--cyan:#06b6d4;--violet:#8b5cf6;
+  --mono:'IBM Plex Mono',monospace;--serif:'Bitter',Georgia,serif;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+.header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.logo{font-family:var(--serif);font-weight:900;font-size:1.4rem;color:var(--emerald)}
+.logo span{color:var(--dim);font-weight:400;font-size:.8rem}
+.badge{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;padding:.25rem .6rem;border:1px solid var(--emerald);color:var(--emerald);border-radius:2px}
+
+.container{max-width:860px;margin:0 auto;padding:2rem 1.5rem 6rem}
+
+.intro{padding:2rem 0;border-bottom:1px solid var(--border);margin-bottom:2rem}
+.intro h1{font-family:var(--serif);font-weight:900;font-size:2.2rem;line-height:1.15;color:var(--white);margin-bottom:1rem}
+.intro h1 em{font-style:normal;color:var(--emerald)}
+.intro p{font-size:.82rem;line-height:1.7;color:var(--dim);max-width:620px}
+
+/* SOURCES PANEL */
+.sources-section{margin-bottom:2.5rem}
+.section-title{font-family:var(--serif);font-weight:700;font-size:1.1rem;color:var(--white);margin-bottom:1rem}
+
+.source-grid{display:flex;flex-direction:column;gap:.5rem}
+.source-card{
+  padding:1rem 1.2rem;background:var(--panel);border:1px solid var(--border);
+  border-radius:2px;display:flex;justify-content:space-between;align-items:center;
+  cursor:pointer;transition:all .15s;user-select:none
+}
+.source-card:hover{border-color:var(--dim)}
+.source-card.active{border-color:var(--emerald);background:var(--emerald-dim)}
+.source-card.active .sc-amount{color:var(--emerald)}
+
+.sc-left{flex:1}
+.sc-name{font-weight:600;font-size:.82rem;color:var(--white);margin-bottom:.15rem}
+.sc-desc{font-size:.68rem;color:var(--dim);line-height:1.4}
+.sc-amount{font-family:var(--serif);font-weight:900;font-size:1.2rem;color:var(--text);white-space:nowrap;margin-left:1rem}
+.sc-check{width:20px;height:20px;border:2px solid var(--border);border-radius:2px;margin-right:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.source-card.active .sc-check{border-color:var(--emerald);background:var(--emerald)}
+.source-card.active .sc-check::after{content:'✓';color:var(--bg);font-size:.7rem;font-weight:700}
+
+/* TOTAL BAR */
+.total-bar{
+  position:sticky;top:0;z-index:50;
+  padding:1rem 1.5rem;margin:1.5rem 0;
+  background:var(--surface);border:1px solid var(--border);border-radius:2px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem
+}
+.tb-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim)}
+.tb-amount{font-family:var(--serif);font-weight:900;font-size:1.6rem;color:var(--emerald)}
+.tb-sub{font-size:.7rem;color:var(--dim)}
+
+/* WHAT COULD WE FUND */
+.fund-section{margin-top:2.5rem}
+.fund-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+
+.fund-card{
+  padding:1.2rem;background:var(--panel);border:1px solid var(--border);
+  border-radius:2px;position:relative;overflow:hidden
+}
+.fund-card.funded{border-color:var(--emerald);background:var(--emerald-dim)}
+.fund-card.partial{border-color:var(--amber);background:rgba(234,179,8,0.06)}
+.fund-card.unfunded{opacity:.45}
+
+.fc-icon{font-size:1.4rem;margin-bottom:.5rem}
+.fc-name{font-family:var(--serif);font-weight:700;font-size:.9rem;color:var(--white);margin-bottom:.2rem}
+.fc-cost{font-size:.72rem;color:var(--dim);margin-bottom:.5rem}
+.fc-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:.4rem}
+.fc-bar-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(0.22,1,0.36,1)}
+.fc-bar-fill.full{background:var(--emerald)}
+.fc-bar-fill.partial{background:var(--amber)}
+.fc-bar-fill.none{background:var(--border)}
+.fc-status{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.fc-status.yes{color:var(--emerald)}
+.fc-status.part{color:var(--amber)}
+.fc-status.no{color:var(--dim)}
+.fc-detail{font-size:.68rem;color:var(--dim);line-height:1.5;margin-top:.4rem}
+
+/* IMPACT SUMMARY */
+.impact-box{
+  margin:2.5rem 0;padding:2rem;
+  background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--emerald);
+  border-radius:0 2px 2px 0
+}
+.impact-box h3{font-family:var(--serif);font-weight:700;font-size:1.1rem;color:var(--emerald);margin-bottom:.8rem}
+.impact-box p{font-size:.8rem;line-height:1.75;color:var(--text)}
+.impact-box strong{color:var(--white)}
+.impact-box em{color:var(--amber);font-style:normal}
+
+/* COMPARE */
+.compare-section{margin:2rem 0}
+.compare-row{display:flex;gap:1rem;margin-bottom:.6rem;align-items:center}
+.cr-label{font-size:.72rem;color:var(--dim);min-width:140px}
+.cr-bar{flex:1;height:20px;background:var(--border);border-radius:2px;position:relative;overflow:hidden}
+.cr-fill{height:100%;border-radius:2px;display:flex;align-items:center;padding-left:.5rem;font-size:.6rem;font-weight:700;color:var(--bg);transition:width 1s cubic-bezier(0.22,1,0.36,1)}
+
+.footer{margin-top:4rem;padding:1.5rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;font-size:.65rem;color:var(--dim)}
+.footer a{color:var(--emerald);text-decoration:none}
+
+@media(max-width:600px){
+  .container{padding:1.5rem 1rem 4rem}
+  .intro h1{font-size:1.7rem}
+  .fund-grid{grid-template-columns:1fr}
+  .source-card{flex-wrap:wrap}
+  .sc-amount{margin-left:0;margin-top:.3rem}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:1rem">
+    <div class="logo">◇ DÉMOGARCHIE <span>/ budget</span></div>
+    <div class="badge">舆论战 · 心理战</div>
+  </div>
+  <div style="font-size:.7rem;color:var(--dim)">MÉSO · Module 07/17</div>
+</div>
+
+<div class="container">
+
+  <div class="intro">
+    <h1>Budget <em>alternatif</em></h1>
+    <p>
+      Sélectionnez les sources d'argent perdu, gaspillé ou mal affecté. L'outil calcule en temps réel ce que cet argent pourrait financer — et ce que la Belgique <strong>choisit de ne pas financer</strong>.
+    </p>
+  </div>
+
+  <!-- SOURCES -->
+  <div class="sources-section">
+    <div class="section-title">Sources de financement récupérables</div>
+    <div class="source-grid" id="source-grid"></div>
+  </div>
+
+  <div class="total-bar" id="total-bar">
+    <div>
+      <div class="tb-label">Budget récupérable sélectionné</div>
+      <div class="tb-amount" id="total-amount">0 milliards €</div>
+    </div>
+    <div class="tb-sub" id="total-per-citizen">0 €/citoyen/an</div>
+  </div>
+
+  <!-- WHAT COULD WE FUND -->
+  <div class="fund-section">
+    <div class="section-title">Ce qu'on pourrait financer avec</div>
+    <div class="fund-grid" id="fund-grid"></div>
+  </div>
+
+  <!-- IMPACT -->
+  <div class="impact-box" id="impact-box">
+    <h3>Résumé d'impact</h3>
+    <p id="impact-text">Sélectionnez des sources ci-dessus pour voir ce qui deviendrait possible.</p>
+  </div>
+
+  <!-- COMPARISON BARS -->
+  <div class="compare-section" id="compare-section" style="display:none">
+    <div class="section-title">Perspective</div>
+    <div id="compare-bars"></div>
+  </div>
+
+  <div class="footer">
+    <div>◇ DÉMOGARCHIE · <a href="https://ouaisfi.eu">ouaisfieu</a> · CC BY-NC 4.0</div>
+    <div>舆论战 · 心理战 Module 07/17 · Fork • Hack • Spread</div>
+  </div>
+</div>
+
+<script>
+const POP = 11760000;
+
+const SOURCES = [
+  { id:'fraude', name:'Fraude fiscale', desc:'Estimation basse du manque à gagner annuel (Parlement fédéral)', amount:20, source:'Parlement fédéral · Tax Justice Network' },
+  { id:'optimisation', name:'Optimisation fiscale agressive', desc:'Rulings, excess profit, montages transfrontaliers', amount:8, source:'Commission UE · SPF Finances' },
+  { id:'voitures', name:'Voitures de société', desc:'Coût fiscal annuel du système de leasing', amount:4, source:'BNB · Conseil central de l\'économie' },
+  { id:'mille', name:'Surcoût institutionnel', desc:'6 parlements, 6 gouvernements vs 1 (Pays-Bas)', amount:5.5, source:'Herman Matthijs (VUB) · CRISP' },
+  { id:'cabinets', name:'Cabinets ministériels excédentaires', desc:'Excès vs norme scandinave (administration publique forte)', amount:1.2, source:'PTB · Revue Politique · 470M€ consultance Bruxelles' },
+  { id:'provinces', name:'Provinces (échelon obsolète)', desc:'10 provinces dont le rôle est largement dupliqué', amount:1.0, source:'UVCW · Débats réforme institutionnelle' },
+  { id:'senat', name:'Sénat (compétences résiduelles)', desc:'44,5 millions €/an pour une chambre quasi inactive', amount:0.044, source:'Budget Sénat 2025' },
+  { id:'defense', name:'Achats militaires contestés', desc:'F-35, drones, matériel OTAN — choix non débattus démocratiquement', amount:1.8, source:'Budget Défense 2025 · investissements' },
+  { id:'dividendes', name:'Dividendes intercommunales', desc:'Redistribuer les bénéfices énergie/eau aux citoyens, pas aux communes-actionnaires', amount:0.8, source:'Intercommunales énergie · CREG' },
+  { id:'taxefort', name:'Impôt fortune (non existant)', desc:'Taxe de 1% sur patrimoines > 1M€ — n\'existe pas en Belgique', amount:10, source:'PTB chiffrage · Oxfam · Tax Justice Network' },
+];
+
+const FUND_ITEMS = [
+  { icon:'🏥', name:'Santé mentale universelle', cost:1.5, desc:'10 séances psy gratuites/an pour chaque Belge. Remboursement intégral par l\'INAMI.' },
+  { icon:'🏠', name:'Rénovation logements', cost:3.0, desc:'Isolation de 100.000 logements/an. Fin de la précarité énergétique.' },
+  { icon:'🚆', name:'Transport public gratuit', cost:2.8, desc:'Gratuité totale SNCB + TEC + STIB + De Lijn. Fin de la voiture obligatoire.' },
+  { icon:'👶', name:'Crèches accessibles', cost:1.0, desc:'Place en crèche garantie pour chaque enfant. Tarif social universel.' },
+  { icon:'🎓', name:'Enseignement supérieur gratuit', cost:0.8, desc:'Suppression de tous les droits d\'inscription universitaires et supérieurs.' },
+  { icon:'💊', name:'Médicaments gratuits', cost:1.2, desc:'Zéro ticket modérateur sur tous les médicaments essentiels.' },
+  { icon:'🏡', name:'10.000 logements sociaux/an', cost:2.5, desc:'Construction massive de logements publics. Réduire la liste d\'attente de 50.000 ménages.' },
+  { icon:'🌳', name:'Transition climatique', cost:5.0, desc:'Plan d\'investissement massif : renouvelable, mobilité douce, rénovation, adaptation.' },
+  { icon:'👴', name:'Pension minimum à 1.500 €', cost:4.0, desc:'Relever la pension minimum au-dessus du seuil de pauvreté pour tous les retraités.' },
+  { icon:'📡', name:'Internet comme service public', cost:0.4, desc:'Fibre optique universelle à tarif social. Fin de la fracture numérique.' },
+  { icon:'⚖️', name:'Justice accessible', cost:0.6, desc:'Doubler le budget aide juridique. Réduire les délais de justice de moitié.' },
+  { icon:'🤝', name:'Revenu de base pilote', cost:3.0, desc:'Expérience pilote de revenu universel pour 100.000 personnes pendant 3 ans.' },
+];
+
+// STATE
+let selectedSources = new Set();
+
+function renderSources() {
+  const el = document.getElementById('source-grid');
+  el.innerHTML = SOURCES.map(s => `
+    <div class="source-card" id="src-${s.id}" onclick="toggleSource('${s.id}')">
+      <div class="sc-check"></div>
+      <div class="sc-left">
+        <div class="sc-name">${s.name}</div>
+        <div class="sc-desc">${s.desc}</div>
+      </div>
+      <div class="sc-amount">${s.amount >= 1 ? s.amount.toFixed(1) : (s.amount * 1000).toFixed(0) + 'M'} ${s.amount >= 1 ? 'Mds€' : '€'}</div>
+    </div>
+  `).join('');
+}
+
+function toggleSource(id) {
+  if (selectedSources.has(id)) selectedSources.delete(id);
+  else selectedSources.add(id);
+  document.getElementById('src-' + id).classList.toggle('active');
+  update();
+}
+
+function getTotal() {
+  let total = 0;
+  selectedSources.forEach(id => {
+    const s = SOURCES.find(x => x.id === id);
+    if (s) total += s.amount;
+  });
+  return total;
+}
+
+function update() {
+  const total = getTotal();
+  const totalM = total * 1000; // millions
+  const perCitizen = Math.round((total * 1e9) / POP);
+
+  document.getElementById('total-amount').textContent = total >= 1 ? total.toFixed(1) + ' milliards €' : (totalM).toFixed(0) + ' millions €';
+  document.getElementById('total-per-citizen').textContent = perCitizen.toLocaleString('fr-BE') + ' €/citoyen/an';
+
+  renderFund(total);
+  renderImpact(total, perCitizen);
+  renderCompare(total);
+}
+
+function renderFund(budget) {
+  const el = document.getElementById('fund-grid');
+  let remaining = budget;
+
+  el.innerHTML = FUND_ITEMS.map(f => {
+    let pct, status, statusText, cls;
+    if (remaining >= f.cost) {
+      pct = 100;
+      status = 'full';
+      statusText = '✓ Financé';
+      cls = 'funded';
+      remaining -= f.cost;
+    } else if (remaining > 0) {
+      pct = Math.round((remaining / f.cost) * 100);
+      status = 'partial';
+      statusText = pct + '% couvert';
+      cls = 'partial';
+      remaining = 0;
+    } else {
+      pct = 0;
+      status = 'none';
+      statusText = 'Non financé';
+      cls = 'unfunded';
+    }
+
+    return `
+      <div class="fund-card ${cls}">
+        <div class="fc-icon">${f.icon}</div>
+        <div class="fc-name">${f.name}</div>
+        <div class="fc-cost">${f.cost.toFixed(1)} Mds€/an</div>
+        <div class="fc-bar"><div class="fc-bar-fill ${status}" style="width:${budget > 0 ? pct : 0}%"></div></div>
+        <div class="fc-status ${status === 'full' ? 'yes' : status === 'partial' ? 'part' : 'no'}">${statusText}</div>
+        <div class="fc-detail">${f.desc}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderImpact(total, perCitizen) {
+  const el = document.getElementById('impact-text');
+  if (total === 0) {
+    el.innerHTML = 'Sélectionnez des sources ci-dessus pour voir ce qui deviendrait possible.';
+    return;
+  }
+
+  const funded = FUND_ITEMS.filter(f => { return true; }).reduce((acc, f) => {
+    if (acc.remaining >= f.cost) { acc.funded.push(f.name); acc.remaining -= f.cost; }
+    return acc;
+  }, { funded: [], remaining: total });
+
+  const count = funded.funded.length;
+  const pctBudget = ((total / 280) * 100).toFixed(1); // 280 Mds = budget fédéral approximatif
+
+  el.innerHTML = `
+    Avec <strong>${total.toFixed(1)} milliards €/an</strong> récupérés, la Belgique pourrait financer <strong>${count} mesures sur 12</strong> proposées ci-dessus : ${funded.funded.join(', ')}.<br><br>
+    Cela représente <strong>${perCitizen.toLocaleString('fr-BE')} € par citoyen par an</strong> — soit <em>${Math.round(perCitizen / 12)} € par mois</em> redistribués en services publics de qualité.<br><br>
+    Ce montant correspond à <strong>${pctBudget}% du budget fédéral</strong>. Ce n'est pas de l'utopie — c'est de l'arithmétique. L'argent existe. <em>Le choix de ne pas l'utiliser est politique.</em>
+  `;
+}
+
+function renderCompare(total) {
+  const section = document.getElementById('compare-section');
+  if (total === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+
+  const items = [
+    { label: 'Budget sélectionné', val: total, color: 'var(--emerald)' },
+    { label: 'Budget Arizona (coupes)', val: 23, color: 'var(--red)' },
+    { label: 'Budget Défense', val: 7.2, color: 'var(--amber)' },
+    { label: 'Intérêts dette/an', val: 12, color: 'var(--violet)' },
+    { label: 'Budget SNCB', val: 3.8, color: 'var(--cyan)' },
+  ];
+  const max = Math.max(...items.map(i => i.val), total);
+
+  document.getElementById('compare-bars').innerHTML = items.map(i => `
+    <div class="compare-row">
+      <div class="cr-label">${i.label}</div>
+      <div class="cr-bar">
+        <div class="cr-fill" style="width:${(i.val / max * 100)}%;background:${i.color}">${i.val.toFixed(1)} Mds€</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// INIT
+renderSources();
+renderFund(0);
+</script>
+
+</body>
+</html>
