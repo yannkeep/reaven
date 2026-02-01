@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DÉMOGARCHIE — L'ARG de l'Empouvoirement Citoyen</title>
+    <meta name="description" content="Reprends le pouvoir d'agir en activant ton réseau. Fork • Hack • Spread">
+    <meta name="theme-color" content="#0a0a0f">
+    
+    <!-- Open Graph / Social -->
+    <meta property="og:title" content="DÉMOGARCHIE — Prépare-toi à voter">
+    <meta property="og:description" content="Tu votes bientôt ? Identifie ce que tu ne comprends pas, active ton réseau, documente pour les autres.">
+    <meta property="og:type" content="website">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ═══════════════════════════════════════════════════════════════════
+           VARIABLES & RESET
+           ═══════════════════════════════════════════════════════════════════ */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #0f0f18;
+            --bg-card: rgba(15, 15, 25, 0.8);
+            --color-primary: #7bed9f;
+            --color-accent: #b19cd9;
+            --color-warning: #d9b19c;
+            --color-text: #e0e0e0;
+            --color-muted: #888888;
+            --color-dark: #444444;
+            --font-main: 'IBM Plex Sans', -apple-system, sans-serif;
+            --font-mono: 'IBM Plex Mono', 'Consolas', monospace;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow-glow: 0 0 20px rgba(123, 237, 159, 0.3);
+        }
+        
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        ::selection {
+            background: var(--color-primary);
+            color: var(--bg-primary);
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: var(--font-main);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, #0a0f0a 100%);
+            color: var(--color-text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        /* Scanlines effect */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.03) 2px,
+                rgba(0,0,0,0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 10000;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           LAYOUT
+           ═══════════════════════════════════════════════════════════════════ */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           HEADER
+           ═══════════════════════════════════════════════════════════════════ */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(123, 237, 159, 0.2);
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: var(--shadow-glow);
+        }
+        
+        .logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+        }
+        
+        .logo-subtitle {
+            font-size: 11px;
+            color: var(--color-dark);
+            letter-spacing: 1px;
+        }
+        
+        nav {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            padding: 10px 18px;
+            background: rgba(123, 237, 159, 0.1);
+            border: 1px solid rgba(123, 237, 159, 0.3);
+            border-radius: var(--radius-sm);
+            color: var(--color-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-main);
+            font-size: 14px;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(123, 237, 159, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn.active {
+            background: rgba(123, 237, 159, 0.25);
+            border-color: var(--color-primary);
+            box-shadow: 0 0 15px rgba(123, 237, 159, 0.3);
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           CARDS
+           ═══════════════════════════════════════════════════════════════════ */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid rgba(123, 237, 159, 0.2);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            border-color: rgba(177, 156, 217, 0.4);
+        }
+        
+        .card-title {
+            color: var(--color-primary);
+            margin-bottom: 20px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           BUTTONS
+           ═══════════════════════════════════════════════════════════════════ */
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-family: var(--font-main);
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-primary) 0%, #5cb978 100%);
+            color: var(--bg-primary);
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(123, 237, 159, 0.3);
+        }
+        
+        .btn-primary:hover {
+            box-shadow: 0 6px 25px rgba(123, 237, 159, 0.4);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--color-accent);
+            color: var(--color-accent);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(177, 156, 217, 0.1);
+        }
+        
+        .btn-ghost {
+            background: rgba(177, 156, 217, 0.1);
+            border: 1px solid rgba(177, 156, 217, 0.3);
+            color: var(--color-accent);
+            padding: 10px 18px;
+            font-size: 13px;
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           FORMS
+           ═══════════════════════════════════════════════════════════════════ */
+        .input, .textarea {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(123, 237, 159, 0.3);
+            border-radius: 10px;
+            color: var(--color-text);
+            font-size: 16px;
+            font-family: var(--font-main);
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .input:focus, .textarea:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 20px rgba(123, 237, 159, 0.2);
+        }
+        
+        .textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--color-accent);
+            font-weight: 500;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           GRID & STATS
+           ═══════════════════════════════════════════════════════════════════ */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-box {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: var(--color-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           TAGS & BADGES
+           ═══════════════════════════════════════════════════════════════════ */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: rgba(123, 237, 159, 0.15);
+            border: 1px solid rgba(123, 237, 159, 0.3);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--color-primary);
+        }
+        
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .badge-success {
+            background: rgba(123, 237, 159, 0.2);
+            color: var(--color-primary);
+        }
+        
+        .badge-warning {
+            background: rgba(217, 177, 156, 0.2);
+            color: var(--color-warning);
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           PROGRESS BAR
+           ═══════════════════════════════════════════════════════════════════ */
+        .progress-bar {
+            height: 8px;
+            background: rgba(123, 237, 159, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           TIP BAR
+           ═══════════════════════════════════════════════════════════════════ */
+        .tip-bar {
+            padding: 15px 25px;
+            background: rgba(177, 156, 217, 0.1);
+            border-left: 4px solid var(--color-accent);
+            border-radius: 0 10px 10px 0;
+            margin-bottom: 30px;
+            font-style: italic;
+            color: var(--color-accent);
+            font-size: 14px;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           ACTION CARDS
+           ═══════════════════════════════════════════════════════════════════ */
+        .action-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(123, 237, 159, 0.15);
+        }
+        
+        .action-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+        
+        .action-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .action-desc {
+            color: var(--color-muted);
+            font-size: 14px;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           DOMAIN PILLS
+           ═══════════════════════════════════════════════════════════════════ */
+        .domain-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .domain-pill {
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        
+        .domain-pill:hover {
+            background: rgba(123, 237, 159, 0.1);
+        }
+        
+        .domain-pill.selected {
+            border-color: currentColor;
+            background: rgba(123, 237, 159, 0.15);
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           ANGLE MORT ITEM
+           ═══════════════════════════════════════════════════════════════════ */
+        .angle-item {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius);
+            margin-bottom: 15px;
+            border-left: 4px solid var(--color-accent);
+        }
+        
+        .angle-item.resolved {
+            background: rgba(123, 237, 159, 0.1);
+            border-left-color: var(--color-primary);
+        }
+        
+        .angle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .angle-domain {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .angle-desc {
+            color: #ccc;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           CONTACT CARD
+           ═══════════════════════════════════════════════════════════════════ */
+        .contact-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .contact-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .contact-expertise {
+            color: var(--color-muted);
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .contact-karma {
+            padding: 5px 12px;
+            background: linear-gradient(135deg, rgba(123, 237, 159, 0.2), rgba(177, 156, 217, 0.2));
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--color-primary);
+        }
+        
+        .contact-domains {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           SPLASH SCREEN
+           ═══════════════════════════════════════════════════════════════════ */
+        .splash {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .splash-logo {
+            font-size: 80px;
+            margin-bottom: 30px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .splash-title {
+            font-size: clamp(32px, 8vw, 48px);
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-accent), var(--color-primary));
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        .splash-subtitle {
+            font-size: 18px;
+            color: var(--color-muted);
+            margin-bottom: 50px;
+            max-width: 500px;
+            line-height: 1.8;
+        }
+        
+        .splash-form {
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .splash-footer {
+            margin-top: 60px;
+            color: var(--color-dark);
+            font-size: 12px;
+        }
+        
+        .splash-hint {
+            font-family: var(--font-mono);
+            color: #333;
+            margin-top: 10px;
+            font-size: 11px;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           EMPTY STATE
+           ═══════════════════════════════════════════════════════════════════ */
+        .empty-state {
+            text-align: center;
+            padding: 60px 30px;
+        }
+        
+        .empty-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        
+        .empty-title {
+            color: var(--color-accent);
+            margin-bottom: 15px;
+        }
+        
+        .empty-desc {
+            color: var(--color-muted);
+            margin-bottom: 30px;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           NOTIFICATION
+           ═══════════════════════════════════════════════════════════════════ */
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 20px 30px;
+            background: linear-gradient(135deg, rgba(123, 237, 159, 0.95) 0%, rgba(92, 185, 120, 0.95) 100%);
+            border-radius: var(--radius);
+            color: var(--bg-primary);
+            font-weight: 500;
+            box-shadow: 0 10px 40px rgba(123, 237, 159, 0.4);
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           FOOTER
+           ═══════════════════════════════════════════════════════════════════ */
+        footer {
+            margin-top: 60px;
+            padding: 30px 0;
+            border-top: 1px solid rgba(123, 237, 159, 0.1);
+            text-align: center;
+        }
+        
+        .footer-main {
+            color: var(--color-dark);
+            font-size: 12px;
+        }
+        
+        .footer-version {
+            color: #333;
+            font-size: 10px;
+            margin-top: 10px;
+            font-family: var(--font-mono);
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           CODE BLOCK
+           ═══════════════════════════════════════════════════════════════════ */
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: var(--radius);
+            padding: 20px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            overflow: auto;
+        }
+        
+        .code-comment {
+            color: var(--color-dark);
+        }
+        
+        .code-content {
+            color: var(--color-primary);
+            white-space: pre-wrap;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           ABOUT SECTION
+           ═══════════════════════════════════════════════════════════════════ */
+        .about-principles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        .principle-card {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius);
+            text-align: center;
+        }
+        
+        .principle-icon {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+        
+        .principle-title {
+            color: var(--color-primary);
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .principle-desc {
+            color: var(--color-muted);
+            font-size: 13px;
+        }
+        
+        .quote-box {
+            padding: 20px;
+            background: rgba(177, 156, 217, 0.1);
+            border-radius: var(--radius);
+            border-left: 4px solid var(--color-accent);
+            font-style: italic;
+            color: var(--color-accent);
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           UTILITIES
+           ═══════════════════════════════════════════════════════════════════ */
+        .hidden {
+            display: none !important;
+        }
+        
+        .flex {
+            display: flex;
+        }
+        
+        .flex-between {
+            justify-content: space-between;
+        }
+        
+        .flex-center {
+            align-items: center;
+        }
+        
+        .gap-15 {
+            gap: 15px;
+        }
+        
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+        
+        .mb-30 {
+            margin-bottom: 30px;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           ANIMATIONS
+           ═══════════════════════════════════════════════════════════════════ */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           RESPONSIVE
+           ═══════════════════════════════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            nav {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            
+            .nav-btn {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .notification {
+                left: 20px;
+                right: 20px;
+                bottom: 20px;
+            }
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           SCROLLBAR
+           ═══════════════════════════════════════════════════════════════════ */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(123, 237, 159, 0.2);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(123, 237, 159, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <!-- ═══════════════════════════════════════════════════════════════════
+         APPLICATION CONTAINER
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div id="app"></div>
+    
+    <!-- ═══════════════════════════════════════════════════════════════════
+         NOTIFICATION CONTAINER
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div id="notification" class="notification hidden"></div>
+
+    <script>
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ██████╗ ███████╗███╗   ███╗ ██████╗  ██████╗  █████╗ ██████╗  ██████╗██╗  ██╗██╗███████╗
+    // ██╔══██╗██╔════╝████╗ ████║██╔═══██╗██╔════╝ ██╔══██╗██╔══██╗██╔════╝██║  ██║██║██╔════╝
+    // ██║  ██║█████╗  ██╔████╔██║██║   ██║██║  ███╗███████║██████╔╝██║     ███████║██║█████╗  
+    // ██║  ██║██╔══╝  ██║╚██╔╝██║██║   ██║██║   ██║██╔══██║██╔══██╗██║     ██╔══██║██║██╔══╝  
+    // ██████╔╝███████╗██║ ╚═╝ ██║╚██████╔╝╚██████╔╝██║  ██║██║  ██║╚██████╗██║  ██║██║███████╗
+    // ╚═════╝ ╚══════╝╚═╝     ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝╚══════╝
+    // L'ARG de l'Empouvoirement Distribué | Fork • Hack • Spread | CC BY-NC 4.0
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // ═══════════════════════════════════════════════════════════════════
+    // CONFIGURATION
+    // ═══════════════════════════════════════════════════════════════════
+    const CONFIG = {
+        version: '1.0.0',
+        storagePrefix: 'demogarchie_',
+        tipRotationMs: 8000
+    };
+
+    const DOMAINS = [
+        { id: 'juridique', name: 'Droit & Justice', icon: '⚖️', color: '#b19cd9' },
+        { id: 'fiscal', name: 'Fiscalité', icon: '💰', color: '#98d9a8' },
+        { id: 'social', name: 'Droits Sociaux', icon: '🤝', color: '#d9b19c' },
+        { id: 'admin', name: 'Administration', icon: '📋', color: '#9cd9d9' },
+        { id: 'tech', name: 'Numérique', icon: '💻', color: '#d99cb1' },
+        { id: 'sante', name: 'Santé', icon: '🏥', color: '#b1d99c' },
+        { id: 'logement', name: 'Logement', icon: '🏠', color: '#d9d99c' },
+        { id: 'emploi', name: 'Emploi', icon: '💼', color: '#9cb1d9' },
+        { id: 'education', name: 'Éducation', icon: '📚', color: '#d99cd9' },
+        { id: 'environnement', name: 'Environnement', icon: '🌱', color: '#7bed9f' },
+        { id: 'autre', name: 'Autre', icon: '✨', color: '#c9c9c9' }
+    ];
+
+    const TIPS = [
+        "« Tu votes bientôt ? Identifie ce que tu ne comprends pas. »",
+        "« Ton voisin est comptable ? Il peut t'expliquer la fiscalité. »",
+        "« Chaque angle mort comblé est une victoire collective. »",
+        "« Fork • Hack • Spread — Partage cet outil autour de toi. »",
+        "« La démocratie, c'est le peuple qui s'informe lui-même. »",
+        "« Personne ne sait tout. Ensemble, on sait beaucoup. »",
+        "« L'information est un commun, pas une marchandise. »"
+    ];
+
+    // ═══════════════════════════════════════════════════════════════════
+    // STATE MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════════
+    const state = {
+        view: 'splash',
+        user: { pseudo: '', initialized: false },
+        quests: [],
+        contacts: [],
+        contributions: [],
+        activeQuestId: null,
+        tipIndex: 0
+    };
+
+    // ═══════════════════════════════════════════════════════════════════
+    // STORAGE
+    // ═══════════════════════════════════════════════════════════════════
+    const Storage = {
+        get(key) {
+            try {
+                const data = localStorage.getItem(CONFIG.storagePrefix + key);
+                return data ? JSON.parse(data) : null;
+            } catch (e) {
+                return null;
+            }
+        },
+        set(key, value) {
+            try {
+                localStorage.setItem(CONFIG.storagePrefix + key, JSON.stringify(value));
+            } catch (e) {
+                console.warn('Storage unavailable');
+            }
+        },
+        load() {
+            state.user = Storage.get('user') || state.user;
+            state.quests = Storage.get('quests') || [];
+            state.contacts = Storage.get('contacts') || [];
+            state.contributions = Storage.get('contributions') || [];
+        },
+        save() {
+            Storage.set('user', state.user);
+            Storage.set('quests', state.quests);
+            Storage.set('contacts', state.contacts);
+            Storage.set('contributions', state.contributions);
+        }
+    };
+
+    // ═══════════════════════════════════════════════════════════════════
+    // UTILITIES
+    // ═══════════════════════════════════════════════════════════════════
+    const uuid = () => Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+    
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => document.querySelectorAll(selector);
+    
+    const html = (strings, ...values) => {
+        return strings.reduce((result, str, i) => result + str + (values[i] || ''), '');
+    };
+
+    // ═══════════════════════════════════════════════════════════════════
+    // NOTIFICATIONS
+    // ═══════════════════════════════════════════════════════════════════
+    function notify(message) {
+        const notif = $('#notification');
+        notif.textContent = message;
+        notif.classList.remove('hidden');
+        setTimeout(() => notif.classList.add('hidden'), 4000);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // STATS COMPUTATION
+    // ═══════════════════════════════════════════════════════════════════
+    function getStats() {
+        const totalAngles = state.quests.reduce((acc, q) => acc + (q.anglesMorts?.length || 0), 0);
+        const resolvedAngles = state.quests.reduce((acc, q) => 
+            acc + (q.anglesMorts?.filter(am => am.resolved).length || 0), 0);
+        
+        return {
+            totalQuests: state.quests.length,
+            activeQuests: state.quests.filter(q => q.status === 'active').length,
+            resolvedAngles,
+            totalAngles,
+            networkSize: state.contacts.length,
+            totalForks: state.quests.reduce((acc, q) => acc + (q.forks || 0), 0),
+            totalKarma: state.contacts.reduce((acc, c) => acc + (c.karma || 0), 0)
+        };
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // NAVIGATION
+    // ═══════════════════════════════════════════════════════════════════
+    function navigate(view) {
+        state.view = view;
+        render();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ACTIONS
+    // ═══════════════════════════════════════════════════════════════════
+    function initUser(pseudo) {
+        state.user = { pseudo, initialized: true };
+        Storage.save();
+        notify(`Bienvenue ${pseudo} ! Ta quête vers l'autonomie commence.`);
+        navigate('home');
+    }
+
+    function createQuest(title, objective, context = '') {
+        const quest = {
+            id: uuid(),
+            title,
+            objective,
+            context,
+            status: 'active',
+            anglesMorts: [],
+            forks: 0,
+            createdAt: new Date().toISOString()
+        };
+        state.quests.push(quest);
+        state.activeQuestId = quest.id;
+        Storage.save();
+        notify('✨ Nouvelle quête créée ! Identifie tes angles morts.');
+        navigate('radar');
+    }
+
+    function addAngleMort(questId, domain, description) {
+        const quest = state.quests.find(q => q.id === questId);
+        if (quest) {
+            quest.anglesMorts.push({
+                id: uuid(),
+                domain,
+                description,
+                resolved: false
+            });
+            Storage.save();
+            notify('🎯 Angle mort identifié !');
+            render();
+        }
+    }
+
+    function addContact(name, expertise, domains) {
+        const contact = {
+            id: uuid(),
+            name,
+            expertise,
+            domains,
+            karma: 0,
+            addedAt: new Date().toISOString()
+        };
+        state.contacts.push(contact);
+        Storage.save();
+        notify(`👤 ${name} ajouté·e à ton réseau.`);
+        render();
+    }
+
+    function solicitContact(contactId, questId, angleMortId) {
+        const contrib = {
+            id: uuid(),
+            contactId,
+            questId,
+            angleMortId,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+        };
+        state.contributions.push(contrib);
+        Storage.save();
+        notify('📨 Demande notée ! Contacte cette personne IRL.');
+        render();
+    }
+
+    function markResolved(contribId) {
+        const contrib = state.contributions.find(c => c.id === contribId);
+        if (contrib) {
+            contrib.status = 'received';
+            
+            // Update contact karma
+            const contact = state.contacts.find(c => c.id === contrib.contactId);
+            if (contact) contact.karma = (contact.karma || 0) + 1;
+            
+            // Mark angle mort as resolved
+            const quest = state.quests.find(q => q.id === contrib.questId);
+            if (quest) {
+                const am = quest.anglesMorts.find(a => a.id === contrib.angleMortId);
+                if (am) am.resolved = true;
+            }
+            
+            Storage.save();
+            notify('🎉 Contribution reçue ! Merci à ton réseau.');
+            render();
+        }
+    }
+
+    function exportQuest(questId) {
+        const quest = state.quests.find(q => q.id === questId);
+        if (!quest) return;
+        
+        const template = {
+            version: '1.0',
+            type: 'demogarchie-quest-template',
+            license: 'CC BY-NC 4.0',
+            exportedAt: new Date().toISOString(),
+            quest: {
+                title: quest.title,
+                objective: quest.objective,
+                context: quest.context,
+                domains: [...new Set(quest.anglesMorts.map(am => am.domain.id))],
+                anglesMorts: quest.anglesMorts.map(am => ({
+                    domain: am.domain.id,
+                    description: am.description
+                }))
+            }
+        };
+        
+        const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `quest-${quest.title.toLowerCase().replace(/\s+/g, '-')}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        quest.forks = (quest.forks || 0) + 1;
+        Storage.save();
+        notify('🔀 Template exporté ! Partage-le.');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // VIEWS
+    // ═══════════════════════════════════════════════════════════════════
+    
+    function renderSplash() {
+        return html`
+            <div class="splash">
+                <div class="splash-logo">◇</div>
+                <h1 class="splash-title">DÉMOGARCHIE</h1>
+                <p class="splash-subtitle">
+                    Tu votes bientôt ?<br>
+                    Identifie ce que tu ne comprends pas.<br>
+                    Active ton réseau pour t'éclairer.<br>
+                    <span style="color: var(--color-primary)">Fork • Hack • Spread</span>
+                </p>
+                
+                <div class="splash-form">
+                    <input type="text" id="pseudo-input" class="input mb-20" 
+                           placeholder="Ton pseudo de citoyen·ne..." 
+                           style="text-align: center">
+                    <button class="btn btn-primary" style="width: 100%" onclick="handleInitUser()">
+                        Commencer ma quête
+                    </button>
+                </div>
+                
+                <div class="splash-footer">
+                    CC BY-NC 4.0 | Zero Tracking | Open Source
+                    <div class="splash-hint">v${CONFIG.version} | Fork me on GitHub</div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderHeader() {
+        const navItems = [
+            { id: 'home', label: '🏠 Accueil' },
+            { id: 'quest', label: '🎯 Quête' },
+            { id: 'radar', label: '📡 Radar' },
+            { id: 'network', label: '🌐 Réseau' },
+            { id: 'forge', label: '🔧 Forge' },
+            { id: 'about', label: 'ℹ️' }
+        ];
+        
+        return html`
+            <header>
+                <a class="logo" onclick="navigate('home')">
+                    <div class="logo-icon">◇</div>
+                    <div>
+                        <div class="logo-text">DÉMOGARCHIE</div>
+                        <div class="logo-subtitle">Fork • Hack • Spread</div>
+                    </div>
+                </a>
+                <nav>
+                    ${navItems.map(item => html`
+                        <button class="nav-btn ${state.view === item.id ? 'active' : ''}" 
+                                onclick="navigate('${item.id}')">
+                            ${item.label}
+                        </button>
+                    `).join('')}
+                </nav>
+            </header>
+        `;
+    }
+
+    function renderHome() {
+        const stats = getStats();
+        const activeQuests = state.quests.filter(q => q.status === 'active');
+        
+        return html`
+            <div class="tip-bar">
+                <span>💡</span> ${TIPS[state.tipIndex]}
+            </div>
+            
+            <div class="card mb-30">
+                <h3 class="card-title">📊 Tableau de bord — ${state.user.pseudo}</h3>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-number">${stats.activeQuests}</div>
+                        <div class="stat-label">Quêtes actives</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">${stats.resolvedAngles}/${stats.totalAngles}</div>
+                        <div class="stat-label">Angles résolus</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">${stats.networkSize}</div>
+                        <div class="stat-label">Contacts</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">${stats.totalKarma}</div>
+                        <div class="stat-label">Karma réseau</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid mb-30">
+                <div class="card action-card" onclick="navigate('quest')" style="border-color: #7bed9f">
+                    <div class="action-icon">🎯</div>
+                    <div class="action-title" style="color: #7bed9f">Nouvelle Quête</div>
+                    <div class="action-desc">Définis un objectif pour te préparer à voter</div>
+                </div>
+                <div class="card action-card" onclick="navigate('radar')" style="border-color: #b19cd9">
+                    <div class="action-icon">📡</div>
+                    <div class="action-title" style="color: #b19cd9">Mon Radar</div>
+                    <div class="action-desc">Identifie et gère tes angles morts</div>
+                </div>
+                <div class="card action-card" onclick="navigate('network')" style="border-color: #d9b19c">
+                    <div class="action-icon">🌐</div>
+                    <div class="action-title" style="color: #d9b19c">Mon Réseau</div>
+                    <div class="action-desc">Les personnes qui peuvent t'éclairer</div>
+                </div>
+                <div class="card action-card" onclick="navigate('forge')" style="border-color: #9cd9d9">
+                    <div class="action-icon">🔧</div>
+                    <div class="action-title" style="color: #9cd9d9">La Forge</div>
+                    <div class="action-desc">Exporte et partage tes quêtes</div>
+                </div>
+            </div>
+            
+            ${activeQuests.length > 0 ? html`
+                <div class="card">
+                    <h3 class="card-title">⚔️ Quêtes en cours</h3>
+                    ${activeQuests.map(q => renderQuestCard(q)).join('')}
+                </div>
+            ` : html`
+                <div class="card empty-state">
+                    <div class="empty-icon">🌱</div>
+                    <h3 class="empty-title">Commence ta première quête</h3>
+                    <p class="empty-desc">Tu votes bientôt ? Définis un objectif et identifie ce qui te manque.</p>
+                    <button class="btn btn-primary" onclick="navigate('quest')">
+                        Créer ma première quête
+                    </button>
+                </div>
+            `}
+        `;
+    }
+
+    function renderQuestCard(quest) {
+        const resolved = quest.anglesMorts?.filter(am => am.resolved).length || 0;
+        const total = quest.anglesMorts?.length || 0;
+        const progress = total > 0 ? (resolved / total) * 100 : 0;
+        
+        return html`
+            <div class="card" style="padding: 20px; cursor: pointer; margin-bottom: 15px"
+                 onclick="state.activeQuestId = '${quest.id}'; navigate('radar')">
+                <div class="flex flex-between flex-center mb-20">
+                    <div>
+                        <h4 style="margin-bottom: 5px">${quest.title}</h4>
+                        <p style="color: var(--color-muted); font-size: 14px">${quest.objective}</p>
+                    </div>
+                    <span class="tag">${resolved}/${total} angles</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progress}%"></div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderQuest() {
+        return html`
+            <h2 style="color: var(--color-primary); margin-bottom: 30px">🎯 Nouvelle Quête</h2>
+            
+            <div class="card">
+                <div class="form-group">
+                    <label class="form-label">Titre de ta quête</label>
+                    <input type="text" id="quest-title" class="input" 
+                           placeholder="Ex: Comprendre les enjeux fiscaux des élections">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Objectif concret</label>
+                    <textarea id="quest-objective" class="textarea"
+                              placeholder="Que veux-tu comprendre avant de voter ? Sois spécifique."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Contexte (optionnel)</label>
+                    <textarea id="quest-context" class="textarea" style="min-height: 80px"
+                              placeholder="Pourquoi c'est important pour toi ?"></textarea>
+                </div>
+                
+                <div class="flex gap-15">
+                    <button class="btn btn-secondary" onclick="navigate('home')">Annuler</button>
+                    <button class="btn btn-primary" style="flex: 1" onclick="handleCreateQuest()">
+                        Créer et identifier mes angles morts →
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card" style="background: rgba(177, 156, 217, 0.1); border-color: rgba(177, 156, 217, 0.3)">
+                <h4 style="color: var(--color-accent); margin-bottom: 15px">💡 Conseils pour bien voter</h4>
+                <ul style="color: var(--color-muted); padding-left: 20px; line-height: 2">
+                    <li>Une quête = un sujet (fiscalité, santé, environnement...)</li>
+                    <li>Formule comme si tu expliquais à un ami</li>
+                    <li>Commence par ce qui t'impacte directement</li>
+                </ul>
+            </div>
+        `;
+    }
+
+    function renderRadar() {
+        const quest = state.quests.find(q => q.id === state.activeQuestId) || 
+                      state.quests.find(q => q.status === 'active');
+        
+        if (!quest) {
+            return html`
+                <div class="card empty-state">
+                    <div class="empty-icon">🎯</div>
+                    <h3 class="empty-title">Aucune quête active</h3>
+                    <p class="empty-desc">Crée d'abord une quête pour identifier tes angles morts.</p>
+                    <button class="btn btn-primary" onclick="navigate('quest')">Créer une quête</button>
+                </div>
+            `;
+        }
+        
+        const pendingContribs = state.contributions.filter(c => c.questId === quest.id && c.status === 'pending');
+        
+        return html`
+            <div class="flex flex-between flex-center mb-30">
+                <h2 style="color: var(--color-primary)">📡 Radar — ${quest.title}</h2>
+                <button class="btn btn-ghost" onclick="navigate('home')">← Retour</button>
+            </div>
+            
+            <div class="card">
+                <h4 style="color: var(--color-accent); margin-bottom: 20px">Quel domaine te manque pour voter ?</h4>
+                <div class="domain-pills" id="domain-pills">
+                    ${DOMAINS.map(d => html`
+                        <button class="domain-pill" 
+                                style="color: ${d.color}"
+                                data-domain-id="${d.id}"
+                                onclick="selectDomain('${d.id}')">
+                            ${d.icon} ${d.name}
+                        </button>
+                    `).join('')}
+                </div>
+                
+                <div id="angle-form" class="hidden">
+                    <textarea id="angle-desc" class="textarea mb-20"
+                              placeholder="Décris précisément ce que tu ne comprends pas..."></textarea>
+                    <button class="btn btn-primary" onclick="handleAddAngle('${quest.id}')">
+                        + Ajouter cet angle mort
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h4 style="color: var(--color-accent); margin-bottom: 20px">
+                    Angles morts identifiés (${quest.anglesMorts?.length || 0})
+                </h4>
+                
+                ${!quest.anglesMorts?.length ? html`
+                    <p style="color: var(--color-muted); text-align: center; padding: 30px">
+                        Sélectionne un domaine ci-dessus pour identifier tes lacunes.
+                    </p>
+                ` : quest.anglesMorts.map(am => {
+                    const domain = DOMAINS.find(d => d.id === am.domain?.id || d.id === am.domain);
+                    const pending = pendingContribs.find(c => c.angleMortId === am.id);
+                    
+                    return html`
+                        <div class="angle-item ${am.resolved ? 'resolved' : ''}" style="border-left-color: ${domain?.color || '#888'}">
+                            <div class="angle-header">
+                                <div style="flex: 1">
+                                    <div class="angle-domain" style="color: ${domain?.color}">
+                                        <span>${domain?.icon}</span>
+                                        <span>${domain?.name}</span>
+                                        ${am.resolved ? '<span class="badge badge-success">✓ Résolu</span>' : ''}
+                                        ${pending ? '<span class="badge badge-warning">⏳ En attente</span>' : ''}
+                                    </div>
+                                    <p class="angle-desc">${am.description}</p>
+                                </div>
+                                ${!am.resolved && !pending && state.contacts.length > 0 ? html`
+                                    <button class="btn btn-ghost btn-small" 
+                                            onclick="handleSolicit('${quest.id}', '${am.id}')">
+                                        📨 Solliciter
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+            
+            ${pendingContribs.length > 0 ? html`
+                <div class="card" style="border-color: rgba(217, 177, 156, 0.5)">
+                    <h4 style="color: var(--color-warning); margin-bottom: 20px">⏳ En attente de réponse</h4>
+                    ${pendingContribs.map(c => {
+                        const contact = state.contacts.find(ct => ct.id === c.contactId);
+                        return html`
+                            <div style="padding: 15px; background: rgba(0,0,0,0.2); border-radius: 10px; margin-bottom: 10px">
+                                <div class="flex flex-between flex-center">
+                                    <span>Demande à <strong style="color: var(--color-warning)">${contact?.name}</strong></span>
+                                    <button class="btn btn-ghost btn-small" onclick="markResolved('${c.id}')">
+                                        ✓ Réponse reçue
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            ` : ''}
+        `;
+    }
+
+    function renderNetwork() {
+        return html`
+            <div class="flex flex-between flex-center mb-30">
+                <h2 style="color: var(--color-primary)">🌐 Mon Réseau (${state.contacts.length})</h2>
+                <button class="btn btn-primary" onclick="toggleContactForm()">+ Ajouter un contact</button>
+            </div>
+            
+            <div id="contact-form" class="card hidden mb-30" style="border-color: var(--color-primary)">
+                <h4 style="color: var(--color-primary); margin-bottom: 20px">Nouveau contact</h4>
+                
+                <input type="text" id="contact-name" class="input mb-20" placeholder="Nom / Pseudo">
+                <input type="text" id="contact-expertise" class="input mb-20" placeholder="Son expertise en une phrase">
+                
+                <label class="form-label">Domaines de compétence :</label>
+                <div class="domain-pills mb-20" id="contact-domains">
+                    ${DOMAINS.map(d => html`
+                        <button class="domain-pill" style="color: ${d.color}" 
+                                data-domain-id="${d.id}"
+                                onclick="toggleContactDomain('${d.id}')">
+                            ${d.icon} ${d.name}
+                        </button>
+                    `).join('')}
+                </div>
+                
+                <div class="flex gap-15">
+                    <button class="btn btn-secondary" onclick="toggleContactForm()">Annuler</button>
+                    <button class="btn btn-primary" onclick="handleAddContact()">Ajouter</button>
+                </div>
+            </div>
+            
+            ${state.contacts.length === 0 ? html`
+                <div class="card empty-state">
+                    <div class="empty-icon">👥</div>
+                    <h3 class="empty-title">Ton réseau est vide</h3>
+                    <p class="empty-desc">
+                        Qui autour de toi pourrait t'éclairer ?<br>
+                        Pense à tes amis, famille, collègues, voisins...
+                    </p>
+                </div>
+            ` : html`
+                <div class="grid">
+                    ${state.contacts.map(c => html`
+                        <div class="card">
+                            <div class="contact-card">
+                                <div>
+                                    <div class="contact-name">${c.name}</div>
+                                    <div class="contact-expertise">${c.expertise}</div>
+                                </div>
+                                <div class="contact-karma">⭐ ${c.karma || 0}</div>
+                            </div>
+                            <div class="contact-domains">
+                                ${(c.domains || []).map(did => {
+                                    const d = DOMAINS.find(dom => dom.id === did);
+                                    return d ? html`
+                                        <span class="tag" style="background: ${d.color}22; border-color: ${d.color}44; color: ${d.color}">
+                                            ${d.icon} ${d.name}
+                                        </span>
+                                    ` : '';
+                                }).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `}
+        `;
+    }
+
+    function renderForge() {
+        const completedQuests = state.quests.filter(q => 
+            q.anglesMorts?.length > 0 && q.anglesMorts.every(am => am.resolved)
+        );
+        const stats = getStats();
+        
+        return html`
+            <h2 style="color: var(--color-primary); margin-bottom: 30px">🔧 La Forge</h2>
+            
+            <div class="tip-bar">
+                <strong>Fork • Hack • Spread</strong> — Exporte tes quêtes résolues pour aider d'autres citoyens à se préparer.
+            </div>
+            
+            <div class="card">
+                <h4 style="color: var(--color-accent); margin-bottom: 20px">
+                    📦 Quêtes prêtes à partager (${completedQuests.length})
+                </h4>
+                
+                ${completedQuests.length === 0 ? html`
+                    <p style="color: var(--color-muted); text-align: center; padding: 30px">
+                        Termine une quête pour la transformer en template partageable.
+                    </p>
+                ` : completedQuests.map(q => html`
+                    <div style="padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 15px">
+                        <div class="flex flex-between flex-center">
+                            <div>
+                                <h5 style="margin-bottom: 5px">${q.title}</h5>
+                                <p style="color: var(--color-muted); font-size: 14px">
+                                    ${q.anglesMorts?.length || 0} angles morts • ${q.forks || 0} forks
+                                </p>
+                            </div>
+                            <button class="btn btn-secondary btn-small" onclick="exportQuest('${q.id}')">
+                                🔀 Exporter
+                            </button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div class="card">
+                <h4 style="color: var(--color-accent); margin-bottom: 20px">📈 Impact</h4>
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr)">
+                    <div class="stat-box">
+                        <div class="stat-number">${stats.totalForks}</div>
+                        <div class="stat-label">Templates partagés</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">${completedQuests.length}</div>
+                        <div class="stat-label">Quêtes complétées</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">${stats.totalKarma}</div>
+                        <div class="stat-label">Karma distribué</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="code-block">
+                <div class="code-comment">// manifeste.json</div>
+                <div class="code-content">{
+  "name": "démogarchie",
+  "version": "${CONFIG.version}",
+  "license": "CC BY-NC 4.0",
+  "philosophy": "Fork • Hack • Spread",
+  "tracking": false,
+  "purpose": "Citoyens informés = Démocratie vivante"
+}</div>
+            </div>
+        `;
+    }
+
+    function renderAbout() {
+        return html`
+            <h2 style="color: var(--color-primary); margin-bottom: 30px">ℹ️ À propos</h2>
+            
+            <div class="card">
+                <pre style="color: var(--color-primary); font-size: 10px; text-align: center; margin-bottom: 30px; overflow: auto">
+    ╔═══════════════════════════════════════╗
+    ║   ◇ D É M O G A R C H I E ◇          ║
+    ║   ─────────────────────────           ║
+    ║   Le peuple qui s'auto-gouverne      ║
+    ║   par l'information partagée          ║
+    ╚═══════════════════════════════════════╝
+                </pre>
+                
+                <h3 style="color: var(--color-accent); margin-bottom: 15px">Qu'est-ce que c'est ?</h3>
+                <p style="color: #ccc; line-height: 1.8; margin-bottom: 25px">
+                    <strong style="color: var(--color-primary)">Démos + Arkhè</strong> = Le peuple qui s'auto-gouverne.
+                    C'est un outil pour t'aider à voter en connaissance de cause : identifie ce que tu ne comprends pas,
+                    demande à ton entourage qui s'y connaît, documente pour les autres.
+                </p>
+                
+                <h3 style="color: var(--color-accent); margin-bottom: 15px">Comment ça marche ?</h3>
+                <ol style="color: #ccc; line-height: 2; padding-left: 20px; margin-bottom: 25px">
+                    <li><strong style="color: var(--color-primary)">Quête</strong> — Définis ce que tu veux comprendre</li>
+                    <li><strong style="color: var(--color-primary)">Radar</strong> — Identifie tes angles morts</li>
+                    <li><strong style="color: var(--color-primary)">Réseau</strong> — Sollicite tes contacts experts</li>
+                    <li><strong style="color: var(--color-primary)">Contribution</strong> — Ils t'éclairent, tu notes</li>
+                    <li><strong style="color: var(--color-primary)">Fork</strong> — Ta quête aide d'autres citoyens</li>
+                </ol>
+                
+                <h3 style="color: var(--color-accent); margin-bottom: 15px">Principes</h3>
+                <div class="about-principles">
+                    <div class="principle-card">
+                        <div class="principle-icon">🔓</div>
+                        <div class="principle-title">Open Source</div>
+                        <div class="principle-desc">Code visible et modifiable</div>
+                    </div>
+                    <div class="principle-card">
+                        <div class="principle-icon">🚫</div>
+                        <div class="principle-title">Zero Tracking</div>
+                        <div class="principle-desc">Tes données restent chez toi</div>
+                    </div>
+                    <div class="principle-card">
+                        <div class="principle-icon">📜</div>
+                        <div class="principle-title">CC BY-NC 4.0</div>
+                        <div class="principle-desc">Libre et non commercial</div>
+                    </div>
+                    <div class="principle-card">
+                        <div class="principle-icon">🌐</div>
+                        <div class="principle-title">Décentralisé</div>
+                        <div class="principle-desc">Fork et adapte à ta région</div>
+                    </div>
+                </div>
+                
+                <div class="quote-box">
+                    « La démocratie par le peuple, pour le peuple.<br>
+                    L'information comme commun. Le réseau comme force collective. »
+                </div>
+            </div>
+        `;
+    }
+
+    function renderFooter() {
+        return html`
+            <footer>
+                <div class="footer-main">
+                    CC BY-NC 4.0 | Zero Tracking | Open Source | Fait avec ❤️ pour les citoyens
+                </div>
+                <div class="footer-version">
+                    v${CONFIG.version} | Fork • Hack • Spread
+                </div>
+            </footer>
+        `;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // EVENT HANDLERS
+    // ═══════════════════════════════════════════════════════════════════
+    let selectedDomain = null;
+    let selectedContactDomains = [];
+
+    window.handleInitUser = function() {
+        const pseudo = $('#pseudo-input')?.value?.trim();
+        if (pseudo) initUser(pseudo);
+    };
+
+    window.handleCreateQuest = function() {
+        const title = $('#quest-title')?.value?.trim();
+        const objective = $('#quest-objective')?.value?.trim();
+        const context = $('#quest-context')?.value?.trim();
+        if (title && objective) createQuest(title, objective, context);
+    };
+
+    window.selectDomain = function(domainId) {
+        selectedDomain = DOMAINS.find(d => d.id === domainId);
+        $$('.domain-pill').forEach(el => el.classList.remove('selected'));
+        document.querySelector(`[data-domain-id="${domainId}"]`)?.classList.add('selected');
+        $('#angle-form')?.classList.remove('hidden');
+        $('#angle-desc').placeholder = `Que ne comprends-tu pas en ${selectedDomain.name.toLowerCase()} ?`;
+    };
+
+    window.handleAddAngle = function(questId) {
+        const desc = $('#angle-desc')?.value?.trim();
+        if (selectedDomain && desc) {
+            addAngleMort(questId, selectedDomain, desc);
+            $('#angle-desc').value = '';
+            selectedDomain = null;
+            $$('.domain-pill').forEach(el => el.classList.remove('selected'));
+            $('#angle-form')?.classList.add('hidden');
+        }
+    };
+
+    window.handleSolicit = function(questId, angleMortId) {
+        const quest = state.quests.find(q => q.id === questId);
+        const am = quest?.anglesMorts?.find(a => a.id === angleMortId);
+        const domainId = am?.domain?.id || am?.domain;
+        
+        // Find best matching contact
+        let contact = state.contacts.find(c => c.domains?.includes(domainId));
+        if (!contact) contact = state.contacts[0];
+        
+        if (contact) {
+            solicitContact(contact.id, questId, angleMortId);
+        } else {
+            notify('Ajoute d\'abord un contact dans ton réseau !');
+        }
+    };
+
+    window.toggleContactForm = function() {
+        $('#contact-form')?.classList.toggle('hidden');
+        selectedContactDomains = [];
+        $$('#contact-domains .domain-pill').forEach(el => el.classList.remove('selected'));
+    };
+
+    window.toggleContactDomain = function(domainId) {
+        const idx = selectedContactDomains.indexOf(domainId);
+        if (idx > -1) {
+            selectedContactDomains.splice(idx, 1);
+        } else {
+            selectedContactDomains.push(domainId);
+        }
+        const pill = document.querySelector(`#contact-domains [data-domain-id="${domainId}"]`);
+        pill?.classList.toggle('selected');
+    };
+
+    window.handleAddContact = function() {
+        const name = $('#contact-name')?.value?.trim();
+        const expertise = $('#contact-expertise')?.value?.trim();
+        if (name) {
+            addContact(name, expertise, [...selectedContactDomains]);
+            $('#contact-name').value = '';
+            $('#contact-expertise').value = '';
+            toggleContactForm();
+        }
+    };
+
+    // ═══════════════════════════════════════════════════════════════════
+    // RENDER
+    // ═══════════════════════════════════════════════════════════════════
+    function render() {
+        const app = $('#app');
+        
+        if (!state.user.initialized) {
+            app.innerHTML = renderSplash();
+            setTimeout(() => {
+                $('#pseudo-input')?.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') handleInitUser();
+                });
+            }, 0);
+            return;
+        }
+        
+        let content = '';
+        switch (state.view) {
+            case 'home': content = renderHome(); break;
+            case 'quest': content = renderQuest(); break;
+            case 'radar': content = renderRadar(); break;
+            case 'network': content = renderNetwork(); break;
+            case 'forge': content = renderForge(); break;
+            case 'about': content = renderAbout(); break;
+            default: content = renderHome();
+        }
+        
+        app.innerHTML = `
+            <div class="container fade-in">
+                ${renderHeader()}
+                <main>${content}</main>
+                ${renderFooter()}
+            </div>
+        `;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // INIT
+    // ═══════════════════════════════════════════════════════════════════
+    function init() {
+        Storage.load();
+        
+        // Tip rotation
+        setInterval(() => {
+            state.tipIndex = (state.tipIndex + 1) % TIPS.length;
+            const tipBar = document.querySelector('.tip-bar');
+            if (tipBar) {
+                tipBar.innerHTML = `<span>💡</span> ${TIPS[state.tipIndex]}`;
+            }
+        }, CONFIG.tipRotationMs);
+        
+        render();
+    }
+
+    // Start when DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+    </script>
+</body>
+</html>
