@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>◇ DÉMOGARCHIE — Le Miroir Noir</title>
+<meta name="description" content="Combien de vos 'choix de vie' sont en réalité des conséquences de décisions politiques que vous n'avez pas prises ?">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Bitter:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #060608;
+  --surface: #0c0c10;
+  --panel: #111116;
+  --border: #1e1e28;
+  --text: #c8c8d0;
+  --dim: #5a5a6e;
+  --white: #f0f0f5;
+  --red: #e63946;
+  --violet: #8b5cf6;
+  --violet-dim: rgba(139, 92, 246, 0.15);
+  --amber: #f59e0b;
+  --green: #10b981;
+  --mono: 'IBM Plex Mono', monospace;
+  --serif: 'Bitter', Georgia, serif;
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* HEADER */
+.header {
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.logo {
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: 1.4rem;
+  color: var(--violet);
+}
+.logo span { color: var(--dim); font-weight: 400; font-size: 0.8rem; }
+.badge {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--violet);
+  color: var(--violet);
+  border-radius: 2px;
+}
+.header-right {
+  font-size: 0.7rem;
+  color: var(--dim);
+  text-align: right;
+}
+
+/* CONTAINER */
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 6rem;
+}
+
+/* SCREENS */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* INTRO SCREEN */
+.intro-screen {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.intro-screen h1 {
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: 2.6rem;
+  line-height: 1.1;
+  color: var(--white);
+  margin-bottom: 1.5rem;
+}
+.intro-screen h1 em {
+  font-style: normal;
+  color: var(--violet);
+}
+.intro-lead {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: var(--text);
+  max-width: 560px;
+  margin-bottom: 2.5rem;
+}
+.intro-lead strong { color: var(--white); }
+.intro-meta {
+  font-size: 0.7rem;
+  color: var(--dim);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+.start-btn {
+  display: inline-block;
+  padding: 1rem 2.5rem;
+  background: var(--violet);
+  color: var(--white);
+  border: none;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+.start-btn:hover { background: #7c3aed; }
+
+/* PROGRESS */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--violet);
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 100;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.5);
+}
+.progress-text {
+  font-size: 0.65rem;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 2rem;
+}
+
+/* QUESTION SCREEN */
+.question-screen {
+  min-height: 65vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.q-category {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--violet);
+  margin-bottom: 0.8rem;
+}
+.q-text {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.35;
+  color: var(--white);
+  margin-bottom: 0.6rem;
+  max-width: 580px;
+}
+.q-context {
+  font-size: 0.78rem;
+  color: var(--dim);
+  line-height: 1.6;
+  margin-bottom: 2rem;
+  max-width: 540px;
+}
+
+/* ANSWER OPTIONS */
+.answers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+.answer-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 1rem 1.2rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+.answer-btn:hover {
+  border-color: var(--violet);
+  background: var(--violet-dim);
+}
+.answer-btn.selected {
+  border-color: var(--violet);
+  background: var(--violet-dim);
+  color: var(--white);
+}
+
+/* REVEAL PANEL */
+.reveal-panel {
+  display: none;
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--violet);
+  border-radius: 0 2px 2px 0;
+  animation: slideReveal 0.4s ease;
+}
+.reveal-panel.visible { display: block; }
+@keyframes slideReveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reveal-label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--red);
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+.reveal-text {
+  font-size: 0.82rem;
+  line-height: 1.75;
+  color: var(--text);
+}
+.reveal-text strong { color: var(--white); }
+.reveal-text em { color: var(--amber); font-style: normal; }
+.reveal-source {
+  font-size: 0.6rem;
+  color: var(--dim);
+  margin-top: 0.8rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+}
+.reveal-verdict {
+  display: inline-block;
+  margin-top: 0.8rem;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-radius: 2px;
+}
+.verdict-political {
+  background: rgba(230, 57, 70, 0.15);
+  color: var(--red);
+  border: 1px solid rgba(230, 57, 70, 0.3);
+}
+.verdict-mixed {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--amber);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.verdict-personal {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--green);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* NEXT BUTTON */
+.next-btn {
+  display: none;
+  margin-top: 1.5rem;
+  padding: 0.8rem 2rem;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+.next-btn.visible { display: inline-block; }
+.next-btn:hover { border-color: var(--violet); color: var(--white); }
+
+/* RESULTS SCREEN */
+.results-screen { padding-top: 2rem; }
+.score-hero {
+  text-align: center;
+  padding: 3rem 0;
+  margin-bottom: 2.5rem;
+}
+.score-hero .pre { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--dim); margin-bottom: 1rem; }
+.score-circle {
+  width: 180px;
+  height: 180px;
+  margin: 0 auto 1.5rem;
+  position: relative;
+}
+.score-circle svg { transform: rotate(-90deg); }
+.score-circle .bg { fill: none; stroke: var(--border); stroke-width: 8; }
+.score-circle .fg { fill: none; stroke: var(--violet); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1.5s cubic-bezier(0.22, 1, 0.36, 1); }
+.score-number {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.score-number .big {
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: 3rem;
+  color: var(--white);
+  line-height: 1;
+}
+.score-number .sub {
+  font-size: 0.7rem;
+  color: var(--dim);
+  margin-top: 0.3rem;
+}
+.score-label {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: var(--white);
+  margin-bottom: 0.5rem;
+}
+.score-desc {
+  font-size: 0.82rem;
+  color: var(--dim);
+  line-height: 1.7;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* RESULT BREAKDOWN */
+.result-bars {
+  margin: 2.5rem 0;
+}
+.rbar {
+  margin-bottom: 1.2rem;
+}
+.rbar-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+.rbar-label { font-size: 0.75rem; color: var(--text); }
+.rbar-count { font-size: 0.75rem; font-weight: 700; }
+.rbar-count.pol { color: var(--red); }
+.rbar-count.mix { color: var(--amber); }
+.rbar-count.per { color: var(--green); }
+.rbar-track {
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.rbar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  width: 0;
+}
+.rbar-fill.pol { background: var(--red); }
+.rbar-fill.mix { background: var(--amber); }
+.rbar-fill.per { background: var(--green); }
+
+/* RECAP LIST */
+.recap-list {
+  margin: 2rem 0;
+}
+.recap-item {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.recap-item:last-child { border-bottom: none; }
+.recap-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 0.3rem;
+  flex-shrink: 0;
+}
+.recap-dot.pol { background: var(--red); }
+.recap-dot.mix { background: var(--amber); }
+.recap-dot.per { background: var(--green); }
+.recap-q { font-size: 0.78rem; color: var(--white); margin-bottom: 0.2rem; }
+.recap-r { font-size: 0.7rem; color: var(--dim); line-height: 1.5; }
+
+/* FINAL MESSAGE */
+.final-msg {
+  margin: 3rem 0;
+  padding: 2rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+.final-msg h3 {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--white);
+  margin-bottom: 1rem;
+}
+.final-msg p {
+  font-size: 0.82rem;
+  line-height: 1.75;
+  color: var(--text);
+  margin-bottom: 0.8rem;
+}
+.final-msg p strong { color: var(--white); }
+
+/* CTA */
+.cta-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-top: 2rem;
+}
+.cta-btn {
+  padding: 0.8rem 1rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+  text-align: center;
+  text-decoration: none;
+  display: block;
+}
+.cta-btn.primary { background: var(--violet); color: var(--white); border: 1px solid var(--violet); }
+.cta-btn.primary:hover { background: #7c3aed; }
+.cta-btn.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.cta-btn.secondary:hover { border-color: var(--dim); }
+
+/* FOOTER */
+.footer {
+  margin-top: 4rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.65rem;
+  color: var(--dim);
+}
+.footer a { color: var(--green); text-decoration: none; }
+
+@media (max-width: 600px) {
+  .container { padding: 1.5rem 1rem 4rem; }
+  .intro-screen h1 { font-size: 1.9rem; }
+  .q-text { font-size: 1.2rem; }
+  .score-circle { width: 140px; height: 140px; }
+  .score-number .big { font-size: 2.2rem; }
+  .cta-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+
+<div class="header">
+  <div style="display:flex; align-items:center; gap:1rem;">
+    <div class="logo">◇ DÉMOGARCHIE <span>/ miroir noir</span></div>
+    <div class="badge">心理战 PSYCHO</div>
+  </div>
+  <div class="header-right">MICRO · Module 02/17</div>
+</div>
+
+<div class="container">
+
+  <!-- ==================== INTRO ==================== -->
+  <div class="screen active" id="screen-intro">
+    <div class="intro-screen">
+      <h1>Le <em>Miroir Noir</em></h1>
+      <p class="intro-lead">
+        Votre loyer. Votre trajet. Votre mutuelle. Votre salaire. Votre retraite.
+        <br><br>
+        Vous pensez que ce sont <strong>vos choix</strong>. Ce quiz de 12 questions va vous montrer combien d'entre eux sont en réalité le résultat de <strong>décisions politiques que vous n'avez pas prises</strong>.
+      </p>
+      <p class="intro-meta">
+        12 questions · 5 minutes · Zéro donnée collectée<br>
+        Chaque réponse dévoile le mécanisme politique caché derrière votre quotidien.
+      </p>
+      <button class="start-btn" onclick="startQuiz()">Commencer</button>
+    </div>
+  </div>
+
+  <!-- ==================== QUIZ ==================== -->
+  <div class="screen" id="screen-quiz">
+    <div class="progress-text" id="progress-label">Question 1/12</div>
+    <div class="question-screen" id="question-area">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+  <!-- ==================== RESULTS ==================== -->
+  <div class="screen" id="screen-results">
+    <div class="results-screen" id="results-area">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// QUESTIONS DATABASE
+// Each question has: category, text, context, answers[], reveal
+// reveal.type: "political" | "mixed" | "personal"
+// ============================================================
+const QUESTIONS = [
+  {
+    category: "Logement",
+    text: "Pourquoi payez-vous ce montant de loyer ?",
+    context: "Pensez à votre loyer actuel, ou au coût de votre logement.",
+    answers: [
+      "C'est le prix du marché, je n'y peux rien",
+      "J'ai choisi un quartier qui me convient",
+      "Je n'ai pas les moyens de mieux",
+      "Je suis propriétaire, ça ne me concerne pas"
+    ],
+    reveal: {
+      type: "political",
+      text: "En Belgique, <strong>85% des logements bruxellois datent d'avant 1960</strong> et 50% des émissions CO₂ de la capitale viennent de bâtiments mal isolés. Le \"prix du marché\" est directement façonné par <strong>40 ans de sous-investissement public dans la rénovation</strong>, l'absence de régulation sérieuse des loyers (contrairement à l'Allemagne ou les Pays-Bas), et la fiscalité immobilière qui favorise la spéculation. Votre loyer n'est pas un prix \"naturel\" — c'est le résultat d'une <em>politique de non-politique</em>.",
+      source: "Communes belges, données 2024 · Bruxelles Environnement · FMI Article IV 2023"
+    }
+  },
+  {
+    category: "Transport",
+    text: "Combien de temps dure votre trajet domicile-travail ?",
+    context: "Belgique : l'un des pays les plus congestionnés d'Europe.",
+    answers: [
+      "Moins de 30 minutes",
+      "30 à 60 minutes",
+      "Plus d'une heure",
+      "Je travaille de chez moi"
+    ],
+    reveal: {
+      type: "political",
+      text: "La Belgique est un des pays les plus embouteillés au monde avec <strong>97% de taux d'urbanisation</strong>. La voiture de société — un avantage fiscal qui coûte <strong>4 milliards €/an</strong> au budget de l'État — a été maintenue pendant des décennies par les coalitions successives comme monnaie d'échange salariale. Le sous-investissement chronique dans les transports publics (retards SNCB, réseau de bus lacunaire) n'est pas un hasard. <em>Votre temps de trajet est un choix politique, pas le vôtre.</em>",
+      source: "Commission européenne, transport policy · BNB · Plan Good Move controversé"
+    }
+  },
+  {
+    category: "Santé",
+    text: "Avez-vous déjà reporté un soin médical pour des raisons financières ?",
+    context: "Dentiste, psy, kiné, spécialiste non conventionné...",
+    answers: [
+      "Oui, régulièrement",
+      "Oui, une ou deux fois",
+      "Non, j'ai une bonne mutuelle",
+      "Non, je suis en bonne santé"
+    ],
+    reveal: {
+      type: "political",
+      text: "Le système belge de mutualités est un héritage des \"piliers\" du XIXe siècle — chaque courant (catholique, socialiste, libéral) a son réseau. Ce système <strong>délègue la gestion de la Sécurité sociale à des organismes privés</strong> qui emploient des milliers de personnes et constituent un <strong>réservoir d'emplois pour les partis</strong>. Les suppléments d'honoraires non conventionnés ont explosé : certains spécialistes facturent <em>300% du tarif INAMI</em>. Ce n'est pas \"le coût de la médecine\" — c'est le coût d'un système où <em>personne n'a intérêt politique à plafonner</em>.",
+      source: "INAMI · Mutualités belges · Rapports force Belgique 2025"
+    }
+  },
+  {
+    category: "Emploi",
+    text: "Êtes-vous satisfait·e de votre salaire net ?",
+    context: "La Belgique a le coin fiscal le plus élevé de l'OCDE.",
+    answers: [
+      "Non, il est trop bas pour mon niveau de vie",
+      "Ça va, mais c'est serré",
+      "Oui, je m'en sors bien",
+      "Je ne travaille pas actuellement"
+    ],
+    reveal: {
+      type: "political",
+      text: "Le \"coin fiscal\" belge (différence brut-net) est le <strong>plus élevé de toute l'OCDE</strong>. Sur 100 € de coût employeur, environ 45 à 55 € arrivent dans votre poche. Mais pendant ce temps, <strong>les parlementaires bénéficient de 28% d'indemnité forfaitaire non taxée</strong> — automatiquement, sans justificatif. Et les grandes entreprises négocient des \"rulings\" fiscaux avec le fisc. <em>Votre frustration salariale n'est pas un manque d'ambition — c'est un système fiscal conçu par et pour ceux qui le votent.</em>",
+      source: "OCDE Tax Wedge 2024 · Statut du membre de la Chambre · Statbel"
+    }
+  },
+  {
+    category: "Éducation",
+    text: "Si vous avez des enfants — ou quand vous en aurez — quelle école ?",
+    context: "\"Libre choix\" des parents, dit-on.",
+    answers: [
+      "Enseignement officiel (communal/régional)",
+      "Enseignement libre (catholique/autre)",
+      "Je choisis en fonction du quartier",
+      "Pas concerné·e"
+    ],
+    reveal: {
+      type: "mixed",
+      text: "Le \"libre choix\" scolaire en Belgique est une fiction pour beaucoup. Le système est hérité de la <strong>\"guerre scolaire\" du XIXe siècle</strong> entre piliers catholique et laïc — un conflit résolu par un pacte (1959) qui garantit le financement public des deux réseaux. Résultat : la Belgique finance <strong>deux systèmes complets en parallèle</strong>, avec duplication des infrastructures, et le \"décret inscriptions\" génère chaque année des files d'attente absurdes. <em>Votre \"choix\" d'école est prédéterminé par votre code postal et un compromis politique de 1959.</em>",
+      source: "Pacte scolaire 1959 · Décret inscriptions FWB · Pilarisation belge"
+    }
+  },
+  {
+    category: "Retraite",
+    text: "Pensez-vous pouvoir vivre décemment de votre pension légale ?",
+    context: "Pension moyenne en Belgique : ~1 400 €/mois pour un salarié.",
+    answers: [
+      "Non, c'est insuffisant",
+      "Je compte sur un deuxième pilier (assurance groupe)",
+      "Je ne veux même pas y penser",
+      "Je n'ai aucune idée du montant"
+    ],
+    reveal: {
+      type: "political",
+      text: "La pension moyenne belge est parmi les <strong>plus basses d'Europe occidentale</strong> proportionnellement au dernier salaire. Pourquoi ? Parce que les gouvernements successifs ont encouragé les 2e et 3e piliers (assurances privées, épargne-pension) — <strong>un transfert massif vers le secteur financier</strong> — plutôt que de renforcer la pension légale. Les coûts du vieillissement augmentent de <em>0,5% du PIB par an</em>. Pendant ce temps, les pensions des députés dépassaient le plafond légal de 20%. <em>Votre anxiété de retraite est le produit d'un choix de société que personne ne vous a soumis.</em>",
+      source: "Commission européenne Ageing Report · Scandale Wijninckx · FMI Art. IV"
+    }
+  },
+  {
+    category: "Administration",
+    text: "Combien de temps passez-vous par an dans des démarches administratives ?",
+    context: "Mutuelle, commune, CPAS, ONEM, impôts, SPF...",
+    answers: [
+      "Trop — c'est un parcours du combattant",
+      "Quelques heures, c'est gérable",
+      "Je paie quelqu'un pour le faire (comptable, etc.)",
+      "J'évite au maximum"
+    ],
+    reveal: {
+      type: "political",
+      text: "La Belgique a <strong>6 parlements, 6 gouvernements, 10 provinces, 581 communes</strong>, plus les communautés, les intercommunales, les zones de police, les zones de secours. Chaque couche a ses propres formulaires, ses propres délais, ses propres guichets. <strong>46% de la population est considérée comme \"numériquement vulnérable\"</strong> — mais la digitalisation avance quand même. La complexité administrative n'est pas un bug. <em>C'est un feature qui maintient l'emploi dans les structures et le pouvoir dans les cabinets.</em>",
+      source: "SPF BOSA · Fracture numérique Belgique · Communes belges (581)"
+    }
+  },
+  {
+    category: "Information",
+    text: "Où vous informez-vous principalement ?",
+    context: "Télé, radio, presse écrite, réseaux sociaux, rien...",
+    answers: [
+      "Médias traditionnels (RTBF, VRT, journaux)",
+      "Réseaux sociaux",
+      "Un peu de tout",
+      "Je ne suis plus l'actualité"
+    ],
+    reveal: {
+      type: "political",
+      text: "Le paysage médiatique belge francophone est dominé par <strong>quelques groupes</strong> (Rossel/Le Soir, IPM/La Libre, RTL Belgium/DPG). Les rédactions dépendent de subsides publics (aides à la presse) et de la publicité. Le CSA régule mais avec des moyens limités. La concentration médiatique signifie que <strong>les mêmes propriétaires possèdent journaux, sites web et magazines</strong>. Quand un documentaire comme \"Tous Fraudeurs\" stigmatise les allocataires, <em>l'IWEPS dément avoir fourni les chiffres cités</em> — mais le mal est fait. <em>Votre \"choix\" de source d'info se fait dans un marché pré-cadré.</em>",
+      source: "CSA · Affaire Deborsu/IWEPS · Concentration médiatique FWB"
+    }
+  },
+  {
+    category: "Vote",
+    text: "Avez-vous le sentiment que votre vote change quelque chose ?",
+    context: "La Belgique est une des rares démocraties à vote obligatoire (sauf Flandre depuis 2024).",
+    answers: [
+      "Non, rien ne change",
+      "Un peu, mais c'est lent",
+      "Oui, chaque voix compte",
+      "Je vote blanc / nul"
+    ],
+    reveal: {
+      type: "political",
+      text: "Dans la particratie belge, le <strong>président de parti détient plus de pouvoir que la plupart des ministres</strong>. Il contrôle la liste des candidats, les négociations de coalition, et la discipline de vote. Le Parlement fonctionne largement comme <strong>chambre d'enregistrement</strong> des accords conclus dans les \"kern\" (réunions restreintes). Votre député vote comme son parti le décide dans <em>97% des cas</em>. Le vote est obligatoire, mais son efficacité est structurellement neutralisée par un système qui concentre la décision chez <em>4 à 6 présidents de parti</em>.",
+      source: "Particratie belge · CRISP · Carl Devos (UGent) · Discipline de vote"
+    }
+  },
+  {
+    category: "Épargne",
+    text: "Arrivez-vous à épargner chaque mois ?",
+    context: "L'inflation cumulée 2021-2024 a dépassé 17% en Belgique.",
+    answers: [
+      "Non, tout part dans les charges",
+      "Un petit peu, mais c'est fragile",
+      "Oui, j'épargne régulièrement",
+      "J'ai des dettes"
+    ],
+    reveal: {
+      type: "mixed",
+      text: "L'indexation automatique des salaires — fierté belge — a partiellement protégé le pouvoir d'achat. Mais elle ne couvre pas tout : les <strong>loyers ne sont pas plafonnés</strong>, l'énergie reste volatile, et les \"frais cachés\" administratifs (taxe commune, PI, cotisations sociales) grimpent. Pendant que l'inflation grignotait vos économies, les intercommunales d'énergie versaient des <em>dividendes aux communes actionnaires</em>. <em>Votre capacité d'épargne est le résidu de choix politiques sur les prix, la fiscalité et la redistribution.</em>",
+      source: "BNB · Statbel IPC · Intercommunales énergie · CREG"
+    }
+  },
+  {
+    category: "Droits",
+    text: "Connaissez-vous vos droits en cas de litige avec une administration ?",
+    context: "Recours, médiation, plainte au Médiateur, tribunal administratif...",
+    answers: [
+      "Pas du tout",
+      "Vaguement — je googliserais",
+      "Oui, j'ai déjà fait un recours",
+      "Je laisserais tomber"
+    ],
+    reveal: {
+      type: "political",
+      text: "Le non-recours aux droits est massif : <strong>20 à 50% des ménages éligibles</strong> à des aides n'en font pas la demande (Harvard Kennedy School). En Belgique, les CPAS, les guichets énergie, les allocations familiales majorées, les réductions fiscales — des milliards restent non réclamés chaque année. Ce n'est pas de la paresse. C'est <strong>de la complexité organisée</strong> : formulaires obscurs, délais longs, jargon juridique, guichets surchargés. <em>L'ignorance de vos droits n'est pas un échec personnel. C'est un système qui économise quand vous renoncez.</em>",
+      source: "Harvard Kennedy School · srpoverty.org · Eurofound 2015 · CPAS belges"
+    }
+  },
+  {
+    category: "Avenir",
+    text: "Êtes-vous optimiste pour l'avenir de la Belgique ?",
+    context: "Dette 105% du PIB, déficit 4,5%, vieillissement, climat, crise politique...",
+    answers: [
+      "Non, ça empire",
+      "Ça dépend de qui gouverne",
+      "Oui, on s'en est toujours sortis",
+      "Je ne me pose plus la question"
+    ],
+    reveal: {
+      type: "political",
+      text: "La Belgique a passé <strong>cumulativement plus de 3 ans sans gouvernement fédéral</strong> depuis 2007 (194 jours en 2007, 541 en 2010-2011, la crise depuis août 2024). Chaque fois, le pays \"fonctionne quand même\" — preuve que le pouvoir réel est ailleurs que dans les institutions élues. Votre pessimisme (ou résignation) n'est pas un trait de caractère. <em>C'est la réponse rationnelle à un système qui a transformé l'impuissance citoyenne en condition structurelle.</em> La bonne nouvelle : <strong>reconnaître le mécanisme, c'est déjà commencer à le désamorcer.</strong>",
+      source: "Formations gouvernementales · Belgique sans gouvernement · Élections 2024"
+    }
+  }
+];
+
+// STATE
+let currentQ = 0;
+let answers = [];
+let scores = { political: 0, mixed: 0, personal: 0 };
+
+function startQuiz() {
+  document.getElementById('screen-intro').classList.remove('active');
+  document.getElementById('screen-quiz').classList.add('active');
+  renderQuestion(0);
+}
+
+function renderQuestion(idx) {
+  currentQ = idx;
+  const q = QUESTIONS[idx];
+  const total = QUESTIONS.length;
+  const pct = ((idx) / total * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `Question ${idx + 1}/${total} · ${q.category}`;
+
+  const area = document.getElementById('question-area');
+  area.innerHTML = `
+    <div class="q-category">${q.category}</div>
+    <div class="q-text">${q.text}</div>
+    <div class="q-context">${q.context}</div>
+    <div class="answers" id="answers-list">
+      ${q.answers.map((a, i) => `
+        <button class="answer-btn" onclick="selectAnswer(${i})">${a}</button>
+      `).join('')}
+    </div>
+    <div class="reveal-panel" id="reveal-panel">
+      <div class="reveal-label">Ce que vous ne voyez pas</div>
+      <div class="reveal-text">${q.reveal.text}</div>
+      <div class="reveal-source">${q.reveal.source}</div>
+      <div class="reveal-verdict ${q.reveal.type === 'political' ? 'verdict-political' : q.reveal.type === 'mixed' ? 'verdict-mixed' : 'verdict-personal'}">
+        ${q.reveal.type === 'political' ? '⬤ Décision politique' : q.reveal.type === 'mixed' ? '◐ Mi-personnel, mi-politique' : '○ Choix personnel'}
+      </div>
+    </div>
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">
+      ${idx < total - 1 ? 'Question suivante →' : 'Voir mon résultat →'}
+    </button>
+  `;
+
+  area.style.opacity = 0;
+  requestAnimationFrame(() => {
+    area.style.transition = 'opacity 0.4s ease';
+    area.style.opacity = 1;
+  });
+}
+
+function selectAnswer(idx) {
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach(b => { b.classList.remove('selected'); b.style.pointerEvents = 'none'; });
+  btns[idx].classList.add('selected');
+
+  const q = QUESTIONS[currentQ];
+  answers.push({ question: currentQ, answer: idx, type: q.reveal.type });
+  scores[q.reveal.type]++;
+
+  // Show reveal
+  document.getElementById('reveal-panel').classList.add('visible');
+  document.getElementById('next-btn').classList.add('visible');
+
+  setTimeout(() => {
+    document.getElementById('reveal-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 200);
+}
+
+function nextQuestion() {
+  if (currentQ < QUESTIONS.length - 1) {
+    renderQuestion(currentQ + 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    showResults();
+  }
+}
+
+function showResults() {
+  document.getElementById('screen-quiz').classList.remove('active');
+  document.getElementById('screen-results').classList.add('active');
+  document.getElementById('progress-bar').style.width = '100%';
+
+  const total = QUESTIONS.length;
+  const polPct = Math.round((scores.political / total) * 100);
+  const mixPct = Math.round((scores.mixed / total) * 100);
+  const perPct = Math.round((scores.personal / total) * 100);
+  const nonPersonalPct = Math.round(((scores.political + scores.mixed) / total) * 100);
+
+  // Determine verdict
+  let verdictTitle, verdictText;
+  if (scores.political >= 8) {
+    verdictTitle = "Presque rien de votre quotidien n'est un \"choix libre\"";
+    verdictText = "Sur les 12 dimensions de votre vie explorées ici, la grande majorité est déterminée ou fortement influencée par des décisions politiques prises sans vous. Ce n'est ni de la paranoïa, ni du complotisme — c'est de la mécanique institutionnelle.";
+  } else if (scores.political >= 5) {
+    verdictTitle = "La moitié de votre vie est pré-scriptée";
+    verdictText = "Vous croyez choisir, mais le terrain sur lequel vous choisissez a été façonné bien avant vous. Le cadre fiscal, institutionnel, médiatique et administratif restreint vos options réelles à une fraction de ce qu'elles pourraient être.";
+  } else {
+    verdictTitle = "Même vos choix libres ont des murs invisibles";
+    verdictText = "Même dans les domaines où votre marge de manœuvre est réelle, elle s'exerce dans un espace délimité par des décisions politiques. Le \"libre choix\" en Belgique est souvent un choix entre des options pré-filtrées par le système.";
+  }
+
+  const circ = 2 * Math.PI * 75; // circumference for r=75
+
+  const area = document.getElementById('results-area');
+  area.innerHTML = `
+    <div class="score-hero">
+      <div class="pre">Résultat du Miroir Noir</div>
+      <div class="score-circle">
+        <svg width="100%" height="100%" viewBox="0 0 170 170">
+          <circle class="bg" cx="85" cy="85" r="75"/>
+          <circle class="fg" id="score-arc" cx="85" cy="85" r="75"
+            stroke-dasharray="${circ}"
+            stroke-dashoffset="${circ}"/>
+        </svg>
+        <div class="score-number">
+          <div class="big" id="score-display">0</div>
+          <div class="sub">sur 12</div>
+        </div>
+      </div>
+      <div class="score-label">${verdictTitle}</div>
+      <div class="score-desc">${verdictText}</div>
+    </div>
+
+    <!-- BARS -->
+    <div class="result-bars">
+      <div class="rbar">
+        <div class="rbar-header">
+          <span class="rbar-label">⬤ Décisions politiques</span>
+          <span class="rbar-count pol">${scores.political}/${total}</span>
+        </div>
+        <div class="rbar-track"><div class="rbar-fill pol" id="bar-pol"></div></div>
+      </div>
+      <div class="rbar">
+        <div class="rbar-header">
+          <span class="rbar-label">◐ Mi-personnel, mi-politique</span>
+          <span class="rbar-count mix">${scores.mixed}/${total}</span>
+        </div>
+        <div class="rbar-track"><div class="rbar-fill mix" id="bar-mix"></div></div>
+      </div>
+      <div class="rbar">
+        <div class="rbar-header">
+          <span class="rbar-label">○ Choix réellement personnels</span>
+          <span class="rbar-count per">${scores.personal}/${total}</span>
+        </div>
+        <div class="rbar-track"><div class="rbar-fill per" id="bar-per"></div></div>
+      </div>
+    </div>
+
+    <!-- RECAP -->
+    <div class="recap-list">
+      ${QUESTIONS.map((q, i) => `
+        <div class="recap-item">
+          <div class="recap-dot ${q.reveal.type === 'political' ? 'pol' : q.reveal.type === 'mixed' ? 'mix' : 'per'}"></div>
+          <div>
+            <div class="recap-q">${q.text}</div>
+            <div class="recap-r">${q.reveal.type === 'political' ? 'Déterminé par le système' : q.reveal.type === 'mixed' ? 'Partiellement contraint' : 'Choix personnel réel'} — ${q.category}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- FINAL MESSAGE -->
+    <div class="final-msg">
+      <h3>Ce miroir n'est pas là pour déprimer. Il est là pour armer.</h3>
+      <p>
+        La culpabilité individuelle est le meilleur ami du statu quo. Tant que vous croyez que vos difficultés sont <strong>\"de votre faute\"</strong>, vous ne remettrez pas en question le système qui les produit.
+      </p>
+      <p>
+        Le Miroir Noir ne dit pas que vos choix n'existent pas. Il dit que <strong>l'espace dans lequel vous choisissez est plus petit que vous ne le pensez</strong> — et que cet espace a été dessiné par d'autres.
+      </p>
+      <p>
+        <strong>La première étape pour élargir cet espace, c'est de voir ses murs.</strong>
+      </p>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-row">
+      <button class="cta-btn primary" onclick="exportResults()">📋 Copier mon résultat</button>
+      <button class="cta-btn secondary" onclick="shareResults(${scores.political}, ${total})">↗ Partager</button>
+      <a class="cta-btn secondary" href="calculateur-impact.html">← Calculateur d'Impact</a>
+      <a class="cta-btn secondary" href="detecteur-cadrage.html">Détecteur de Cadrage →</a>
+    </div>
+
+    <div class="footer">
+      <div>◇ DÉMOGARCHIE · <a href="https://ouaisfi.eu">ouaisfieu</a> · CC BY-NC 4.0</div>
+      <div>心理战 Module 02/17 · Fork • Hack • Spread</div>
+    </div>
+  `;
+
+  // Animate score
+  setTimeout(() => {
+    const targetOffset = circ - (circ * (scores.political + scores.mixed * 0.5) / total);
+    document.getElementById('score-arc').style.strokeDashoffset = targetOffset;
+
+    document.getElementById('bar-pol').style.width = (scores.political / total * 100) + '%';
+    document.getElementById('bar-mix').style.width = (scores.mixed / total * 100) + '%';
+    document.getElementById('bar-per').style.width = (scores.personal / total * 100) + '%';
+
+    // Count up score
+    let count = 0;
+    const target = scores.political + scores.mixed;
+    const interval = setInterval(() => {
+      count++;
+      document.getElementById('score-display').textContent = count;
+      if (count >= target) clearInterval(interval);
+    }, 120);
+  }, 400);
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function exportResults() {
+  const total = QUESTIONS.length;
+  const text = `◇ DÉMOGARCHIE — Le Miroir Noir\n\nSur 12 aspects de ma vie quotidienne :\n· ${scores.political} sont déterminés par des décisions politiques\n· ${scores.mixed} sont partiellement contraints\n· ${scores.personal} sont des choix réellement libres\n\nPassez le test : [URL]\n#Démogarchie #MiroirNoir`;
+  navigator.clipboard.writeText(text).then(() => alert('Copié !')).catch(() => alert('Erreur'));
+}
+
+function shareResults(pol, total) {
+  const text = `Sur 12 aspects de ma vie quotidienne, ${pol} sont déterminés par des décisions politiques que je n'ai pas prises. Et vous ? #Démogarchie`;
+  if (navigator.share) navigator.share({ title: 'Miroir Noir', text });
+  else { navigator.clipboard.writeText(text); alert('Texte copié.'); }
+}
+</script>
+
+</body>
+</html>
