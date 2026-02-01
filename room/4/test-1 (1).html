@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TEST DE RECRUTEMENT — Citoyen·ne de Classe A</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{min-height:100vh;background:#f8fafc;color:#1e293b;font-family:'Inter',sans-serif;padding:0}
+.topbar{background:#1e293b;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:10px;font-size:.75rem}
+.topbar-logo{font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:.1em;font-size:.8rem}
+.topbar-sub{color:#94a3b8;font-size:.65rem}
+.container{max-width:640px;margin:0 auto;padding:1.5rem 1rem}
+h1{font-size:1.3rem;margin-bottom:.3rem}
+.intro{color:#64748b;font-size:.85rem;margin-bottom:1.5rem;line-height:1.6}
+.progress{height:4px;background:#e2e8f0;border-radius:2px;margin-bottom:1.5rem;overflow:hidden}
+.progress-fill{height:100%;background:#3b82f6;border-radius:2px;transition:width .4s}
+
+.question{display:none;animation:fadeIn .3s ease}
+.question.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.q-num{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#94a3b8;letter-spacing:.1em;margin-bottom:4px}
+.q-text{font-size:1rem;font-weight:600;margin-bottom:1rem;line-height:1.5}
+.q-context{font-size:.75rem;color:#64748b;background:#f1f5f9;padding:.6rem;border-radius:8px;margin-bottom:1rem;line-height:1.6;border-left:3px solid #3b82f6}
+.option{display:block;width:100%;text-align:left;padding:.8rem 1rem;margin:.4rem 0;border:1px solid #e2e8f0;border-radius:10px;background:#fff;font-family:'Inter',sans-serif;font-size:.85rem;cursor:pointer;transition:all .15s;color:#1e293b;line-height:1.4}
+.option:hover{border-color:#3b82f6;background:#f8fafc}
+.option.correct{border-color:#22c55e;background:#f0fdf4;color:#166534}
+.option.wrong{border-color:#ef4444;background:#fef2f2;color:#991b1b}
+.option.reveal{border-color:#f59e0b;background:#fffbeb;color:#92400e}
+.feedback{margin-top:.8rem;padding:.8rem;border-radius:8px;font-size:.8rem;line-height:1.6;display:none}
+.feedback.show{display:block;animation:fadeIn .3s ease}
+.fb-correct{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+.fb-wrong{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+.next-btn{display:none;margin-top:1rem;padding:.6rem 1.5rem;background:#1e293b;color:#fff;border:0;border-radius:8px;font-family:'Inter',sans-serif;font-weight:600;font-size:.85rem;cursor:pointer}
+.next-btn:hover{background:#334155}
+
+.result{display:none;text-align:center;padding:2rem 0}
+.result.active{display:block}
+.score{font-family:'JetBrains Mono',monospace;font-size:3rem;font-weight:700;color:#ef4444}
+.score-label{color:#64748b;font-size:.85rem;margin-bottom:1rem}
+.result-text{font-size:.85rem;color:#475569;line-height:1.7;max-width:500px;margin:0 auto;text-align:left}
+.result-text b{color:#1e293b}
+.result-links{margin-top:1.5rem;display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center}
+.result-links a{padding:.4rem .8rem;border:1px solid #e2e8f0;border-radius:6px;font-size:.75rem;color:#64748b;text-decoration:none}
+.result-links a:hover{border-color:#1e293b;color:#1e293b}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-logo">SELOR.FAKE</span>
+  <span class="topbar-sub">Test de sélection — Citoyen·ne de Classe A — Épreuve n°1</span>
+</div>
+
+<div class="container">
+  <h1>Test de Recrutement Citoyen</h1>
+  <div class="intro">Vous avez 7 questions pour prouver que vous méritez vos droits fondamentaux. C'est ça ou rien. Bonne chance.</div>
+
+  <div class="progress"><div class="progress-fill" id="pbar" style="width:0%"></div></div>
+
+  <div id="quiz"></div>
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+const questions=[
+  {
+    q:"Combien de téléspectateurs ont regardé \"Tous Fraudeurs ?\" sur RTL le 7 novembre 2025 ?",
+    ctx:"Ce documentaire a fait l'objet de plus de 100 plaintes au CSA.",
+    opts:["~120.000","~410.860","~1.200.000","Je ne sais pas, je ne regarde pas RTL"],
+    correct:1,
+    fb:"410.860 exactement, soit 39,1% de part de marché. Le ratio interview de la témoin Gaëlle Denys : 1h filmée, 30 secondes diffusées."
+  },
+  {
+    q:"Quel est le coût estimé d'un fact-checking indépendant du documentaire RTL ?",
+    ctx:"RTL Belgium a un chiffre d'affaires annuel de plusieurs centaines de millions d'euros.",
+    opts:["220.000 €","22.000 €","2.200 €","0 € — c'est gratuit avec Google"],
+    correct:2,
+    fb:"2.200 € selon les estimations académiques. Le documentaire a coûté 120-200.000 €. Le fact-check n'a jamais été fait. 100× moins cher que la production."
+  },
+  {
+    q:"Combien de Belges bénéficient de l'Intervention Majorée (BIM) en 2025 ?",
+    ctx:"Le BIM donne accès aux tarifs sociaux énergie et au remboursement majoré des soins.",
+    opts:["400.000","1,2 million","2,4 millions","5 millions"],
+    correct:2,
+    fb:"2,4 millions — soit 21% de la population belge. +400.000 depuis juin 2020. Ces personnes ont un risque +68% de prolongation en invalidité."
+  },
+  {
+    q:"Que prévoit la coalition Arizona pour les allocations de chômage ?",
+    ctx:"La Belgique était le seul pays européen avec des allocations illimitées dans le temps.",
+    opts:["Augmentation de 10%","Limitation à 24 mois","Suppression totale","Indexation automatique"],
+    correct:1,
+    fb:"Limitation à 24 mois. 184.463 personnes concernées. 30.122 basculements vers le CPAS. Les communes pauvres paient, le fédéral se défausse."
+  },
+  {
+    q:"Combien d'associations d'Éducation Permanente sont gelées par le moratoire FWB ?",
+    ctx:"L'Éducation Permanente forme les citoyens à l'analyse critique et à la participation démocratique.",
+    opts:["12","45","270","Aucune, tout va bien"],
+    correct:2,
+    fb:"270 associations gelées. Moratoire 2026-2028. Loi Quintin : dissolution administrative sans juge. L'endroit où on apprend à penser le système est le premier qu'on ferme."
+  },
+  {
+    q:"Quel article de la Constitution belge garantit le droit à \"une vie conforme à la dignité humaine\" ?",
+    ctx:"3 recours constitutionnels sont pendants (rôles 8629, 8630, 8632).",
+    opts:["Article 10","Article 14","Article 23","Article 47"],
+    correct:2,
+    fb:"Article 23. Principe de standstill : on ne peut pas régresser. La Cour constitutionnelle a un précédent (arrêt 69/2023). Arrêt attendu fin 2026."
+  },
+  {
+    q:"Combien d'associations ont cosigné l'ultimatum envoyé à RTL ?",
+    ctx:"L'objectif est de 50 cosignatures avant le 1er avril 2026.",
+    opts:["127","50","12","0"],
+    correct:3,
+    fb:"Zéro. Personne. Un citoyen isolé et une IA. 29 €/mois de budget. 18 pages déployées. 0 contact. C'est le moment où tu te demandes si c'est pathétique ou héroïque. La bonne réponse : c'est les deux."
+  }
+];
+
+let current=0,score=0;
+const quiz=document.getElementById('quiz');
+
+function render(){
+  if(current>=questions.length){showResult();return;}
+  const q=questions[current];
+  const pct=((current)/questions.length*100);
+  document.getElementById('pbar').style.width=pct+'%';
+  let h=`<div class="question active">
+    <div class="q-num">QUESTION ${current+1}/${questions.length}</div>
+    <div class="q-text">${q.q}</div>
+    <div class="q-context">${q.ctx}</div>`;
+  q.opts.forEach((o,i)=>{
+    h+=`<button class="option" data-i="${i}" onclick="answer(this,${i},${q.correct})">${o}</button>`;
+  });
+  h+=`<div class="feedback" id="fb"></div><button class="next-btn" id="nxt" onclick="current++;render()">Question suivante →</button></div>`;
+  quiz.innerHTML=h;
+}
+
+function answer(el,picked,correct){
+  document.querySelectorAll('.option').forEach(o=>{o.disabled=true;o.style.pointerEvents='none';});
+  if(picked===correct){
+    el.classList.add('correct');score++;
+  } else {
+    el.classList.add('wrong');
+    document.querySelectorAll('.option')[correct].classList.add('reveal');
+  }
+  const fb=document.getElementById('fb');
+  fb.className=`feedback show ${picked===correct?'fb-correct':'fb-wrong'}`;
+  fb.textContent=questions[current].fb;
+  document.getElementById('nxt').style.display='inline-block';
+}
+
+function showResult(){
+  document.getElementById('pbar').style.width='100%';
+  quiz.style.display='none';
+  const r=document.getElementById('result');
+  r.classList.add('active');
+  const grade=score===7?'A':score>=5?'B':score>=3?'C':'EXCLU·E';
+  r.innerHTML=`
+    <div class="score">${score}/7</div>
+    <div class="score-label">Citoyen·ne de Classe ${grade}</div>
+    <div class="result-text">
+      ${score===7?
+        `<p><b>Score parfait.</b> Tu connais mieux le système que ceux qui le dirigent. Ça ne change rien : tu n'as toujours aucun pouvoir, et RTL n'a toujours pas fait de fact-checking.</p>`:
+        score>=5?
+        `<p><b>Pas mal.</b> Tu sais des choses que 410.860 téléspectateurs ne savent pas. Mais savoir ne suffit pas. Il faut que 50 associations signent un papier.</p>`:
+        score>=3?
+        `<p><b>Moyen.</b> C'est normal — l'information est volontairement opaque. Le système est conçu pour que tu ne comprennes pas comment il te broie.</p>`:
+        `<p><b>Exclu·e du système.</b> Comme 184.463 chômeurs en 2026. La différence : eux n'ont pas choisi de rater le test.</p>`
+      }
+      <p style="margin-top:.5rem"><b>Ce test n'est pas un vrai test.</b> Aucun citoyen ne devrait avoir à prouver qu'il mérite ses droits. L'article 23 de la Constitution les garantit. La coalition Arizona les retire. RTL filme ceux qui tombent sans vérifier si le filet existe.</p>
+    </div>
+    <div class="result-links">
+      <a href="google.html">Catalogue complet</a>
+      <a href="veilleuxses.html">Devenir enquêteur</a>
+      <a href="gork.html">Demander à GORK</a>
+      <a href="stic-anarchie.html">Jouer plutôt</a>
+      <a href="wr-central.html">War Room</a>
+      <a href="cookies.html">Politique Cookies</a>
+      <a href="404.html">Support technique</a>
+      <a href="veille-1160.html">Le projet</a>
+    </div>`;
+}
+
+render();
+</script>
+</body>
+</html>

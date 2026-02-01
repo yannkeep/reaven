@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>STIC DE L'ANARCHIE — Licornes & Bisounours vs. Capitalisme</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{min-height:100vh;font-family:'Fredoka',sans-serif;background:linear-gradient(135deg,#fce7f3,#dbeafe,#dcfce7,#fef3c7);background-size:400% 400%;animation:bg 12s ease infinite}
+@keyframes bg{0%{background-position:0 50%}50%{background-position:100% 50%}100%{background-position:0 50%}}
+
+.game{max-width:520px;margin:0 auto;padding:1rem;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+.card{background:#fff;border-radius:24px;padding:1.5rem;box-shadow:0 8px 40px rgba(0,0,0,.08);border:3px solid #e5e7eb;transition:all .3s;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:-50%;right:-50%;width:200%;height:200%;background:conic-gradient(from 0deg,transparent,rgba(168,85,247,.05),transparent,rgba(56,189,248,.05),transparent);animation:spin 10s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.emoji{font-size:3rem;text-align:center;margin-bottom:.5rem;position:relative;z-index:1}
+h2{text-align:center;font-size:1.3rem;color:#1e293b;margin-bottom:.3rem;position:relative;z-index:1}
+.scene{font-size:.85rem;color:#64748b;text-align:center;line-height:1.6;margin-bottom:1rem;position:relative;z-index:1}
+
+.choices{display:flex;flex-direction:column;gap:.5rem;position:relative;z-index:1}
+.choice{display:block;width:100%;text-align:left;padding:.8rem 1rem;border:2px solid #e5e7eb;border-radius:16px;background:#fff;font-family:'Fredoka',sans-serif;font-size:.9rem;cursor:pointer;transition:all .15s;color:#1e293b;line-height:1.3}
+.choice:hover{transform:translateY(-2px);border-color:#a855f7;box-shadow:0 4px 16px rgba(168,85,247,.15)}
+.choice.c1:hover{border-color:#ef4444;box-shadow:0 4px 16px rgba(239,68,68,.15)}
+.choice.c2:hover{border-color:#22c55e;box-shadow:0 4px 16px rgba(34,197,94,.15)}
+.choice.c3:hover{border-color:#3b82f6;box-shadow:0 4px 16px rgba(59,130,246,.15)}
+
+.stats{display:flex;justify-content:center;gap:1rem;margin-top:.8rem;font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#94a3b8;position:relative;z-index:1}
+.stat{text-align:center}
+.stat-val{font-size:1.1rem;font-weight:700;color:#1e293b;font-family:'Fredoka',sans-serif}
+
+.end-links{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:1rem;position:relative;z-index:1}
+.end-links a{padding:.4rem .8rem;border:2px solid #e5e7eb;border-radius:12px;font-size:.7rem;color:#64748b;text-decoration:none;font-family:'JetBrains Mono',monospace}
+.end-links a:hover{border-color:#a855f7;color:#a855f7}
+</style>
+</head>
+<body>
+
+<div class="game">
+  <div class="card" id="card"></div>
+</div>
+
+<script>
+let hp=100,dignite=100,droits=5,tour=1;
+
+const scenes={
+  start:{
+    emoji:'🦄',title:'Bienvenue en Belgique !',
+    text:'Tu es un·e citoyen·ne. Tu as des droits (en théorie). Tu as de la dignité (en théorie). Le jeu commence. Bonne chance.',
+    choices:[
+      {text:'🏢 Travailler (CDI)',goto:'travail'},
+      {text:'🤒 Tomber malade',goto:'maladie'},
+      {text:'📦 Perdre son emploi',goto:'chomage'}
+    ]
+  },
+  travail:{
+    emoji:'💼',title:'Tu travailles.',
+    text:'Félicitations ! Mais le loyer augmente, l\'indexation ne suit pas, et ton patron parle de restructuration. Un matin, tu te sens… pas bien.',
+    choices:[
+      {text:'🤒 Aller chez le médecin',goto:'maladie',fx:()=>{hp-=20}},
+      {text:'💪 Tenir bon (burn-out)',goto:'burnout',fx:()=>{hp-=40;dignite-=20}},
+      {text:'🦄 Invoquer la licorne magique',goto:'licorne'}
+    ]
+  },
+  maladie:{
+    emoji:'🏥',title:'Convoqué·e !',
+    text:`Tu es malade. L'INAMI te convoque au 4e mois. Puis au 7e. Puis au 11e. Ton médecin dit "repos". Le médecin-conseil dit "apte". 526.000 personnes vivent ça.`,
+    choices:[
+      {text:'📋 Accepter le C4 médical (6 mois)',goto:'exclusion',fx:()=>{droits--;dignite-=30}},
+      {text:'⚖️ Contester (recours)',goto:'juridique',fx:()=>{hp-=10}},
+      {text:'🦄 Invoquer la licorne magique',goto:'licorne'}
+    ]
+  },
+  burnout:{
+    emoji:'🔥',title:'Burn-out.',
+    text:'66,4% des malades longue durée sont en burn-out ou dépression. 69% sont des femmes. Tu fais maintenant partie des statistiques. Bienvenue dans le cercle VII.',
+    choices:[
+      {text:'📄 Demander l\'invalidité',goto:'invalidite',fx:()=>{droits--;hp-=20}},
+      {text:'🏃 Reprendre à mi-temps',goto:'piege',fx:()=>{dignite-=20}},
+      {text:'🦄 Invoquer la licorne magique',goto:'licorne'}
+    ]
+  },
+  chomage:{
+    emoji:'📦',title:'24 mois et après ?',
+    text:'Coalition Arizona : limitation à 24 mois. Compteur activé. Tu fais partie des 184.463. Au bout du tunnel : le CPAS. File d\'attente : 240 ETP manquants rien qu\'à Bruxelles.',
+    choices:[
+      {text:'🏛️ Aller au CPAS',goto:'cpas',fx:()=>{dignite-=30;droits--}},
+      {text:'📺 Allumer RTL',goto:'rtl',fx:()=>{dignite-=40}},
+      {text:'🦄 Invoquer la licorne magique',goto:'licorne'}
+    ]
+  },
+  invalidite:{
+    emoji:'📝',title:'Renouvellement annuel.',
+    text:'218.000 dossiers à réexaminer. Le tien aussi. Chaque année. Objectif du gouvernement : 17% de sorties en plus. Tu es un objectif chiffré.',
+    choices:[
+      {text:'😔 Abandonner',goto:'exclusion',fx:()=>{droits=0;dignite-=40}},
+      {text:'⚖️ Se battre',goto:'juridique'},
+      {text:'🦄 Invoquer la licorne magique',goto:'licorne'}
+    ]
+  },
+  piege:{
+    emoji:'🪤',title:'Le piège du premier euro.',
+    text:'Tu reprends à mi-temps. Premier euro gagné → perte du statut BIM → perte tarif social énergie → perte remboursement majoré soins. Taux marginal effectif : >100%. Tu gagnes moins qu\'avant.',
+    choices:[
+      {text:'🛑 Arrêter de travailler',goto:'chomage',fx:()=>{dignite-=20}},
+      {text:'😤 Continuer quand même',goto:'exclusion',fx:()=>{hp-=30;dignite-=20}},
+      {text:'🦄 Invoquer la licorne magique',goto:'licorne'}
+    ]
+  },
+  cpas:{
+    emoji:'🏛️',title:'CPAS surchargé.',
+    text:'Délai légal : 30 jours. Réalité : des mois. 30.122 nouveaux dossiers. Pas de budget fédéral. Le travailleur social qui te reçoit est aussi en burn-out.',
+    choices:[
+      {text:'📺 Allumer RTL en attendant',goto:'rtl',fx:()=>{dignite-=30}},
+      {text:'⚖️ Faire un recours',goto:'juridique'},
+      {text:'🦄 Invoquer la licorne magique',goto:'licorne'}
+    ]
+  },
+  rtl:{
+    emoji:'📺',title:'« Tous Fraudeurs ? »',
+    text:'410.860 personnes regardent le même documentaire. L\'IWEPS dément les chiffres cités. Le ratio interview : 120:1. Mais toi, tu ne le sais pas encore. Tu crois ce que tu vois.',
+    choices:[
+      {text:'😡 Porter plainte au CSA',goto:'juridique',fx:()=>{dignite+=10}},
+      {text:'😔 Intérioriser la honte',goto:'exclusion',fx:()=>{dignite-=50;hp-=30}},
+      {text:'🦄 Invoquer la licorne magique',goto:'licorne'}
+    ]
+  },
+  juridique:{
+    emoji:'⚖️',title:'Article 23.',
+    text:'"Vie conforme à la dignité humaine." 3 recours pendants. Arrêt attendu fin 2026. Le droit existe. L\'application… on verra.',
+    choices:[
+      {text:'⏳ Attendre l\'arrêt',goto:'attente'},
+      {text:'✊ Rejoindre le front',goto:'front',fx:()=>{dignite+=20}},
+      {text:'🦄 Invoquer la licorne magique',goto:'licorne'}
+    ]
+  },
+  attente:{
+    emoji:'⏳',title:'Fin 2026…',
+    text:'L\'arrêt n\'est pas encore tombé. En attendant : 184.463 exclusions, 526.000 malades contrôlés, 270 associations gelées, et un documentaire RTL que personne n\'a corrigé.',
+    choices:[
+      {text:'🔁 Recommencer',goto:'start',fx:()=>{hp=100;dignite=100;droits=5;tour=1}},
+      {text:'📡 Voir le vrai projet',goto:'fin'}
+    ]
+  },
+  front:{
+    emoji:'✊',title:'Le front commun.',
+    text:'FGTB + CSC + CGSLB = 1,5 million de membres. Solidaris. BAPN. RWLP. Ligue DH. Tout le monde est d\'accord. Personne ne signe l\'ultimatum RTL.',
+    choices:[
+      {text:'😤 Signer quand même',goto:'fin',fx:()=>{dignite+=30}},
+      {text:'🔁 Recommencer',goto:'start',fx:()=>{hp=100;dignite=100;droits=5;tour=1}}
+    ]
+  },
+  licorne:{
+    emoji:'🦄',title:'La licorne n\'existe pas.',
+    text:'Désolé. Il n\'y a pas de licorne. Il n\'y a pas de bisounours. Il y a 978.000 personnes en inactivité contrainte et un budget de 29 €/mois. Mais il y a toi.',
+    choices:[
+      {text:'😤 OK, je continue sans licorne',goto:'juridique',fx:()=>{dignite+=10}},
+      {text:'📡 Voir le vrai projet',goto:'fin'}
+    ]
+  },
+  exclusion:{
+    emoji:'💀',title:'Exclu·e.',
+    text:'Game over. Tu as rejoint les statistiques. 184.463 chômeurs. 526.000 malades. 2,4 millions de BIM. L\'article 23 te garantit la dignité. La réalité te l\'a retirée.',
+    choices:[
+      {text:'🔁 Recommencer',goto:'start',fx:()=>{hp=100;dignite=100;droits=5;tour=1}},
+      {text:'📡 Voir le vrai projet',goto:'fin'}
+    ]
+  },
+  fin:{
+    emoji:'📡',title:'Le Vrai Jeu.',
+    text:'Ce n\'était pas un jeu. C\'est la réalité de 978.000 personnes. Chaque choix que tu as fait, quelqu\'un le vit. La seule différence : toi tu peux fermer l\'onglet. Eux non.',
+    choices:[],
+    links:true
+  }
+};
+
+function render(id){
+  const s=scenes[id];
+  hp=Math.max(0,Math.min(100,hp));
+  dignite=Math.max(0,Math.min(100,dignite));
+  droits=Math.max(0,droits);
+  tour++;
+  let h=`<div class="emoji">${s.emoji}</div><h2>${s.title}</h2><div class="scene">${s.text}</div>`;
+  h+=`<div class="stats"><div class="stat"><div class="stat-val">${hp}</div>PV</div><div class="stat"><div class="stat-val">${dignite}</div>Dignité</div><div class="stat"><div class="stat-val">${droits}</div>Droits</div><div class="stat"><div class="stat-val">${tour}</div>Tour</div></div>`;
+  if(s.choices.length){
+    h+=`<div class="choices" style="margin-top:1rem">`;
+    s.choices.forEach((c,i)=>{
+      h+=`<button class="choice c${i+1}" onclick="go('${c.goto}'${c.fx?','+i:''})">${c.text}</button>`;
+    });
+    h+=`</div>`;
+  }
+  if(s.links){
+    h+=`<div class="end-links">
+      <a href="google.html">📋 Catalogue</a><a href="veilleuxses.html">🔍 Enquêter</a>
+      <a href="gork.html">🤖 GORK</a><a href="test-1.html">📝 Test</a>
+      <a href="wr-central.html">◉ War Room</a><a href="cookies.html">🍪 Cookies</a>
+      <a href="404.html">💀 404</a><a href="veille-1160.html">📡 Projet</a>
+    </div>`;
+  }
+  document.getElementById('card').innerHTML=h;
+}
+
+// Store fx functions
+const fxMap={};
+Object.entries(scenes).forEach(([k,s])=>{
+  s.choices.forEach((c,i)=>{if(c.fx)fxMap[k+'_'+i]=c.fx;});
+});
+
+function go(id,fxIdx){
+  // Find current scene to get fx
+  if(fxIdx!==undefined){
+    const curr=document.querySelector('h2').textContent;
+    const sceneKey=Object.entries(scenes).find(([k,s])=>s.title===curr);
+    if(sceneKey&&sceneKey[1].choices[fxIdx]&&sceneKey[1].choices[fxIdx].fx){
+      sceneKey[1].choices[fxIdx].fx();
+    }
+  }
+  render(id);
+}
+
+render('start');
+</script>
+</body>
+</html>
