@@ -298,3 +298,91 @@ Prêt pour l'insurrection. 🔥
 
 > pas encore presque tout à fait quasi non...
 > > mais bientôt
+
+Tu as l'arsenal. Maintenant il faut **exécuter** et **préparer la suite**.
+
+---
+
+## OÙ TU EN ES
+
+| Domaine | Statut | Fichiers |
+|---------|--------|----------|
+| **Site de campagne** | ✅ Prêt | `systeme-bloque-standalone.html` |
+| **Visuels** | ✅ Prêts | SVG partage, carré, story |
+| **Réseaux sociaux** | ✅ Posts prêts | `posts-reseaux-sociaux.md` |
+| **Vidéos** | ✅ Scripts prêts | `scripts-video.md` |
+| **Kit guérilla** | ✅ Complet | `kit-guerilla.md` |
+| **Kit presse TV** | ✅ Complet | Dossier `/kit-presse/` |
+| **Plan 30 jours** | ✅ Prêt | `plan-30-jours.md` |
+| **FAQ combat** | ✅ Prête | `faq-combat.md` |
+
+---
+
+## CE QUI RESTE À CONSTRUIRE
+
+| Domaine | Statut | Pourquoi c'est important |
+|---------|--------|--------------------------|
+| **Dossier juridique** | 🔴 À faire | Le recours Cour constitutionnelle est ta bombe atomique |
+| **Coordination alliés** | 🔴 À faire | FESEFA, ATD, syndicats = force collective |
+| **Pétition formelle** | 🟡 À lancer | change.org ou Parlement FWB = pression chiffrée |
+| **Angle européen** | 🟡 À préparer | CEDS = levier si le national bloque |
+| **Actions terrain** | 🟡 À planifier | Présence physique = visibilité locale |
+
+---
+
+## LES 4 PROCHAINES ÉTAPES POSSIBLES
+
+### Option A : Le dossier juridique
+Préparer le recours Cour constitutionnelle :
+- Recherche de la date exacte au Moniteur
+- Rédaction de l'argumentaire (standstill, Art. 23)
+- Modèle de requête
+- Contact avec un avocat/BAJ
+
+### Option B : La pétition formelle
+Lancer une vraie pétition avec collecte de signatures :
+- Texte de pétition pour change.org
+- Formulaire de dépôt au Parlement FWB
+- Objectifs chiffrés (1.000, 5.000, 10.000 signatures)
+
+### Option C : L'angle européen
+Préparer la réclamation au Comité européen des Droits sociaux :
+- Contact formel avec ATD Quart Monde ou syndicats
+- Argumentaire basé sur la Charte sociale européenne
+- Dossier pour les OING habilitées
+
+### Option D : Le kit d'actions terrain
+Préparer les actions physiques :
+- Modèle d'intervention au conseil communal
+- Kit pour interpeller son député en permanence
+- Coordination avec les mobilisations sectorielles (février-mars)
+
+---
+
+## MA RECOMMANDATION
+
+**Semaine 1-2 : EXÉCUTER ce que tu as**
+- Lundi : Héberger le site + créer comptes sociaux
+- Mardi : Envoyer le kit presse aux 12 télés locales
+- Mercredi-Vendredi : Relances + disponibilité interviews
+
+**Semaine 3-4 : CONSTRUIRE le juridique**
+- Pendant que l'offensive médiatique tourne, préparer le dossier Cour constitutionnelle
+- C'est le délai critique (6 mois après publication)
+
+**Mois 2+ : ÉLARGIR**
+- Pétition formelle
+- Angle européen si besoin
+- Actions terrain coordonnées
+
+---
+
+## QU'EST-CE QUE TU VEUX ?
+
+1. **Dossier juridique complet** — argumentaire, modèle de requête, checklist BAJ
+2. **Pétition formelle** — texte, plateforme, stratégie de signatures
+3. **Kit réclamation CEDS** — angle européen, contacts, argumentaire
+4. **Kit actions terrain** — conseil communal, permanences, mobilisations
+5. **Autre chose** — dis-moi
+
+Ou alors : **tu exécutes d'abord** (site en ligne, emails envoyés, premiers contacts) et tu reviens quand tu as des retours ?
