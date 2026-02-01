@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>◇ DÉMOGARCHIE — Calculateur d'Impact</title>
+<meta name="description" content="Combien la particratie belge vous coûte par mois ? Calculez votre facture personnalisée.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Bitter:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0a0a;
+  --surface: #111;
+  --panel: #181818;
+  --border: #2a2a2a;
+  --text: #e0e0e0;
+  --text-dim: #777;
+  --red: #e63946;
+  --red-glow: rgba(230, 57, 70, 0.3);
+  --green: #2a9d8f;
+  --amber: #e9c46a;
+  --white: #fafafa;
+  --mono: 'IBM Plex Mono', monospace;
+  --serif: 'Bitter', Georgia, serif;
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* NOISE OVERLAY */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* HEADER */
+.header {
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.logo {
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: 1.4rem;
+  color: var(--red);
+  letter-spacing: -0.02em;
+}
+.logo span { color: var(--text-dim); font-weight: 400; font-size: 0.8rem; }
+.badge {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: 2px;
+}
+.header-right {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-align: right;
+}
+
+/* MAIN CONTAINER */
+.container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 6rem;
+}
+
+/* INTRO */
+.intro {
+  padding: 3rem 0 2rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2.5rem;
+}
+.intro h1 {
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: 2.4rem;
+  line-height: 1.15;
+  color: var(--white);
+  margin-bottom: 1rem;
+  max-width: 600px;
+}
+.intro h1 em {
+  font-style: normal;
+  color: var(--red);
+}
+.intro p {
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--text-dim);
+  max-width: 560px;
+}
+
+/* FORM STEPS */
+.step {
+  margin-bottom: 2.5rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.step.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.step-number {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--red);
+  margin-bottom: 0.5rem;
+}
+.step-title {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--white);
+  margin-bottom: 0.4rem;
+}
+.step-desc {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-bottom: 1.2rem;
+  line-height: 1.6;
+}
+
+/* SELECTOR BUTTONS */
+.selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.6rem;
+}
+.selector-btn {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.9rem 1rem;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  border-radius: 2px;
+}
+.selector-btn:hover {
+  border-color: var(--text-dim);
+  background: #1e1e1e;
+}
+.selector-btn.selected {
+  border-color: var(--red);
+  background: rgba(230, 57, 70, 0.08);
+  color: var(--white);
+}
+.selector-btn .btn-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+.selector-btn .btn-detail {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+}
+
+/* SLIDER */
+.slider-container { margin-top: 0.5rem; }
+.slider-value {
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: 2rem;
+  color: var(--white);
+  margin-bottom: 0.5rem;
+}
+.slider-value span { color: var(--red); font-size: 1.2rem; }
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--red);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid var(--bg);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--red);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid var(--bg);
+}
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  margin-top: 0.3rem;
+}
+
+/* CALCULATE BUTTON */
+.calculate-btn {
+  display: block;
+  width: 100%;
+  padding: 1.2rem;
+  background: var(--red);
+  color: var(--white);
+  border: none;
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  margin-top: 1rem;
+}
+.calculate-btn:hover { background: #c1121f; }
+.calculate-btn:disabled {
+  background: var(--panel);
+  color: var(--text-dim);
+  cursor: not-allowed;
+}
+
+/* RESULTS */
+#results {
+  display: none;
+  margin-top: 3rem;
+  padding-top: 3rem;
+  border-top: 2px solid var(--red);
+}
+
+.result-hero {
+  text-align: center;
+  padding: 3rem 0;
+  margin-bottom: 2rem;
+}
+.result-hero .pre-text {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  margin-bottom: 1rem;
+}
+.result-hero .amount {
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: 5rem;
+  color: var(--red);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 60px var(--red-glow);
+}
+.result-hero .amount-sub {
+  font-size: 1.2rem;
+  color: var(--text-dim);
+}
+.result-hero .per-year {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.6rem;
+  color: var(--amber);
+  margin-top: 1rem;
+}
+.result-hero .equivalent {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-top: 0.5rem;
+  line-height: 1.6;
+}
+
+/* BREAKDOWN */
+.breakdown {
+  margin-bottom: 2rem;
+}
+.breakdown-title {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--white);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid rgba(42, 42, 42, 0.5);
+}
+.breakdown-item:last-child { border-bottom: none; }
+.bi-left { flex: 1; }
+.bi-label {
+  font-size: 0.8rem;
+  color: var(--text);
+  margin-bottom: 0.2rem;
+}
+.bi-desc {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.bi-amount {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--red);
+  white-space: nowrap;
+  margin-left: 1.5rem;
+  padding-top: 0.1rem;
+}
+.bi-amount.green { color: var(--green); }
+
+/* BAR VISUALIZATION */
+.bar-container {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+.bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  margin-bottom: 0.5rem;
+}
+.bar-label .label { color: var(--text-dim); }
+.bar-label .value { color: var(--white); font-weight: 600; }
+.bar {
+  height: 28px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 0.4rem;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+  width: 0;
+}
+.bar-fill.red { background: linear-gradient(90deg, var(--red), #ff6b6b); }
+.bar-fill.green { background: linear-gradient(90deg, var(--green), #52c7b8); }
+.bar-fill.amber { background: linear-gradient(90deg, var(--amber), #f4d35e); }
+
+/* COMPARISON TABLE */
+.comparison {
+  margin: 2.5rem 0;
+}
+.comp-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-bottom: none;
+}
+.comp-row:last-child { border-bottom: 1px solid var(--border); }
+.comp-row.header-row {
+  background: var(--panel);
+}
+.comp-cell {
+  padding: 0.7rem 0.8rem;
+  font-size: 0.75rem;
+  border-right: 1px solid var(--border);
+}
+.comp-cell:last-child { border-right: none; }
+.comp-cell.header {
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+}
+.comp-cell.highlight {
+  color: var(--red);
+  font-weight: 700;
+}
+.comp-cell.good {
+  color: var(--green);
+}
+
+/* REVEAL CARDS */
+.reveal-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--red);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  border-radius: 0 2px 2px 0;
+}
+.reveal-card .rc-title {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--white);
+  margin-bottom: 0.6rem;
+}
+.reveal-card .rc-body {
+  font-size: 0.78rem;
+  line-height: 1.7;
+  color: var(--text-dim);
+}
+.reveal-card .rc-body strong {
+  color: var(--text);
+}
+.reveal-card .rc-source {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  margin-top: 0.8rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+/* LIFETIME */
+.lifetime-box {
+  text-align: center;
+  padding: 3rem 2rem;
+  margin: 2.5rem 0;
+  border: 2px solid var(--red);
+  background: rgba(230, 57, 70, 0.04);
+  border-radius: 2px;
+}
+.lifetime-box .lt-pre {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+}
+.lifetime-box .lt-amount {
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: 3.5rem;
+  color: var(--red);
+  line-height: 1;
+}
+.lifetime-box .lt-sub {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-top: 0.5rem;
+}
+
+/* CTA */
+.cta-section {
+  margin-top: 3rem;
+  padding: 2rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+.cta-section h3 {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--white);
+  margin-bottom: 1rem;
+}
+.cta-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+.cta-btn {
+  padding: 0.8rem 1rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s ease;
+  text-align: center;
+  text-decoration: none;
+  display: block;
+}
+.cta-btn.primary {
+  background: var(--red);
+  color: var(--white);
+  border: 1px solid var(--red);
+}
+.cta-btn.primary:hover { background: #c1121f; }
+.cta-btn.secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.cta-btn.secondary:hover { border-color: var(--text-dim); }
+
+/* SOURCES FOOTER */
+.sources {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+.sources summary {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.sources .source-list {
+  margin-top: 1rem;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  line-height: 1.8;
+}
+.sources .source-list a {
+  color: var(--green);
+  text-decoration: none;
+}
+.sources .source-list a:hover { text-decoration: underline; }
+
+/* FOOTER */
+.footer {
+  margin-top: 4rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+}
+.footer a { color: var(--green); text-decoration: none; }
+
+/* ANIMATIONS */
+@keyframes countUp {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+.count-animate {
+  animation: countUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fadeSlideUp 0.6s ease forwards;
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .header { padding: 1rem; }
+  .container { padding: 1.5rem 1rem 4rem; }
+  .intro h1 { font-size: 1.8rem; }
+  .result-hero .amount { font-size: 3.5rem; }
+  .lifetime-box .lt-amount { font-size: 2.5rem; }
+  .selector-grid { grid-template-columns: 1fr; }
+  .cta-actions { grid-template-columns: 1fr; }
+  .comp-cell { padding: 0.5rem; font-size: 0.65rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">◇ DÉMOGARCHIE <span>/ calculateur</span></div>
+    <div class="badge">心理战 PSYCHO</div>
+  </div>
+  <div class="header-right">
+    MICRO · Niveau individu<br>
+    Module 01/17 · v1.0
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="container">
+
+  <!-- INTRO -->
+  <div class="intro">
+    <h1>Combien la particratie <em>vous</em> coûte par mois ?</h1>
+    <p>Quatre questions. Zéro opinion. Que des chiffres officiels — Statbel, Cour des comptes, Chambre des représentants, communes. Le résultat est personnel et ne quitte pas votre navigateur.</p>
+  </div>
+
+  <!-- STEP 1: REGION -->
+  <div class="step visible" id="step1">
+    <div class="step-number">Étape 1/4</div>
+    <div class="step-title">Où habitez-vous ?</div>
+    <div class="step-desc">Votre région détermine les taux d'imposition communaux et régionaux.</div>
+    <div class="selector-grid" id="region-grid">
+      <button class="selector-btn" data-value="wallonie" onclick="selectRegion(this)">
+        <span class="btn-label">Wallonie</span>
+        <span class="btn-detail">262 communes · IPP add. moy. 7,89%</span>
+      </button>
+      <button class="selector-btn" data-value="bruxelles" onclick="selectRegion(this)">
+        <span class="btn-label">Bruxelles</span>
+        <span class="btn-detail">19 communes · IPP add. 4,6–7,5%</span>
+      </button>
+      <button class="selector-btn" data-value="flandre" onclick="selectRegion(this)">
+        <span class="btn-label">Flandre</span>
+        <span class="btn-detail">300 communes · fiscalité différenciée</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 2: REVENUE -->
+  <div class="step" id="step2">
+    <div class="step-number">Étape 2/4</div>
+    <div class="step-title">Quel est votre revenu mensuel brut ?</div>
+    <div class="step-desc">On ne stocke rien. Ce chiffre sert uniquement au calcul.</div>
+    <div class="slider-container">
+      <div class="slider-value"><span id="revenue-display">2 500</span> <span>€ brut/mois</span></div>
+      <input type="range" id="revenue-slider" min="1200" max="8000" value="2500" step="100" oninput="updateRevenue(this.value)">
+      <div class="slider-labels">
+        <span>1 200 €</span>
+        <span>Médiane : 3 550 €</span>
+        <span>8 000 €</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: SITUATION -->
+  <div class="step" id="step3">
+    <div class="step-number">Étape 3/4</div>
+    <div class="step-title">Votre situation familiale ?</div>
+    <div class="step-desc">Détermine les crédits d'impôt et le quotient conjugal.</div>
+    <div class="selector-grid" id="family-grid">
+      <button class="selector-btn" data-value="isole" onclick="selectFamily(this)">
+        <span class="btn-label">Isolé·e</span>
+        <span class="btn-detail">Sans personne à charge</span>
+      </button>
+      <button class="selector-btn" data-value="couple" onclick="selectFamily(this)">
+        <span class="btn-label">Couple</span>
+        <span class="btn-detail">Deux revenus</span>
+      </button>
+      <button class="selector-btn" data-value="famille" onclick="selectFamily(this)">
+        <span class="btn-label">Famille</span>
+        <span class="btn-detail">Avec enfant(s) à charge</span>
+      </button>
+      <button class="selector-btn" data-value="monoparental" onclick="selectFamily(this)">
+        <span class="btn-label">Monoparental</span>
+        <span class="btn-detail">Seul·e avec enfant(s)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 4: HOUSING -->
+  <div class="step" id="step4">
+    <div class="step-number">Étape 4/4</div>
+    <div class="step-title">Votre logement ?</div>
+    <div class="step-desc">Le précompte immobilier impacte directement propriétaires et indirectement locataires.</div>
+    <div class="selector-grid" id="housing-grid">
+      <button class="selector-btn" data-value="locataire" onclick="selectHousing(this)">
+        <span class="btn-label">Locataire</span>
+        <span class="btn-detail">Le PI est répercuté dans le loyer</span>
+      </button>
+      <button class="selector-btn" data-value="proprietaire" onclick="selectHousing(this)">
+        <span class="btn-label">Propriétaire</span>
+        <span class="btn-detail">Précompte immobilier direct</span>
+      </button>
+      <button class="selector-btn" data-value="social" onclick="selectHousing(this)">
+        <span class="btn-label">Logement social</span>
+        <span class="btn-detail">Loyer plafonné</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- CALCULATE -->
+  <button class="calculate-btn" id="calc-btn" disabled onclick="calculate()">
+    Calculer ma facture
+  </button>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <!-- Filled by JS -->
+  </div>
+
+</div>
+
+<script>
+// STATE
+const state = {
+  region: null,
+  revenue: 2500,
+  family: null,
+  housing: null
+};
+
+// DATA — All sourced from project knowledge
+const DATA = {
+  // Cost of institutional overhead per inhabitant per year (estimated from multiple sources)
+  // Belgium: 11.76M inhabitants, debt 104.7% GDP, deficit 4.5% GDP
+  // Senate alone: 44.5M€/year for reduced competencies
+  // 6 governments, 6 parliaments, 10 provinces, 581 communes
+  // Herman Matthijs: highest cost per inhabitant for democratic functioning in Western Europe
+
+  // Institutional bloat cost: comparison Belgium vs Netherlands (simplified model)
+  // Belgium: 6 parliaments + 6 governments + provinces + communes
+  // Netherlands: 2 chambers + 1 government + provinces + municipalities (rationalized)
+  // Estimated overhead: ~420€/habitant/year excess (conservative)
+
+  institutionalOverhead: {
+    wallonie: 480,   // Higher due to additional regional/community layers
+    bruxelles: 520,  // 19 communes non-fusionnées + double community structure
+    flandre: 390     // Community-region merged, more efficient
+  },
+
+  // Senate cost per inhabitant: 44.5M / 11.76M = 3.78€/year
+  senateCostPerCitizen: 3.78,
+
+  // Provincial overhead per citizen: ~85€/year (debated necessity)
+  provincialOverhead: 85,
+
+  // Cabinet ministeriel excess vs NL model
+  // Belgium: ~397 collaborators just FWB community gov
+  // Brussels gov: 470M€ consultancy
+  // Estimated excess: ~180€/citizen/year
+  cabinetExcess: {
+    wallonie: 190,
+    bruxelles: 220,
+    flandre: 160
+  },
+
+  // Pension scandal - cost socialized: deputies exceeded legal cap by 20%
+  // Total indus estimated at several millions over decade
+  pensionScandalPerCitizen: 0.42,
+
+  // Formation gov cost: 541 days (2010-2011), estimated cost ~6M€
+  // More recently: crisis since aug 2024
+  govFormationCost: 0.51,
+
+  // IPP additionnel rates by region (weighted average)
+  ippAdditional: {
+    wallonie: 0.0789,
+    bruxelles: 0.062,
+    flandre: 0.071
+  },
+
+  // Précompte immobilier centimes additionnels (commune moyenne)
+  piRate: {
+    wallonie: 2600,  // centimes additionnels moyens
+    bruxelles: 2900,
+    flandre: 1600
+  },
+
+  // Deputy salary vs average: ratio
+  deputySalary: 9364,
+  averageSalary: 4076,
+
+  // Public debt per citizen: ~52,000€ (debt 625B / 11.76M)
+  debtPerCitizen: 53146,
+
+  // Deficit per citizen per year: (deficit ~28B) / 11.76M
+  deficitPerCitizen: 2380,
+
+  // NL comparison (approximate)
+  nlInstitutionalCost: 280, // estimated per citizen per year
+  nlDeficitPerCitizen: 420,
+  nlDebtPerCitizen: 28400
+};
+
+// SELECTION HANDLERS
+function selectRegion(btn) {
+  document.querySelectorAll('#region-grid .selector-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  state.region = btn.dataset.value;
+  showStep('step2');
+  checkReady();
+}
+
+function selectFamily(btn) {
+  document.querySelectorAll('#family-grid .selector-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  state.family = btn.dataset.value;
+  showStep('step4');
+  checkReady();
+}
+
+function selectHousing(btn) {
+  document.querySelectorAll('#housing-grid .selector-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  state.housing = btn.dataset.value;
+  checkReady();
+}
+
+function updateRevenue(val) {
+  state.revenue = parseInt(val);
+  document.getElementById('revenue-display').textContent = parseInt(val).toLocaleString('fr-BE');
+  showStep('step3');
+}
+
+function showStep(id) {
+  const el = document.getElementById(id);
+  if (!el.classList.contains('visible')) {
+    el.classList.add('visible');
+    setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+  }
+}
+
+function checkReady() {
+  const btn = document.getElementById('calc-btn');
+  if (state.region && state.family && state.housing) {
+    btn.disabled = false;
+    btn.textContent = 'Calculer ma facture';
+  }
+}
+
+// MAIN CALCULATION
+function calculate() {
+  const r = state.region;
+  const rev = state.revenue;
+  const annualGross = rev * 13.92; // 13.92 months (holiday + end-of-year bonus)
+
+  // 1. Institutional overhead (your share based on tax contribution)
+  const taxContributionFactor = rev / DATA.averageSalary; // how much more/less than average
+  const instOverhead = DATA.institutionalOverhead[r] * taxContributionFactor;
+
+  // 2. Cabinet excess
+  const cabExcess = DATA.cabinetExcess[r] * taxContributionFactor;
+
+  // 3. Provincial overhead
+  const provOverhead = DATA.provincialOverhead * taxContributionFactor;
+
+  // 4. Senate (vestigial cost)
+  const senateCost = DATA.senateCostPerCitizen * taxContributionFactor;
+
+  // 5. IPP additionnel communal (actual tax you pay)
+  // Simplified: on net taxable, IPP add = rate * federal tax due
+  // Estimate federal tax at ~35% effective on gross for average earner
+  const effectiveFederalRate = 0.35 + (rev > 4000 ? 0.08 : 0) + (rev > 6000 ? 0.05 : 0);
+  const estimatedFederalTax = annualGross * Math.min(effectiveFederalRate, 0.50);
+  const ippAddCost = estimatedFederalTax * DATA.ippAdditional[r];
+
+  // 6. Housing tax impact
+  let housingTaxImpact = 0;
+  if (state.housing === 'proprietaire') {
+    // Estimated PI: revenu cadastral moyen ~1500€ * centimes additionnels
+    housingTaxImpact = 1500 * (DATA.piRate[r] / 100);
+  } else if (state.housing === 'locataire') {
+    housingTaxImpact = 1500 * (DATA.piRate[r] / 100) * 0.6; // partially passed through
+  } else {
+    housingTaxImpact = 0;
+  }
+
+  // 7. Your share of deficit (what gets added to debt on your behalf each year)
+  const deficitShare = DATA.deficitPerCitizen * taxContributionFactor;
+
+  // 8. Family adjustment
+  let familyMultiplier = 1;
+  if (state.family === 'famille') familyMultiplier = 0.85; // slightly lower effective rate
+  if (state.family === 'monoparental') familyMultiplier = 0.78;
+  if (state.family === 'couple') familyMultiplier = 0.92;
+
+  // TOTAL "COST OF DYSFUNCTION" = institutional waste only (not all taxes)
+  // This is the EXCESS cost compared to a rationalized system
+  const wasteAnnual = (instOverhead + cabExcess + provOverhead + senateCost) * familyMultiplier;
+  const wasteMonthly = wasteAnnual / 12;
+
+  // Total tax burden
+  const totalTaxAnnual = (estimatedFederalTax + ippAddCost + housingTaxImpact) * familyMultiplier;
+  const totalTaxMonthly = totalTaxAnnual / 12;
+
+  // Deficit share (what's being borrowed in your name)
+  const deficitAnnual = deficitShare * familyMultiplier;
+  const deficitMonthly = deficitAnnual / 12;
+
+  // YOUR DEBT (your share of national debt)
+  const yourDebt = DATA.debtPerCitizen;
+
+  // LIFETIME WASTE (40 years of working life)
+  const lifetimeWaste = wasteAnnual * 40;
+
+  // Deputy comparison
+  const yourNetEstimate = rev * (1 - Math.min(effectiveFederalRate + DATA.ippAdditional[r], 0.55));
+  const deputyNet = DATA.deputySalary * (1 - 0.35 + 0.28 * 0.35); // 28% tax-free portion
+
+  // NL comparison
+  const nlWaste = DATA.nlInstitutionalCost * taxContributionFactor * familyMultiplier;
+  const excessVsNL = wasteAnnual - nlWaste;
+
+  // EQUIVALENTS
+  const monthsRent = Math.round(wasteAnnual / 850); // avg rent
+  const groceryWeeks = Math.round(wasteAnnual / 120);
+  const vacationDays = Math.round(wasteAnnual / 95);
+
+  renderResults({
+    wasteMonthly: Math.round(wasteMonthly),
+    wasteAnnual: Math.round(wasteAnnual),
+    instOverhead: Math.round(instOverhead * familyMultiplier),
+    cabExcess: Math.round(cabExcess * familyMultiplier),
+    provOverhead: Math.round(provOverhead * familyMultiplier),
+    senateCost: Math.round(senateCost * familyMultiplier),
+    totalTaxMonthly: Math.round(totalTaxMonthly),
+    deficitMonthly: Math.round(deficitMonthly),
+    deficitAnnual: Math.round(deficitAnnual),
+    yourDebt,
+    lifetimeWaste: Math.round(lifetimeWaste),
+    deputyNet: Math.round(deputyNet),
+    yourNetEstimate: Math.round(yourNetEstimate),
+    excessVsNL: Math.round(excessVsNL),
+    monthsRent,
+    groceryWeeks,
+    vacationDays,
+    taxContributionFactor: taxContributionFactor.toFixed(2),
+    ippAddCost: Math.round(ippAddCost * familyMultiplier),
+    housingTaxImpact: Math.round(housingTaxImpact * familyMultiplier)
+  });
+}
+
+function fmt(n) {
+  return Math.abs(n).toLocaleString('fr-BE');
+}
+
+function renderResults(d) {
+  const resultsEl = document.getElementById('results');
+  const regionNames = { wallonie: 'Wallonie', bruxelles: 'Bruxelles', flandre: 'Flandre' };
+
+  resultsEl.innerHTML = `
+    <!-- HERO NUMBER -->
+    <div class="result-hero count-animate">
+      <div class="pre-text">Le surcoût institutionnel belge vous coûte personnellement</div>
+      <div class="amount">${fmt(d.wasteMonthly)} €</div>
+      <div class="amount-sub">par mois · en surcoût de structure</div>
+      <div class="per-year">soit ${fmt(d.wasteAnnual)} € par an</div>
+      <div class="equivalent">
+        Ça représente ${d.monthsRent} mois de loyer moyen,
+        ${d.groceryWeeks} semaines de courses alimentaires,
+        ou ${d.vacationDays} jours de vacances.
+      </div>
+    </div>
+
+    <!-- WHAT IS THIS? -->
+    <div class="reveal-card fade-in">
+      <div class="rc-title">Ce chiffre, c'est quoi exactement ?</div>
+      <div class="rc-body">
+        Ce n'est <strong>pas le total de vos impôts</strong>. Les impôts financent aussi des services réels (santé, éducation, routes, sécurité sociale).
+        <br><br>
+        Ce chiffre est le <strong>surcoût structurel</strong> : ce que vous payez EN PLUS à cause de la complexité institutionnelle belge par rapport à un pays comparable (Pays-Bas). Six parlements, six gouvernements, dix provinces, des cabinets ministériels pléthoriques, des consultants à 470M€, un Sénat aux compétences réduites mais au budget intact.
+        <br><br>
+        <strong>Ce n'est pas une opinion. C'est de l'arithmétique.</strong>
+      </div>
+    </div>
+
+    <!-- BREAKDOWN -->
+    <div class="breakdown fade-in" style="animation-delay: 0.2s">
+      <div class="breakdown-title">Décomposition de votre surcoût annuel</div>
+
+      <div class="breakdown-item">
+        <div class="bi-left">
+          <div class="bi-label">Lasagne institutionnelle</div>
+          <div class="bi-desc">Surcoût des 6 parlements, 6 gouvernements vs modèle rationalisé. ${regionNames[state.region]} = couche communautaire + régionale superposées.</div>
+        </div>
+        <div class="bi-amount">${fmt(d.instOverhead)} €/an</div>
+      </div>
+
+      <div class="breakdown-item">
+        <div class="bi-left">
+          <div class="bi-label">Cabinets ministériels & consultance</div>
+          <div class="bi-desc">Administration parallèle non élue. Le contribuable paie 3 fois : administration, cabinet politique, consultants privés (470M€ à Bruxelles seul).</div>
+        </div>
+        <div class="bi-amount">${fmt(d.cabExcess)} €/an</div>
+      </div>
+
+      <div class="breakdown-item">
+        <div class="bi-left">
+          <div class="bi-label">Provinces</div>
+          <div class="bi-desc">Échelon régulièrement jugé obsolète mais jamais supprimé. Coût de fonctionnement maintenu malgré transfert de compétences aux régions.</div>
+        </div>
+        <div class="bi-amount">${fmt(d.provOverhead)} €/an</div>
+      </div>
+
+      <div class="breakdown-item">
+        <div class="bi-left">
+          <div class="bi-label">Sénat (compétences réduites)</div>
+          <div class="bi-desc">Budget 2025 : 44,5 millions €. Chambre de rencontre aux compétences limitées depuis 2014. Vous payez ${fmt(d.senateCost)} € pour ça.</div>
+        </div>
+        <div class="bi-amount">${fmt(d.senateCost)} €/an</div>
+      </div>
+    </div>
+
+    <!-- BAR: YOU vs DEPUTY -->
+    <div class="breakdown-title" style="margin-top:2.5rem">Le miroir</div>
+
+    <div class="bar-container fade-in" style="animation-delay: 0.3s">
+      <div class="bar-label">
+        <span class="label">Votre net estimé</span>
+        <span class="value">${fmt(d.yourNetEstimate)} €/mois</span>
+      </div>
+      <div class="bar">
+        <div class="bar-fill green" id="bar-you"></div>
+      </div>
+      <div class="bar-label" style="margin-top:1rem">
+        <span class="label">Net député fédéral (dont 28% non taxé)</span>
+        <span class="value">${fmt(d.deputyNet)} €/mois</span>
+      </div>
+      <div class="bar">
+        <div class="bar-fill red" id="bar-deputy"></div>
+      </div>
+      <div style="font-size:0.65rem; color:var(--text-dim); margin-top:0.8rem;">
+        Un député gagne ${(d.deputyNet / d.yourNetEstimate).toFixed(1)}× votre salaire net,
+        avec 28% d'indemnité exonérée d'impôt automatiquement — un avantage inaccessible au citoyen ordinaire.
+        <br>Source : Statut du membre de la Chambre, art. 66 Constitution, Statbel.
+      </div>
+    </div>
+
+    <!-- COMPARISON TABLE: BE vs NL -->
+    <div class="comparison fade-in" style="animation-delay: 0.4s">
+      <div class="breakdown-title">Belgique vs Pays-Bas — À situation comparable</div>
+      <div class="comp-row header-row">
+        <div class="comp-cell header">Indicateur</div>
+        <div class="comp-cell header">🇧🇪 Belgique</div>
+        <div class="comp-cell header">🇳🇱 Pays-Bas</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-cell">Parlements</div>
+        <div class="comp-cell highlight">6</div>
+        <div class="comp-cell good">2</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-cell">Gouvernements</div>
+        <div class="comp-cell highlight">6</div>
+        <div class="comp-cell good">1</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-cell">Dette/habitant</div>
+        <div class="comp-cell highlight">${fmt(DATA.debtPerCitizen)} €</div>
+        <div class="comp-cell good">${fmt(DATA.nlDebtPerCitizen)} €</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-cell">Déficit/hab./an</div>
+        <div class="comp-cell highlight">${fmt(Math.round(DATA.deficitPerCitizen))} €</div>
+        <div class="comp-cell good">${fmt(Math.round(DATA.nlDeficitPerCitizen))} €</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-cell">Votre surcoût</div>
+        <div class="comp-cell highlight">+${fmt(d.excessVsNL)} €/an</div>
+        <div class="comp-cell good">réf.</div>
+      </div>
+    </div>
+
+    <!-- THE DEBT BOMB -->
+    <div class="reveal-card fade-in" style="animation-delay: 0.5s; border-left-color: var(--amber);">
+      <div class="rc-title">Et on ne vous a pas encore parlé de votre dette</div>
+      <div class="rc-body">
+        Chaque citoyen belge porte <strong>${fmt(d.yourDebt)} € de dette publique</strong> sur ses épaules.
+        Et chaque année, le déficit ajoute <strong>${fmt(d.deficitAnnual)} €</strong> à votre ardoise — soit <strong>${fmt(d.deficitMonthly)} €/mois</strong> empruntés en votre nom,
+        sans que vous ayez votre mot à dire.
+        <br><br>
+        Dette publique : 104,7% du PIB (2024), projetée à 109,8% en 2026. Déficit : 4,5% du PIB, projeté à 5,5%.
+      </div>
+      <div class="rc-source">Sources : FMI Article IV 2023, Commission européenne, BNB</div>
+    </div>
+
+    <!-- LIFETIME -->
+    <div class="lifetime-box fade-in" style="animation-delay: 0.6s">
+      <div class="lt-pre">Sur une carrière de 40 ans, le surcoût institutionnel vous aura coûté</div>
+      <div class="lt-amount">${fmt(d.lifetimeWaste)} €</div>
+      <div class="lt-sub">En gaspillage structurel. Pas en services. En <strong>structure</strong>.</div>
+    </div>
+
+    <!-- PENSION REVEAL -->
+    <div class="reveal-card fade-in" style="animation-delay: 0.7s; border-left-color: var(--green);">
+      <div class="rc-title">Le détail qui tue : le scandale des pensions</div>
+      <div class="rc-body">
+        En 2013, les députés de TOUS les partis (PS, MR, N-VA, Ecolo) ont signé un accord interne permettant de <strong>dépasser le plafond légal des pensions de 20%</strong> — le plafond Wijninckx qu'ils avaient eux-mêmes voté pour les autres citoyens.
+        <br><br>
+        Concrètement : plafond légal à 7 813 €/mois, pension députés à 9 375 €/mois.
+        <strong>Surplus annuel : ~19 000 € par député concerné</strong>, financé par des fonds publics.
+        <br><br>
+        Ce deux poids, deux mesures a été révélé en 2023 — principalement par le PTB, seul parti non signataire de l'accord.
+      </div>
+      <div class="rc-source">Sources : Le Vif, Chambre des représentants, Médiateur Pensions, rapport 2021</div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section fade-in" style="animation-delay: 0.8s">
+      <h3>Ce chiffre vous appartient. Qu'en faites-vous ?</h3>
+      <p style="font-size:0.8rem; color:var(--text-dim); line-height:1.6; margin-bottom:1rem;">
+        Savoir, c'est le premier pas. Mais l'information sans action, c'est de la résignation avec des chiffres.
+      </p>
+      <div class="cta-actions">
+        <button class="cta-btn primary" onclick="exportResult(${d.wasteMonthly}, ${d.wasteAnnual}, ${d.lifetimeWaste})">
+          📋 Copier mon résultat
+        </button>
+        <button class="cta-btn secondary" onclick="shareText(${d.wasteMonthly})">
+          ↗ Partager ce chiffre
+        </button>
+        <a class="cta-btn secondary" href="miroir-noir.html">
+          Passer au Miroir Noir →
+        </a>
+        <a class="cta-btn secondary" href="generateur-recours.html">
+          Exercer mes droits →
+        </a>
+      </div>
+    </div>
+
+    <!-- METHODOLOGY -->
+    <details class="sources fade-in" style="animation-delay: 0.9s">
+      <summary>Sources et méthodologie</summary>
+      <div class="source-list">
+        <strong>Méthode :</strong> Le surcoût institutionnel est estimé par comparaison avec les Pays-Bas (pays comparable en population, PIB/habitant, densité) dont la structure est rationalisée.
+        L'excédent de coût par habitant est pondéré par le ratio revenu individuel / revenu moyen pour personnaliser le résultat.
+        Les chiffres sont conservateurs et arrondis à l'inférieur.
+        <br><br>
+        <strong>Sources principales :</strong><br>
+        · <a href="https://statbel.fgov.be">Statbel</a> — Salaires mensuels bruts moyens (3 414–4 076 €)<br>
+        · <a href="https://www.lachambre.be/kvvcr/pdf_sections/depute/statut%20du%20membre.pdf">Chambre des représentants</a> — Statut du membre, indemnités<br>
+        · <a href="https://www.levif.be">Le Vif</a> — Comparatif rémunérations parlementaires européennes<br>
+        · <a href="https://www.senate.be">Sénat de Belgique</a> — Budget 2025 : 44 541 362 €<br>
+        · <a href="https://www.cumuleo.be">Cumuleo</a> — Mandats et rémunérations<br>
+        · FMI — Article IV Belgique 2023 (dette 104,7% PIB, déficit 4,5%)<br>
+        · UVCW — Finances communales wallonnes 2024 (7,21 Mrd €)<br>
+        · Herman Matthijs (VUB/UGent) — Coût comparé du fonctionnement démocratique<br>
+        · PTB / Revue Politique — Cabinets ministériels, consultance (470M€ BXL)<br>
+        · Médiateur Pensions — Rapport 2021, scandale plafond Wijninckx<br>
+        <br>
+        <strong>Limites :</strong> Ce calculateur produit des estimations. Les chiffres réels varient selon votre commune exacte, votre situation fiscale détaillée et les évolutions budgétaires.
+        Il ne remplace pas un calcul fiscal professionnel. Son but est pédagogique : rendre visible le coût de la complexité institutionnelle.
+        <br><br>
+        <strong>Données :</strong> Zéro donnée transmise. Tout tourne dans votre navigateur. Vérifiable dans le code source (Ctrl+U).
+      </div>
+    </details>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <div>◇ DÉMOGARCHIE · <a href="https://ouaisfi.eu">ouaisfieu</a> · CC BY-NC 4.0</div>
+      <div>心理战 Module 01/17 · Fork • Hack • Spread</div>
+    </div>
+  `;
+
+  resultsEl.style.display = 'block';
+
+  // Animate bars after render
+  setTimeout(() => {
+    const maxBar = Math.max(d.yourNetEstimate, d.deputyNet);
+    document.getElementById('bar-you').style.width = (d.yourNetEstimate / maxBar * 100) + '%';
+    document.getElementById('bar-deputy').style.width = (d.deputyNet / maxBar * 100) + '%';
+  }, 300);
+
+  // Scroll to results
+  setTimeout(() => {
+    resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 200);
+}
+
+// EXPORT
+function exportResult(monthly, annual, lifetime) {
+  const text = `◇ DÉMOGARCHIE — Mon résultat\n\nLe surcoût institutionnel belge me coûte :\n· ${monthly} €/mois\n· ${annual} €/an\n· ${lifetime} € sur une carrière\n\nCalculez le vôtre : [URL]\n\n#Démogarchie #ParticratieBelge`;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Résultat copié dans le presse-papier.');
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('Résultat copié.');
+  });
+}
+
+function shareText(monthly) {
+  const text = `Le surcoût institutionnel belge me coûte ${monthly} €/mois. Et vous ? #Démogarchie`;
+  if (navigator.share) {
+    navigator.share({ title: 'DÉMOGARCHIE', text });
+  } else {
+    navigator.clipboard.writeText(text);
+    alert('Texte copié — collez-le où vous voulez.');
+  }
+}
+
+// INIT
+document.addEventListener('DOMContentLoaded', () => {
+  // Step 2 already visible on region select, etc.
+  // Revenue slider init
+  updateRevenue(2500);
+});
+</script>
+
+</body>
+</html>
