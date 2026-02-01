@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAR ROOM — Salle de Crise</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Inter','Space Grotesk',system-ui,sans-serif;
+  background:#020617;color:#e5e7eb;line-height:1.6;min-height:100vh;
+  display:flex;flex-direction:column;
+}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;
+  background-image:linear-gradient(rgba(15,23,42,.18) 1px,transparent 1px);
+  background-size:100% 2px;mix-blend-mode:soft-light;opacity:.6;}
+::selection{background:#22c55e;color:#020617;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:#020617;}
+::-webkit-scrollbar-thumb{background:#1e3a5f;}
+
+:root{
+  --bg:#020617;--card:rgba(3,7,18,.98);--card-alt:rgba(15,23,42,.95);
+  --border:rgba(148,163,184,.12);--border-hi:rgba(56,189,248,.25);
+  --text:#e5e7eb;--dim:#9ca3af;--smoke:#6b7280;
+  --green:#22c55e;--blue:#38bdf8;--orange:#f97316;--purple:#a855f7;--red:#ef4444;--cyan:#06b6d4;--amber:#f59e0b;
+  --mono:'JetBrains Mono',monospace;--sans:'Inter','Space Grotesk',sans-serif;
+  --radius:12px;
+}
+a{color:var(--blue);text-decoration:none;}
+
+/* ═══ TOP NAV ═══ */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:linear-gradient(90deg,rgba(3,7,18,.97),rgba(3,7,18,.99));
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(12px);
+  display:flex;align-items:center;padding:0 8px;height:42px;gap:4px;
+  box-shadow:0 4px 30px rgba(0,0,0,.5);
+}
+.nav-item{
+  display:flex;align-items:center;gap:4px;padding:6px 10px;
+  font-family:var(--mono);font-size:.55rem;letter-spacing:.08em;
+  color:var(--dim);border-radius:6px;transition:all .2s;white-space:nowrap;
+  text-decoration:none;
+}
+.nav-item:hover{background:rgba(56,189,248,.08);color:var(--blue);}
+.nav-item.active{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2);}
+.nav-icon{font-size:.7rem;}
+.nav-label{text-transform:uppercase;}
+.nav-spacer{flex:1;}
+.nav-clock{font-family:var(--mono);font-size:.5rem;color:var(--smoke);letter-spacing:.05em;}
+.nav-burger{display:none;background:none;border:none;color:var(--dim);font-size:1.2rem;cursor:pointer;padding:6px;}
+
+@media(max-width:900px){
+  .nav-item:not(.active){display:none;}
+  .nav-burger{display:block;}
+  .nav-spacer{flex:1;}
+}
+
+/* ═══ MOBILE MODAL ═══ */
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(2,6,23,.95);backdrop-filter:blur(20px);
+  overflow-y:auto;padding:1rem;
+}
+.modal-overlay.open{display:flex;flex-direction:column;align-items:center;padding-top:3rem;}
+.modal-close{
+  position:fixed;top:8px;right:12px;z-index:201;
+  background:none;border:1px solid var(--border);border-radius:8px;
+  color:var(--dim);font-size:1.2rem;padding:6px 12px;cursor:pointer;
+}
+.mnav-item{
+  display:block;width:100%;max-width:400px;padding:12px 16px;
+  font-family:var(--mono);font-size:.7rem;color:var(--dim);
+  border-bottom:1px solid var(--border);transition:all .2s;text-decoration:none;
+}
+.mnav-item:hover,.mnav-item.active{color:var(--green);background:rgba(34,197,94,.05);}
+.mnav-ext{color:var(--blue);font-size:.6rem;}
+.mnav-ext:hover{color:var(--cyan);}
+.mnav-sep{
+  width:100%;max-width:400px;padding:12px 16px 6px;
+  font-family:var(--mono);font-size:.4rem;letter-spacing:.2em;color:var(--smoke);
+  border-bottom:1px solid rgba(34,197,94,.15);margin-top:8px;
+}
+
+/* ═══ SCREEN TITLE ═══ */
+.screen-header{
+  padding:1.2rem 1rem .6rem;display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;
+}
+.screen-id{font-family:var(--mono);font-size:.45rem;letter-spacing:.2em;color:var(--smoke);text-transform:uppercase;}
+.screen-title{font-family:var(--sans);font-size:clamp(1.2rem,3vw,1.8rem);font-weight:700;color:var(--text);}
+.screen-status{font-family:var(--mono);font-size:.45rem;padding:2px 8px;border-radius:4px;background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2);}
+
+/* ═══ GRID ═══ */
+.grid{display:grid;gap:8px;padding:8px;flex:1;}
+.grid-2{grid-template-columns:1fr 1fr;}
+.grid-3{grid-template-columns:1fr 1fr 1fr;}
+.grid-23{grid-template-columns:2fr 1fr;}
+.grid-32{grid-template-columns:1fr 2fr;}
+.grid-full{grid-template-columns:1fr;}
+@media(max-width:900px){.grid-2,.grid-3,.grid-23,.grid-32{grid-template-columns:1fr;}}
+
+/* ═══ PANELS ═══ */
+.panel{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:10px;position:relative;overflow:hidden;
+  box-shadow:0 8px 30px rgba(0,0,0,.4);
+}
+.panel::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(circle at 0 0,rgba(56,189,248,.04),transparent 60%);
+}
+.panel-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);
+}
+.panel-label{font-family:var(--mono);font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--smoke);}
+.panel-badge{font-family:var(--mono);font-size:.4rem;padding:1px 6px;border-radius:3px;letter-spacing:.05em;}
+.badge-green{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.2);}
+.badge-red{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+.badge-blue{background:rgba(56,189,248,.12);color:var(--blue);border:1px solid rgba(56,189,248,.2);}
+.badge-orange{background:rgba(249,115,22,.12);color:var(--orange);border:1px solid rgba(249,115,22,.2);}
+.badge-purple{background:rgba(168,85,247,.12);color:var(--purple);border:1px solid rgba(168,85,247,.2);}
+
+/* ═══ DATA ELEMENTS ═══ */
+.big-num{font-family:var(--mono);font-size:clamp(2rem,5vw,3.5rem);font-weight:700;line-height:1;}
+.big-label{font-family:var(--mono);font-size:.5rem;color:var(--smoke);letter-spacing:.08em;margin-top:2px;}
+.stat-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--border);font-size:.75rem;}
+.stat-row:last-child{border:none;}
+.stat-key{color:var(--dim);font-size:.7rem;}
+.stat-val{font-family:var(--mono);font-weight:600;font-size:.75rem;}
+.stat-val.red{color:var(--red);}
+.stat-val.green{color:var(--green);}
+.stat-val.blue{color:var(--blue);}
+.stat-val.orange{color:var(--orange);}
+.stat-val.amber{color:var(--amber);}
+
+.data-table{width:100%;border-collapse:collapse;font-size:.65rem;}
+.data-table th{font-family:var(--mono);font-size:.45rem;letter-spacing:.08em;text-transform:uppercase;color:var(--smoke);text-align:left;padding:4px 6px;border-bottom:1px solid var(--border);}
+.data-table td{padding:5px 6px;border-bottom:1px solid var(--border);color:var(--dim);vertical-align:top;}
+.data-table tr:hover td{color:var(--text);background:rgba(56,189,248,.02);}
+
+.progress-bar{height:4px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;margin-top:4px;}
+.progress-fill{height:100%;border-radius:2px;transition:width .5s;}
+
+.tag{display:inline-block;font-family:var(--mono);font-size:.4rem;padding:1px 5px;border-radius:2px;letter-spacing:.05em;margin:1px;}
+
+.link-list{list-style:none;padding:0;}
+.link-list li{padding:4px 0;border-bottom:1px solid var(--border);}
+.link-list li:last-child{border:none;}
+.link-list a{font-size:.7rem;display:flex;justify-content:space-between;align-items:center;color:var(--dim);transition:color .2s;}
+.link-list a:hover{color:var(--blue);}
+.link-list .link-tag{font-family:var(--mono);font-size:.4rem;padding:1px 5px;border-radius:2px;background:rgba(56,189,248,.08);color:var(--blue);}
+
+.text-block{font-size:.75rem;color:var(--dim);line-height:1.7;}
+.text-block strong{color:var(--text);font-weight:600;}
+.text-block .hl{color:var(--green);}
+.text-block .warn{color:var(--red);}
+
+.timeline-item{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);}
+.timeline-item:last-child{border:none;}
+.timeline-date{font-family:var(--mono);font-size:.5rem;color:var(--smoke);min-width:70px;flex-shrink:0;}
+.timeline-text{font-size:.7rem;color:var(--dim);}
+.timeline-text strong{color:var(--text);}
+
+/* ═══ FOOTER ═══ */
+footer{
+  padding:8px 12px;border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;
+  font-family:var(--mono);font-size:.4rem;color:var(--smoke);
+}
+footer a{color:var(--blue);font-size:.4rem;}
+
+/* ═══ BLINK ═══ */
+@keyframes blink{50%{opacity:.3;}}
+.blink{animation:blink 1.5s step-end infinite;}
+@keyframes pulse{0%,100%{opacity:.6;}50%{opacity:1;}}
+.pulse{animation:pulse 2s ease infinite;}
+</style>
+</head>
+<body>
+<nav class="topbar">
+  <button class="nav-burger" id="burger">☰</button>
+  <a href="wr-central.html" class="nav-item active" title="CENTRAL"><span class="nav-icon">◉</span><span class="nav-label">Hub</span></a>
+        <a href="wr-social.html" class="nav-item" title="SOCIAL"><span class="nav-icon">◈</span><span class="nav-label">Social</span></a>
+        <a href="wr-rtl.html" class="nav-item" title="MÉDIAS"><span class="nav-icon">◇</span><span class="nav-label">RTL</span></a>
+        <a href="wr-juridique.html" class="nav-item" title="JURIDIQUE"><span class="nav-icon">⚖</span><span class="nav-label">Droit</span></a>
+        <a href="wr-acteurs.html" class="nav-item" title="ACTEURS"><span class="nav-icon">◎</span><span class="nav-label">Acteurs</span></a>
+        <a href="wr-chrono.html" class="nav-item" title="CHRONO"><span class="nav-icon">◷</span><span class="nav-label">Timeline</span></a>
+        <a href="wr-arsenal.html" class="nav-item" title="ARSENAL"><span class="nav-icon">◆</span><span class="nav-label">Arsenal</span></a>
+        <a href="wr-transmission.html" class="nav-item" title="SIGNAL"><span class="nav-icon">◈</span><span class="nav-label">Signal</span></a>
+  <div class="nav-spacer"></div>
+  <div class="nav-clock" id="clock"></div>
+</nav>
+<div class="modal-overlay" id="modal">
+  <button class="modal-close" id="mclose">✕</button>
+  <a href="wr-central.html" class="mnav-item active">◉ CENTRAL</a>
+          <a href="wr-social.html" class="mnav-item">◈ SOCIAL</a>
+          <a href="wr-rtl.html" class="mnav-item">◇ MÉDIAS</a>
+          <a href="wr-juridique.html" class="mnav-item">⚖ JURIDIQUE</a>
+          <a href="wr-acteurs.html" class="mnav-item">◎ ACTEURS</a>
+          <a href="wr-chrono.html" class="mnav-item">◷ CHRONO</a>
+          <a href="wr-arsenal.html" class="mnav-item">◆ ARSENAL</a>
+          <a href="wr-transmission.html" class="mnav-item">◈ SIGNAL</a>
+          <div class="mnav-sep">ARCHIVES CRÉATIVES</div>
+          <a href="inferno-belge.html" class="mnav-item mnav-ext">DANTE — Inferno Belge</a>
+          <a href="the-last-of-us-activation.html" class="mnav-item mnav-ext">TLOU — The Last of Us</a>
+          <a href="la-grande-menace.html" class="mnav-item mnav-ext">FILM — La Grande Menace</a>
+          <a href="appel-doom-dickens-matrix-lotr.html" class="mnav-item mnav-ext">DOOM — Communauté Ultimatum</a>
+          <a href="appel-dystopie-rtl.html" class="mnav-item mnav-ext">DYSTOPIE — Dystopie RTL</a>
+          <a href="appel-grindcore-rtl.html" class="mnav-item mnav-ext">PUNK — Grindcore RTL</a>
+          <a href="appel-joyeux-rtl.html" class="mnav-item mnav-ext">SCRATCH — Appel Joyeux</a>
+          <a href="jaccuse-ep-moratoire.html" class="mnav-item mnav-ext">ENQUÊTE — J'accuse EP</a>
+          <a href="jaccuse-semantic-bomb.html" class="mnav-item mnav-ext">SEO — Bombe Sémantique</a>
+          <a href="appel-associations-rtl.html" class="mnav-item mnav-ext">APPEL — Appel Original</a>
+</div>
+<div class="screen-header">
+  <span class="screen-id">◉ ÉCRAN CENTRAL</span>
+  <span class="screen-title">Salle de Crise</span>
+  <span class="screen-status badge-green">OPÉRATIONNEL</span>
+</div>
+
+<div class="grid grid-3">
+  <div class="panel">
+    <div class="panel-head"><span class="panel-label">Menace Globale</span><span class="panel-badge badge-red blink">CRITIQUE</span></div>
+    <div class="big-num" style="color:var(--red);">9.4</div>
+    <div class="big-label">INDICE DE DÉSTRUCTURATION SOCIALE / 10</div>
+    <div style="margin-top:8px;">
+      <div class="stat-row"><span class="stat-key">Exclusions chômage</span><span class="stat-val red">184.463</span></div>
+      <div class="stat-row"><span class="stat-key">Malades longue durée</span><span class="stat-val red">526.000</span></div>
+      <div class="stat-row"><span class="stat-key">BIM total</span><span class="stat-val orange">2.400.000</span></div>
+      <div class="stat-row"><span class="stat-key">Associations gelées</span><span class="stat-val amber">270</span></div>
+      <div class="stat-row"><span class="stat-key">Enveloppe supprimée</span><span class="stat-val red">-2,8 Mrd €</span></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><span class="panel-label">Mission RTL</span><span class="panel-badge badge-orange">EN COURS</span></div>
+    <div class="big-num" style="color:var(--orange);">0<span style="font-size:.4em;color:var(--smoke);">/50</span></div>
+    <div class="big-label">COSIGNATURES COLLECTÉES</div>
+    <div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--orange);"></div></div>
+    <div style="margin-top:8px;">
+      <div class="stat-row"><span class="stat-key">Deadline</span><span class="stat-val amber">01/04/2026</span></div>
+      <div class="stat-row"><span class="stat-key">Jours restants</span><span class="stat-val red" id="countdown">—</span></div>
+      <div class="stat-row"><span class="stat-key">Budget</span><span class="stat-val">29 €/mois</span></div>
+      <div class="stat-row"><span class="stat-key">Réseau</span><span class="stat-val red">0 contacts</span></div>
+      <div class="stat-row"><span class="stat-key">Pages déployées</span><span class="stat-val green">18</span></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><span class="panel-label">Écrans Actifs</span><span class="panel-badge badge-green">8/8</span></div>
+    <ul class="link-list">
+      <li><a href="wr-central.html">◉ CENTRAL<span class="link-tag">Hub</span></a></li>
+      <li><a href="wr-social.html">◈ SOCIAL<span class="link-tag">Social</span></a></li>
+      <li><a href="wr-rtl.html">◇ MÉDIAS<span class="link-tag">RTL</span></a></li>
+      <li><a href="wr-juridique.html">⚖ JURIDIQUE<span class="link-tag">Droit</span></a></li>
+      <li><a href="wr-acteurs.html">◎ ACTEURS<span class="link-tag">Acteurs</span></a></li>
+      <li><a href="wr-chrono.html">◷ CHRONO<span class="link-tag">Timeline</span></a></li>
+      <li><a href="wr-arsenal.html">◆ ARSENAL<span class="link-tag">Arsenal</span></a></li>
+      <li><a href="wr-transmission.html">◈ SIGNAL<span class="link-tag">Signal</span></a></li>
+    </ul>
+    <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">
+      <div class="panel-label" style="margin-bottom:4px;">ARCHIVES CRÉATIVES</div>
+      <ul class="link-list">
+        <li><a href="inferno-belge.html">Inferno Belge<span class="link-tag">DANTE</span></a></li>
+        <li><a href="the-last-of-us-activation.html">The Last of Us<span class="link-tag">TLOU</span></a></li>
+        <li><a href="la-grande-menace.html">La Grande Menace<span class="link-tag">FILM</span></a></li>
+        <li><a href="appel-doom-dickens-matrix-lotr.html">Communauté Ultimatum<span class="link-tag">DOOM</span></a></li>
+        <li><a href="appel-dystopie-rtl.html">Dystopie RTL<span class="link-tag">DYSTOPIE</span></a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div class="grid grid-2">
+  <div class="panel">
+    <div class="panel-head"><span class="panel-label">Vecteurs d'Attaque Déployés</span><span class="panel-badge badge-purple">10 PAGES</span></div>
+    <table class="data-table">
+      <tr><th>Page</th><th>Genre</th><th>Statut</th></tr>
+      <tr><td><a href="inferno-belge.html">Inferno Belge</a></td><td><span class="tag badge-blue">DANTE</span></td><td style="color:var(--green);">DÉPLOYÉ</td></tr>
+      <tr><td><a href="the-last-of-us-activation.html">The Last of Us</a></td><td><span class="tag badge-blue">TLOU</span></td><td style="color:var(--green);">DÉPLOYÉ</td></tr>
+      <tr><td><a href="la-grande-menace.html">La Grande Menace</a></td><td><span class="tag badge-blue">FILM</span></td><td style="color:var(--green);">DÉPLOYÉ</td></tr>
+      <tr><td><a href="appel-doom-dickens-matrix-lotr.html">Communauté Ultimatum</a></td><td><span class="tag badge-blue">DOOM</span></td><td style="color:var(--green);">DÉPLOYÉ</td></tr>
+      <tr><td><a href="appel-dystopie-rtl.html">Dystopie RTL</a></td><td><span class="tag badge-blue">DYSTOPIE</span></td><td style="color:var(--green);">DÉPLOYÉ</td></tr>
+      <tr><td><a href="appel-grindcore-rtl.html">Grindcore RTL</a></td><td><span class="tag badge-blue">PUNK</span></td><td style="color:var(--green);">DÉPLOYÉ</td></tr>
+      <tr><td><a href="appel-joyeux-rtl.html">Appel Joyeux</a></td><td><span class="tag badge-blue">SCRATCH</span></td><td style="color:var(--green);">DÉPLOYÉ</td></tr>
+      <tr><td><a href="jaccuse-ep-moratoire.html">J'accuse EP</a></td><td><span class="tag badge-blue">ENQUÊTE</span></td><td style="color:var(--green);">DÉPLOYÉ</td></tr>
+      <tr><td><a href="jaccuse-semantic-bomb.html">Bombe Sémantique</a></td><td><span class="tag badge-blue">SEO</span></td><td style="color:var(--green);">DÉPLOYÉ</td></tr>
+      <tr><td><a href="appel-associations-rtl.html">Appel Original</a></td><td><span class="tag badge-blue">APPEL</span></td><td style="color:var(--green);">DÉPLOYÉ</td></tr>
+    </table>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><span class="panel-label">Situation Synthétique</span><span class="panel-badge badge-red">ALERTE</span></div>
+    <div class="text-block">
+      <p><strong>Contexte :</strong> Le documentaire « Tous Fraudeurs ? » diffusé par RTL-TVI le 07/11/2025 a touché <strong class="warn">410.860 téléspectateurs</strong>. Recherche académique documentant : <strong class="warn">+19% symptômes dépressifs</strong>, <strong class="warn">20-50% non-recours aux droits</strong>, stigmatisation durant <strong class="warn">5 ans minimum</strong>.</p>
+      <p style="margin-top:6px;"><strong>Objectif :</strong> Collecter <strong class="hl">50 cosignatures</strong> d'associations pour envoyer un ultimatum exigeant : requalification en docu-fiction, avertissements, excuses publiques, engagement éditorial.</p>
+      <p style="margin-top:6px;"><strong>Statut :</strong> <span style="color:var(--red);">Isolement total.</span> 0 contact, 0 réseau, 0 légitimité institutionnelle. <span style="color:var(--green);">18 pages déployées.</span> Corpus documentaire complet. IA opérationnelle.</p>
+    </div>
+  </div>
+</div>
+<script>
+  // Countdown to April 1 2026
+  function updateCountdown(){
+    const target=new Date('2026-04-01T00:00:00');
+    const now=new Date();
+    const diff=Math.ceil((target-now)/(1000*60*60*24));
+    const el=document.getElementById('countdown');
+    if(el)el.textContent=diff>0?diff+' j':'EXPIRÉ';
+  }
+  updateCountdown();setInterval(updateCountdown,60000);
+</script>
+
+<footer>
+  <span>CCPLC / OUAISFIEU · WAR ROOM · 29€/mois</span>
+  <span>CC BY-NC 4.0 · Février 2026</span>
+  <a href="index.html">INDEX</a>
+  <a href="https://yannkeep.github.io/reaven/room/3/google.html">DASHBOARD</a>
+</footer>
+<script>
+// Clock
+function updateClock(){
+  const d=new Date();
+  const el=document.getElementById('clock');
+  if(el)el.textContent=d.toLocaleString('fr-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' CET';
+}
+setInterval(updateClock,1000);updateClock();
+
+// Mobile modal
+const burger=document.getElementById('burger');
+const modal=document.getElementById('modal');
+const mclose=document.getElementById('mclose');
+if(burger)burger.onclick=()=>modal.classList.add('open');
+if(mclose)mclose.onclick=()=>modal.classList.remove('open');
+if(modal)modal.onclick=e=>{if(e.target===modal)modal.classList.remove('open');};
+</script>
+</body>
+</html>

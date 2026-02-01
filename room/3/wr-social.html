@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAR ROOM — Tableau de Bord Social</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Inter','Space Grotesk',system-ui,sans-serif;
+  background:#020617;color:#e5e7eb;line-height:1.6;min-height:100vh;
+  display:flex;flex-direction:column;
+}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;
+  background-image:linear-gradient(rgba(15,23,42,.18) 1px,transparent 1px);
+  background-size:100% 2px;mix-blend-mode:soft-light;opacity:.6;}
+::selection{background:#22c55e;color:#020617;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:#020617;}
+::-webkit-scrollbar-thumb{background:#1e3a5f;}
+
+:root{
+  --bg:#020617;--card:rgba(3,7,18,.98);--card-alt:rgba(15,23,42,.95);
+  --border:rgba(148,163,184,.12);--border-hi:rgba(56,189,248,.25);
+  --text:#e5e7eb;--dim:#9ca3af;--smoke:#6b7280;
+  --green:#22c55e;--blue:#38bdf8;--orange:#f97316;--purple:#a855f7;--red:#ef4444;--cyan:#06b6d4;--amber:#f59e0b;
+  --mono:'JetBrains Mono',monospace;--sans:'Inter','Space Grotesk',sans-serif;
+  --radius:12px;
+}
+a{color:var(--blue);text-decoration:none;}
+
+/* ═══ TOP NAV ═══ */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:linear-gradient(90deg,rgba(3,7,18,.97),rgba(3,7,18,.99));
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(12px);
+  display:flex;align-items:center;padding:0 8px;height:42px;gap:4px;
+  box-shadow:0 4px 30px rgba(0,0,0,.5);
+}
+.nav-item{
+  display:flex;align-items:center;gap:4px;padding:6px 10px;
+  font-family:var(--mono);font-size:.55rem;letter-spacing:.08em;
+  color:var(--dim);border-radius:6px;transition:all .2s;white-space:nowrap;
+  text-decoration:none;
+}
+.nav-item:hover{background:rgba(56,189,248,.08);color:var(--blue);}
+.nav-item.active{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2);}
+.nav-icon{font-size:.7rem;}
+.nav-label{text-transform:uppercase;}
+.nav-spacer{flex:1;}
+.nav-clock{font-family:var(--mono);font-size:.5rem;color:var(--smoke);letter-spacing:.05em;}
+.nav-burger{display:none;background:none;border:none;color:var(--dim);font-size:1.2rem;cursor:pointer;padding:6px;}
+
+@media(max-width:900px){
+  .nav-item:not(.active){display:none;}
+  .nav-burger{display:block;}
+  .nav-spacer{flex:1;}
+}
+
+/* ═══ MOBILE MODAL ═══ */
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(2,6,23,.95);backdrop-filter:blur(20px);
+  overflow-y:auto;padding:1rem;
+}
+.modal-overlay.open{display:flex;flex-direction:column;align-items:center;padding-top:3rem;}
+.modal-close{
+  position:fixed;top:8px;right:12px;z-index:201;
+  background:none;border:1px solid var(--border);border-radius:8px;
+  color:var(--dim);font-size:1.2rem;padding:6px 12px;cursor:pointer;
+}
+.mnav-item{
+  display:block;width:100%;max-width:400px;padding:12px 16px;
+  font-family:var(--mono);font-size:.7rem;color:var(--dim);
+  border-bottom:1px solid var(--border);transition:all .2s;text-decoration:none;
+}
+.mnav-item:hover,.mnav-item.active{color:var(--green);background:rgba(34,197,94,.05);}
+.mnav-ext{color:var(--blue);font-size:.6rem;}
+.mnav-ext:hover{color:var(--cyan);}
+.mnav-sep{
+  width:100%;max-width:400px;padding:12px 16px 6px;
+  font-family:var(--mono);font-size:.4rem;letter-spacing:.2em;color:var(--smoke);
+  border-bottom:1px solid rgba(34,197,94,.15);margin-top:8px;
+}
+
+/* ═══ SCREEN TITLE ═══ */
+.screen-header{
+  padding:1.2rem 1rem .6rem;display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;
+}
+.screen-id{font-family:var(--mono);font-size:.45rem;letter-spacing:.2em;color:var(--smoke);text-transform:uppercase;}
+.screen-title{font-family:var(--sans);font-size:clamp(1.2rem,3vw,1.8rem);font-weight:700;color:var(--text);}
+.screen-status{font-family:var(--mono);font-size:.45rem;padding:2px 8px;border-radius:4px;background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2);}
+
+/* ═══ GRID ═══ */
+.grid{display:grid;gap:8px;padding:8px;flex:1;}
+.grid-2{grid-template-columns:1fr 1fr;}
+.grid-3{grid-template-columns:1fr 1fr 1fr;}
+.grid-23{grid-template-columns:2fr 1fr;}
+.grid-32{grid-template-columns:1fr 2fr;}
+.grid-full{grid-template-columns:1fr;}
+@media(max-width:900px){.grid-2,.grid-3,.grid-23,.grid-32{grid-template-columns:1fr;}}
+
+/* ═══ PANELS ═══ */
+.panel{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:10px;position:relative;overflow:hidden;
+  box-shadow:0 8px 30px rgba(0,0,0,.4);
+}
+.panel::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(circle at 0 0,rgba(56,189,248,.04),transparent 60%);
+}
+.panel-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);
+}
+.panel-label{font-family:var(--mono);font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--smoke);}
+.panel-badge{font-family:var(--mono);font-size:.4rem;padding:1px 6px;border-radius:3px;letter-spacing:.05em;}
+.badge-green{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.2);}
+.badge-red{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+.badge-blue{background:rgba(56,189,248,.12);color:var(--blue);border:1px solid rgba(56,189,248,.2);}
+.badge-orange{background:rgba(249,115,22,.12);color:var(--orange);border:1px solid rgba(249,115,22,.2);}
+.badge-purple{background:rgba(168,85,247,.12);color:var(--purple);border:1px solid rgba(168,85,247,.2);}
+
+/* ═══ DATA ELEMENTS ═══ */
+.big-num{font-family:var(--mono);font-size:clamp(2rem,5vw,3.5rem);font-weight:700;line-height:1;}
+.big-label{font-family:var(--mono);font-size:.5rem;color:var(--smoke);letter-spacing:.08em;margin-top:2px;}
+.stat-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--border);font-size:.75rem;}
+.stat-row:last-child{border:none;}
+.stat-key{color:var(--dim);font-size:.7rem;}
+.stat-val{font-family:var(--mono);font-weight:600;font-size:.75rem;}
+.stat-val.red{color:var(--red);}
+.stat-val.green{color:var(--green);}
+.stat-val.blue{color:var(--blue);}
+.stat-val.orange{color:var(--orange);}
+.stat-val.amber{color:var(--amber);}
+
+.data-table{width:100%;border-collapse:collapse;font-size:.65rem;}
+.data-table th{font-family:var(--mono);font-size:.45rem;letter-spacing:.08em;text-transform:uppercase;color:var(--smoke);text-align:left;padding:4px 6px;border-bottom:1px solid var(--border);}
+.data-table td{padding:5px 6px;border-bottom:1px solid var(--border);color:var(--dim);vertical-align:top;}
+.data-table tr:hover td{color:var(--text);background:rgba(56,189,248,.02);}
+
+.progress-bar{height:4px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;margin-top:4px;}
+.progress-fill{height:100%;border-radius:2px;transition:width .5s;}
+
+.tag{display:inline-block;font-family:var(--mono);font-size:.4rem;padding:1px 5px;border-radius:2px;letter-spacing:.05em;margin:1px;}
+
+.link-list{list-style:none;padding:0;}
+.link-list li{padding:4px 0;border-bottom:1px solid var(--border);}
+.link-list li:last-child{border:none;}
+.link-list a{font-size:.7rem;display:flex;justify-content:space-between;align-items:center;color:var(--dim);transition:color .2s;}
+.link-list a:hover{color:var(--blue);}
+.link-list .link-tag{font-family:var(--mono);font-size:.4rem;padding:1px 5px;border-radius:2px;background:rgba(56,189,248,.08);color:var(--blue);}
+
+.text-block{font-size:.75rem;color:var(--dim);line-height:1.7;}
+.text-block strong{color:var(--text);font-weight:600;}
+.text-block .hl{color:var(--green);}
+.text-block .warn{color:var(--red);}
+
+.timeline-item{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);}
+.timeline-item:last-child{border:none;}
+.timeline-date{font-family:var(--mono);font-size:.5rem;color:var(--smoke);min-width:70px;flex-shrink:0;}
+.timeline-text{font-size:.7rem;color:var(--dim);}
+.timeline-text strong{color:var(--text);}
+
+/* ═══ FOOTER ═══ */
+footer{
+  padding:8px 12px;border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;
+  font-family:var(--mono);font-size:.4rem;color:var(--smoke);
+}
+footer a{color:var(--blue);font-size:.4rem;}
+
+/* ═══ BLINK ═══ */
+@keyframes blink{50%{opacity:.3;}}
+.blink{animation:blink 1.5s step-end infinite;}
+@keyframes pulse{0%,100%{opacity:.6;}50%{opacity:1;}}
+.pulse{animation:pulse 2s ease infinite;}
+</style>
+</head>
+<body>
+<nav class="topbar">
+  <button class="nav-burger" id="burger">☰</button>
+  <a href="wr-central.html" class="nav-item" title="CENTRAL"><span class="nav-icon">◉</span><span class="nav-label">Hub</span></a>
+        <a href="wr-social.html" class="nav-item active" title="SOCIAL"><span class="nav-icon">◈</span><span class="nav-label">Social</span></a>
+        <a href="wr-rtl.html" class="nav-item" title="MÉDIAS"><span class="nav-icon">◇</span><span class="nav-label">RTL</span></a>
+        <a href="wr-juridique.html" class="nav-item" title="JURIDIQUE"><span class="nav-icon">⚖</span><span class="nav-label">Droit</span></a>
+        <a href="wr-acteurs.html" class="nav-item" title="ACTEURS"><span class="nav-icon">◎</span><span class="nav-label">Acteurs</span></a>
+        <a href="wr-chrono.html" class="nav-item" title="CHRONO"><span class="nav-icon">◷</span><span class="nav-label">Timeline</span></a>
+        <a href="wr-arsenal.html" class="nav-item" title="ARSENAL"><span class="nav-icon">◆</span><span class="nav-label">Arsenal</span></a>
+        <a href="wr-transmission.html" class="nav-item" title="SIGNAL"><span class="nav-icon">◈</span><span class="nav-label">Signal</span></a>
+  <div class="nav-spacer"></div>
+  <div class="nav-clock" id="clock"></div>
+</nav>
+<div class="modal-overlay" id="modal">
+  <button class="modal-close" id="mclose">✕</button>
+  <a href="wr-central.html" class="mnav-item">◉ CENTRAL</a>
+          <a href="wr-social.html" class="mnav-item active">◈ SOCIAL</a>
+          <a href="wr-rtl.html" class="mnav-item">◇ MÉDIAS</a>
+          <a href="wr-juridique.html" class="mnav-item">⚖ JURIDIQUE</a>
+          <a href="wr-acteurs.html" class="mnav-item">◎ ACTEURS</a>
+          <a href="wr-chrono.html" class="mnav-item">◷ CHRONO</a>
+          <a href="wr-arsenal.html" class="mnav-item">◆ ARSENAL</a>
+          <a href="wr-transmission.html" class="mnav-item">◈ SIGNAL</a>
+          <div class="mnav-sep">ARCHIVES CRÉATIVES</div>
+          <a href="inferno-belge.html" class="mnav-item mnav-ext">DANTE — Inferno Belge</a>
+          <a href="the-last-of-us-activation.html" class="mnav-item mnav-ext">TLOU — The Last of Us</a>
+          <a href="la-grande-menace.html" class="mnav-item mnav-ext">FILM — La Grande Menace</a>
+          <a href="appel-doom-dickens-matrix-lotr.html" class="mnav-item mnav-ext">DOOM — Communauté Ultimatum</a>
+          <a href="appel-dystopie-rtl.html" class="mnav-item mnav-ext">DYSTOPIE — Dystopie RTL</a>
+          <a href="appel-grindcore-rtl.html" class="mnav-item mnav-ext">PUNK — Grindcore RTL</a>
+          <a href="appel-joyeux-rtl.html" class="mnav-item mnav-ext">SCRATCH — Appel Joyeux</a>
+          <a href="jaccuse-ep-moratoire.html" class="mnav-item mnav-ext">ENQUÊTE — J'accuse EP</a>
+          <a href="jaccuse-semantic-bomb.html" class="mnav-item mnav-ext">SEO — Bombe Sémantique</a>
+          <a href="appel-associations-rtl.html" class="mnav-item mnav-ext">APPEL — Appel Original</a>
+</div>
+<div class="screen-header">
+  <span class="screen-id">◈ ÉCRAN SOCIAL</span>
+  <span class="screen-title">Tableau de Bord Social</span>
+  <span class="screen-status badge-red">CRITIQUE</span>
+</div>
+
+<div class="grid grid-3">
+  <div class="panel">
+    <div class="panel-head"><span class="panel-label">BIM — Intervention Majorée</span><span class="panel-badge badge-red blink">21% POP.</span></div>
+    <div class="big-num" style="color:var(--red);">2,4M</div>
+    <div class="big-label">BÉNÉFICIAIRES · +400.000 DEPUIS JUIN 2020</div>
+    <div class="progress-bar"><div class="progress-fill" style="width:21%;background:var(--red);"></div></div>
+    <div style="margin-top:6px;">
+      <div class="stat-row"><span class="stat-key">Risque prolongation invalidité</span><span class="stat-val red">+68%</span></div>
+      <div class="stat-row"><span class="stat-key">Attribution auto (oct. 2024)</span><span class="stat-val">Isolés chômage/incapacité >3 mois</span></div>
+      <div class="stat-row"><span class="stat-key">Années 2000</span><span class="stat-val">1,3 million</span></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><span class="panel-label">Malades Longue Durée</span><span class="panel-badge badge-red">+44% /5 ANS</span></div>
+    <div class="big-num" style="color:var(--orange);">526K</div>
+    <div class="big-label">INVALIDES · 218.000 DOSSIERS À RÉEXAMINER</div>
+    <div style="margin-top:6px;">
+      <div class="stat-row"><span class="stat-key">Troubles psychosociaux</span><span class="stat-val red">36,9%</span></div>
+      <div class="stat-row"><span class="stat-key">Dépression/burn-out</span><span class="stat-val red">66,4%</span></div>
+      <div class="stat-row"><span class="stat-key">Troubles mentaux</span><span class="stat-val orange">137.454</span></div>
+      <div class="stat-row"><span class="stat-key">Sorties prévues (17%)</span><span class="stat-val red">~37.000</span></div>
+      <div class="stat-row"><span class="stat-key">Femmes (burn-out)</span><span class="stat-val">69%</span></div>
+      <div class="stat-row"><span class="stat-key"><30 ans progression</span><span class="stat-val red">+21,6%</span></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><span class="panel-label">Chômage — Limitation 24 Mois</span><span class="panel-badge badge-orange">4 VAGUES</span></div>
+    <div class="big-num" style="color:var(--amber);">184K</div>
+    <div class="big-label">EXCLUSIONS PROGRAMMÉES</div>
+    <div style="margin-top:6px;">
+      <div class="stat-row"><span class="stat-key">Basculement CPAS</span><span class="stat-val red">30.122 pers.</span></div>
+      <div class="stat-row"><span class="stat-key">Surcoût CPAS BXL</span><span class="stat-val red">+80 M€</span></div>
+      <div class="stat-row"><span class="stat-key">ETP manquants BXL</span><span class="stat-val orange">240</span></div>
+      <div class="stat-row"><span class="stat-key">Délai légal intenable</span><span class="stat-val red">30 jours</span></div>
+    </div>
+  </div>
+</div>
+<div class="grid grid-2">
+  <div class="panel">
+    <div class="panel-head"><span class="panel-label">Mesures Arizona — Impact</span><span class="panel-badge badge-red">DESTRUCTIF</span></div>
+    <table class="data-table">
+      <tr><th>Mesure</th><th>Impact</th><th>Population</th></tr>
+      <tr><td>Limitation chômage 24 mois</td><td style="color:var(--red);">Exclusion massive</td><td>184.463</td></tr>
+      <tr><td>Suppression enveloppe bien-être</td><td style="color:var(--red);">-2,8 Mrd €</td><td>Tous allocataires</td></tr>
+      <tr><td>Malus pension (maladie)</td><td style="color:var(--red);">Perte droits pension</td><td>526.000</td></tr>
+      <tr><td>C4 médical 6 mois (vs 9)</td><td style="color:var(--orange);">Licenciement accéléré</td><td>Tous malades</td></tr>
+      <tr><td>Bonus-malus communes</td><td style="color:var(--red);">Punition pauvreté</td><td>Communes pauvres</td></tr>
+      <tr><td>Différentiel 500€ travail/alloc</td><td style="color:var(--orange);">Pression salariale</td><td>Tous travailleurs</td></tr>
+      <tr><td>Renouvellement annuel invalidité</td><td style="color:var(--red);">Insécurité permanente</td><td>526.000</td></tr>
+      <tr><td>Convocations 4e/7e/11e mois</td><td style="color:var(--orange);">Stress systémique</td><td>~480.000</td></tr>
+    </table>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><span class="panel-label">Indicateurs Macro</span><span class="panel-badge badge-blue">PESTEL</span></div>
+    <div class="stat-row"><span class="stat-key">Taux d'emploi BE</span><span class="stat-val">72,1%</span></div>
+    <div class="stat-row"><span class="stat-key">Objectif Arizona</span><span class="stat-val amber">80%</span></div>
+    <div class="stat-row"><span class="stat-key">Déficit sécu 2024</span><span class="stat-val red">18,2 Mrd €</span></div>
+    <div class="stat-row"><span class="stat-key">Coût inactivité/an</span><span class="stat-val red">21-24 Mrd €</span></div>
+    <div class="stat-row"><span class="stat-key">Dette publique projetée 2029</span><span class="stat-val red">119% PIB</span></div>
+    <div class="stat-row"><span class="stat-key">Risque AROPE</span><span class="stat-val orange">2,1M (18,3%)</span></div>
+    <div class="stat-row"><span class="stat-key">Inactivité contrainte</span><span class="stat-val red">978.000</span></div>
+    <div class="stat-row"><span class="stat-key">Étudiants insécurité alimentaire</span><span class="stat-val orange">58%</span></div>
+    <div style="margin-top:8px;"><div class="panel-label">VOIR AUSSI</div>
+      <ul class="link-list">
+        <li><a href="inferno-belge.html">Les 9 Cercles (Dante) <span class="link-tag">INFERNO</span></a></li>
+        <li><a href="la-grande-menace.html">La cascade d'activation <span class="link-tag">FILM</span></a></li>
+        <li><a href="the-last-of-us-activation.html">Les stades d'infection <span class="link-tag">TLOU</span></a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>CCPLC / OUAISFIEU · WAR ROOM · 29€/mois</span>
+  <span>CC BY-NC 4.0 · Février 2026</span>
+  <a href="index.html">INDEX</a>
+  <a href="https://yannkeep.github.io/reaven/room/3/google.html">DASHBOARD</a>
+</footer>
+<script>
+// Clock
+function updateClock(){
+  const d=new Date();
+  const el=document.getElementById('clock');
+  if(el)el.textContent=d.toLocaleString('fr-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' CET';
+}
+setInterval(updateClock,1000);updateClock();
+
+// Mobile modal
+const burger=document.getElementById('burger');
+const modal=document.getElementById('modal');
+const mclose=document.getElementById('mclose');
+if(burger)burger.onclick=()=>modal.classList.add('open');
+if(mclose)mclose.onclick=()=>modal.classList.remove('open');
+if(modal)modal.onclick=e=>{if(e.target===modal)modal.classList.remove('open');};
+</script>
+</body>
+</html>
