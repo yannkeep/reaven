@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>◇ DÉMOGARCHIE — Carte du Pouvoir</title>
+<meta name="description" content="Qui gouverne réellement la Belgique ? Pas ceux que vous croyez.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Bitter:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060609;--surface:#0b0b10;--panel:#101018;--border:#1a1a2a;
+  --text:#b0b2c4;--dim:#50526a;--white:#ececf8;
+  --red:#ef4444;--orange:#f97316;--amber:#eab308;
+  --green:#22c55e;--cyan:#06b6d4;--violet:#a78bfa;--pink:#ec4899;
+  --mono:'IBM Plex Mono',monospace;--serif:'Bitter',Georgia,serif;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+.header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.logo{font-family:var(--serif);font-weight:900;font-size:1.4rem;color:var(--pink)}
+.logo span{color:var(--dim);font-weight:400;font-size:.8rem}
+.badge{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;padding:.25rem .6rem;border:1px solid var(--pink);color:var(--pink);border-radius:2px}
+
+.container{max-width:900px;margin:0 auto;padding:2rem 1.5rem 6rem}
+
+.intro{padding:2rem 0;border-bottom:1px solid var(--border);margin-bottom:2rem}
+.intro h1{font-family:var(--serif);font-weight:900;font-size:2.2rem;line-height:1.15;color:var(--white);margin-bottom:1rem}
+.intro h1 em{font-style:normal;color:var(--pink)}
+.intro p{font-size:.82rem;line-height:1.7;color:var(--dim);max-width:620px}
+
+/* LAYER TABS */
+.layer-tabs{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:2rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+.layer-tab{
+  padding:.5rem 1rem;font-family:var(--mono);font-size:.72rem;font-weight:600;
+  background:var(--panel);border:1px solid var(--border);color:var(--dim);
+  cursor:pointer;border-radius:2px;transition:all .15s
+}
+.layer-tab:hover{border-color:var(--dim);color:var(--text)}
+.layer-tab.active{border-color:var(--pink);color:var(--pink);background:rgba(236,72,153,0.08)}
+
+/* LAYER CONTENT */
+.layer{display:none;animation:fadeIn .4s ease}
+.layer.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.layer-title{font-family:var(--serif);font-weight:900;font-size:1.4rem;color:var(--white);margin-bottom:.4rem}
+.layer-subtitle{font-size:.78rem;color:var(--dim);line-height:1.6;margin-bottom:1.5rem}
+
+/* POWER NODES */
+.node-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:2rem}
+.power-node{
+  padding:1.2rem;background:var(--panel);border:1px solid var(--border);
+  border-radius:2px;transition:all .2s;cursor:pointer;position:relative;overflow:hidden
+}
+.power-node:hover{border-color:var(--dim)}
+.power-node.expanded{grid-column:1/-1;border-color:var(--pink)}
+.pn-rank{
+  position:absolute;top:.8rem;right:.8rem;
+  font-family:var(--serif);font-weight:900;font-size:2rem;color:rgba(236,72,153,0.15)
+}
+.pn-type{font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;font-weight:600;margin-bottom:.3rem}
+.pn-name{font-family:var(--serif);font-weight:700;font-size:.95rem;color:var(--white);margin-bottom:.2rem}
+.pn-role{font-size:.7rem;color:var(--dim);margin-bottom:.6rem}
+.pn-power{font-size:.72rem;line-height:1.6;color:var(--text)}
+.pn-power strong{color:var(--white)}
+.pn-detail{display:none;margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--border);font-size:.75rem;line-height:1.7;color:var(--text)}
+.power-node.expanded .pn-detail{display:block}
+.pn-meter{margin-top:.6rem;display:flex;align-items:center;gap:.5rem}
+.pn-meter-label{font-size:.6rem;color:var(--dim);min-width:60px}
+.pn-meter-track{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.pn-meter-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(0.22,1,0.36,1)}
+
+/* FLOW DIAGRAM */
+.flow-section{margin:2.5rem 0}
+.flow-box{
+  padding:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:2px;
+  font-size:.78rem;line-height:1.8;color:var(--text)
+}
+.flow-arrow{text-align:center;padding:.5rem 0;font-size:1.2rem;color:var(--pink)}
+.flow-step{
+  padding:.8rem 1rem;background:var(--panel);border:1px solid var(--border);border-radius:2px;
+  margin:.4rem 0;display:flex;justify-content:space-between;align-items:center
+}
+.flow-step .fs-label{font-size:.78rem;color:var(--white);font-weight:600}
+.flow-step .fs-power{font-size:.65rem;padding:.2rem .5rem;border-radius:2px;font-weight:600}
+
+/* KEY FACT */
+.keyfact{
+  margin:1.5rem 0;padding:1.2rem;
+  border-left:3px solid var(--pink);background:rgba(236,72,153,0.05);
+  border-radius:0 2px 2px 0;font-size:.8rem;line-height:1.7;color:var(--text)
+}
+.keyfact strong{color:var(--white)}
+.keyfact em{color:var(--amber);font-style:normal}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:.72rem}
+.data-table th{text-align:left;padding:.6rem .8rem;background:var(--panel);color:var(--dim);text-transform:uppercase;letter-spacing:.08em;font-size:.6rem;border-bottom:1px solid var(--border)}
+.data-table td{padding:.6rem .8rem;border-bottom:1px solid rgba(26,26,42,0.5);color:var(--text)}
+.data-table tr:hover td{background:rgba(236,72,153,0.03)}
+.td-num{font-weight:700;color:var(--white);font-family:var(--serif)}
+
+/* COMPARISON */
+.compare-row{display:grid;grid-template-columns:1fr auto 1fr;gap:1rem;align-items:center;margin:1.5rem 0}
+.compare-box{padding:1rem;background:var(--panel);border:1px solid var(--border);border-radius:2px;text-align:center}
+.compare-box .cb-val{font-family:var(--serif);font-weight:900;font-size:1.8rem;line-height:1}
+.compare-box .cb-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:.3rem}
+.compare-vs{font-family:var(--serif);font-weight:900;font-size:1rem;color:var(--dim)}
+
+.footer{margin-top:4rem;padding:1.5rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;font-size:.65rem;color:var(--dim)}
+.footer a{color:var(--green);text-decoration:none}
+
+@media(max-width:600px){
+  .container{padding:1.5rem 1rem 4rem}
+  .intro h1{font-size:1.7rem}
+  .node-grid{grid-template-columns:1fr}
+  .compare-row{grid-template-columns:1fr}
+  .compare-vs{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:1rem">
+    <div class="logo">◇ DÉMOGARCHIE <span>/ pouvoir</span></div>
+    <div class="badge">心理战 PSYCHO</div>
+  </div>
+  <div style="font-size:.7rem;color:var(--dim)">MÉSO · Module 06/17</div>
+</div>
+
+<div class="container">
+
+  <div class="intro">
+    <h1>Carte du <em>pouvoir</em></h1>
+    <p>
+      En Belgique, le pouvoir ne siège pas là où on vous le montre. Le Parlement est une chambre d'enregistrement. Les ministres sont des exécutants. Le vrai pouvoir est <strong>invisible, informel et non élu</strong>. Cette carte le rend visible.
+    </p>
+  </div>
+
+  <!-- LAYER TABS -->
+  <div class="layer-tabs">
+    <button class="layer-tab active" onclick="showLayer('formal')">Pouvoir formel</button>
+    <button class="layer-tab" onclick="showLayer('real')">Pouvoir réel</button>
+    <button class="layer-tab" onclick="showLayer('shadow')">Pouvoir invisible</button>
+    <button class="layer-tab" onclick="showLayer('flow')">Flux de décision</button>
+    <button class="layer-tab" onclick="showLayer('money')">L'argent</button>
+    <button class="layer-tab" onclick="showLayer('you')">Et vous ?</button>
+  </div>
+
+  <!-- ============ LAYER: FORMAL ============ -->
+  <div class="layer active" id="layer-formal">
+    <div class="layer-title">Le pouvoir tel qu'on vous le présente</div>
+    <div class="layer-subtitle">La version du manuel de civisme. Rassurante, propre, démocratique. Et largement fictive.</div>
+
+    <div class="node-grid">
+      <div class="power-node" onclick="this.classList.toggle('expanded')">
+        <div class="pn-rank">1</div>
+        <div class="pn-type" style="color:var(--cyan)">Législatif</div>
+        <div class="pn-name">Parlement fédéral</div>
+        <div class="pn-role">150 députés + 60 sénateurs</div>
+        <div class="pn-power">Censé voter les lois, contrôler le gouvernement, représenter le peuple.</div>
+        <div class="pn-detail">
+          En réalité : <strong>97% des votes suivent la discipline de parti</strong>. Les propositions de loi viennent quasi exclusivement du gouvernement. Le Sénat n'a presque plus de compétences mais coûte 44,5 millions €/an. Les députés votent des textes de centaines de pages en quelques heures, souvent sans les lire.
+          <div class="pn-meter"><span class="pn-meter-label">Pouvoir réel</span><div class="pn-meter-track"><div class="pn-meter-fill" style="width:15%;background:var(--red)"></div></div></div>
+        </div>
+      </div>
+
+      <div class="power-node" onclick="this.classList.toggle('expanded')">
+        <div class="pn-rank">2</div>
+        <div class="pn-type" style="color:var(--amber)">Exécutif</div>
+        <div class="pn-name">Gouvernement fédéral</div>
+        <div class="pn-role">15 ministres + secrétaires d'État</div>
+        <div class="pn-power">Censé exécuter les lois et diriger le pays.</div>
+        <div class="pn-detail">
+          En réalité : les ministres sont choisis par les présidents de parti, pas par le Premier Ministre. Chaque ministre a un <strong>cabinet de 30 à 80 personnes</strong> qui fait le vrai travail. Les décisions stratégiques se prennent au "kern" (réunion restreinte) ou dans les négociations inter-cabinets. Le ministre est souvent le porte-parole de son cabinet.
+          <div class="pn-meter"><span class="pn-meter-label">Pouvoir réel</span><div class="pn-meter-track"><div class="pn-meter-fill" style="width:35%;background:var(--amber)"></div></div></div>
+        </div>
+      </div>
+
+      <div class="power-node" onclick="this.classList.toggle('expanded')">
+        <div class="pn-rank">3</div>
+        <div class="pn-type" style="color:var(--green)">Judiciaire</div>
+        <div class="pn-name">Cours et tribunaux</div>
+        <div class="pn-role">Cour constitutionnelle, Conseil d'État, tribunaux</div>
+        <div class="pn-power">Censé garantir l'État de droit et protéger les droits fondamentaux.</div>
+        <div class="pn-detail">
+          Le pouvoir judiciaire est le <strong>seul vrai contre-pouvoir</strong> qui fonctionne encore. La Cour constitutionnelle peut annuler des lois (recours Arizona en cours). Le Conseil d'État contrôle la légalité des actes. MAIS : sous-financé chroniquement, délais de justice parmi les plus longs d'Europe, et les juges constitutionnels sont nommés par... les partis politiques.
+          <div class="pn-meter"><span class="pn-meter-label">Pouvoir réel</span><div class="pn-meter-track"><div class="pn-meter-fill" style="width:55%;background:var(--green)"></div></div></div>
+        </div>
+      </div>
+
+      <div class="power-node" onclick="this.classList.toggle('expanded')">
+        <div class="pn-rank">4</div>
+        <div class="pn-type" style="color:var(--violet)">Régional</div>
+        <div class="pn-name">Régions & Communautés</div>
+        <div class="pn-role">6 parlements, 6 gouvernements</div>
+        <div class="pn-power">Compétences : enseignement, culture, santé, emploi, environnement, urbanisme...</div>
+        <div class="pn-detail">
+          Le mille-feuille belge : <strong>6 parlements, 6 gouvernements</strong> pour 11,7 millions d'habitants. La Flandre a fusionné Région et Communauté (gain d'efficacité). La Wallonie et la FWB n'ont pas osé. Résultat : un ministre de l'emploi fédéral ET un ministre de l'emploi wallon ET un minister van werk flamand — pour le même territoire parfois.
+          <div class="pn-meter"><span class="pn-meter-label">Pouvoir réel</span><div class="pn-meter-track"><div class="pn-meter-fill" style="width:40%;background:var(--violet)"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="keyfact">
+      <strong>Le résumé :</strong> le système formel est <em>spectaculaire</em> — beaucoup de parlements, de votes, de débats télévisés. Mais le pouvoir réel est ailleurs. Passez à l'onglet suivant.
+    </div>
+  </div>
+
+  <!-- ============ LAYER: REAL ============ -->
+  <div class="layer" id="layer-real">
+    <div class="layer-title">Le pouvoir réel</div>
+    <div class="layer-subtitle">Ceux qui décident vraiment. Non élus pour la plupart. Rarement nommés dans la presse.</div>
+
+    <div class="node-grid">
+      <div class="power-node" onclick="this.classList.toggle('expanded')">
+        <div class="pn-rank">1</div>
+        <div class="pn-type" style="color:var(--red)">Noyau dur</div>
+        <div class="pn-name">Présidents de parti</div>
+        <div class="pn-role">4 à 6 personnes dirigent le pays</div>
+        <div class="pn-power"><strong>Le centre de gravité absolu</strong> de la particratie belge.</div>
+        <div class="pn-detail">
+          Le président de parti contrôle :<br>
+          — <strong>La liste des candidats</strong> (qui sera élu)<br>
+          — <strong>Les négociations de coalition</strong> (qui gouvernera)<br>
+          — <strong>La discipline de vote</strong> (ce qui passera au Parlement)<br>
+          — <strong>Les nominations</strong> (qui dirigera les administrations, entreprises publiques, institutions)<br><br>
+          Un député qui vote contre son parti est éjecté de la liste aux élections suivantes. Le président de parti n'est élu que par les membres du parti — soit quelques dizaines de milliers de personnes. Il a plus de pouvoir que la plupart des ministres.
+          <div class="pn-meter"><span class="pn-meter-label">Pouvoir réel</span><div class="pn-meter-track"><div class="pn-meter-fill" style="width:95%;background:var(--red)"></div></div></div>
+        </div>
+      </div>
+
+      <div class="power-node" onclick="this.classList.toggle('expanded')">
+        <div class="pn-rank">2</div>
+        <div class="pn-type" style="color:var(--orange)">Machine</div>
+        <div class="pn-name">Cabinets ministériels</div>
+        <div class="pn-role">~2.000 collaborateurs au total</div>
+        <div class="pn-power"><strong>Le vrai gouvernement parallèle.</strong> Les cabinets rédigent les lois, négocient les compromis, donnent les ordres à l'administration.</div>
+        <div class="pn-detail">
+          Rien qu'en <strong>Fédération Wallonie-Bruxelles : 397 collaborateurs</strong> de cabinet. Bruxelles : 470 millions € de consultance externe. Les cabinets court-circuitent systématiquement l'administration publique — qui est pourtant compétente et permanente. Résultat : perte d'expertise, politisation des décisions, et <em>revolving door</em> permanent entre cabinets et secteur privé (lobbying).
+          <div class="pn-meter"><span class="pn-meter-label">Pouvoir réel</span><div class="pn-meter-track"><div class="pn-meter-fill" style="width:85%;background:var(--orange)"></div></div></div>
+        </div>
+      </div>
+
+      <div class="power-node" onclick="this.classList.toggle('expanded')">
+        <div class="pn-rank">3</div>
+        <div class="pn-type" style="color:var(--amber)">Concertation</div>
+        <div class="pn-name">Interlocuteurs sociaux</div>
+        <div class="pn-role">FEB, UCM, UNIZO / FGTB, CSC, CGSLB</div>
+        <div class="pn-power">Le néo-corporatisme belge : patronat et syndicats co-gèrent la sécurité sociale et négocient les accords salariaux.</div>
+        <div class="pn-detail">
+          Le Groupe des 10 (5 patronat + 5 syndicats) négocie l'AIP (accord interprofessionnel) qui fixe la norme salariale pour <em>toute la Belgique</em>. Les syndicats gèrent le paiement des allocations de chômage (système Ghent). Le patronat siège dans les conseils d'administration des entreprises publiques. Ce système donne un vrai pouvoir de co-décision — mais exclut totalement les citoyens non-organisés.
+          <div class="pn-meter"><span class="pn-meter-label">Pouvoir réel</span><div class="pn-meter-track"><div class="pn-meter-fill" style="width:70%;background:var(--amber)"></div></div></div>
+        </div>
+      </div>
+
+      <div class="power-node" onclick="this.classList.toggle('expanded')">
+        <div class="pn-rank">4</div>
+        <div class="pn-type" style="color:var(--cyan)">Technostructure</div>
+        <div class="pn-name">Haute administration</div>
+        <div class="pn-role">SPF, BNB, INAMI, ONEM, SNCB...</div>
+        <div class="pn-power">La machine continue de tourner — même sans gouvernement. C'est elle qui applique (ou n'applique pas) les décisions.</div>
+        <div class="pn-detail">
+          Le pouvoir bureaucratique est <strong>discret mais immense</strong>. Un fonctionnaire du SPF Finances qui choisit de ne pas contrôler telle catégorie de contribuables a plus d'impact qu'un débat parlementaire. La BNB produit les chiffres qui cadrent les décisions. L'INAMI décide ce qui est remboursé en santé. Ces décisions sont présentées comme "techniques" mais sont profondément politiques.
+          <div class="pn-meter"><span class="pn-meter-label">Pouvoir réel</span><div class="pn-meter-track"><div class="pn-meter-fill" style="width:60%;background:var(--cyan)"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="keyfact">
+      En résumé : <strong>4 à 6 présidents de parti</strong>, élus par quelques milliers de membres, contrôlent les listes, les coalitions, les votes et les nominations. Environ <strong>2.000 collaborateurs de cabinet</strong> non élus rédigent les lois. Le <strong>Groupe des 10</strong> fixe les salaires. L'administration applique — ou temporise. <em>Votre bulletin de vote arrive en fin de chaîne.</em>
+    </div>
+  </div>
+
+  <!-- ============ LAYER: SHADOW ============ -->
+  <div class="layer" id="layer-shadow">
+    <div class="layer-title">Le pouvoir invisible</div>
+    <div class="layer-subtitle">Ce qui ne figure sur aucun organigramme mais structure les décisions.</div>
+
+    <div class="node-grid">
+      <div class="power-node" onclick="this.classList.toggle('expanded')">
+        <div class="pn-type" style="color:var(--pink)">Lobbying</div>
+        <div class="pn-name">Fédérations sectorielles</div>
+        <div class="pn-role">Pharma.be, Essenscia, Agoria, Febelfin...</div>
+        <div class="pn-power">Accès direct aux cabinets. Rédaction de notes "techniques" qui deviennent des amendements.</div>
+        <div class="pn-detail">
+          Le registre des lobbyistes au Parlement fédéral est <strong>volontaire et non contraignant</strong>. Pas de "cooling-off period" obligatoire entre cabinet et secteur privé. Les "policy papers" des fédérations sont souvent repris mot pour mot dans les projets de loi. Le secteur pharmaceutique investit massivement dans le lobbying INAMI pour les prix des médicaments.
+        </div>
+      </div>
+
+      <div class="power-node" onclick="this.classList.toggle('expanded')">
+        <div class="pn-type" style="color:var(--violet)">Médias</div>
+        <div class="pn-name">Groupes médiatiques</div>
+        <div class="pn-role">Rossel, IPM, DPG, RTL Belgium</div>
+        <div class="pn-power">Contrôle de l'agenda : ce dont on parle et ce dont on ne parle pas.</div>
+        <div class="pn-detail">
+          Le paysage médiatique francophone est concentré entre <strong>quelques groupes familiaux</strong>. Rossel (Le Soir, Sudpresse) et IPM (La Libre, La DH) dominent la presse écrite. RTL et RTBF dominent l'audiovisuel. Les mêmes propriétaires possèdent journaux, sites web, magazines. Les subsides publics (aides à la presse) créent une dépendance au politique. L'indépendance rédactionnelle est réelle mais fragile.
+        </div>
+      </div>
+
+      <div class="power-node" onclick="this.classList.toggle('expanded')">
+        <div class="pn-type" style="color:var(--amber)">Réseaux</div>
+        <div class="pn-name">Cercles & Clubs</div>
+        <div class="pn-role">Cercle de Lorraine, Cercle Gaulois, clubs Rotary/Lions...</div>
+        <div class="pn-power">Socialisation des élites : c'est là que se rencontrent PDG, ministres, magistrats et journalistes.</div>
+        <div class="pn-detail">
+          Le <strong>Cercle de Lorraine</strong> à Bruxelles est le club le plus exclusif : PDG du BEL20, ministres, ambassadeurs. Cotisation annuelle de plusieurs milliers d'euros. C'est dans ces dîners informels que se prennent des décisions qui n'apparaîtront jamais dans un PV officiel. Le Cercle Gaulois joue un rôle similaire côté francophone. Ces réseaux créent un sentiment d'appartenance de classe qui transcende les étiquettes partisanes.
+        </div>
+      </div>
+
+      <div class="power-node" onclick="this.classList.toggle('expanded')">
+        <div class="pn-type" style="color:var(--green)">Supranational</div>
+        <div class="pn-name">UE / BCE / FMI</div>
+        <div class="pn-role">Trajectoire budgétaire, politique monétaire, conditionnalité</div>
+        <div class="pn-power">Le cadre dans lequel tout le reste est possible — ou impossible.</div>
+        <div class="pn-detail">
+          L'UE impose une <strong>trajectoire budgétaire de 23 milliards € d'ajustement</strong> d'ici 2029 à la Belgique. La BCE fixe les taux d'intérêt qui déterminent le coût de la dette. Le FMI publie des "recommandations" (Article IV) que les gouvernements suivent — souvent sans débat parlementaire. Quand un ministre dit "il n'y a pas d'alternative", c'est souvent ce cadre européen qu'il invoque.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ LAYER: FLOW ============ -->
+  <div class="layer" id="layer-flow">
+    <div class="layer-title">Comment se prend une décision en Belgique</div>
+    <div class="layer-subtitle">Le trajet réel d'une loi — pas celui du manuel scolaire.</div>
+
+    <div class="flow-box">
+      <div class="flow-step">
+        <span class="fs-label">1. Lobby / Fédération sectorielle</span>
+        <span class="fs-power" style="background:rgba(236,72,153,0.15);color:var(--pink)">Initiation</span>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <span class="fs-label">2. Cabinet ministériel</span>
+        <span class="fs-power" style="background:rgba(249,115,22,0.15);color:var(--orange)">Rédaction</span>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <span class="fs-label">3. Inter-cabinets (négociation)</span>
+        <span class="fs-power" style="background:rgba(234,179,8,0.15);color:var(--amber)">Compromis</span>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <span class="fs-label">4. Kern (réunion restreinte PM + vice-PM)</span>
+        <span class="fs-power" style="background:rgba(239,68,68,0.15);color:var(--red)">Décision</span>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <span class="fs-label">5. Conseil des Ministres (validation formelle)</span>
+        <span class="fs-power" style="background:rgba(6,182,212,0.15);color:var(--cyan)">Tampon</span>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <span class="fs-label">6. Conseil d'État (avis juridique)</span>
+        <span class="fs-power" style="background:rgba(34,197,94,0.15);color:var(--green)">Avis</span>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <span class="fs-label">7. Commission parlementaire (examen)</span>
+        <span class="fs-power" style="background:rgba(167,139,250,0.15);color:var(--violet)">Discussion</span>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <span class="fs-label">8. Vote en séance plénière</span>
+        <span class="fs-power" style="background:rgba(80,82,106,0.15);color:var(--dim)">Enregistrement</span>
+      </div>
+    </div>
+
+    <div class="keyfact">
+      Le Parlement — l'institution démocratique par excellence — intervient en <strong>étape 7 sur 8</strong>. À ce stade, tout est déjà négocié, rédigé et décidé. Le vote est un acte d'enregistrement, pas de délibération. <em>Le lobby est en étape 1. Vous êtes en étape 8.</em>
+    </div>
+  </div>
+
+  <!-- ============ LAYER: MONEY ============ -->
+  <div class="layer" id="layer-money">
+    <div class="layer-title">Suivez l'argent</div>
+    <div class="layer-subtitle">Combien coûte la classe politique — et combien elle rapporte à elle-même.</div>
+
+    <table class="data-table">
+      <thead>
+        <tr><th>Poste</th><th>Montant</th><th>Note</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Salaire député fédéral</td><td class="td-num">9.364 €/mois</td><td>+ 28% indemnité forfaitaire exonérée</td></tr>
+        <tr><td>Plafond cumul mandats</td><td class="td-num">194.749 €/an</td><td>150% indemnité parlementaire</td></tr>
+        <tr><td>Collaborateurs par député</td><td class="td-num">8.800 €/mois</td><td>Budget pour 5 collaborateurs max</td></tr>
+        <tr><td>Indemnité de sortie</td><td class="td-num">9.742 €/mois</td><td>× 2 mois par année de mandat (max 24 mois)</td></tr>
+        <tr><td>Budget Sénat</td><td class="td-num">44,5 M€/an</td><td>Compétences quasi nulles</td></tr>
+        <tr><td>Cabinets FWB (seul)</td><td class="td-num">397 personnes</td><td>Gouvernement parallèle non élu</td></tr>
+        <tr><td>Consultance Bruxelles</td><td class="td-num">470 M€</td><td>Externalisation du travail des cabinets</td></tr>
+        <tr><td>Pension au-delà du plafond légal</td><td class="td-num">+19.000 €/an</td><td>Scandale Wijninckx — tous partis signataires 2013</td></tr>
+      </tbody>
+    </table>
+
+    <div class="compare-row">
+      <div class="compare-box">
+        <div class="cb-val" style="color:var(--red)">9.364 €</div>
+        <div class="cb-lbl">Député (brut/mois)</div>
+      </div>
+      <div class="compare-vs">vs</div>
+      <div class="compare-box">
+        <div class="cb-val" style="color:var(--text)">4.076 €</div>
+        <div class="cb-lbl">Salaire moyen belge</div>
+      </div>
+    </div>
+
+    <div class="compare-row">
+      <div class="compare-box">
+        <div class="cb-val" style="color:var(--red)">53.146 €</div>
+        <div class="cb-lbl">Dette par citoyen (BE)</div>
+      </div>
+      <div class="compare-vs">vs</div>
+      <div class="compare-box">
+        <div class="cb-val" style="color:var(--green)">28.400 €</div>
+        <div class="cb-lbl">Dette par citoyen (NL)</div>
+      </div>
+    </div>
+
+    <div class="keyfact">
+      Le scandale Wijninckx résume le système : en 2013, <strong>PS, MR, N-VA et Ecolo</strong> ont signé un accord permettant aux parlementaires de dépasser le plafond légal de pension de 20%. Révélé en 2023 par le PTB — seul non-signataire. <em>Gauche et droite, Flandre et Wallonie : sur leurs propres privilèges, l'union est sacrée.</em>
+    </div>
+  </div>
+
+  <!-- ============ LAYER: YOU ============ -->
+  <div class="layer" id="layer-you">
+    <div class="layer-title">Et vous dans tout ça ?</div>
+    <div class="layer-subtitle">Votre position dans la hiérarchie du pouvoir — et comment la changer.</div>
+
+    <div class="flow-box" style="margin-bottom:2rem">
+      <p style="margin-bottom:1rem;font-size:.82rem;color:var(--white)"><strong>Votre pouvoir formel :</strong></p>
+      <p>Un bulletin de vote tous les 4-5 ans. Choix parmi des listes composées par les présidents de parti. Pas de vote préférentiel contraignant. Pas de référendum fédéral. Pas de droit d'initiative populaire au niveau fédéral. Pas de recall (révocation d'un élu).</p>
+      <br>
+      <p style="margin-bottom:1rem;font-size:.82rem;color:var(--white)"><strong>Votre pouvoir réel (si vous l'activez) :</strong></p>
+      <p>
+        <strong style="color:var(--green)">Recours juridique</strong> — Tribunal du Travail, Conseil d'État, Cour constitutionnelle. Gratuit ou presque. C'est ce qui a bloqué des réformes entières.<br><br>
+        <strong style="color:var(--cyan)">Droit d'accès</strong> — Constitution art. 32 : tout document administratif est accessible. La CADA peut forcer une administration à vous répondre.<br><br>
+        <strong style="color:var(--orange)">Pression collective</strong> — Syndicats, associations, collectifs. La mobilisation de 2025 contre Arizona a réuni des dizaines de milliers de personnes.<br><br>
+        <strong style="color:var(--violet)">Contre-information</strong> — CDJ, CSA, Unia. Vous pouvez contester un article, une émission, un documentaire. 57% des plaintes au CDJ sont fondées.<br><br>
+        <strong style="color:var(--pink)">Fork • Hack • Spread</strong> — Cet outil que vous utilisez. Copiez-le, adaptez-le, diffusez-le. CC BY-NC 4.0 = libre de droit non commercial.
+      </p>
+    </div>
+
+    <div class="keyfact">
+      Le système compte sur votre <em>sentiment d'impuissance</em>. Tant que vous pensez que "ça ne sert à rien", il fonctionne parfaitement. Le premier acte de pouvoir citoyen, c'est de <strong>refuser le cynisme</strong> — et d'utiliser les outils qui existent déjà.
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:2rem">
+      <a href="generateur-recours.html" style="padding:.8rem 1rem;font-family:var(--mono);font-size:.75rem;font-weight:600;background:var(--panel);border:1px solid var(--border);color:var(--text);text-decoration:none;border-radius:2px;text-align:center;display:block">⚖ Générateur de recours</a>
+      <a href="detecteur-cadrage.html" style="padding:.8rem 1rem;font-family:var(--mono);font-size:.75rem;font-weight:600;background:var(--panel);border:1px solid var(--border);color:var(--text);text-decoration:none;border-radius:2px;text-align:center;display:block">📡 Détecteur de cadrage</a>
+      <a href="kit-contre-narratif.html" style="padding:.8rem 1rem;font-family:var(--mono);font-size:.75rem;font-weight:600;background:var(--panel);border:1px solid var(--border);color:var(--text);text-decoration:none;border-radius:2px;text-align:center;display:block">🗣 Kit contre-narratif</a>
+      <a href="calculateur-impact.html" style="padding:.8rem 1rem;font-family:var(--mono);font-size:.75rem;font-weight:600;background:var(--panel);border:1px solid var(--border);color:var(--text);text-decoration:none;border-radius:2px;text-align:center;display:block">💰 Calculateur d'impact</a>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>◇ DÉMOGARCHIE · <a href="https://ouaisfi.eu">ouaisfieu</a> · CC BY-NC 4.0</div>
+    <div>心理战 Module 06/17 · Fork • Hack • Spread</div>
+  </div>
+</div>
+
+<script>
+function showLayer(id) {
+  document.querySelectorAll('.layer').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('.layer-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('layer-' + id).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo({ top: document.querySelector('.layer-tabs').offsetTop - 20, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>
