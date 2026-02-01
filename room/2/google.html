@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse : Le Moratoire en Éducation Permanente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Warm Neutrals (Stone/Sand) with Bureaucratic Blue and Alert Red accents. 
+         Background: bg-stone-50. Text: text-stone-800. 
+         Accents: Blue for 'System', Red for 'Warning/Stop', Green for 'Growth/Rights'. -->
+    
+    <!-- Application Structure Plan:
+         1. Hero Section: Sets the context of the "Belgian Delirium" and the core question (Moratorium vs. Rights).
+         2. Context Dashboard: "L'État des Lieux". Quantitative view of the sector (Associations vs. Budget freeze). 
+            Interaction: Toggle between historical growth and current stagnation.
+         3. The Legal Core: "Le Conflit du Standstill". Explains the legal tension. 
+            Interaction: Interactive Comparison (Government Logic vs. Sector Logic).
+         4. Social Impact: "Le Piège de l'Assistanat". Visualizing the user's journey.
+            Interaction: Toggle between "Passive Path" (trapped) and "Active Path" (empowerment).
+         5. Conclusion/Synthesis: Final summary.
+         
+         Rationale: This structure moves from the 'What' (the freeze) to the 'Why' (legal/budget) to the 'So What' (human impact), 
+         making the abstract legal concept of 'Standstill' concrete through visualization.
+    -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 350px; }
+        }
+        .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .active-tab { border-bottom: 2px solid #1d4ed8; color: #1d4ed8; font-weight: 600; }
+        .inactive-tab { color: #6b7280; }
+        .step-connector::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -1px;
+            width: 2px;
+            height: 20px;
+            background-color: #cbd5e1;
+            z-index: 0;
+        }
+        .last-step::after { display: none; }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold text-stone-900 tracking-tight">Observatoire<span class="text-blue-700">Citoyen</span></span>
+                </div>
+                <div class="hidden sm:flex items-center space-x-8">
+                    <a href="#contexte" class="text-sm font-medium hover:text-blue-700 transition">Le Contexte</a>
+                    <a href="#juridique" class="text-sm font-medium hover:text-blue-700 transition">Standstill Légal</a>
+                    <a href="#social" class="text-sm font-medium hover:text-blue-700 transition">Impact Social</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="bg-white border-b border-stone-200">
+        <div class="max-w-4xl mx-auto px-4 py-16 text-center">
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-stone-900 mb-6">
+                Le Moratoire en Éducation Permanente
+            </h1>
+            <p class="text-xl text-stone-600 mb-8 max-w-2xl mx-auto">
+                Entre austérité budgétaire et obligation constitutionnelle.
+                <br>
+                <span class="text-blue-700 font-semibold">Le gel des reconnaissances est-il illégal ?</span>
+            </p>
+            <div class="flex justify-center gap-4 flex-wrap">
+                <span class="px-4 py-2 bg-stone-100 rounded-full text-sm font-semibold text-stone-600">🏛️ Décret 2003</span>
+                <span class="px-4 py-2 bg-red-100 rounded-full text-sm font-semibold text-red-700">⛔ Moratoire Actif</span>
+                <span class="px-4 py-2 bg-blue-100 rounded-full text-sm font-semibold text-blue-700">⚖️ Effet Standstill</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Section 1: Context & Data -->
+    <section id="contexte" class="py-16 px-4 max-w-6xl mx-auto">
+        <div class="mb-12">
+            <h2 class="text-3xl font-bold text-stone-900 mb-4 border-l-4 border-blue-700 pl-4">1. L'État des Lieux : Un Secteur sous Cloche</h2>
+            <p class="text-lg text-stone-600 max-w-3xl">
+                L'Éducation Permanente en Belgique francophone (Décret 2003) vise à développer l'esprit critique et la citoyenneté active. Cependant, depuis plusieurs années, un "moratoire" de fait gèle la reconnaissance de nouvelles associations, créant un goulot d'étranglement. Cette section visualise l'écart grandissant entre la demande citoyenne et la réponse institutionnelle.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            <!-- Data Visualization Card -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-stone-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-stone-800">Dossiers vs Reconnaissances</h3>
+                    <select id="chartFilter" class="bg-stone-50 border border-stone-200 text-sm rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="all">Vue Globale</option>
+                        <option value="recent">Focus 5 dernières années</option>
+                    </select>
+                </div>
+                <!-- Chart Container -->
+                <div class="chart-container">
+                    <canvas id="ctxApplications"></canvas>
+                </div>
+                <p class="text-xs text-stone-500 mt-4 italic text-center">Données simulées basées sur les tendances du secteur (FWB).</p>
+            </div>
+
+            <!-- Key Metrics Interactive Panel -->
+            <div class="space-y-6">
+                <div class="bg-stone-100 p-6 rounded-xl cursor-pointer card-hover" onclick="updateInfo('budget')">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-white p-3 rounded-full shadow-sm text-2xl">💶</div>
+                        <div>
+                            <h4 class="font-bold text-lg">Enveloppe Fermée</h4>
+                            <p class="text-sm text-stone-600">Le budget n'augmente pas proportionnellement à l'indexation.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-stone-100 p-6 rounded-xl cursor-pointer card-hover" onclick="updateInfo('files')">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-white p-3 rounded-full shadow-sm text-2xl">📂</div>
+                        <div>
+                            <h4 class="font-bold text-lg">Files d'Attente</h4>
+                            <p class="text-sm text-stone-600">Des dizaines d'associations fonctionnent sans subsides structurels.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-red-50 p-6 rounded-xl border border-red-100 cursor-pointer card-hover" onclick="updateInfo('consequences')">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-white p-3 rounded-full shadow-sm text-2xl">⚠️</div>
+                        <div>
+                            <h4 class="font-bold text-red-800">Le "Délire Belge"</h4>
+                            <p class="text-sm text-red-600">Des obligations décrétales maintenues sans moyens pour les honorer.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Info Box -->
+                <div id="dynamicInfoBox" class="bg-white border-l-4 border-blue-600 p-4 shadow-sm hidden transition-all duration-300">
+                    <h5 id="infoTitle" class="font-bold text-blue-800 mb-2"></h5>
+                    <p id="infoText" class="text-sm text-stone-700"></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: The Legal Standstill -->
+    <section id="juridique" class="bg-white py-16 px-4 border-y border-stone-200">
+        <div class="max-w-6xl mx-auto">
+            <div class="mb-12">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4 border-l-4 border-red-600 pl-4">2. Le Conflit : Standstill vs Austérité</h2>
+                <p class="text-lg text-stone-600 max-w-3xl">
+                    L'argument central des acteurs de terrain repose sur le principe de <strong>Standstill</strong> (effet cliquet). Ce principe juridique, découlant de l'Article 23 de la Constitution belge, interdit de réduire significativement le niveau de protection sociale offert, sauf motif d'intérêt général impérieux. Le moratoire viole-t-il ce principe ?
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Column 1: Government/Admin Logic -->
+                <div class="border border-stone-200 rounded-xl p-6 bg-stone-50">
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 rounded-full bg-stone-300 text-stone-600 flex items-center justify-center font-bold mr-3">A</div>
+                        <h3 class="text-xl font-bold">Logique Administrative</h3>
+                    </div>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <span class="mr-2 mt-1 text-stone-400">➤</span>
+                            <p class="text-sm"><strong>Contrainte Budgétaire :</strong> L'enveloppe est fermée. Reconnaître plus, c'est diluer les moyens des autres.</p>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="mr-2 mt-1 text-stone-400">➤</span>
+                            <p class="text-sm"><strong>Gestion Rationnelle :</strong> Il faut évaluer l'existant avant d'étendre le secteur.</p>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="mr-2 mt-1 text-stone-400">➤</span>
+                            <p class="text-sm"><strong>Risque :</strong> Création de "coquilles vides" sans financement réel.</p>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Column 2: Sector/Legal Logic -->
+                <div class="border-2 border-blue-100 rounded-xl p-6 bg-blue-50">
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold mr-3">B</div>
+                        <h3 class="text-xl font-bold text-blue-900">Logique Constitutionnelle</h3>
+                    </div>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <span class="mr-2 mt-1 text-blue-500">➤</span>
+                            <p class="text-sm text-blue-900"><strong>Droit Culturel & Social :</strong> L'Éducation Permanente est un droit (Art. 23). Geler l'accès à ce droit est une régression.</p>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="mr-2 mt-1 text-blue-500">➤</span>
+                            <p class="text-sm text-blue-900"><strong>Violation du Standstill :</strong> En empêchant de nouveaux acteurs d'émerger, l'État réduit l'offre de participation citoyenne.</p>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="mr-2 mt-1 text-blue-500">➤</span>
+                            <p class="text-sm text-blue-900"><strong>Discrimination :</strong> Les nouveaux projets citoyens (souvent par/pour les jeunes ou précaires) sont bloqués.</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Interactive Standstill Gauge -->
+            <div class="mt-12 text-center">
+                <h3 class="text-lg font-bold mb-6">Simulation de l'Infraction</h3>
+                <div class="flex justify-center items-center gap-4">
+                    <button id="btnFreeze" class="px-6 py-2 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 transition" onclick="simulateStandstill('freeze')">Activer le Moratoire</button>
+                    <button id="btnInvest" class="px-6 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition" onclick="simulateStandstill('invest')">Respecter le Droit</button>
+                </div>
+                
+                <div class="mt-8 max-w-2xl mx-auto bg-stone-100 rounded-full h-8 relative overflow-hidden shadow-inner">
+                    <div id="standstillBar" class="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-1000 ease-in-out" style="width: 50%;"></div>
+                    <div class="absolute inset-0 flex items-center justify-center text-xs font-bold text-stone-700 z-10 mix-blend-multiply">Niveau de Protection des Droits</div>
+                </div>
+                <p id="standstillResult" class="mt-4 text-sm font-medium text-stone-600 min-h-[1.5em]">Situation actuelle : Statu quo fragile.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Social Impact (The Trap) -->
+    <section id="social" class="py-16 px-4 max-w-6xl mx-auto">
+        <div class="mb-12">
+            <h2 class="text-3xl font-bold text-stone-900 mb-4 border-l-4 border-green-600 pl-4">3. Le Piège : Citoyen ou Assisté ?</h2>
+            <p class="text-lg text-stone-600 max-w-3xl">
+                La question centrale est celle de la démocratie. Le système d'aide sociale classique place souvent les précaires dans un rôle passif d'« assisté ». L'Éducation Permanente vise à briser ce cycle par l'analyse critique et l'action collective. Le moratoire, en bloquant ces structures, verrouille-t-il les citoyens dans la précarité ?
+            </p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-stone-200">
+            <!-- Tabs -->
+            <div class="flex border-b border-stone-200">
+                <button class="flex-1 py-4 text-center font-medium active-tab transition bg-stone-50" id="tabTrap" onclick="switchPath('trap')">
+                    Le Cycle de l'Assistanat (Actuel)
+                </button>
+                <button class="flex-1 py-4 text-center font-medium inactive-tab transition hover:bg-stone-50" id="tabEmpower" onclick="switchPath('empower')">
+                    Le Cycle de l'Émancipation (But)
+                </button>
+            </div>
+
+            <div class="p-8 md:p-12">
+                <!-- Content Container -->
+                <div id="pathContainer" class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+                    <!-- Dynamic content injected by JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Synthesis -->
+    <section class="bg-stone-900 text-stone-300 py-16 px-4 mt-12">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-2xl font-bold text-white mb-6">Conclusion : Le Délire Belge ?</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-left">
+                <div>
+                    <h4 class="text-white font-bold mb-2">Le Paradoxe</h4>
+                    <p class="text-sm">On demande aux citoyens d'être actifs ("Activation"), mais on coupe les vivres aux structures qui permettent cette activité critique.</p>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-2">Le Risque</h4>
+                    <p class="text-sm">Transformer l'Éducation Permanente en simple prestataire de services sociaux, vidée de sa substance politique et contestataire.</p>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-2">L'Avenir</h4>
+                    <p class="text-sm">Le secteur demande une refinancement structurel et la fin du moratoire pour respecter l'obligation constitutionnelle.</p>
+                </div>
+            </div>
+            <p class="text-stone-500 text-xs italic">Cette application est une représentation interactive basée sur les débats actuels en Fédération Wallonie-Bruxelles.</p>
+        </div>
+    </section>
+
+    <!-- Scripts -->
+    <script>
+        // --- 1. State & Data ---
+        const state = {
+            currentPath: 'trap',
+            chartMode: 'all'
+        };
+
+        const chartData = {
+            years: ['2018', '2019', '2020', '2021', '2022', '2023'],
+            recognized: [280, 282, 285, 285, 286, 286], // Stagnation
+            applications: [15, 25, 40, 55, 70, 85]      // Growing waiting list
+        };
+
+        // --- 2. Chart.js Initialization ---
+        let mainChart;
+
+        function initChart() {
+            const ctx = document.getElementById('ctxApplications').getContext('2d');
+            
+            // Configuration for readability
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            Chart.defaults.color = '#57534e';
+
+            mainChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.years,
+                    datasets: [
+                        {
+                            label: 'Associations Reconnues (Stagnation)',
+                            data: chartData.recognized,
+                            backgroundColor: '#e7e5e4', // stone-200
+                            borderColor: '#a8a29e',
+                            borderWidth: 1,
+                            order: 2
+                        },
+                        {
+                            label: 'Dossiers en Attente (Besoin)',
+                            data: chartData.applications,
+                            backgroundColor: '#ef4444', // red-500
+                            borderColor: '#b91c1c',
+                            borderWidth: 1,
+                            type: 'line',
+                            order: 1,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            backgroundColor: 'rgba(255,255,255,0.95)',
+                            titleColor: '#1c1917',
+                            bodyColor: '#44403c',
+                            borderColor: '#e5e7eb',
+                            borderWidth: 1,
+                            padding: 10
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f5f5f4' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.getElementById('chartFilter').addEventListener('change', (e) => {
+            const val = e.target.value;
+            if(val === 'recent') {
+                mainChart.data.labels = chartData.years.slice(-3);
+                mainChart.data.datasets[0].data = chartData.recognized.slice(-3);
+                mainChart.data.datasets[1].data = chartData.applications.slice(-3);
+            } else {
+                mainChart.data.labels = chartData.years;
+                mainChart.data.datasets[0].data = chartData.recognized;
+                mainChart.data.datasets[1].data = chartData.applications;
+            }
+            mainChart.update();
+        });
+
+        // --- 3. Dynamic Text Updates (Context Section) ---
+        const infoContent = {
+            'budget': {
+                title: 'Austérité Budgétaire',
+                text: "Depuis plusieurs législatures, l'enveloppe budgétaire est 'fermée'. Même si de nouveaux besoins émergent (fracture numérique, précarité énergétique), aucun nouveau moyen n'est dégagé. C'est la cause première du moratoire."
+            },
+            'files': {
+                title: 'Une attente interminable',
+                text: "Les dossiers de demande de reconnaissance s'empilent à l'administration. Sans réponse, ces associations survivent sur fonds propres ou bénévolat, limitant leur impact professionnel."
+            },
+            'consequences': {
+                title: 'Non-sens Administratif',
+                text: "L'État impose des normes de qualité strictes (Décret) mais refuse les moyens de les atteindre. On demande aux associations de 'faire plus avec moins', ce qui épuise les travailleurs sociaux."
+            }
+        };
+
+        function updateInfo(key) {
+            const box = document.getElementById('dynamicInfoBox');
+            const title = document.getElementById('infoTitle');
+            const text = document.getElementById('infoText');
+
+            // Simple animation reset
+            box.classList.add('hidden');
+            box.classList.remove('opacity-100');
+            
+            setTimeout(() => {
+                title.textContent = infoContent[key].title;
+                text.textContent = infoContent[key].text;
+                box.classList.remove('hidden');
+                setTimeout(() => box.classList.add('opacity-100'), 50);
+            }, 200);
+        }
+
+        // --- 4. Standstill Simulation ---
+        function simulateStandstill(action) {
+            const bar = document.getElementById('standstillBar');
+            const result = document.getElementById('standstillResult');
+            
+            if (action === 'freeze') {
+                bar.style.width = '20%';
+                bar.classList.remove('bg-green-500', 'bg-blue-500');
+                bar.classList.add('bg-red-600');
+                result.innerHTML = "<span class='text-red-600 font-bold'>Alerte Infraction :</span> Réduction de l'offre sociale. Recul des droits culturels. Violation potentielle de l'Art. 23.";
+            } else {
+                bar.style.width = '90%';
+                bar.classList.remove('bg-red-600', 'bg-blue-500');
+                bar.classList.add('bg-green-600');
+                result.innerHTML = "<span class='text-green-700 font-bold'>Conformité :</span> Les droits progressent. Le citoyen a accès aux outils d'émancipation.";
+            }
+        }
+
+        // --- 5. Path Switching (Social Impact) ---
+        const paths = {
+            trap: [
+                { icon: '📉', title: 'Précarité', desc: 'Isolement social, perte de revenus.' },
+                { icon: '🏢', title: 'Guichet', desc: 'Approche administrative. Demande d\'aide individuelle.' },
+                { icon: '🧩', title: 'Assistance', desc: 'Réponse ponctuelle. Dépendance au système.' },
+                { icon: '🛑', title: 'Statu Quo', desc: 'Le citoyen reste passif. Pas de changement structurel.' }
+            ],
+            empower: [
+                { icon: '🤝', title: 'Accueil', desc: 'Écoute collective en Éducation Permanente.' },
+                { icon: '💡', title: 'Analyse', desc: 'Comprendre les causes systémiques de sa situation (ex: logement).' },
+                { icon: '📢', title: 'Action', desc: 'Mobilisation collective, interpellation politique.' },
+                { icon: '✊', title: 'Citoyenneté', desc: 'Le précaire devient un acteur de changement.' }
+            ]
+        };
+
+        function renderPath(type) {
+            const container = document.getElementById('pathContainer');
+            container.innerHTML = '';
+            
+            const steps = paths[type];
+            const colorClass = type === 'trap' ? 'bg-stone-100 border-stone-300 text-stone-600' : 'bg-blue-50 border-blue-200 text-blue-800';
+            
+            steps.forEach((step, index) => {
+                const isLast = index === steps.length - 1;
+                const div = document.createElement('div');
+                div.className = `relative p-4 rounded-lg border-2 ${colorClass} flex flex-col items-center justify-center step-connector ${isLast ? 'last-step' : ''}`;
+                
+                // Add arrow for desktop layout via CSS class logic or simple injection
+                let arrowHTML = '';
+                if (!isLast) {
+                    arrowHTML = `<div class="hidden md:block absolute -right-3 top-1/2 transform -translate-y-1/2 z-10 text-stone-400">➔</div>`;
+                }
+
+                div.innerHTML = `
+                    <div class="text-4xl mb-2">${step.icon}</div>
+                    <h4 class="font-bold mb-1">${step.title}</h4>
+                    <p class="text-xs opacity-80">${step.desc}</p>
+                    ${arrowHTML}
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function switchPath(type) {
+            // UI Toggle
+            document.getElementById('tabTrap').className = type === 'trap' ? 'flex-1 py-4 text-center font-medium active-tab transition bg-stone-50' : 'flex-1 py-4 text-center font-medium inactive-tab transition hover:bg-stone-50';
+            document.getElementById('tabEmpower').className = type === 'empower' ? 'flex-1 py-4 text-center font-medium active-tab transition bg-blue-50' : 'flex-1 py-4 text-center font-medium inactive-tab transition hover:bg-stone-50';
+            
+            renderPath(type);
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            initChart();
+            renderPath('trap'); // Default view
+        });
+
+    </script>
+    
+    <!-- Visualization & Content Choices:
+         - Chart.js Bar Chart: Chosen to visualize the quantitative aspect of the 'Moratorium'. Bars for existing orgs (static) vs Line for Applications (growing) creates immediate visual tension.
+         - Interactive Gauge (Standstill): Chosen to gamify the abstract legal concept. User 'Invests' or 'Freezes' to see the outcome on rights.
+         - Step Process (Social Trap): Chosen to explain the 'Education Permanente' methodology vs standard social work. Horizontal flow is intuitive for timelines/processes.
+         - NO SVG/Mermaid: All icons are unicode emoji or HTML/CSS shapes. Charts are Canvas.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</body>
+</html>
