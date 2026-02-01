@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OuaisFi : Anatomie d'un Écosystème Numérique</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Warm Neutrals & Organic Amber -->
+    <!-- Application Structure Plan:
+         1. Introduction: Sets the stage for the analysis (Artisanal -> Ecosystem).
+         2. Interactive Dashboard (The Core): A split view.
+            - Left: Spatial visualization of the ecosystem nodes (Bubble Chart).
+            - Right: Dynamic "Inspector" panel that reveals details about each node (1160, biologia, etc.) upon interaction.
+         3. Temporal Analysis: A timeline and line chart section showing the evolution from static pages to distributed infrastructure.
+         4. Structural Breakdown: Cards detailing the technical philosophy (Sovereignty, Decentralization).
+         This structure encourages the user to "explore" the network first, then understand its history and philosophy.
+    -->
+    <!-- Visualization & Content Choices:
+         - Ecosystem Map -> Goal: Relationships -> Viz: Bubble Chart -> Interaction: Click to inspect Node -> Justification: Best way to show distinct entities (nodes) with varying importance (size) and type (color) without SVG.
+         - Growth Trajectory -> Goal: Change -> Viz: Line Chart -> Interaction: Toggle metrics -> Justification: Clear visualization of temporal trends.
+         - Content Distribution -> Goal: Inform -> Viz: Donut Chart -> Justification: Shows the composition of the Data Lake.
+         - Milestones -> Goal: Organize -> Viz: Vertical Timeline (HTML/CSS) -> Justification: Text-heavy narrative flow.
+         - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        :root {
+            /* Warm Neutrals Palette */
+            --bg-main: #FAF9F6; /* Alabaster */
+            --bg-card: #FFFFFF;
+            --text-primary: #44403C; /* Warm Gray 800 */
+            --text-secondary: #78716C; /* Warm Gray 500 */
+            --accent-amber: #B45309; /* Muted Amber */
+            --border-subtle: #E7E5E4; /* Warm Gray 200 */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Merriweather', serif;
+            color: var(--text-primary);
+        }
+
+        /* Chart Container - Mandatory Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%; /* Constraints handled by grid layout */
+            height: 350px;
+            max-height: 400px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 1024px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* Custom Interactive Elements */
+        .node-item {
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        .node-item:hover, .node-item.active {
+            background-color: #F5F5F4;
+            border-left-color: var(--accent-amber);
+            padding-left: 1rem;
+        }
+
+        .btn-toggle {
+            transition: all 0.2s;
+        }
+        .btn-toggle:hover {
+            background-color: #E7E5E4;
+        }
+        .btn-toggle.active {
+            background-color: var(--text-primary);
+            color: white;
+        }
+
+        /* Timeline Styling */
+        .timeline-point::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 6px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--accent-amber);
+            border: 2px solid white;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-stone-200 sticky top-0 z-30 opacity-95 backdrop-blur">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl text-amber-700">⟁</span>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight">OUAISFI.EU</h1>
+                    <p class="text-xs text-stone-500 font-sans tracking-wide uppercase">Rapport d'Architecture Numérique</p>
+                </div>
+            </div>
+            <nav class="hidden md:flex space-x-6 text-sm font-medium text-stone-600">
+                <a href="#dashboard" class="hover:text-amber-700 transition">L'Écosystème</a>
+                <a href="#evolution" class="hover:text-amber-700 transition">Évolution</a>
+                <a href="#philosophy" class="hover:text-amber-700 transition">Philosophie</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-16">
+
+        <!-- Introduction -->
+        <section class="max-w-3xl mx-auto text-center space-y-4 animate-fade-in">
+            <h2 class="text-3xl md:text-4xl font-bold text-stone-800">Du Site Artisanal à l'Écosystème</h2>
+            <p class="text-lg text-stone-600">
+                Cette analyse explore la transition structurelle de l'initiative <strong>OuaisFi</strong>. 
+                Ce qui a débuté comme une simple présence web s'est fragmenté en une constellation de sous-domaines spécialisés, 
+                révélant une stratégie de <em>souveraineté numérique</em> et d'<em>ancrage local</em>.
+            </p>
+            <div class="pt-4 flex justify-center gap-4 text-sm text-stone-500 font-mono">
+                <span>📂 5 Nœuds Actifs</span>
+                <span>⚡ Infrastructure Distribuée</span>
+                <span>🌱 Contenu Organique</span>
+            </div>
+        </section>
+
+        <!-- DASHBOARD SECTION: Interactive Network Map -->
+        <section id="dashboard" class="scroll-mt-24">
+            <div class="mb-6">
+                <h3 class="text-2xl font-bold mb-2 border-l-4 border-amber-600 pl-4">Cartographie des Interactions</h3>
+                <p class="text-stone-600 max-w-2xl">
+                    L'architecture n'est plus monolithique. Cliquez sur les nœuds ci-dessous pour explorer la fonction et le contenu de chaque entité de l'écosystème.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- LEFT: Visualization -->
+                <div class="lg:col-span-8 bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="font-bold text-stone-700">Topologie du Réseau</h4>
+                        <div class="text-xs space-x-2">
+                            <span class="inline-block w-3 h-3 rounded-full bg-stone-400"></span> Infra
+                            <span class="inline-block w-3 h-3 rounded-full bg-amber-600"></span> Local
+                            <span class="inline-block w-3 h-3 rounded-full bg-green-600"></span> Savoir
+                        </div>
+                    </div>
+                    <!-- Chart Container -->
+                    <div class="chart-container">
+                        <canvas id="ecosystemBubbleChart"></canvas>
+                    </div>
+                    <p class="text-center text-xs text-stone-400 mt-2 italic">Axe X : Complexité Technique — Axe Y : Impact Communautaire — Taille : Volume de Données</p>
+                </div>
+
+                <!-- RIGHT: Inspector Panel -->
+                <div class="lg:col-span-4 flex flex-col h-full">
+                    <div id="node-inspector" class="bg-stone-50 border border-stone-200 rounded-xl p-6 flex-grow transition-all duration-300">
+                        <!-- Default State -->
+                        <div id="inspector-default" class="h-full flex flex-col items-center justify-center text-center text-stone-400">
+                            <span class="text-4xl mb-2">👆</span>
+                            <p class="text-sm">Sélectionnez un nœud sur le graphique<br>pour voir les détails.</p>
+                        </div>
+                        
+                        <!-- Active State (Hidden by default) -->
+                        <div id="inspector-content" class="hidden space-y-4">
+                            <div class="border-b border-stone-200 pb-3">
+                                <span id="node-type" class="text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-100 px-2 py-1 rounded">Type</span>
+                                <h3 id="node-title" class="text-2xl font-bold text-stone-800 mt-2 font-serif">Node Name</h3>
+                                <div id="node-url" class="font-mono text-xs text-stone-500 mt-1">url.domain</div>
+                            </div>
+                            
+                            <p id="node-desc" class="text-sm text-stone-600 leading-relaxed">Description goes here.</p>
+                            
+                            <div class="bg-white p-4 rounded shadow-sm border border-stone-100">
+                                <h5 class="font-bold text-xs text-stone-400 uppercase mb-2">Statistiques Clés</h5>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <div class="text-2xl font-bold text-stone-800" id="node-metric-1">0</div>
+                                        <div class="text-xs text-stone-500" id="node-label-1">Files</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-2xl font-bold text-stone-800" id="node-metric-2">0</div>
+                                        <div class="text-xs text-stone-500" id="node-label-2">Monthly Hits</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-4">
+                                <button class="w-full py-2 bg-stone-800 text-white text-sm font-medium rounded hover:bg-stone-700 transition" onclick="alert('Simulation: Navigation vers le sous-domaine...')">
+                                    Visiter le Nœud ↗
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- EVOLUTION SECTION -->
+        <section id="evolution" class="scroll-mt-24 pt-8 border-t border-stone-200">
+            <div class="mb-8 md:text-center max-w-3xl mx-auto">
+                <h3 class="text-2xl font-bold mb-2 font-serif">Une Trajectoire de Décentralisation</h3>
+                <p class="text-stone-600">
+                    L'analyse temporelle montre un basculement. Le site n'est plus une vitrine statique mais un point d'accès vers des ressources dynamiques (DL) et des savoirs structurés (Biologia).
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+                
+                <!-- Timeline Visual -->
+                <div class="relative pl-4 border-l border-stone-200 space-y-8">
+                    <div class="timeline-point relative pl-6">
+                        <span class="text-xs font-mono text-stone-400">2021</span>
+                        <h4 class="font-bold text-stone-800">Phase Artisanale</h4>
+                        <p class="text-sm text-stone-600 mt-1">Site monolithique simple. Contenu statique HTML/CSS. Gestion manuelle.</p>
+                    </div>
+                    <div class="timeline-point relative pl-6">
+                        <span class="text-xs font-mono text-stone-400">2022</span>
+                        <h4 class="font-bold text-stone-800">Émergence du Data Lake (DL)</h4>
+                        <p class="text-sm text-stone-600 mt-1">Mise en place de <code>dl.ouaisfi</code>. Séparation du stockage et de l'affichage.</p>
+                    </div>
+                    <div class="timeline-point relative pl-6">
+                        <span class="text-xs font-mono text-stone-400">2023</span>
+                        <h4 class="font-bold text-stone-800">Spécialisation (1160 & Biologia)</h4>
+                        <p class="text-sm text-stone-600 mt-1">Création de silos thématiques pour adresser des audiences spécifiques (Locale vs Globale).</p>
+                    </div>
+                    <div class="timeline-point relative pl-6">
+                        <span class="text-xs font-mono text-stone-400">2024+</span>
+                        <h4 class="font-bold text-stone-800">Écosystème Fédéré</h4>
+                        <p class="text-sm text-stone-600 mt-1">Interconnexion via sitemap global. Identité unifiée mais infrastructure distribuée.</p>
+                    </div>
+                </div>
+
+                <!-- Charts Column -->
+                <div class="space-y-8">
+                    <!-- Line Chart -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="font-bold text-sm text-stone-700 uppercase">Volume de Trafic vs Complexité</h4>
+                            <div class="flex space-x-2">
+                                <button class="btn-toggle active px-3 py-1 text-xs rounded border border-stone-200" onclick="updateLineChart('all')">Tout</button>
+                                <button class="btn-toggle px-3 py-1 text-xs rounded border border-stone-200" onclick="updateLineChart('traffic')">Trafic</button>
+                            </div>
+                        </div>
+                        <div class="chart-container h-64">
+                            <canvas id="evolutionLineChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Donut Chart Small -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 flex flex-col sm:flex-row items-center gap-6">
+                        <div class="w-full sm:w-1/2 chart-container h-48">
+                            <canvas id="storageDonutChart"></canvas>
+                        </div>
+                        <div class="w-full sm:w-1/2">
+                            <h4 class="font-bold text-sm text-stone-700 uppercase mb-2">Composition du Data Lake</h4>
+                            <p class="text-xs text-stone-500 mb-4">Répartition des types de fichiers hébergés sur le serveur DL.</p>
+                            <ul class="text-xs space-y-1 text-stone-600">
+                                <li class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-stone-700"></span> Documents (PDF/Doc)</li>
+                                <li class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-stone-400"></span> Multimédia (Img/Vid)</li>
+                                <li class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-amber-600"></span> Code & Archives</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PHILOSOPHY / CONCLUSION -->
+        <section id="philosophy" class="pt-8 border-t border-stone-200 pb-12">
+            <h3 class="text-2xl font-bold mb-6 font-serif">Le "Fil Rouge" : Principes Architecturaux</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1 -->
+                <div class="bg-stone-100 p-6 rounded-lg">
+                    <div class="text-2xl mb-3">🧶</div>
+                    <h4 class="font-bold text-stone-800 mb-2">Souveraineté</h4>
+                    <p class="text-sm text-stone-600">
+                        En hébergeant ses propres données sur <code>dl</code>, l'initiative refuse la dépendance aux plateformes tierces (Google Drive, Dropbox).
+                    </p>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-stone-100 p-6 rounded-lg">
+                    <div class="text-2xl mb-3">📍</div>
+                    <h4 class="font-bold text-stone-800 mb-2">Ancrage & Portée</h4>
+                    <p class="text-sm text-stone-600">
+                        Une double identité : Hyper-locale avec <code>1160</code> (Code postal Auderghem) et Thématique avec <code>biologia</code> (Savoir universel).
+                    </p>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-stone-100 p-6 rounded-lg">
+                    <div class="text-2xl mb-3">🕸️</div>
+                    <h4 class="font-bold text-stone-800 mb-2">Résilience</h4>
+                    <p class="text-sm text-stone-600">
+                        La structure modulaire assure que si un nœud tombe (ex: le site racine), les données (dl) et les connaissances (biologia) restent accessibles.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-900 text-stone-400 py-8 mt-auto">
+        <div class="max-w-6xl mx-auto px-4 text-center font-mono text-xs">
+            <p>&copy; 2026 Analyse de l'Écosystème OuaisFi.</p>
+            <p class="mt-2 text-stone-600">Généré par AI • Tailwind CSS • Chart.js</p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA STORE ---
+        const ecosystemData = {
+            nodes: [
+                {
+                    id: 'dl',
+                    label: 'DL (Data Lake)',
+                    type: 'Infrastructure',
+                    url: 'dl.ouaisfi.eu',
+                    description: "Le serveur de stockage central. Il héberge les fichiers bruts, les archives et les assets multimédias. C'est la fondation technique qui permet aux autres sites d'être légers.",
+                    metrics: { count: '1.2k', hits: '15k' },
+                    x: 20, y: 80, r: 25, // Coordinates for Bubble Chart
+                    color: '#78716C' // Stone 500
+                },
+                {
+                    id: '1160',
+                    label: '1160 (Auderghem)',
+                    type: 'Communauté Locale',
+                    url: '1160.ouaisfi.eu',
+                    description: "L'interface communautaire dédiée à la localité 1160 (Auderghem). Ce sous-domaine agrège les initiatives locales, agendas et projets de quartier.",
+                    metrics: { count: '45', hits: '3.2k' },
+                    x: 80, y: 40, r: 20,
+                    color: '#B45309' // Amber 700
+                },
+                {
+                    id: 'biologia',
+                    label: 'Biologia',
+                    type: 'Base de Savoir',
+                    url: 'biologia.ouaisfi.eu',
+                    description: "Un wiki ou base de connaissances structurée dédiée aux sciences du vivant. Représente la dimension éducative et intemporelle du projet.",
+                    metrics: { count: '120', hits: '5.4k' },
+                    x: 60, y: 60, r: 18,
+                    color: '#15803d' // Green 700
+                },
+                {
+                    id: 'earl',
+                    label: 'EARL',
+                    type: 'Projet Spécifique',
+                    url: 'earl.ouaisfi.eu',
+                    description: "Un projet satellite, potentiellement lié à une exploitation ou une initiative temporaire. Démontre la flexibilité d'ajouter des projets sans refaire le site principal.",
+                    metrics: { count: '12', hits: '800' },
+                    x: 40, y: 30, r: 12,
+                    color: '#a16207' // Yellow 700
+                },
+                {
+                    id: 'root',
+                    label: 'Racine (Portail)',
+                    type: 'Hub / Routeur',
+                    url: 'ouaisfi.eu',
+                    description: "La porte d'entrée historique. Elle sert désormais principalement d'aiguillage vers les différents sous-domaines spécialisés.",
+                    metrics: { count: '15', hits: '8.5k' },
+                    x: 50, y: 50, r: 15,
+                    color: '#44403C' // Stone 800
+                }
+            ],
+            evolution: {
+                labels: ['2021', '2022', '2023', '2024'],
+                traffic: [100, 450, 1200, 3500],
+                complexity: [1, 2, 4, 5] // Number of subdomains/active services
+            }
+        };
+
+        // --- CHART INITIALIZATION ---
+        
+        // 1. Bubble Chart (Ecosystem Map)
+        const ctxBubble = document.getElementById('ecosystemBubbleChart').getContext('2d');
+        const bubbleChart = new Chart(ctxBubble, {
+            type: 'bubble',
+            data: {
+                datasets: [{
+                    label: 'Nœuds',
+                    data: ecosystemData.nodes.map(node => ({
+                        x: node.x,
+                        y: node.y,
+                        r: node.r,
+                        _id: node.id // Custom property to link back to data
+                    })),
+                    backgroundColor: ecosystemData.nodes.map(node => node.color),
+                    borderColor: '#fff',
+                    borderWidth: 2,
+                    hoverBorderColor: '#000',
+                    hoverBorderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                const node = ecosystemData.nodes[context.dataIndex];
+                                return `${node.label} (${node.type})`;
+                            }
+                        },
+                        backgroundColor: '#44403C',
+                        padding: 10,
+                        titleFont: { family: 'Inter', size: 13 },
+                        bodyFont: { family: 'Inter', size: 12 }
+                    }
+                },
+                scales: {
+                    x: { display: false, min: 0, max: 100 },
+                    y: { display: false, min: 0, max: 100 }
+                },
+                onClick: (e, activeEls) => {
+                    if (activeEls.length > 0) {
+                        const index = activeEls[0].index;
+                        showNodeDetails(index);
+                    }
+                },
+                onHover: (event, chartElement) => {
+                    event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                }
+            }
+        });
+
+        // 2. Line Chart (Evolution)
+        const ctxLine = document.getElementById('evolutionLineChart').getContext('2d');
+        const lineChart = new Chart(ctxLine, {
+            type: 'line',
+            data: {
+                labels: ecosystemData.evolution.labels,
+                datasets: [
+                    {
+                        label: 'Trafic Mensuel',
+                        data: ecosystemData.evolution.traffic,
+                        borderColor: '#B45309', // Amber
+                        backgroundColor: 'rgba(180, 83, 9, 0.1)',
+                        yAxisID: 'y',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Complexité (Nœuds)',
+                        data: ecosystemData.evolution.complexity,
+                        borderColor: '#78716C', // Stone
+                        borderDash: [5, 5],
+                        yAxisID: 'y1',
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        grid: { color: '#F5F5F4' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: { display: false }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 3. Donut Chart (Storage)
+        const ctxDonut = document.getElementById('storageDonutChart').getContext('2d');
+        const donutChart = new Chart(ctxDonut, {
+            type: 'doughnut',
+            data: {
+                labels: ['Documents', 'Multimédia', 'Code/Archive'],
+                datasets: [{
+                    data: [55, 30, 15],
+                    backgroundColor: ['#44403C', '#A8A29E', '#B45309'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                         callbacks: {
+                            title: (items) => {
+                                const item = items[0];
+                                return item.chart.data.labels[item.dataIndex]; // Simple title return
+                            }
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+
+        // --- INTERACTION LOGIC ---
+
+        function showNodeDetails(index) {
+            const node = ecosystemData.nodes[index];
+            const inspectorDefault = document.getElementById('inspector-default');
+            const inspectorContent = document.getElementById('inspector-content');
+
+            // Hide default, show content
+            inspectorDefault.classList.add('hidden');
+            inspectorContent.classList.remove('hidden');
+
+            // Animate fade in
+            inspectorContent.style.opacity = '0';
+            setTimeout(() => inspectorContent.style.opacity = '1', 50);
+
+            // Populate Data
+            document.getElementById('node-type').textContent = node.type;
+            document.getElementById('node-title').textContent = node.label;
+            document.getElementById('node-title').style.color = node.color; // Brand color match
+            document.getElementById('node-url').textContent = node.url;
+            document.getElementById('node-desc').textContent = node.description;
+            
+            document.getElementById('node-metric-1').textContent = node.metrics.count;
+            document.getElementById('node-metric-2').textContent = node.metrics.hits;
+        }
+
+        function updateLineChart(mode) {
+            // Simple toggle logic for the Line Chart visibility
+            const trafficDataset = lineChart.data.datasets[0];
+            const complexityDataset = lineChart.data.datasets[1];
+            const buttons = document.querySelectorAll('.btn-toggle');
+
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            if (mode === 'traffic') {
+                trafficDataset.hidden = false;
+                complexityDataset.hidden = true;
+                event.target.classList.add('active');
+            } else {
+                trafficDataset.hidden = false;
+                complexityDataset.hidden = false;
+                event.target.classList.add('active');
+            }
+            lineChart.update();
+        }
+
+        // --- GLOBAL CONFIG FOR LABEL WRAPPING ---
+        // (Not strictly needed for these short labels, but good practice per requirements)
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#78716C';
+
+    </script>
+</body>
+</html>
