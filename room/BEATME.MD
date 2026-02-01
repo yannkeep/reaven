@@ -356,3 +356,8 @@ Je ne refais RIEN — je **fusionne et augmente** ce qui existe. Un seul fichier
 - **Countdown** vers élections communales 2026
 
 C'est **tout le travail précédent fusionné**, pas refait. 🚀
+
+
+> LA flemme
+
+
