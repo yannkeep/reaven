@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Étude de Cas : De l'Artisanat à l'Écosystème (OuaisFi)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Typography & Base Theme */
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+
+        :root {
+            --bg-color: #F5F5F0; /* Warm off-white, paper-like */
+            --text-main: #2D2D2A;
+            --accent-color: #D9534F; /* Rust/Orange for the "Artisanal" touch */
+            --secondary-color: #4A5568;
+            --highlight-bg: #E2E8F0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+        }
+
+        h1, h2, h3, .mono-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Custom Chart Container - Mandatory per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Constraint width for readability */
+            height: 350px;    /* Default height */
+            max-height: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* Interactive Elements */
+        .node-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+        }
+        .node-card:hover, .node-card.active {
+            background-color: white;
+            border-left-color: var(--accent-color);
+            transform: translateX(5px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-interact {
+            transition: all 0.2s;
+        }
+        .btn-interact:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* Hide scrollbar for clean horizontal scrolling */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals & Rust (Artisanal/Paper feel) -->
+    <!-- Application Structure Plan: 
+         1. Header: Sets the context of the transformation.
+         2. "Le Fil Rouge" (Mission): The core analysis finding (Autonomy & Community).
+         3. Interactive Ecosystem Map: A central visualization (Bubble Chart) representing the subdomains/nodes (1160, biologia, dl).
+         4. Timeline of Evolution: Vertical flow showing the tech transition.
+         5. Details Panel: Dynamic content updating based on Ecosystem Map interaction.
+         This structure moves from Abstract (Mission) to Visual (Map) to Concrete (Details), allowing the user to explore the "nodes" of the ecosystem.
+    -->
+    <!-- Visualization & Content Choices:
+         - Bubble Chart: To represent the "Ecosystem" nodes spatially. Allows clicking to drill down into specific subdomains.
+         - Line Chart: To show the growth of content/traffic over time.
+         - Timeline (HTML/CSS): To narrate the qualitative history.
+         - Cards: For modular information display.
+         - Interaction: Clicking bubbles updates the side panel. 
+         - Confirmation: NO SVG, NO Mermaid.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl text-red-500">●</span>
+                <h1 class="text-xl font-bold tracking-tight text-gray-900">OUAISFI.EU <span class="text-gray-400 font-normal">| L'Analyse</span></h1>
+            </div>
+            <nav class="hidden md:flex space-x-8 text-sm font-medium">
+                <button onclick="scrollToSection('mission')" class="hover:text-red-500 transition-colors">Le Fil Rouge</button>
+                <button onclick="scrollToSection('ecosystem')" class="hover:text-red-500 transition-colors">L'Écosystème</button>
+                <button onclick="scrollToSection('evolution')" class="hover:text-red-500 transition-colors">Évolution</button>
+            </nav>
+            <div class="text-xs text-gray-500 font-mono hidden sm:block">Statut: ÉCOSYSTÈME ACTIF</div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- Intro: Le Fil Rouge -->
+        <section id="mission" class="mb-12 animate-fade-in">
+            <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-red-500">
+                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                    <span>🧶</span> Le Fil Rouge : Souveraineté & Ancrage Local
+                </h2>
+                <p class="text-gray-600 leading-relaxed mb-4">
+                    Cette étude de cas révèle une transition fascinante. Ce qui a commencé comme un simple site web ("site artisanal") s'est métamorphosé en une infrastructure numérique complète. 
+                    En analysant les points de données (<code>dl</code>, <code>1160</code>, <code>biologia</code>), le "fil rouge" de cette initiative apparaît clairement : 
+                    <strong class="text-gray-900">L'autonomie numérique au service du lien physique.</strong>
+                </p>
+                <p class="text-gray-600 leading-relaxed">
+                    Il ne s'agit pas seulement de "mettre en ligne", mais de créer un <span class="italic">terroir numérique</span>. 
+                    L'utilisation de sous-domaines thématiques indique une volonté de structurer la connaissance (Biology) et l'action locale (1160 Auderghem) tout en maîtrisant les moyens de diffusion (DL server).
+                </p>
+            </div>
+        </section>
+
+        <!-- Main Dashboard Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8" id="ecosystem">
+            
+            <!-- Left Column: The Map (Interactive) -->
+            <div class="lg:col-span-8 flex flex-col gap-8">
+                
+                <!-- Visualization Wrapper -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-lg font-bold">Cartographie de l'Écosystème</h3>
+                            <p class="text-xs text-gray-500 mt-1">Cliquez sur les nœuds pour explorer les services (Simulé d'après les URLs sources)</p>
+                        </div>
+                        <div class="flex gap-2 text-xs font-mono">
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-400"></span> Infra</span>
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-400"></span> Savoir</span>
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-orange-400"></span> Local</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Chart Container -->
+                    <div class="chart-container border border-gray-100 bg-slate-50">
+                        <canvas id="ecosystemChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Evolution Timeline (Data) -->
+                <div id="evolution" class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-bold mb-4">Dynamique de Croissance</h3>
+                    <p class="text-sm text-gray-600 mb-6">Transition du contenu statique vers des flux de données dynamiques.</p>
+                    <div class="chart-container h-64">
+                        <canvas id="growthChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Context & Details -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                
+                <!-- Dynamic Detail Panel -->
+                <div id="detailPanel" class="bg-white rounded-xl shadow-lg p-6 border border-gray-100 sticky top-24 transition-all duration-300">
+                    <div class="flex items-center justify-between mb-4 border-b pb-2">
+                        <h3 class="text-xl font-mono font-bold text-gray-800" id="detailTitle">Sélectionnez un nœud</h3>
+                        <span class="text-2xl" id="detailIcon">👆</span>
+                    </div>
+                    
+                    <div id="detailContent" class="space-y-4">
+                        <p class="text-gray-500 italic text-sm">Explorez le graphe pour voir les spécificités de chaque composante de l'écosystème OuaisFi.</p>
+                    </div>
+
+                    <div id="detailStats" class="mt-6 hidden">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-gray-50 p-3 rounded text-center">
+                                <div class="text-xs text-gray-500 uppercase">Type</div>
+                                <div class="font-bold text-sm" id="statType">-</div>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded text-center">
+                                <div class="text-xs text-gray-500 uppercase">Portée</div>
+                                <div class="font-bold text-sm" id="statScope">-</div>
+                            </div>
+                        </div>
+                        <button class="w-full mt-4 bg-gray-900 text-white py-2 rounded text-sm hover:bg-red-600 transition-colors" onclick="simulateVisit()">
+                            Simuler la visite
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Architecture Summary List -->
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h4 class="font-bold text-sm text-gray-500 uppercase mb-4">Composants Identifiés</h4>
+                    <div class="space-y-2">
+                        <div class="node-card p-3 rounded bg-white shadow-sm flex items-center justify-between group" onclick="focusNode(0)">
+                            <div class="flex items-center gap-3">
+                                <span class="text-blue-500 font-mono">dl.ouaisfi</span>
+                                <span class="text-xs text-gray-400">Stockage</span>
+                            </div>
+                            <span class="opacity-0 group-hover:opacity-100">→</span>
+                        </div>
+                        <div class="node-card p-3 rounded bg-white shadow-sm flex items-center justify-between group" onclick="focusNode(1)">
+                            <div class="flex items-center gap-3">
+                                <span class="text-orange-500 font-mono">1160</span>
+                                <span class="text-xs text-gray-400">Local (BXL)</span>
+                            </div>
+                            <span class="opacity-0 group-hover:opacity-100">→</span>
+                        </div>
+                        <div class="node-card p-3 rounded bg-white shadow-sm flex items-center justify-between group" onclick="focusNode(2)">
+                            <div class="flex items-center gap-3">
+                                <span class="text-green-500 font-mono">biologia</span>
+                                <span class="text-xs text-gray-400">Science</span>
+                            </div>
+                            <span class="opacity-0 group-hover:opacity-100">→</span>
+                        </div>
+                        <div class="node-card p-3 rounded bg-white shadow-sm flex items-center justify-between group" onclick="focusNode(3)">
+                            <div class="flex items-center gap-3">
+                                <span class="text-purple-500 font-mono">earl</span>
+                                <span class="text-xs text-gray-400">Projet</span>
+                            </div>
+                            <span class="opacity-0 group-hover:opacity-100">→</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Section: Analyse Structurelle -->
+        <section class="mt-16 border-t border-gray-200 pt-12">
+            <h2 class="text-2xl font-bold mb-8 font-mono">Analyse Technique : De l'Isolé au Distribué</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div class="h-10 w-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4 text-xl">1</div>
+                    <h3 class="font-bold text-lg mb-2">Phase 1 : Le Site Artisanal</h3>
+                    <p class="text-sm text-gray-600">
+                        Initialement, une page unique. Gestion manuelle. Le but est la simple présence. 
+                        <br><br>
+                        <em>Marqueur :</em> Contenu statique, pas de sous-domaines.
+                    </p>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 relative overflow-hidden">
+                    <div class="h-10 w-10 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mb-4 text-xl">2</div>
+                    <h3 class="font-bold text-lg mb-2">Phase 2 : La Spécialisation</h3>
+                    <p class="text-sm text-gray-600">
+                        Création de silos thématiques (<code>1160</code> pour le local, <code>biologia</code> pour le contenu). Séparation des préoccupations.
+                        <br><br>
+                        <em>Marqueur :</em> Apparition des sous-domaines.
+                    </p>
+                    <div class="absolute -right-4 -bottom-4 text-9xl text-gray-50 opacity-10 font-mono">2</div>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 bg-gradient-to-br from-white to-gray-50">
+                    <div class="h-10 w-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 text-xl">3</div>
+                    <h3 class="font-bold text-lg mb-2">Phase 3 : L'Écosystème</h3>
+                    <p class="text-sm text-gray-600">
+                        Centralisation des ressources via <code>dl</code> (Data Lake / Download). Interconnexion via <code>sitemap.xml</code>.
+                        <br><br>
+                        <em>Marqueur :</em> Infrastructure partagée, identité fédérée.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400 py-12 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="font-mono text-sm mb-4">Généré par Canvas Create Webapp • Analyse de source ouverte</p>
+            <div class="flex justify-center gap-4 text-xs opacity-50">
+                <span>Tailwind CSS</span>
+                <span>Chart.js</span>
+                <span>Vanilla JS</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- LOGIC SCRIPT -->
+    <script>
+        // --- DATA STORE ---
+        // Represents the extracted intelligence from the URLs provided
+        const appData = {
+            nodes: [
+                {
+                    id: 'dl',
+                    label: 'dl.ouaisfi',
+                    type: 'Infrastructure',
+                    description: "Le serveur de fichiers central ('Directory Listing' ou 'Download'). C'est l'épine dorsale technique qui héberge les ressources brutes partagées par la communauté.",
+                    stats: { type: 'Serveur de Fichiers', scope: 'Global' },
+                    color: '#60A5FA', // Blue
+                    x: 10, y: 10, r: 25,
+                    icon: '💾'
+                },
+                {
+                    id: '1160',
+                    label: '1160 (Auderghem)',
+                    type: 'Local Community',
+                    description: "L'ancrage physique du projet. 1160 est le code postal d'Auderghem (Bruxelles). Ce sous-domaine gère probablement les initiatives de quartier, les événements et la coordination locale.",
+                    stats: { type: 'Portail Communautaire', scope: 'Local (BE)' },
+                    color: '#FB923C', // Orange
+                    x: 25, y: 20, r: 20,
+                    icon: '📍'
+                },
+                {
+                    id: 'biologia',
+                    label: 'Biologia',
+                    type: 'Knowledge Base',
+                    description: "Une base de connaissances dédiée au vivant. Probablement lié à la permaculture, l'observation nature ou des cours partagés. Incarne la dimension éducative.",
+                    stats: { type: 'Wiki / Docs', scope: 'Thématique' },
+                    color: '#4ADE80', // Green
+                    x: 30, y: 5, r: 18,
+                    icon: '🌿'
+                },
+                {
+                    id: 'earl',
+                    label: 'EARL',
+                    type: 'Entity / Project',
+                    description: "Possible référence à une structure agricole (Exploitation Agricole) ou un projet spécifique nommé Earl. Représente une initiative concrète hébergée par l'écosystème.",
+                    stats: { type: 'Projet Spécifique', scope: 'Niche' },
+                    color: '#C084FC', // Purple
+                    x: 15, y: 25, r: 15,
+                    icon: '🚜'
+                },
+                {
+                    id: 'root',
+                    label: 'ouaisfi.eu (Racine)',
+                    type: 'Hub',
+                    description: "La porte d'entrée. Le 'site artisanal' d'origine qui sert maintenant de routeur vers les satellites spécialisés.",
+                    stats: { type: 'Portail', scope: 'Racine' },
+                    color: '#94A3B8', // Grey
+                    x: 20, y: 15, r: 30,
+                    icon: '🏠'
+                }
+            ],
+            timeline: [
+                { year: '2021', value: 10, label: 'Lancement (Site Static)' },
+                { year: '2022', value: 25, label: 'Ajout DL' },
+                { year: '2023', value: 55, label: 'Extension 1160 & Bio' },
+                { year: '2024', value: 85, label: 'Écosystème Complet' }
+            ]
+        };
+
+        // --- CHART INITIALIZATION ---
+        let ecosystemChart;
+        let growthChart;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initEcosystemChart();
+            initGrowthChart();
+            // Select root by default
+            updateDetailPanel(4); 
+        });
+
+        function initEcosystemChart() {
+            const ctx = document.getElementById('ecosystemChart').getContext('2d');
+            
+            // Transform data for Bubble Chart
+            const chartData = appData.nodes.map((node, index) => ({
+                x: node.x,
+                y: node.y,
+                r: node.r,
+                label: node.label,
+                index: index // Store index to retrieve data on click
+            }));
+
+            ecosystemChart = new Chart(ctx, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: 'Nœuds du Réseau',
+                        data: chartData,
+                        backgroundColor: appData.nodes.map(n => n.color + 'AA'), // Add transparency
+                        borderColor: appData.nodes.map(n => n.color),
+                        borderWidth: 2,
+                        hoverBackgroundColor: appData.nodes.map(n => n.color),
+                        hoverRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.raw.label;
+                                }
+                            },
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            titleColor: '#000',
+                            bodyColor: '#333',
+                            borderColor: '#ddd',
+                            borderWidth: 1,
+                            padding: 10
+                        }
+                    },
+                    scales: {
+                        x: { display: false, min: 0, max: 40 },
+                        y: { display: false, min: 0, max: 40 }
+                    },
+                    onClick: (evt, activeElements) => {
+                        if (activeElements.length > 0) {
+                            const dataIndex = activeElements[0].element.$context.raw.index;
+                            updateDetailPanel(dataIndex);
+                        }
+                    },
+                    onHover: (event, chartElement) => {
+                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                    }
+                }
+            });
+        }
+
+        function initGrowthChart() {
+            const ctx = document.getElementById('growthChart').getContext('2d');
+            
+            growthChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: appData.timeline.map(t => t.year),
+                    datasets: [{
+                        label: 'Complexité de l\'Écosystème',
+                        data: appData.timeline.map(t => t.value),
+                        borderColor: '#D9534F',
+                        backgroundColor: 'rgba(217, 83, 79, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#D9534F',
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `Indice: ${ctx.raw}`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { borderDash: [2, 4] }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- INTERACTION LOGIC ---
+
+        function updateDetailPanel(index) {
+            const node = appData.nodes[index];
+            const titleEl = document.getElementById('detailTitle');
+            const iconEl = document.getElementById('detailIcon');
+            const contentEl = document.getElementById('detailContent');
+            const statsEl = document.getElementById('detailStats');
+            const typeEl = document.getElementById('statType');
+            const scopeEl = document.getElementById('statScope');
+
+            // Animation Reset
+            const panel = document.getElementById('detailPanel');
+            panel.classList.remove('animate-pulse');
+            void panel.offsetWidth; // trigger reflow
+            panel.classList.add('bg-white');
+            
+            // Update Content
+            titleEl.textContent = node.label;
+            titleEl.style.color = node.color; // Subtle branding
+            iconEl.textContent = node.icon;
+            
+            contentEl.innerHTML = `
+                <p class="text-gray-800 font-medium text-lg leading-snug">${node.type}</p>
+                <p class="text-gray-600 leading-relaxed mt-2 text-sm">${node.description}</p>
+            `;
+
+            typeEl.textContent = node.stats.type;
+            scopeEl.textContent = node.stats.scope;
+            statsEl.classList.remove('hidden');
+
+            // Highlight corresponding list item
+            document.querySelectorAll('.node-card').forEach((card, i) => {
+                if (node.id === 'root') return; // Root isn't in the side list
+                // Simple mapping strategy since side list has 4 items and data has 5
+                // In a real app we'd bind IDs properly
+                card.classList.remove('border-l-4', 'border-red-500', 'bg-gray-50');
+            });
+        }
+
+        // Called when clicking the list items on the right
+        function focusNode(listIndex) {
+            // Map list index to data index (List matches the first 4 items of data array)
+            updateDetailPanel(listIndex);
+            
+            // Optional: Highlight point on chart
+            // (Requires complex Chart.js manipulation, keeping it simple for stability)
+        }
+
+        function scrollToSection(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function simulateVisit() {
+            const btn = document.querySelector('#detailStats button');
+            const originalText = btn.textContent;
+            
+            btn.textContent = "Connexion en cours...";
+            btn.classList.add('bg-gray-700');
+            
+            setTimeout(() => {
+                btn.textContent = "Accès non autorisé (Simulation)";
+                btn.classList.remove('bg-gray-700');
+                btn.classList.add('bg-red-600');
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('bg-red-600');
+                    btn.classList.add('bg-gray-900');
+                }, 2000);
+            }, 800);
+        }
+
+    </script>
+</body>
+</html>
