@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse Juridique : Article 23 & Principe de Standstill</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chosen Palette: Legal Neutral -->
+    <!-- Colors: 
+         Background: #F9FAFB (Cool Gray 50) - Warm Neutral base
+         Primary Text: #1F2937 (Gray 800)
+         Accent Blue (Court): #3B82F6 (Blue 500)
+         Alert Red (Danger/Chaos): #EF4444 (Red 500)
+         Warning Yellow (Uncertainty): #F59E0B (Amber 500)
+    -->
+
+    <!-- Application Structure Plan: 
+         1. Hero Section: "L'Épée de Damoclès" - Immediate visual impact regarding the threat.
+         2. Context & Timeline (Horizontal Scroll/Steps): Visualizes the long wait from Oct 2025 to End 2026.
+         3. The Mechanics (Interactive Cards): Explains "Standstill" and "Article 23" simply.
+         4. Scenario Simulator (The Core Interaction): A toggle switch that changes the entire dashboard state between "Status Quo" and "Annulation (Chaos)". 
+            - Updates text, budget charts, and risk gauges dynamically.
+         5. Sector Impact (Education Permanente): Specific focus on the moratorium consequences.
+    -->
+
+    <!-- Visualization & Content Choices:
+         1. Timeline: HTML/CSS Flexbox Timeline. Goal: Show the long duration of uncertainty.
+         2. Risk Gauge (Chart.js Doughnut): Visualizes the "Threat Level".
+         3. Budgetary Impact (Chart.js Bar): Compares "Current Budget" vs "Potential Retroactive Cost".
+         4. Sector Status (HTML/CSS Grid): Visualizes "Frozen" vs "Active" projects using CSS classes.
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #F9FAFB; }
+        
+        /* Chart Container Styling per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+
+        .tab-active {
+            border-bottom: 2px solid #3B82F6;
+            color: #1d4ed8;
+            font-weight: 600;
+        }
+
+        .tab-inactive {
+            color: #6b7280;
+        }
+
+        .scenario-card {
+            transition: all 0.3s ease;
+        }
+        
+        /* Custom scrollbar for timeline */
+        .timeline-scroll::-webkit-scrollbar {
+            height: 8px;
+        }
+        .timeline-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        .timeline-scroll::-webkit-scrollbar-thumb {
+            background: #d1d5db; 
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Navigation / Header -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">⚖️</span>
+                    <h1 class="text-xl font-bold text-gray-900 tracking-tight">Observatoire Article 23</h1>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <button onclick="switchTab('contexte')" id="nav-contexte" class="tab-active py-2 px-1 text-sm">Le Contexte</button>
+                    <button onclick="switchTab('simulateur')" id="nav-simulateur" class="tab-inactive py-2 px-1 text-sm">Simulateur d'Impact</button>
+                    <button onclick="switchTab('secteur')" id="nav-secteur" class="tab-inactive py-2 px-1 text-sm">Éducation Permanente</button>
+                </div>
+            </div>
+            <!-- Mobile Nav -->
+            <div class="flex md:hidden justify-around pb-2">
+                <button onclick="switchTab('contexte')" class="text-xs font-medium text-blue-600">Contexte</button>
+                <button onclick="switchTab('simulateur')" class="text-xs text-gray-500">Simulateur</button>
+                <button onclick="switchTab('secteur')" class="text-xs text-gray-500">Secteur</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- SECTION 1: CONTEXTE (Default) -->
+        <section id="contexte" class="space-y-8 animate-fade-in">
+            <div class="text-center space-y-4 max-w-3xl mx-auto">
+                <div class="inline-block px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-semibold mb-2">Recours en cours</div>
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">L'Épée de Damoclès</h2>
+                <p class="text-lg text-gray-600 leading-relaxed">
+                    Une analyse interactive de la situation juridique actuelle concernant le <strong>Principe de Standstill</strong> (Article 23). 
+                    Le recours introduit le 29 octobre 2025 plonge le secteur de l'Éducation Permanente en Fédération Wallonie-Bruxelles 
+                    dans une incertitude majeure jusqu'à l'arrêt attendu fin 2026.
+                </p>
+            </div>
+
+            <!-- Key Metrics Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
+                    <span class="text-4xl mb-2">📅</span>
+                    <h3 class="font-semibold text-gray-900">Date du Recours</h3>
+                    <p class="text-blue-600 font-bold text-xl">29/10/2025</p>
+                    <p class="text-xs text-gray-500 mt-2">Début de la période d'insécurité</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
+                    <span class="text-4xl mb-2">⏳</span>
+                    <h3 class="font-semibold text-gray-900">Arrêt Attendu</h3>
+                    <p class="text-amber-600 font-bold text-xl">Fin 2026</p>
+                    <p class="text-xs text-gray-500 mt-2">~14 mois d'attente</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
+                    <span class="text-4xl mb-2">🛑</span>
+                    <h3 class="font-semibold text-gray-900">Situation Actuelle</h3>
+                    <p class="text-red-600 font-bold text-xl">Moratoire</p>
+                    <p class="text-xs text-gray-500 mt-2">Gel des reconnaissances</p>
+                </div>
+            </div>
+
+            <!-- Interactive Timeline -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <h3 class="text-xl font-bold mb-4">Chronologie de la Procédure</h3>
+                <p class="text-gray-600 mb-6 text-sm">Défilez horizontalement pour voir les étapes clés de la procédure devant la Cour Constitutionnelle.</p>
+                
+                <div class="timeline-scroll overflow-x-auto pb-4">
+                    <div class="flex min-w-[800px] relative">
+                        <!-- Line -->
+                        <div class="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -translate-y-1/2 z-0"></div>
+                        
+                        <!-- Step 1 -->
+                        <div class="relative z-10 flex-1 flex flex-col items-center group cursor-pointer hover:scale-105 transition-transform">
+                            <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs border-4 border-white shadow">1</div>
+                            <div class="mt-4 text-center px-2">
+                                <span class="block text-xs font-bold text-gray-500">29 Oct 2025</span>
+                                <span class="block text-sm font-bold text-gray-900">Introduction</span>
+                                <span class="block text-xs text-gray-500 mt-1">Dépôt du recours</span>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="relative z-10 flex-1 flex flex-col items-center group cursor-pointer hover:scale-105 transition-transform">
+                            <div class="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-xs border-4 border-white shadow">2</div>
+                            <div class="mt-4 text-center px-2">
+                                <span class="block text-xs font-bold text-gray-500">Nov '25 - Juin '26</span>
+                                <span class="block text-sm font-bold text-gray-900">Instruction</span>
+                                <span class="block text-xs text-gray-500 mt-1">Échange de mémoires</span>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="relative z-10 flex-1 flex flex-col items-center group cursor-pointer hover:scale-105 transition-transform">
+                            <div class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center font-bold text-xs border-4 border-white shadow">3</div>
+                            <div class="mt-4 text-center px-2">
+                                <span class="block text-xs font-bold text-gray-500">Sept 2026</span>
+                                <span class="block text-sm font-bold text-gray-900">Audience</span>
+                                <span class="block text-xs text-gray-500 mt-1">Plaidoiries publiques</span>
+                            </div>
+                        </div>
+
+                        <!-- Step 4 -->
+                        <div class="relative z-10 flex-1 flex flex-col items-center group cursor-pointer hover:scale-105 transition-transform">
+                            <div class="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-xs border-4 border-white shadow">4</div>
+                            <div class="mt-4 text-center px-2">
+                                <span class="block text-xs font-bold text-gray-500">Fin 2026</span>
+                                <span class="block text-sm font-bold text-gray-900">Arrêt</span>
+                                <span class="block text-xs text-gray-500 mt-1">Annulation ou Rejet</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- What is Article 23? -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                    <h3 class="text-lg font-bold text-blue-900 mb-2">📜 Article 23 & Standstill</h3>
+                    <p class="text-sm text-blue-800 leading-relaxed mb-4">
+                        L'article 23 de la Constitution garantit le droit à une vie conforme à la dignité humaine. Le <strong>"principe de standstill"</strong> (ou effet cliquet) interdit au législateur de réduire significativement le niveau de protection sociale existant sans motifs d'intérêt général impérieux.
+                    </p>
+                    <div class="bg-white bg-opacity-60 p-3 rounded text-xs text-blue-900 font-mono">
+                        "On ne peut pas reculer sur les droits acquis."
+                    </div>
+                </div>
+                <div class="bg-red-50 p-6 rounded-xl border border-red-100">
+                    <h3 class="text-lg font-bold text-red-900 mb-2">⚔️ L'Enjeu du Recours</h3>
+                    <p class="text-sm text-red-800 leading-relaxed mb-4">
+                        Si la Cour juge que la nouvelle législation ou les coupes budgétaires violent le standstill, l'annulation pourrait être <strong>rétroactive</strong>. Cela signifie que l'État devrait payer tout ce qu'il a "économisé" illégalement.
+                    </p>
+                    <div class="bg-white bg-opacity-60 p-3 rounded text-xs text-red-900 font-mono">
+                        Risque = Indemnisation Rétroactive + Chaos Budgétaire.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-center pt-4">
+                <button onclick="switchTab('simulateur')" class="bg-gray-900 text-white px-6 py-3 rounded-lg shadow hover:bg-gray-800 transition flex items-center gap-2">
+                    Explorer les Scénarios Futurs <span class="text-lg">➔</span>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- SECTION 2: SIMULATEUR (Interactive) -->
+        <section id="simulateur" class="hidden space-y-8 animate-fade-in">
+            <div class="text-center max-w-3xl mx-auto mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Simulateur de Décision</h2>
+                <p class="text-gray-600">
+                    Utilisez le sélecteur ci-dessous pour visualiser l'impact des deux issues possibles de l'arrêt attendu fin 2026. 
+                    Observez comment les indicateurs de risque et budgétaires réagissent.
+                </p>
+            </div>
+
+            <!-- The Toggle Controls -->
+            <div class="flex justify-center mb-8">
+                <div class="bg-gray-200 p-1 rounded-lg flex shadow-inner">
+                    <button onclick="setScenario('rejet')" id="btn-rejet" class="px-6 py-2 rounded-md text-sm font-semibold transition-all duration-300 bg-white text-gray-800 shadow">
+                        Scénario A : Rejet du Recours
+                    </button>
+                    <button onclick="setScenario('annulation')" id="btn-annulation" class="px-6 py-2 rounded-md text-sm font-semibold text-gray-500 hover:text-gray-700 transition-all duration-300">
+                        Scénario B : Annulation (Chaos)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Left: Textual Analysis -->
+                <div class="space-y-6">
+                    <div id="scenario-description-card" class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500 transition-colors duration-500">
+                        <h3 id="scenario-title" class="text-xl font-bold text-gray-900 mb-2">Status Quo Confirmé</h3>
+                        <p id="scenario-text" class="text-gray-600 leading-relaxed">
+                            La Cour Constitutionnelle rejette le recours. Les réformes actuelles sont validées. Le moratoire est levé, mais sous les nouvelles conditions restrictives. Pas d'impact budgétaire rétroactif.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h4 class="font-semibold text-gray-800 mb-4">Conséquences Directes</h4>
+                        <ul id="consequences-list" class="space-y-3">
+                            <li class="flex items-start gap-3">
+                                <span class="text-green-500 mt-1">✔</span>
+                                <span class="text-sm text-gray-600">Sécurité juridique rétablie.</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="text-green-500 mt-1">✔</span>
+                                <span class="text-sm text-gray-600">Budget 2027 prévisible.</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="text-green-500 mt-1">✔</span>
+                                <span class="text-sm text-gray-600">Reprise des dossiers en attente.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Right: Charts -->
+                <div class="space-y-6">
+                    <!-- Gauge Chart: Risk Level -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center">
+                        <h4 class="font-semibold text-gray-800 mb-2 text-sm uppercase tracking-wide">Niveau de Risque Budgétaire</h4>
+                        <div class="chart-container" style="height: 200px;">
+                            <canvas id="riskGauge"></canvas>
+                        </div>
+                        <p id="risk-label" class="text-center font-bold text-green-600 mt-2">Faible</p>
+                    </div>
+
+                    <!-- Bar Chart: Financial Impact -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h4 class="font-semibold text-gray-800 mb-2 text-sm uppercase tracking-wide">Impact Financier (Hypothétique)</h4>
+                        <div class="chart-container">
+                            <canvas id="budgetChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SECTION 3: SECTEUR EDUCATION PERMANENTE -->
+        <section id="secteur" class="hidden space-y-8 animate-fade-in">
+            <div class="text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Le Moratoire & L'Éducation Permanente</h2>
+                <p class="text-gray-600">
+                    En attendant l'arrêt, le secteur vit une période de gel administratif. 
+                    Voici l'état des lieux pour les associations et les opérateurs de terrain en Fédération Wallonie-Bruxelles.
+                </p>
+            </div>
+
+            <!-- Status Indicators -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div class="text-xs font-bold text-gray-400 uppercase">Nouvelles demandes</div>
+                    <div class="text-lg font-bold text-red-600 mt-1 flex items-center gap-2">
+                        <span>⛔ Bloquées</span>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div class="text-xs font-bold text-gray-400 uppercase">Subsides Indexés</div>
+                    <div class="text-lg font-bold text-amber-600 mt-1 flex items-center gap-2">
+                        <span>⚠️ Incertains</span>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div class="text-xs font-bold text-gray-400 uppercase">Dossiers en cours</div>
+                    <div class="text-lg font-bold text-blue-600 mt-1 flex items-center gap-2">
+                        <span>⏸️ Suspendus</span>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div class="text-xs font-bold text-gray-400 uppercase">Droits acquis</div>
+                    <div class="text-lg font-bold text-green-600 mt-1 flex items-center gap-2">
+                        <span>✅ Maintenus</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Impact Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Pourquoi un moratoire ?</h3>
+                    <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                        L'administration anticipe le risque d'annulation. Si la Cour annule la base légale actuelle, toute nouvelle reconnaissance accordée aujourd'hui pourrait devenir illégale ou infondée demain.
+                    </p>
+                    <div class="bg-amber-50 border-l-4 border-amber-400 p-4">
+                        <p class="text-sm text-amber-800 font-medium">
+                            "Le principe de prudence paralyse l'innovation dans le secteur."
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">L'Épée de Damoclès sur le Budget</h3>
+                    <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                        Si l'arrêt impose une indemnisation rétroactive (remboursement des montants "économisés" sur le dos du secteur), la FWB devra trouver des liquidités immédiatement.
+                    </p>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                            Impact potentiel sur d'autres budgets (Culture, Jeunesse).
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                            Risque de coupes drastiques en 2027 pour compenser.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400 py-8 mt-12">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <p class="text-sm">Analyse basée sur le recours introduit le 29/10/2025.</p>
+            <p class="text-xs mt-2">Cet outil est une simulation à but informatif. Les projections budgétaires sont hypothétiques.</p>
+        </div>
+    </footer>
+
+    <script>
+        // State Management
+        let currentScenario = 'rejet'; // 'rejet' or 'annulation'
+
+        // Chart Instances
+        let riskGaugeChart = null;
+        let budgetBarChart = null;
+
+        // --- Data Definitions ---
+        const scenarioData = {
+            rejet: {
+                title: "Status Quo Confirmé",
+                color: "green",
+                text: "La Cour Constitutionnelle rejette le recours. Les réformes actuelles sont validées. Le moratoire est levé, mais sous les nouvelles conditions restrictives. Pas d'impact budgétaire rétroactif.",
+                consequences: [
+                    { icon: "✔", text: "Sécurité juridique rétablie", color: "text-green-500" },
+                    { icon: "✔", text: "Budget 2027 prévisible", color: "text-green-500" },
+                    { icon: "✔", text: "Reprise des dossiers en attente", color: "text-green-500" }
+                ],
+                riskLevel: 10, // Low risk
+                riskLabel: "Faible (Stable)",
+                budgetData: [100, 105, 110] // Normal growth
+            },
+            annulation: {
+                title: "Annulation & Chaos",
+                color: "red",
+                text: "La Cour annule la réforme pour violation du standstill. L'État doit compenser rétroactivement les pertes subies par le secteur depuis la mise en œuvre de la mesure. Le budget explose.",
+                consequences: [
+                    { icon: "💥", text: "Indemnisation Rétroactive exigée", color: "text-red-600" },
+                    { icon: "📉", text: "Déséquilibre budgétaire immédiat", color: "text-red-600" },
+                    { icon: "🛑", text: "Incertitude juridique totale pour 2027", color: "text-red-600" }
+                ],
+                riskLevel: 90, // High risk
+                riskLabel: "Critique (Budget Explosé)",
+                budgetData: [100, 105, 145] // Spike in 2027 due to retroactivity
+            }
+        };
+
+        // --- Navigation Logic ---
+        function switchTab(tabId) {
+            // Hide all sections
+            ['contexte', 'simulateur', 'secteur'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+                // Update nav classes
+                const navBtn = document.getElementById(`nav-${id}`);
+                if(navBtn) {
+                    navBtn.classList.remove('tab-active', 'text-blue-600');
+                    navBtn.classList.add('tab-inactive', 'text-gray-500');
+                }
+            });
+
+            // Show selected section
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            // Update active nav
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if(activeBtn) {
+                activeBtn.classList.remove('tab-inactive', 'text-gray-500');
+                activeBtn.classList.add('tab-active', 'text-blue-600');
+            }
+
+            // Init charts if Simulateur is chosen and charts not created yet
+            if (tabId === 'simulateur') {
+                setTimeout(() => {
+                    initCharts();
+                }, 100);
+            }
+        }
+
+        // --- Scenario Logic ---
+        function setScenario(scenario) {
+            currentScenario = scenario;
+            const data = scenarioData[scenario];
+
+            // Update Buttons
+            const btnRejet = document.getElementById('btn-rejet');
+            const btnAnnulation = document.getElementById('btn-annulation');
+            const card = document.getElementById('scenario-description-card');
+
+            if (scenario === 'rejet') {
+                btnRejet.className = "px-6 py-2 rounded-md text-sm font-semibold transition-all duration-300 bg-white text-gray-800 shadow";
+                btnAnnulation.className = "px-6 py-2 rounded-md text-sm font-semibold text-gray-500 hover:text-gray-700 transition-all duration-300";
+                card.className = "bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500 transition-colors duration-500";
+            } else {
+                btnAnnulation.className = "px-6 py-2 rounded-md text-sm font-semibold transition-all duration-300 bg-white text-red-700 shadow";
+                btnRejet.className = "px-6 py-2 rounded-md text-sm font-semibold text-gray-500 hover:text-gray-700 transition-all duration-300";
+                card.className = "bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500 transition-colors duration-500";
+            }
+
+            // Update Text Content
+            document.getElementById('scenario-title').innerText = data.title;
+            document.getElementById('scenario-text').innerText = data.text;
+            document.getElementById('risk-label').innerText = data.riskLabel;
+            document.getElementById('risk-label').className = `text-center font-bold mt-2 ${scenario === 'rejet' ? 'text-green-600' : 'text-red-600'}`;
+
+            // Update List
+            const list = document.getElementById('consequences-list');
+            list.innerHTML = '';
+            data.consequences.forEach(item => {
+                const li = document.createElement('li');
+                li.className = "flex items-start gap-3 animate-fade-in";
+                li.innerHTML = `<span class="${item.color} mt-1 text-lg">${item.icon}</span><span class="text-sm text-gray-600">${item.text}</span>`;
+                list.appendChild(li);
+            });
+
+            // Update Charts
+            updateCharts(data);
+        }
+
+        // --- Chart Implementation ---
+        function initCharts() {
+            if (riskGaugeChart || budgetBarChart) return; // Already initialized
+
+            // 1. Risk Gauge (Doughnut)
+            const ctxGauge = document.getElementById('riskGauge').getContext('2d');
+            riskGaugeChart = new Chart(ctxGauge, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Risque', 'Sécurité'],
+                    datasets: [{
+                        data: [10, 90], // Default 'Rejet' state
+                        backgroundColor: ['#10B981', '#E5E7EB'], // Green & Gray
+                        borderWidth: 0,
+                        cutout: '75%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: { enabled: false },
+                        legend: { display: false }
+                    },
+                    animation: { animateRotate: true, animateScale: true }
+                }
+            });
+
+            // 2. Budget Chart (Bar)
+            const ctxBar = document.getElementById('budgetChart').getContext('2d');
+            budgetBarChart = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['2025 (Actuel)', '2026 (Attente)', '2027 (Post-Arrêt)'],
+                    datasets: [{
+                        label: 'Indice de Coût Budgétaire',
+                        data: [100, 105, 110], // Default
+                        backgroundColor: '#3B82F6',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, display: false },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function updateCharts(data) {
+            if (!riskGaugeChart || !budgetBarChart) return;
+
+            // Update Gauge
+            riskGaugeChart.data.datasets[0].data = [data.riskLevel, 100 - data.riskLevel];
+            riskGaugeChart.data.datasets[0].backgroundColor = currentScenario === 'rejet' 
+                ? ['#10B981', '#E5E7EB'] // Green
+                : ['#EF4444', '#E5E7EB']; // Red
+            riskGaugeChart.update();
+
+            // Update Bar
+            budgetBarChart.data.datasets[0].data = data.budgetData;
+            budgetBarChart.data.datasets[0].backgroundColor = currentScenario === 'rejet' 
+                ? '#3B82F6' // Blue
+                : ['#3B82F6', '#3B82F6', '#EF4444']; // Last bar red for impact
+            budgetBarChart.update();
+        }
+
+        // Initialize default tab (optional logic if we want to ensure context loads first)
+        // Note: Charts are lazy-loaded when tab is clicked.
+    </script>
+</body>
+</html>
