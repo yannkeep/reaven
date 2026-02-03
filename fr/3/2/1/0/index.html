@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reaven : L'Analyse Intemporelle - Infographie Interactive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Chart Container Styling per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* max-w-xl approx equivalent */
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px; /* Base height */
+            max-height: 400px;
+        }
+
+        /* Responsive height adjustments */
+        @media (max-width: 640px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        /* Custom Flowchart Connectors (CSS Only - No SVG) */
+        .flow-arrow::after {
+            content: '▼';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #6366f1; /* Indigo-500 */
+            font-size: 1.2rem;
+        }
+        @media (min-width: 768px) {
+            .flow-arrow::after {
+                content: '▶';
+                bottom: 50%;
+                right: -20px;
+                left: auto;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+        }
+    </style>
+    <!-- Chosen Palette: Brilliant Blues (Vibrant & Professional) -->
+    <!-- Palette Hex Codes used: Background #F8FAFC, Primary #4F46E5 (Indigo), Secondary #06B6D4 (Cyan), Accent #F43F5E (Rose/Pink), Text #1E293B -->
+    <!-- Application Structure Plan:
+         1. Hero Section: Hook with key concept (Timeless Analysis).
+         2. Overview (Data): Instruction mix and complexity visualization (Doughnut).
+         3. Performance (Compare): Reaven vs. Traditional Debuggers (Bar Chart).
+         4. Architecture (Organize): The Pipeline (Record -> Index -> Query) using CSS layout.
+         5. Deep Dive (Relationships): Memory Access patterns using Plotly (Heatmap/Scatter).
+         6. Timeline (Change): Evolution of Taint Analysis over execution ticks (Line Chart).
+         7. Conclusion: Summary and context.
+         Narrative flows from "What is it?" to "Why is it fast?" to "How does it work?" to "Detailed Analysis".
+    -->
+    <!-- Visualization & Content Choices:
+         - Intro Stats -> Goal: Inform -> Big Numbers -> CSS Cards.
+         - Instruction Mix -> Goal: Compare/Composition -> Doughnut Chart (Chart.js) -> Shows what Reaven analyzes.
+         - Speed Benchmark -> Goal: Compare -> Bar Chart (Chart.js) -> Highlights the O(1) access advantage.
+         - Engine Pipeline -> Goal: Organize -> CSS Grid Flowchart -> NO SVG used, structured HTML.
+         - Memory Heatmap -> Goal: Relationships -> Plotly.js (Canvas) -> Visualizes memory density.
+         - Taint Tracking -> Goal: Change -> Line Chart (Chart.js) -> Shows data flow over time.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0 flex items-center">
+                    <span class="text-2xl font-extrabold text-indigo-600 tracking-tighter">REAVEN</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#overview" class="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Vue d'ensemble</a>
+                    <a href="#performance" class="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Performance</a>
+                    <a href="#architecture" class="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Architecture</a>
+                    <a href="#analyse" class="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Analyse Profonde</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-indigo-700 text-white pt-20 pb-24 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-indigo-600 to-cyan-500 opacity-90"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
+                L'Analyse <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-white">Intemporelle</span>
+            </h1>
+            <p class="mt-4 max-w-2xl mx-auto text-xl text-indigo-100">
+                Ne déboguez plus le présent. Naviguez instantanément dans le passé de l'exécution.
+                Reaven transforme l'analyse dynamique en une expérience fluide et déterministe.
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-20 space-y-20 pb-20">
+
+        <section id="kpi-cards" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl shadow-lg p-8 border-t-4 border-cyan-400 transform hover:-translate-y-1 transition-transform duration-300">
+                <div class="text-sm font-bold text-slate-500 uppercase tracking-wide">Accès Temporel</div>
+                <div class="mt-2 text-5xl font-extrabold text-slate-900">O(1)</div>
+                <p class="mt-2 text-slate-600">Navigation instantanée vers n'importe quel cycle d'instruction.</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-8 border-t-4 border-indigo-500 transform hover:-translate-y-1 transition-transform duration-300">
+                <div class="text-sm font-bold text-slate-500 uppercase tracking-wide">Déterminisme</div>
+                <div class="mt-2 text-5xl font-extrabold text-slate-900">100%</div>
+                <p class="mt-2 text-slate-600">Reproduction fidèle des bugs sans effets de bord aléatoires.</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-8 border-t-4 border-pink-500 transform hover:-translate-y-1 transition-transform duration-300">
+                <div class="text-sm font-bold text-slate-500 uppercase tracking-wide">Instrumentation</div>
+                <div class="mt-2 text-5xl font-extrabold text-slate-900">0%</div>
+                <p class="mt-2 text-slate-600">Aucune modification du binaire cible requise.</p>
+            </div>
+        </section>
+
+        <section id="overview" class="bg-white rounded-2xl shadow-md p-8 md:p-12">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-900 mb-4 border-l-4 border-indigo-500 pl-4">La Complexité de l'Exécution</h2>
+                    <p class="text-lg text-slate-600 mb-6 leading-relaxed">
+                        Reaven capture l'intégralité d'une trace d'exécution système. Contrairement aux débogueurs classiques qui s'arrêtent sur des points d'arrêt, Reaven enregistre tout : accès mémoire, opérations arithmétiques, et flux de contrôle.
+                    </p>
+                    <p class="text-slate-600 mb-6">
+                        Le graphique ci-contre illustre la répartition typique des instructions dans une trace d'analyse de malware ou de binaire complexe. La prédominance des accès mémoire justifie le besoin d'outils de visualisation avancés.
+                    </p>
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <strong class="text-indigo-600">Point Clé :</strong> La gestion de millions d'instructions nécessite une indexation spatiale et temporelle robuste.
+                    </div>
+                </div>
+                <div class="flex flex-col items-center">
+                    <h3 class="text-xl font-semibold text-slate-800 mb-6">Répartition des Instructions (Session Typique)</h3>
+                    <div class="chart-container">
+                        <canvas id="mixChart"></canvas>
+                    </div>
+                    <p class="text-sm text-slate-500 mt-4 text-center italic">Données simulées basées sur des traces x64 standards</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="performance" class="bg-white rounded-2xl shadow-md p-8 md:p-12">
+            <div class="mb-10 text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Vitesse de "Time-Travel"</h2>
+                <p class="text-lg text-slate-600">
+                    La différence fondamentale entre le débogage classique (GDB), le "Record & Replay" (RR) et l'approche intemporelle de Reaven réside dans le temps d'accès (Seek Time). Reaven indexe la trace, rendant le saut vers le cycle 500,000,000 aussi rapide que le saut vers le cycle 10.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2">
+                    <div class="chart-container">
+                        <canvas id="perfChart"></canvas>
+                    </div>
+                </div>
+                <div class="flex flex-col justify-center space-y-6">
+                    <div class="p-4 bg-slate-50 rounded-lg border-l-4 border-slate-400">
+                        <h4 class="font-bold text-slate-700">Débogage Standard</h4>
+                        <p class="text-sm text-slate-600">Nécessite de ré-exécuter le programme depuis le début pour atteindre un point futur. Très lent pour les bugs profonds.</p>
+                    </div>
+                    <div class="p-4 bg-indigo-50 rounded-lg border-l-4 border-indigo-600 shadow-sm">
+                        <h4 class="font-bold text-indigo-900">Approche Reaven</h4>
+                        <p class="text-sm text-indigo-800">Accès direct via indexation. Le temps de recherche est constant, quelle que soit la distance dans la trace.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture" class="bg-slate-900 text-white rounded-2xl shadow-xl p-8 md:p-12 overflow-hidden relative">
+            <!-- Background decoration -->
+            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-indigo-600 opacity-20 blur-3xl"></div>
+            
+            <div class="text-center mb-12 relative z-10">
+                <h2 class="text-3xl font-bold mb-4">Le Pipeline de Données</h2>
+                <p class="text-indigo-200 max-w-2xl mx-auto">
+                    Comment Reaven transforme une exécution brute en une base de données navigable.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+                <!-- Step 1 -->
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 relative flow-arrow">
+                    <div class="text-4xl mb-4">📡</div>
+                    <h3 class="text-xl font-bold text-cyan-400 mb-2">1. Capture (Trace)</h3>
+                    <p class="text-slate-300 text-sm">
+                        Enregistrement complet de l'état CPU et des transactions mémoire via un hyperviseur ou un émulateur.
+                    </p>
+                    <ul class="mt-4 text-xs text-slate-400 space-y-1">
+                        <li>• Snapshot initial</li>
+                        <li>• Flux d'instructions</li>
+                        <li>• I/O périphériques</li>
+                    </ul>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 relative flow-arrow">
+                    <div class="text-4xl mb-4">⚙️</div>
+                    <h3 class="text-xl font-bold text-indigo-400 mb-2">2. Indexation (JIT)</h3>
+                    <p class="text-slate-300 text-sm">
+                        Traitement de la trace brute pour construire des structures de données optimisées pour la recherche spatiale.
+                    </p>
+                    <ul class="mt-4 text-xs text-slate-400 space-y-1">
+                        <li>• Arbres B+ (Temps)</li>
+                        <li>• Indexation Mémoire</li>
+                        <li>• Dictionnaires de Taint</li>
+                    </ul>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                    <div class="text-4xl mb-4">🔍</div>
+                    <h3 class="text-xl font-bold text-pink-400 mb-2">3. Interrogation</h3>
+                    <p class="text-slate-300 text-sm">
+                        L'analyste requête la base de données via une API ou une UI pour visualiser le passé.
+                    </p>
+                    <ul class="mt-4 text-xs text-slate-400 space-y-1">
+                        <li>• Requêtes SQL-like</li>
+                        <li>• Visualisation Graph</li>
+                        <li>• Scripting Python</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="analyse" class="bg-white rounded-2xl shadow-md p-8 md:p-12">
+            <h2 class="text-3xl font-bold text-slate-900 mb-6 text-center">Visualisation des Flux de Données</h2>
+            <p class="text-center text-slate-600 max-w-3xl mx-auto mb-12">
+                L'un des atouts majeurs de Reaven est la capacité de visualiser la "chaleur" des accès mémoire et la propagation des données "teintées" (taint analysis) au fil du temps. Cela permet d'identifier visuellement les buffers, les clés de chiffrement ou les structures vulnérables.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Plotly Chart -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2 text-center">Densité d'Accès Mémoire (Heatmap)</h3>
+                    <p class="text-xs text-slate-500 mb-4 text-center">Adresses mémoire (Y) vs Temps (X)</p>
+                    <div id="memoryPlot" class="w-full h-80"></div>
+                </div>
+
+                <!-- Line Chart -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2 text-center">Propagation de la Taint</h3>
+                    <p class="text-xs text-slate-500 mb-4 text-center">Nombre d'octets contrôlés par l'utilisateur au fil du temps</p>
+                    <div class="chart-container">
+                        <canvas id="taintChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 p-4 bg-indigo-50 border border-indigo-100 rounded-lg">
+                <p class="text-sm text-indigo-800 text-center font-medium">
+                    Note : Les graphiques ci-dessus utilisent le rendu Canvas pour assurer une performance fluide même avec des milliers de points de données, conformément à l'architecture technique de Reaven.
+                </p>
+            </div>
+        </section>
+
+        <footer class="text-center py-12 border-t border-slate-200 mt-12">
+            <p class="text-slate-500 text-sm">
+                Généré par un Assistant IA Expert Frontend & Data Viz<br>
+                Basé sur les concepts technologiques du projet Reaven.
+            </p>
+        </footer>
+
+    </main>
+
+    <script>
+        // --- Helper: Label Splitting for Chart.js (16 char limit) ---
+        function splitLabel(label) {
+            if (label.length <= 16) return label;
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = words[0];
+
+            for (let i = 1; i < words.length; i++) {
+                if ((currentLine + " " + words[i]).length > 16) {
+                    lines.push(currentLine);
+                    currentLine = words[i];
+                } else {
+                    currentLine += " " + words[i];
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+
+        // --- Chart.js Tooltip Configuration ---
+        const commonTooltipConfig = {
+            callbacks: {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    if (Array.isArray(label)) {
+                        return label.join(' ');
+                    } else {
+                        return label;
+                    }
+                }
+            }
+        };
+
+        // --- 1. Instruction Mix Chart (Doughnut) ---
+        const ctxMix = document.getElementById('mixChart').getContext('2d');
+        const mixLabels = ["Accès Mémoire (Load/Store)", "Arithmétique & Logique", "Contrôle de Flux (Branch)", "Système / Interruptions"];
+        const processedMixLabels = mixLabels.map(splitLabel);
+
+        new Chart(ctxMix, {
+            type: 'doughnut',
+            data: {
+                labels: processedMixLabels,
+                datasets: [{
+                    data: [45, 30, 20, 5],
+                    backgroundColor: [
+                        '#4F46E5', // Indigo 600
+                        '#06B6D4', // Cyan 500
+                        '#F43F5E', // Rose 500
+                        '#94A3B8'  // Slate 400
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 12, padding: 15, font: { family: 'Inter', size: 11 } }
+                    },
+                    tooltip: commonTooltipConfig
+                },
+                cutout: '60%'
+            }
+        });
+
+        // --- 2. Performance Chart (Bar) ---
+        const ctxPerf = document.getElementById('perfChart').getContext('2d');
+        const perfLabels = ["Débogage Classique (Pas à pas)", "Record & Replay Standard (Linéaire)", "Reaven (Indexé O(1))"];
+        const processedPerfLabels = perfLabels.map(splitLabel);
+
+        new Chart(ctxPerf, {
+            type: 'bar',
+            data: {
+                labels: processedPerfLabels,
+                datasets: [{
+                    label: 'Temps d\'accès (ms) pour saut de 1M cycles',
+                    data: [5000, 1200, 10], // Log scale simulation visuals
+                    backgroundColor: [
+                        '#94A3B8', // Slate
+                        '#06B6D4', // Cyan
+                        '#4F46E5'  // Indigo (Hero)
+                    ],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y', // Horizontal bar for better label reading
+                scales: {
+                    x: {
+                        type: 'logarithmic',
+                        grid: { color: '#f1f5f9' },
+                        title: { display: true, text: 'Temps (échelle log)' }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: commonTooltipConfig
+                }
+            }
+        });
+
+        // --- 3. Taint Propagation Chart (Line) ---
+        const ctxTaint = document.getElementById('taintChart').getContext('2d');
+        // Simulate time steps
+        const taintLabels = Array.from({length: 10}, (_, i) => `Cycle ${(i+1)*1000}`);
+        
+        new Chart(ctxTaint, {
+            type: 'line',
+            data: {
+                labels: taintLabels,
+                datasets: [{
+                    label: 'Octets Teintés',
+                    data: [0, 4, 8, 32, 64, 128, 64, 32, 16, 0], // Expansion and contraction of taint
+                    borderColor: '#F43F5E', // Rose
+                    backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#F43F5E'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f5f9' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { display: false } // Hide dense x labels
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: commonTooltipConfig
+                }
+            }
+        });
+
+        // --- 4. Plotly Memory Heatmap (Canvas Render) ---
+        // Using Plotly for scatter/heatmap as it handles density better than Chart.js
+        const memoryDiv = document.getElementById('memoryPlot');
+        
+        // Generate simulated memory access data (clumping around heap and stack)
+        const trace1 = {
+            x: Array.from({length: 100}, () => Math.random() * 100), // Time
+            y: Array.from({length: 100}, () => Math.random() * 20 + 80), // Stack area (high addresses)
+            mode: 'markers',
+            type: 'scattergl', // Use WebGL/Canvas
+            marker: { size: 6, color: '#4F46E5', opacity: 0.6 },
+            name: 'Stack'
+        };
+
+        const trace2 = {
+            x: Array.from({length: 150}, () => Math.random() * 100), // Time
+            y: Array.from({length: 150}, () => Math.random() * 40 + 20), // Heap area (lower addresses)
+            mode: 'markers',
+            type: 'scattergl', // Use WebGL/Canvas
+            marker: { size: 5, color: '#06B6D4', opacity: 0.6 },
+            name: 'Heap'
+        };
+
+        const layout = {
+            margin: { t: 10, r: 10, b: 30, l: 30 },
+            showlegend: true,
+            legend: { orientation: "h", y: 1.1 },
+            xaxis: { showgrid: false, zeroline: false, title: "Temps" },
+            yaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false, title: "Adresse Mémoire" },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { family: 'Inter', color: '#64748b' },
+            autosize: true
+        };
+
+        const config = {
+            responsive: true,
+            displayModeBar: false
+        };
+
+        Plotly.newPlot(memoryDiv, [trace1, trace2], layout, config);
+
+    </script>
+</body>
+</html>
