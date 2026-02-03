@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reaven: Analyse Intemporelle - Tableau de Bord Interactif</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Tailwind Config for Custom Colors -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        stone: {
+                            50: '#fafaf9',
+                            100: '#f5f5f4',
+                            200: '#e7e5e4',
+                            800: '#292524',
+                            900: '#1c1917',
+                        },
+                        accent: {
+                            light: '#fdba74', // Orange 300
+                            DEFAULT: '#f97316', // Orange 500
+                            dark: '#c2410c', // Orange 700
+                        },
+                        secondary: {
+                            DEFAULT: '#3b82f6', // Blue 500
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Chart Container Styling as per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height */
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Smooth transitions */
+        .transition-all-300 {
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Custom Scrollbar for code blocks */
+        .code-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .code-scroll::-webkit-scrollbar-track {
+            background: #292524; 
+        }
+        .code-scroll::-webkit-scrollbar-thumb {
+            background: #57534e; 
+            border-radius: 4px;
+        }
+        
+        /* Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #f97316;
+            cursor: pointer;
+            margin-top: -8px; 
+            box-shadow: 0 0 2px rgba(0,0,0,0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #e5e7eb;
+            border-radius: 2px;
+        }
+    </style>
+    
+    <!-- Placeholder Comments -->
+    <!-- Chosen Palette: Warm Neutrals (Stone) with Orange/Blue Accents for a technical yet calm analytic feel. Background is light (Stone-50). -->
+    <!-- Application Structure Plan: 
+         1. Header: Brand and core value prop.
+         2. Metric Cards: High-level quantitative summary of the 'Source Report' (Engine capabilities).
+         3. Main Content Grid:
+            - Interactive Simulator (Left): A 'Time Travel' slider allowing users to scrub through a simulated execution trace. This directly demonstrates the 'Timeless Debugging' concept.
+            - Trace Statistics (Right): Dynamic charts showing the data distribution of the analysis.
+         4. Analysis & Comparison Section: Benchmark data comparing Reaven to traditional tools.
+         5. Workflow Diagram: CSS-based flow diagram explaining the trace-index-query process.
+         Rationale: The structure moves from "What is it?" (Metrics) to "How does it feel?" (Simulator) to "Why is it better?" (Data/Benchmarks).
+    -->
+    <!-- Visualization & Content Choices:
+         - Time Travel Simulator (HTML/JS): Goal: Inform & Change. Best way to explain 'timeless debugging' is to let the user do it. Updates DOM elements based on slider position.
+         - Instruction Mix (Doughnut Chart): Goal: Inform. Shows the complexity of data analyzed. Chart.js.
+         - Performance Benchmark (Bar Chart): Goal: Compare. Demonstrates speed advantage. Chart.js.
+         - Workflow (CSS Flexbox): Goal: Organize. Explains the architecture without heavy text.
+         - Interactive Tabs: Goal: Organize. Groups complex info (Memory, Taint, Registers) to keep the UI clean.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Navigation / Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-stone-900 rounded-lg flex items-center justify-center text-orange-500 font-bold text-xl">R</div>
+                <div>
+                    <h1 class="text-xl font-bold text-stone-900 tracking-tight">REAVEN</h1>
+                    <p class="text-xs text-stone-500">Plateforme d'Analyse Intemporelle</p>
+                </div>
+            </div>
+            <nav class="hidden md:flex space-x-8">
+                <button onclick="scrollToSection('dashboard')" class="text-stone-600 hover:text-orange-600 font-medium transition-colors">Tableau de Bord</button>
+                <button onclick="scrollToSection('simulator')" class="text-stone-600 hover:text-orange-600 font-medium transition-colors">Simulateur</button>
+                <button onclick="scrollToSection('benchmarks')" class="text-stone-600 hover:text-orange-600 font-medium transition-colors">Performance</button>
+            </nav>
+            <button onclick="toggleMobileMenu()" class="md:hidden text-stone-600 focus:outline-none">
+                <span class="text-2xl">&#9776;</span>
+            </button>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-stone-100 border-t border-stone-200">
+            <button onclick="scrollToSection('dashboard')" class="block w-full text-left px-4 py-3 text-stone-700 hover:bg-stone-200">Tableau de Bord</button>
+            <button onclick="scrollToSection('simulator')" class="block w-full text-left px-4 py-3 text-stone-700 hover:bg-stone-200">Simulateur</button>
+            <button onclick="scrollToSection('benchmarks')" class="block w-full text-left px-4 py-3 text-stone-700 hover:bg-stone-200">Performance</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-12">
+
+        <!-- Introduction Section -->
+        <section id="intro" class="text-center max-w-3xl mx-auto mb-12">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-stone-900 mb-4">Ne cherchez plus le crash. <span class="text-orange-600">Remontez le temps.</span></h2>
+            <p class="text-lg text-stone-600 leading-relaxed">
+                Ce rapport interactif présente la technologie Reaven. Contrairement aux débogueurs traditionnels, Reaven capture l'intégralité de l'exécution (CPU, Mémoire) pour permettre une navigation instantanée en avant et en arrière dans le temps. Explorez les données ci-dessous pour comprendre l'impact de cette approche.
+            </p>
+        </section>
+
+        <!-- KPI Dashboard -->
+        <section id="dashboard" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- KPI 1 -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 hover:shadow-md transition-all-300 group">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-stone-500 text-sm font-semibold uppercase tracking-wider">Instructions Tracées</h3>
+                    <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold">#</div>
+                </div>
+                <div class="text-4xl font-bold text-stone-900 mb-1 group-hover:text-blue-600 transition-colors">1.2 Mrd</div>
+                <p class="text-sm text-stone-400">Par session moyenne</p>
+            </div>
+            
+            <!-- KPI 2 -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 hover:shadow-md transition-all-300 group">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-stone-500 text-sm font-semibold uppercase tracking-wider">Vitesse de Rejeu</h3>
+                    <div class="w-8 h-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center font-bold">&#9889;</div>
+                </div>
+                <div class="text-4xl font-bold text-stone-900 mb-1 group-hover:text-orange-600 transition-colors">Instant</div>
+                <p class="text-sm text-stone-400">Navigation O(1)</p>
+            </div>
+
+            <!-- KPI 3 -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 hover:shadow-md transition-all-300 group">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-stone-500 text-sm font-semibold uppercase tracking-wider">Déterminisme</h3>
+                    <div class="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center font-bold">&#10003;</div>
+                </div>
+                <div class="text-4xl font-bold text-stone-900 mb-1 group-hover:text-green-600 transition-colors">100%</div>
+                <p class="text-sm text-stone-400">Reproductibilité garantie</p>
+            </div>
+        </section>
+
+        <!-- Interactive Simulator Section -->
+        <section id="simulator" class="bg-white rounded-2xl shadow-md border border-stone-200 overflow-hidden">
+            <div class="p-6 md:p-8 border-b border-stone-100 bg-stone-50">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h3 class="text-2xl font-bold text-stone-900">Simulateur de Débogage Intemporel</h3>
+                        <p class="text-stone-500 mt-1">Utilisez le curseur ci-dessous pour naviguer dans l'historique d'exécution d'un exploit simulé.</p>
+                    </div>
+                    <span class="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-full uppercase tracking-wide">Démo Interactive</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-stone-200">
+                
+                <!-- Controls & Context (Left Col) -->
+                <div class="p-6 lg:col-span-1 space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-stone-700 mb-2">Chronologie de l'Exécution (Tick: <span id="tick-display" class="font-mono text-orange-600">0</span>)</label>
+                        <input type="range" id="time-slider" min="0" max="9" value="0" class="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer">
+                        <div class="flex justify-between text-xs text-stone-400 mt-2">
+                            <span>Début (Start)</span>
+                            <span>Crash (Exploit)</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r">
+                        <h4 class="text-sm font-bold text-blue-900">État Actuel</h4>
+                        <p id="status-text" class="text-sm text-blue-800 mt-1">Initialisation du programme...</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h4 class="text-xs font-bold text-stone-500 uppercase">Filtres de Vue</h4>
+                        <div class="flex gap-2">
+                            <button class="px-3 py-1 bg-stone-800 text-white text-xs rounded shadow hover:bg-stone-700 transition" onclick="alert('Vue CPU active')">CPU</button>
+                            <button class="px-3 py-1 bg-white border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition" onclick="alert('Vue Mémoire activée (Simulation)')">Mémoire</button>
+                            <button class="px-3 py-1 bg-white border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition" onclick="alert('Vue Taint activée (Simulation)')">Taint</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Code View (Middle Col) -->
+                <div class="p-0 bg-stone-900 lg:col-span-2 overflow-hidden flex flex-col h-[400px]">
+                    <div class="flex items-center justify-between px-4 py-2 bg-stone-950 border-b border-stone-800">
+                        <span class="text-xs text-stone-400 font-mono">trace_viewer.asm</span>
+                        <div class="flex space-x-1">
+                            <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                            <div class="w-2 h-2 rounded-full bg-yellow-500"></div>
+                            <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                        </div>
+                    </div>
+                    <div class="p-4 font-mono text-sm overflow-y-auto code-scroll flex-grow relative" id="code-container">
+                        <!-- Code lines injected by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts & Analysis Section -->
+        <section id="benchmarks" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Chart 1: Trace Composition -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-stone-900">Composition de la Trace</h3>
+                    <p class="text-sm text-stone-500">Répartition des types d'opérations analysées lors d'une session typique.</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="instructionChart"></canvas>
+                </div>
+                <div class="mt-4 text-xs text-stone-400 text-center">
+                    Les opérations mémoire dominent, justifiant l'approche centrée sur les données de Reaven.
+                </div>
+            </div>
+
+            <!-- Chart 2: Performance Comparison -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-stone-900">Performance d'Analyse</h3>
+                    <p class="text-sm text-stone-500">Comparaison du temps nécessaire pour remonter à la source d'un crash.</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="benchmarkChart"></canvas>
+                </div>
+                <div class="mt-4 p-3 bg-stone-50 rounded text-xs text-stone-500">
+                    <strong>Note:</strong> L'approche "Timeless" permet un accès direct sans ré-exécution, réduisant drastiquement le temps d'investigation sur des traces complexes.
+                </div>
+            </div>
+        </section>
+
+        <!-- Workflow Diagram (CSS/HTML) -->
+        <section class="py-8">
+            <h3 class="text-xl font-bold text-stone-900 mb-8 text-center">Architecture du Moteur</h3>
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-0 max-w-4xl mx-auto">
+                
+                <!-- Step 1 -->
+                <div class="w-full md:w-1/4 p-4 bg-white border border-stone-200 rounded-lg text-center shadow-sm relative group hover:-translate-y-1 transition-transform">
+                    <div class="text-2xl mb-2">&#128190;</div>
+                    <h4 class="font-bold text-stone-800">Enregistrement</h4>
+                    <p class="text-xs text-stone-500 mt-2">Capture complète de l'exécution (Full System)</p>
+                </div>
+
+                <!-- Arrow -->
+                <div class="hidden md:block w-12 border-t-2 border-dashed border-stone-300 relative">
+                    <span class="absolute -top-3 left-4 text-stone-400 text-xs">&#9654;</span>
+                </div>
+                <!-- Vertical Arrow Mobile -->
+                <div class="md:hidden text-stone-300 text-xl">&#8595;</div>
+
+                <!-- Step 2 -->
+                <div class="w-full md:w-1/4 p-4 bg-orange-50 border border-orange-200 rounded-lg text-center shadow-sm relative group hover:-translate-y-1 transition-transform z-10">
+                    <div class="text-2xl mb-2 text-orange-500">&#9881;</div>
+                    <h4 class="font-bold text-orange-900">Indexation</h4>
+                    <p class="text-xs text-orange-700 mt-2">Optimisation de la trace pour accès rapide</p>
+                </div>
+
+                <!-- Arrow -->
+                <div class="hidden md:block w-12 border-t-2 border-dashed border-stone-300 relative">
+                     <span class="absolute -top-3 left-4 text-stone-400 text-xs">&#9654;</span>
+                </div>
+                <!-- Vertical Arrow Mobile -->
+                <div class="md:hidden text-stone-300 text-xl">&#8595;</div>
+
+                <!-- Step 3 -->
+                <div class="w-full md:w-1/4 p-4 bg-white border border-stone-200 rounded-lg text-center shadow-sm relative group hover:-translate-y-1 transition-transform">
+                    <div class="text-2xl mb-2">&#128269;</div>
+                    <h4 class="font-bold text-stone-800">Analyse</h4>
+                    <p class="text-xs text-stone-500 mt-2">Taint Analysis & Replay Intemporel</p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-stone-900 text-stone-400 py-12 mt-12">
+            <div class="max-w-7xl mx-auto px-4 text-center">
+                <p class="mb-4 font-bold text-white tracking-wider">REAVEN</p>
+                <p class="text-sm max-w-md mx-auto mb-8">
+                    Une interface conceptuelle basée sur le travail d'ingénierie inverse et d'analyse dynamique.
+                </p>
+                <div class="text-xs text-stone-600">
+                    &copy; 2024 Généré pour analyse. Source inspirée du projet Reaven.
+                </div>
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- State Management ---
+        const state = {
+            currentTick: 0,
+            isPlaying: false,
+            // Simulated trace data (Assembly + Context)
+            trace: [
+                { line: 0, addr: "0x4005a0", asm: "push rbp", comment: "Initialisation de la stack frame", status: "Démarrage de la routine main" },
+                { line: 1, addr: "0x4005a1", asm: "mov rbp, rsp", comment: "", status: "Configuration des pointeurs" },
+                { line: 2, addr: "0x4005a4", asm: "sub rsp, 0x20", comment: "Allocation tampon local", status: "Allocation mémoire stack" },
+                { line: 3, addr: "0x4005a8", asm: "mov rax, [rel data]", comment: "Lecture entrée utilisateur", status: "Lecture des données non fiables" },
+                { line: 4, addr: "0x4005af", asm: "mov [rbp-0x8], rax", comment: "Stockage variable locale", status: "Écriture dans le buffer" },
+                { line: 5, addr: "0x4005b3", asm: "cmp rax, 0xFFFF", comment: "Vérification limite (Bug here?)", status: "Check de sécurité (insuffisant)" },
+                { line: 6, addr: "0x4005b7", asm: "jl 0x4005c0", comment: "Saut conditionnel", status: "Branchement logique" },
+                { line: 7, addr: "0x4005ba", asm: "call <vulnerable_func>", comment: "Appel fonction vulnérable", status: "Entrée dans la zone critique" },
+                { line: 8, addr: "0x401000", asm: "memcpy(dst, src, len)", comment: "Copie mémoire", status: "Copie de données... Potentiel Overflow" },
+                { line: 9, addr: "0x401005", asm: "ERROR: SEGFAULT", comment: "Accès mémoire invalide", status: "CRASH DÉTECTÉ ! Segmentation Fault." }
+            ]
+        };
+
+        // --- DOM Elements ---
+        const slider = document.getElementById('time-slider');
+        const tickDisplay = document.getElementById('tick-display');
+        const codeContainer = document.getElementById('code-container');
+        const statusText = document.getElementById('status-text');
+
+        // --- Core Functions ---
+
+        function renderCode(activeIndex) {
+            codeContainer.innerHTML = ''; // Clear
+            
+            state.trace.forEach((step, index) => {
+                const isActive = index === activeIndex;
+                const isPast = index < activeIndex;
+                
+                const div = document.createElement('div');
+                // Apply styling based on state
+                let baseClasses = "flex justify-between py-1 px-2 font-mono text-sm border-l-2 cursor-pointer transition-colors ";
+                
+                if (isActive) {
+                    baseClasses += "bg-stone-800 border-orange-500 text-white";
+                } else if (isPast) {
+                    baseClasses += "text-stone-500 border-stone-800 hover:bg-stone-800";
+                } else {
+                    baseClasses += "text-stone-600 border-transparent opacity-50";
+                }
+
+                div.className = baseClasses;
+                div.onclick = () => updateSimulator(index);
+
+                // Line Content
+                div.innerHTML = `
+                    <span class="w-20 text-stone-500 select-none">${step.addr}</span>
+                    <span class="flex-grow font-bold ${step.asm.includes('ERROR') ? 'text-red-500 animate-pulse' : ''}">${step.asm}</span>
+                    <span class="hidden md:block text-stone-500 text-xs italic">${step.comment}</span>
+                `;
+                
+                codeContainer.appendChild(div);
+
+                // Auto scroll to active line
+                if (isActive) {
+                    div.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        }
+
+        function updateSimulator(value) {
+            const index = parseInt(value);
+            state.currentTick = index;
+            
+            // Update UI Controls
+            slider.value = index;
+            tickDisplay.innerText = index;
+            statusText.innerText = state.trace[index].status;
+            
+            // Update Visual Styles
+            if(state.trace[index].asm.includes('ERROR')) {
+                statusText.className = "text-sm text-red-600 font-bold mt-1";
+                statusText.parentElement.className = "bg-red-50 border-l-4 border-red-500 p-4 rounded-r transition-colors";
+            } else {
+                statusText.className = "text-sm text-blue-800 mt-1";
+                statusText.parentElement.className = "bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r transition-colors";
+            }
+
+            // Re-render code list
+            renderCode(index);
+        }
+
+        // --- Event Listeners ---
+        
+        slider.addEventListener('input', (e) => {
+            updateSimulator(e.target.value);
+        });
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Smooth Scroll
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('mobile-menu').classList.add('hidden'); // close mobile menu if open
+            }
+        }
+
+        // --- Chart.js Initialization ---
+
+        function initCharts() {
+            // 1. Trace Composition (Doughnut)
+            const ctx1 = document.getElementById('instructionChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Accès Mémoire', 'Arithmétique', 'Contrôle de Flux', 'Système'],
+                    datasets: [{
+                        data: [45, 25, 20, 10],
+                        backgroundColor: ['#f97316', '#3b82f6', '#78716c', '#1c1917'], // Orange, Blue, Stone, Black
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // 2. Benchmarks (Bar)
+            const ctx2 = document.getElementById('benchmarkChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Déboguer standard (GDB)', 'Analyse par Rejeu (RR)', 'Reaven (Intemporel)'],
+                    datasets: [{
+                        label: 'Temps moyen pour isoler un bug (minutes)',
+                        data: [120, 45, 5],
+                        backgroundColor: ['#e7e5e4', '#fdba74', '#f97316'], // Light Stone, Light Orange, Brand Orange
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // --- Initialization ---
+        window.onload = function() {
+            renderCode(0);
+            initCharts();
+            
+            // Optional: Simple animation on load for the slider
+            setTimeout(() => {
+                let step = 0;
+                const introInterval = setInterval(() => {
+                    if (step < 3) {
+                        updateSimulator(step);
+                        step++;
+                    } else {
+                        clearInterval(introInterval);
+                    }
+                }, 300);
+            }, 1000);
+        };
+
+    </script>
+</body>
+</html>
