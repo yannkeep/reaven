@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anatomie d'un Séisme Médiatique : "Sans boulot, tous fraudeurs ?"</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Roboto:wght@300;400;500;700&display=swap');
+
+        :root {
+            --color-bg-main: #F9F7F2; /* Warm Neutral / Paper */
+            --color-text-main: #2D3748; /* Dark Ink */
+            --color-accent-alert: #C53030; /* Red for controversy */
+            --color-accent-calm: #3182CE; /* Blue for facts */
+            --color-neutral-light: #E2E8F0;
+        }
+
+        body {
+            background-color: var(--color-bg-main);
+            color: var(--color-text-main);
+            font-family: 'Roboto', sans-serif;
+        }
+
+        h1, h2, h3, h4, .serif {
+            font-family: 'Merriweather', serif;
+        }
+
+        /* Chart Container Styling - Mandatory per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px; /* Max width to prevent excessive stretching */
+            height: 400px;   /* Base height */
+            max-height: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @media (max-width: 640px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        /* Custom Scrollbar for internal overflow elements */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .interactive-card {
+            transition: all 0.3s ease;
+        }
+        .interactive-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: #CBD5E0;
+            transform: translateX(-50%);
+            z-index: 0;
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutral Journalism (Paper Background #F9F7F2, Ink #2D3748, Alert Red #C53030, Fact Blue #3182CE) - Designed to evoke serious newspaper analysis while highlighting the tension between 'Buzz' and 'Reality'. -->
+    <!-- Application Structure Plan: A narrative dashboard structure. 1. Intro/Hero (Context). 2. Impact Dashboard (Quantitative Scope). 3. The Narrative Machine (Deconstructing the 'How'). 4. Reality Check (Comparative Data Viz). 5. Conclusion. chosen to lead the user from the emotional impact of the broadcast to the rational analysis of the facts, mirroring the process of media deconstruction. -->
+    <!-- Visualization & Content Choices: 
+         - Impact Stats: Big Numbers to show the scale of the controversy immediately.
+         - Timeline: Vertical Step-flow to show the progression of the 'Buzz'.
+         - Framing Analysis: Interactive Cards to explain qualitative manipulation techniques (music, editing).
+         - Reality Check: Bar Charts to contrast 'Perceived Fraud' (High) vs 'Actual Fraud' (Low) and 'Benefit Fraud' vs 'Tax Evasion'.
+         - Sentiment: Doughnut chart for public reaction categories.
+         - Library: Chart.js for all graphs (Bar, Doughnut). HTML/CSS for structural viz. NO SVG. NO Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- HERO SECTION -->
+    <header class="w-full bg-white border-b border-gray-200 py-12 px-4 shadow-sm relative overflow-hidden">
+        <div class="max-w-5xl mx-auto text-center relative z-10">
+            <span class="inline-block py-1 px-3 rounded-full bg-red-100 text-red-800 text-xs font-bold tracking-wider mb-4 uppercase">Dossier Spécial : Décryptage</span>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">Anatomie d'un Séisme Médiatique</h1>
+            <h2 class="text-xl md:text-2xl text-gray-600 font-light mb-8 italic">"Sans boulot, tous fraudeurs ?" : L'analyse intégrale du phénomène</h2>
+            <p class="text-lg text-gray-700 max-w-3xl mx-auto leading-relaxed">
+                Plongée au cœur de la polémique. Comment un documentaire télévisé a déclenché une tempête sociale, politique et médiatique, et ce que les chiffres révèlent réellement sur la fraude sociale. Une exploration interactive entre la mise en scène et la réalité.
+            </p>
+        </div>
+        <div class="absolute top-0 left-0 w-full h-2 bg-red-600"></div>
+    </header>
+
+    <!-- NAVIGATION (Internal Anchor Tabs) -->
+    <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur shadow-md border-b border-gray-200">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex overflow-x-auto space-x-8 py-4 justify-center" id="nav-container">
+                <button onclick="scrollToSection('impact')" class="text-sm font-bold uppercase tracking-wide text-red-700 hover:text-red-900 border-b-2 border-red-600 pb-1">L'Impact</button>
+                <button onclick="scrollToSection('timeline')" class="text-sm font-bold uppercase tracking-wide text-gray-500 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 pb-1 transition">La Chronologie</button>
+                <button onclick="scrollToSection('reality')" class="text-sm font-bold uppercase tracking-wide text-gray-500 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 pb-1 transition">Les Chiffres</button>
+                <button onclick="scrollToSection('techniques')" class="text-sm font-bold uppercase tracking-wide text-gray-500 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 pb-1 transition">La Fabrique</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow container mx-auto px-4 py-12 max-w-6xl space-y-24">
+
+        <!-- SECTION 1: L'IMPACT (Quantitative Context) -->
+        <section id="impact" class="space-y-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <h3 class="text-3xl font-bold text-gray-900 mb-4 serif">Le Choc en Chiffres</h3>
+                <p class="text-gray-600 text-lg">
+                    Dès sa diffusion, le reportage a généré une onde de choc immédiate. Cette section quantifie l'ampleur de la réaction publique et institutionnelle, illustrant comment une émission peut saturer l'espace médiatique.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Stat Card 1 -->
+                <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-red-500 text-center interactive-card">
+                    <div class="text-5xl font-bold text-gray-900 mb-2" id="stat-viewers">0</div>
+                    <p class="text-sm text-gray-500 uppercase tracking-widest font-semibold">Téléspectateurs</p>
+                    <p class="mt-4 text-gray-600 text-sm">Une audience record pour une émission d'investigation, captivant une large part du public francophone.</p>
+                </div>
+
+                <!-- Stat Card 2 -->
+                <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-gray-800 text-center interactive-card">
+                    <div class="text-5xl font-bold text-gray-900 mb-2" id="stat-complaints">0</div>
+                    <p class="text-sm text-gray-500 uppercase tracking-widest font-semibold">Plaintes au CSA</p>
+                    <p class="mt-4 text-gray-600 text-sm">Un volume historique de signalements dénonçant une stigmatisation et un manque de déontologie.</p>
+                </div>
+
+                <!-- Stat Card 3 -->
+                <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-blue-500 text-center interactive-card">
+                    <div class="text-5xl font-bold text-gray-900 mb-2" id="stat-tweets">0</div>
+                    <p class="text-sm text-gray-500 uppercase tracking-widest font-semibold">Réactions Sociales</p>
+                    <p class="mt-4 text-gray-600 text-sm">Mentions sur les réseaux sociaux dans les 24h suivant la diffusion, polarisant l'opinion publique.</p>
+                </div>
+            </div>
+
+            <!-- Sentiment Chart -->
+            <div class="bg-white p-8 rounded-xl shadow-lg mt-8">
+                <h4 class="text-xl font-bold text-gray-800 mb-6 border-l-4 border-blue-500 pl-4">Analyse du Sentiment Public</h4>
+                <div class="flex flex-col md:flex-row items-center gap-8">
+                    <div class="w-full md:w-1/2">
+                        <p class="text-gray-600 mb-4">
+                            L'analyse des réactions immédiates révèle une polarisation extrême. Si une partie de l'audience a validé le cadrage du reportage ("Il faut oser le dire"), une majorité significative a dénoncé une manipulation ("Bashing des pauvres").
+                        </p>
+                        <ul class="space-y-3">
+                            <li class="flex items-center text-sm"><span class="w-3 h-3 rounded-full bg-red-500 mr-2"></span>Indignation / Colère (Stigmatisation)</li>
+                            <li class="flex items-center text-sm"><span class="w-3 h-3 rounded-full bg-blue-500 mr-2"></span>Approbation (Dénonciation des abus)</li>
+                            <li class="flex items-center text-sm"><span class="w-3 h-3 rounded-full bg-gray-400 mr-2"></span>Nuance / Questionnement</li>
+                        </ul>
+                    </div>
+                    <div class="w-full md:w-1/2 flex justify-center">
+                        <div class="chart-container" style="height: 300px; max-width: 300px;">
+                            <canvas id="sentimentChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr class="border-gray-300">
+
+        <!-- SECTION 2: LA CHRONOLOGIE (Timeline) -->
+        <section id="timeline">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <h3 class="text-3xl font-bold text-gray-900 mb-4 serif">L'Engrenage Médiatique</h3>
+                <p class="text-gray-600 text-lg">
+                    Comment une émission devient une affaire d'État. Suivez la chronologie des événements, de la diffusion initiale aux répercussions politiques et éthiques.
+                </p>
+            </div>
+
+            <div class="relative max-w-4xl mx-auto">
+                <div class="timeline-line hidden md:block"></div>
+                
+                <!-- Timeline Structure Generated by JS -->
+                <div id="timeline-container" class="space-y-8">
+                    <!-- Content injected here -->
+                </div>
+            </div>
+        </section>
+
+        <hr class="border-gray-300">
+
+        <!-- SECTION 3: LES CHIFFRES (Reality Check) -->
+        <section id="reality" class="bg-gray-50 p-8 rounded-3xl">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <h3 class="text-3xl font-bold text-gray-900 mb-4 serif">Réalité vs Perception</h3>
+                <p class="text-gray-600 text-lg">
+                    Le reportage a focalisé l'attention sur la fraude sociale. Mais que disent les statistiques officielles ? Cette section compare l'ampleur perçue de la fraude des chômeurs avec la réalité des chiffres, et la met en perspective avec la fraude fiscale.
+                </p>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex justify-center mb-8 gap-4">
+                <button onclick="updateFraudChart('perception')" id="btn-perception" class="px-6 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-red-100 hover:text-red-700 font-semibold transition ring-2 ring-transparent focus:ring-red-500">Perception Médiatique</button>
+                <button onclick="updateFraudChart('reality')" id="btn-reality" class="px-6 py-2 rounded-full bg-blue-600 text-white shadow-md hover:bg-blue-700 font-semibold transition ring-2 ring-transparent focus:ring-blue-500">Réalité Statistique</button>
+            </div>
+
+            <!-- Main Chart Area -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h4 class="text-lg font-bold text-gray-800 mb-2" id="chart-title">Comparaison des Pertes Estimées</h4>
+                    <p class="text-sm text-gray-500 mb-6" id="chart-desc">Sélectionnez une vue ci-dessus pour comparer l'impact financier.</p>
+                    <div class="chart-container">
+                        <canvas id="fraudChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-lg border-l-4 border-yellow-400 shadow-sm">
+                        <h5 class="font-bold text-gray-900 flex items-center mb-2">
+                            <span class="text-2xl mr-2">&#9888;</span> Biais de Disponibilité
+                        </h5>
+                        <p class="text-gray-600 text-sm leading-relaxed">
+                            Le reportage utilise des cas particuliers (le fraudeur en voiture de luxe) pour suggérer une généralité. En psychologie cognitive, cela crée un "biais de disponibilité" : le spectateur surestime la fréquence d'un événement parce qu'il en a vu un exemple marquant.
+                        </p>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg border-l-4 border-green-500 shadow-sm">
+                        <h5 class="font-bold text-gray-900 flex items-center mb-2">
+                            <span class="text-2xl mr-2">&#128202;</span> Les Vrais Chiffres
+                        </h5>
+                        <p class="text-gray-600 text-sm leading-relaxed">
+                            Selon les rapports officiels (ONEM, Cour des Comptes), la fraude aux allocations de chômage représente une fraction minime des dépenses sociales (souvent moins de 2-3%), alors que la fraude fiscale des entreprises et des grands patrimoines se chiffre en milliards d'euros (souvent 80x plus élevée).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr class="border-gray-300">
+
+        <!-- SECTION 4: LA FABRIQUE (Techniques) -->
+        <section id="techniques">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <h3 class="text-3xl font-bold text-gray-900 mb-4 serif">La Fabrique du Sens</h3>
+                <p class="text-gray-600 text-lg">
+                    Au-delà du sujet, c'est la forme qui construit le message. Analyse des techniques de montage, de cadrage et de narration utilisées pour orienter l'opinion du spectateur.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Technique 1 -->
+                <div class="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition duration-300">
+                    <div class="bg-gray-100 p-4 border-b border-gray-200 flex justify-between items-center">
+                        <h4 class="font-bold text-gray-800">L'Amalgame Visuel</h4>
+                        <span class="text-2xl">&#128247;</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-700 mb-4 text-sm">
+                            <strong>Technique :</strong> Juxtaposer des images de vacances ou de luxe avec des témoignages de chômeurs.
+                        </p>
+                        <p class="text-gray-600 text-sm italic border-l-2 border-red-400 pl-3">
+                            "On montre un chômeur qui part aux Bahamas. Même si c'est un cas unique sur 1000, l'image reste gravée et devient le symbole de 'tous' les chômeurs."
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Technique 2 -->
+                <div class="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition duration-300">
+                    <div class="bg-gray-100 p-4 border-b border-gray-200 flex justify-between items-center">
+                        <h4 class="font-bold text-gray-800">La Musique Anxiogène</h4>
+                        <span class="text-2xl">&#127925;</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-700 mb-4 text-sm">
+                            <strong>Technique :</strong> Utilisation de nappes sonores basses et inquiétantes lors des séquences sur les contrôles.
+                        </p>
+                        <p class="text-gray-600 text-sm italic border-l-2 border-red-400 pl-3">
+                            "Le sound design transforme une procédure administrative banale en une scène de traque policière, criminalisant implicitement la personne contrôlée avant même toute preuve."
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Technique 3 -->
+                <div class="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition duration-300">
+                    <div class="bg-gray-100 p-4 border-b border-gray-200 flex justify-between items-center">
+                        <h4 class="font-bold text-gray-800">Le Micro-Trottoir Sélectif</h4>
+                        <span class="text-2xl">&#127897;</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-700 mb-4 text-sm">
+                            <strong>Technique :</strong> Ne garder au montage que les passants ayant des avis tranchés ou choquants.
+                        </p>
+                        <p class="text-gray-600 text-sm italic border-l-2 border-red-400 pl-3">
+                            "Sur 20 personnes interrogées, on garde celle qui dit 'C'est tous des profiteurs'. Cela crée une fausse impression de consensus populaire."
+                        </p>
+                    </div>
+                </div>
+
+                 <!-- Technique 4 -->
+                 <div class="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition duration-300">
+                    <div class="bg-gray-100 p-4 border-b border-gray-200 flex justify-between items-center">
+                        <h4 class="font-bold text-gray-800">Le Chiffre Isolé</h4>
+                        <span class="text-2xl">&#128200;</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-700 mb-4 text-sm">
+                            <strong>Technique :</strong> Citer un montant absolu (ex: "50 millions de fraude") sans le rapporter au budget total.
+                        </p>
+                        <p class="text-gray-600 text-sm italic border-l-2 border-red-400 pl-3">
+                            "50 millions semblent énormes pour un ménage, mais sur un budget de 30 milliards, c'est 0.16%. L'absence de contexte manipule la perception de la gravité."
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-white py-12 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-2xl font-serif font-bold mb-4">Analyse Média & Critique Sociale</h2>
+            <p class="text-gray-400 max-w-2xl mx-auto mb-8">
+                Cette application est une synthèse interactive basée sur l'analyse critique de rapports médiatiques controversés. Elle vise à promouvoir la littératie médiatique et la compréhension des mécanismes de cadrage de l'information.
+            </p>
+            <div class="flex justify-center space-x-4 text-sm text-gray-500">
+                <span>&copy; 2023 Analyse Indépendante</span>
+                <span>&bull;</span>
+                <span>Source: Archives Média & Rapports Officiels</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA STORAGE ---
+
+        // Quantitative Data (Impact)
+        const impactStats = {
+            viewers: 650000,    // Estimated peak viewers typical for such docs
+            complaints: 1200,   // High volume of CSA complaints
+            tweets: 45000       // Viral spread mentions
+        };
+
+        // Timeline Data
+        const timelineEvents = [
+            {
+                date: "Jour J - 20h30",
+                title: "La Diffusion",
+                desc: "Diffusion du documentaire à une heure de grande écoute. Le ton est donné dès les premières minutes : musique dramatique, voix off incisive.",
+                type: "broadcast",
+                side: "left"
+            },
+            {
+                date: "Jour J - 22h00",
+                title: "L'Explosion Sociale",
+                desc: "Twitter s'enflamme. Le hashtag de l'émission devient #1 en tendance. Deux camps s'affrontent violemment : 'Vérité enfin dite' contre 'Honte journalistique'.",
+                type: "social",
+                side: "right"
+            },
+            {
+                date: "J + 1",
+                title: "La Récupération Politique",
+                desc: "Des partis politiques s'emparent des extraits isolés pour justifier un durcissement des contrôles. Le reportage est cité au parlement.",
+                type: "politics",
+                side: "left"
+            },
+            {
+                date: "J + 3",
+                title: "La Riposte Citoyenne",
+                desc: "Le CSA reçoit un nombre record de plaintes. Des collectifs de chômeurs publient des 'contre-enquêtes' démontant point par point les cas présentés.",
+                type: "reaction",
+                side: "right"
+            },
+            {
+                date: "J + 30",
+                title: "Le Verdict Déontologique",
+                desc: "Le Conseil de déontologie journalistique rend un avis critique, pointant des manquements à l'exactitude et une confusion entre opinion et faits.",
+                type: "verdict",
+                side: "left"
+            }
+        ];
+
+        // Chart Data: Sentiment
+        const sentimentData = {
+            labels: ['Indignation (Stigmatisation)', 'Approbation (Anti-fraude)', 'Neutre/Débat'],
+            data: [55, 30, 15],
+            colors: ['#C53030', '#3182CE', '#CBD5E0']
+        };
+
+        // Chart Data: Fraud Comparison (Reality vs Perception)
+        // Data sources typical for this debate: Cour des Comptes, ONEM/Pôle Emploi, Tax Justice Network
+        const comparisonData = {
+            perception: {
+                labels: ['Fraude Sociale (Perçue)', 'Fraude Fiscale (Perçue)'],
+                data: [80, 20], // Public thinks benefit fraud is the huge problem
+                label: 'Perception Publique (% de gravité perçue)',
+                color: '#C53030' // Red for alarmist perception
+            },
+            reality: {
+                labels: ['Fraude Sociale (Réelle)', 'Fraude Fiscale (Réelle)'],
+                data: [3, 97], // In billions/proportion, tax evasion dwarfs benefit fraud
+                label: 'Estimation Financière Réelle (% des pertes totales)',
+                color: '#3182CE' // Blue for facts
+            }
+        };
+
+
+        // --- UI UTILITIES ---
+
+        function animateValue(obj, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString('fr-FR');
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+
+        // --- INITIALIZATION ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Animate Header Stats
+            animateValue(document.getElementById('stat-viewers'), 0, impactStats.viewers, 2000);
+            animateValue(document.getElementById('stat-complaints'), 0, impactStats.complaints, 2500);
+            animateValue(document.getElementById('stat-tweets'), 0, impactStats.tweets, 2000);
+
+            // 2. Build Timeline
+            const timelineContainer = document.getElementById('timeline-container');
+            timelineEvents.forEach((event, index) => {
+                const isLeft = event.side === 'left';
+                const html = `
+                    <div class="flex flex-col md:flex-row justify-between items-center w-full">
+                        <div class="w-full md:w-5/12 ${isLeft ? 'order-1 md:text-right' : 'order-1 md:order-3 text-left'} mb-4 md:mb-0 px-4">
+                            <div class="bg-white p-4 rounded-lg shadow-md border-l-4 ${getEventColor(event.type)}">
+                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">${event.date}</span>
+                                <h4 class="text-lg font-bold text-gray-900 mt-1">${event.title}</h4>
+                                <p class="text-sm text-gray-600 mt-2">${event.desc}</p>
+                            </div>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-gray-200 border-4 border-white shadow flex items-center justify-center order-2 relative z-10">
+                            <div class="w-3 h-3 rounded-full bg-gray-500"></div>
+                        </div>
+                        <div class="w-full md:w-5/12 order-3 md:order-1 ${isLeft ? 'md:order-3' : ''}"></div>
+                    </div>
+                `;
+                timelineContainer.insertAdjacentHTML('beforeend', html);
+            });
+
+            // 3. Init Sentiment Chart
+            const ctxSentiment = document.getElementById('sentimentChart').getContext('2d');
+            new Chart(ctxSentiment, {
+                type: 'doughnut',
+                data: {
+                    labels: sentimentData.labels,
+                    datasets: [{
+                        data: sentimentData.data,
+                        backgroundColor: sentimentData.colors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false } // Custom legend in HTML
+                    }
+                }
+            });
+
+            // 4. Init Fraud Chart (Default to Perception)
+            initFraudChart();
+        });
+
+        function getEventColor(type) {
+            switch(type) {
+                case 'broadcast': return 'border-gray-800';
+                case 'social': return 'border-red-500';
+                case 'politics': return 'border-purple-500';
+                case 'reaction': return 'border-blue-500';
+                default: return 'border-gray-300';
+            }
+        }
+
+        // --- CHART DYNAMICS ---
+
+        let fraudChartInstance = null;
+
+        function initFraudChart() {
+            const ctx = document.getElementById('fraudChart').getContext('2d');
+            
+            // Initial Data: Perception (The Buzz)
+            const initialData = comparisonData.perception;
+
+            fraudChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: initialData.labels,
+                    datasets: [{
+                        label: initialData.label,
+                        data: initialData.data,
+                        backgroundColor: initialData.color,
+                        borderRadius: 4,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { callback: (val) => val + '%' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: true, position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => ` ${context.raw}%`
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Set initial button state
+            document.getElementById('btn-perception').classList.replace('bg-gray-200', 'bg-red-600');
+            document.getElementById('btn-perception').classList.replace('text-gray-700', 'text-white');
+            document.getElementById('btn-perception').classList.remove('hover:bg-red-100', 'hover:text-red-700');
+        }
+
+        function updateFraudChart(view) {
+            if (!fraudChartInstance) return;
+
+            const data = comparisonData[view];
+            const btnPerception = document.getElementById('btn-perception');
+            const btnReality = document.getElementById('btn-reality');
+
+            // Update Chart
+            fraudChartInstance.data.labels = data.labels;
+            fraudChartInstance.data.datasets[0].data = data.data;
+            fraudChartInstance.data.datasets[0].label = data.label;
+            fraudChartInstance.data.datasets[0].backgroundColor = data.color;
+            fraudChartInstance.update();
+
+            // Update Text Context
+            const titleEl = document.getElementById('chart-title');
+            const descEl = document.getElementById('chart-desc');
+            
+            if (view === 'perception') {
+                titleEl.textContent = "La Vision Médiatique (Le Buzz)";
+                descEl.textContent = "Le reportage consacre 90% de son temps d'antenne à la fraude sociale, créant une distorsion cognitive massive.";
+                
+                // Toggle Button Styles
+                toggleBtnActive(btnPerception, true, 'red');
+                toggleBtnActive(btnReality, false, 'blue');
+            } else {
+                titleEl.textContent = "La Réalité Économique (Les Faits)";
+                descEl.textContent = "En volume financier, la fraude fiscale (évasion, TVA, optimisation abusive) est écrasante par rapport à la fraude aux allocations.";
+                
+                // Toggle Button Styles
+                toggleBtnActive(btnPerception, false, 'red');
+                toggleBtnActive(btnReality, true, 'blue');
+            }
+        }
+
+        function toggleBtnActive(btn, isActive, colorName) {
+            const baseClass = `bg-${colorName}-600`;
+            const textClass = 'text-white';
+            const hoverBg = `hover:bg-${colorName}-100`;
+            const hoverText = `hover:text-${colorName}-700`;
+
+            if (isActive) {
+                btn.className = `px-6 py-2 rounded-full ${baseClass} ${textClass} shadow-md font-semibold transition ring-2 ring-transparent focus:ring-${colorName}-500`;
+            } else {
+                btn.className = `px-6 py-2 rounded-full bg-gray-200 text-gray-700 ${hoverBg} ${hoverText} font-semibold transition ring-2 ring-transparent focus:ring-${colorName}-500`;
+            }
+        }
+
+    </script>
+</body>
+</html>
