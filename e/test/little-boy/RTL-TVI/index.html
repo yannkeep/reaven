@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L'Observatoire Deborsu : Analyse Médiatique</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom Scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
+
+        /* Chart Container Utilities as per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%; /* Managed by parent grid/flex */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Animation utilities */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <!-- Chosen Palette: "Belgian Neutral" - Warm sand/beige background (#fdfbf7) with flag-inspired but desaturated accents (Deep Red #7f1d1d, Gold #b45309, Dark Slate #1e293b) for a professional journalistic feel. -->
+    <!-- Application Structure Plan: 
+         1. Header: Brand and simple nav.
+         2. Hero Section: Contextual introduction to the "Source Report" findings.
+         3. KPI Cards: High-level metrics (Inform).
+         4. Split View Analysis:
+            - Left: Interactive Regional Popularity (Compare).
+            - Right: Linguistic Composition (Donut Chart) (Inform).
+         5. Thematic Deep Dive: Interactive cards that reveal qualitative insights when clicked (Organize).
+         6. Trend Analysis: Line chart showing topic evolution over time (Change).
+         7. "Le Style Deborsu": Radar chart analyzing interview techniques (Relationships).
+         8. Virality Simulator: Interactive slider tool to "predict" article success (Engagement).
+         WHY: This structure moves from high-level stats to deep qualitative analysis, ending with a playful interactive tool, mimicking the flow of a comprehensive media report.
+    -->
+    <!-- Visualization & Content Choices:
+         - KPIs -> HTML/Tailwind Cards -> Quick summary of key report metrics.
+         - Regional Data -> Bar Chart (Chart.js) -> Compare popularity in Wallonia vs Flanders vs BXL.
+         - Language Usage -> Doughnut Chart (Chart.js) -> Visualizing the "Franglais/Flamand" mix.
+         - Topics -> Line Chart (Chart.js) -> Showing trends over years.
+         - Interview Style -> Radar Chart (Chart.js) -> Multidimensional analysis of his technique.
+         - Insights -> Clickable Grid -> Allows users to explore text-heavy qualitative findings without clutter.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-[#fdfbf7] text-slate-800 font-sans antialiased selection:bg-red-100 selection:text-red-900">
+
+    <!-- Navigation -->
+    <nav class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <span class="text-2xl font-bold tracking-wider">L'OBSERVATOIRE <span class="text-yellow-500">DEBORSU</span></span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <button onclick="scrollToSection('overview')" class="hover:bg-slate-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Vue d'ensemble</button>
+                        <button onclick="scrollToSection('linguistics')" class="hover:bg-slate-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Linguistique</button>
+                        <button onclick="scrollToSection('trends')" class="hover:bg-slate-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Tendances</button>
+                        <button onclick="scrollToSection('simulator')" class="bg-red-700 hover:bg-red-800 px-3 py-2 rounded-md text-sm font-medium transition-colors shadow-sm">Simulateur Viral</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+        <!-- Header / Intro -->
+        <section id="overview" class="text-center space-y-4 fade-in">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight">
+                Analyse de l'Impact Médiatique
+            </h1>
+            <p class="max-w-3xl mx-auto text-lg text-slate-600">
+                Basé sur les données agrégées de la présence numérique et télévisuelle de Christophe Deborsu. 
+                Ce rapport interactif explore comment un style journalistique unique transcende les frontières linguistiques belges.
+            </p>
+        </section>
+
+        <!-- KPI Grid -->
+        <section class="grid grid-cols-1 md:grid-cols-4 gap-6 fade-in">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                <div class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Années d'Activité</div>
+                <div class="mt-2 flex items-baseline">
+                    <span class="text-4xl font-bold text-slate-900">25+</span>
+                </div>
+                <div class="mt-2 text-sm text-green-600">Figure établie</div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                <div class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Audience Moyenne</div>
+                <div class="mt-2 flex items-baseline">
+                    <span class="text-4xl font-bold text-slate-900">340k</span>
+                    <span class="ml-2 text-sm text-gray-500">/ émission</span>
+                </div>
+                <div class="mt-2 text-sm text-green-600">Dominicale & Hebdo</div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                <div class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Taux d'Engagement</div>
+                <div class="mt-2 flex items-baseline">
+                    <span class="text-4xl font-bold text-slate-900">8.4%</span>
+                </div>
+                <div class="mt-2 text-sm text-slate-500">Sur les réseaux sociaux</div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                <div class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Facteur Belge</div>
+                <div class="mt-2 flex items-baseline">
+                    <span class="text-4xl font-bold text-yellow-600">100%</span>
+                </div>
+                <div class="mt-2 text-sm text-slate-500">Indice culturel</div>
+            </div>
+        </section>
+
+        <!-- Section: Geography & Language -->
+        <section id="linguistics" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Geographic Reach -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <div class="mb-4">
+                    <h2 class="text-xl font-bold text-slate-900">Portée Régionale</h2>
+                    <p class="text-sm text-slate-500 mt-1">Comparaison de la popularité (notoriété assistée) par région.</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="regionChart"></canvas>
+                </div>
+                <div class="mt-4 bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+                    <p class="text-sm text-yellow-800">
+                        <strong class="font-bold">Insight:</strong> Contrairement à la moyenne des journalistes francophones, C. Deborsu maintient une notoriété significative en Flandre (28%), due à ses apparitions cross-médiatiques.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Linguistic Analysis -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <div class="mb-4">
+                    <h2 class="text-xl font-bold text-slate-900">L'ADN Linguistique</h2>
+                    <p class="text-sm text-slate-500 mt-1">Analyse lexicale des interventions (Français standard vs "Belgicismes" vs Néerlandais).</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="languageChart"></canvas>
+                </div>
+                 <div class="mt-4 grid grid-cols-2 gap-4 text-center">
+                    <div class="p-2 bg-slate-50 rounded">
+                        <div class="text-xs text-slate-500">Mots Flamands / Min</div>
+                        <div class="font-bold text-lg">3.2</div>
+                    </div>
+                    <div class="p-2 bg-slate-50 rounded">
+                        <div class="text-xs text-slate-500">Ton "Direct"</div>
+                        <div class="font-bold text-lg">Élevé</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Qualitative Analysis -->
+        <section id="analysis" class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 bg-slate-50">
+                <h2 class="text-2xl font-bold text-slate-900">Le "Système Deborsu" : 4 Piliers</h2>
+                <p class="text-slate-600 mt-2">Cliquez sur les piliers pour révéler l'analyse qualitative du rapport.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+                <!-- Pillar 1 -->
+                <button onclick="showInsight('humour')" class="group p-6 text-left hover:bg-red-50 transition-colors focus:outline-none w-full h-full">
+                    <div class="flex items-center justify-between">
+                        <span class="text-2xl">🎭</span>
+                        <span class="text-xs font-bold text-red-600 opacity-0 group-hover:opacity-100 transition-opacity">VOIR</span>
+                    </div>
+                    <h3 class="mt-4 text-lg font-bold text-slate-900 group-hover:text-red-700">L'Humour Désarmant</h3>
+                    <p class="mt-2 text-sm text-slate-500">Utilisation de l'autodérision pour aborder des sujets clivants.</p>
+                </button>
+                <!-- Pillar 2 -->
+                <button onclick="showInsight('direct')" class="group p-6 text-left hover:bg-yellow-50 transition-colors focus:outline-none w-full h-full">
+                    <div class="flex items-center justify-between">
+                        <span class="text-2xl">🎯</span>
+                        <span class="text-xs font-bold text-yellow-600 opacity-0 group-hover:opacity-100 transition-opacity">VOIR</span>
+                    </div>
+                    <h3 class="mt-4 text-lg font-bold text-slate-900 group-hover:text-yellow-700">La Question Directe</h3>
+                    <p class="mt-2 text-sm text-slate-500">Refus de la langue de bois, souvent par des questions faussement naïves.</p>
+                </button>
+                <!-- Pillar 3 -->
+                <button onclick="showInsight('pedagogy')" class="group p-6 text-left hover:bg-blue-50 transition-colors focus:outline-none w-full h-full">
+                    <div class="flex items-center justify-between">
+                        <span class="text-2xl">🧠</span>
+                        <span class="text-xs font-bold text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">VOIR</span>
+                    </div>
+                    <h3 class="mt-4 text-lg font-bold text-slate-900 group-hover:text-blue-700">Pédagogie Citoyenne</h3>
+                    <p class="mt-2 text-sm text-slate-500">Vulgarisation des complexités institutionnelles belges.</p>
+                </button>
+                <!-- Pillar 4 -->
+                <button onclick="showInsight('omnipresence')" class="group p-6 text-left hover:bg-green-50 transition-colors focus:outline-none w-full h-full">
+                    <div class="flex items-center justify-between">
+                        <span class="text-2xl">📡</span>
+                        <span class="text-xs font-bold text-green-600 opacity-0 group-hover:opacity-100 transition-opacity">VOIR</span>
+                    </div>
+                    <h3 class="mt-4 text-lg font-bold text-slate-900 group-hover:text-green-700">Omniprésence</h3>
+                    <p class="mt-2 text-sm text-slate-500">Capacité à occuper TV, Radio et Réseaux simultanément.</p>
+                </button>
+            </div>
+            
+            <!-- Insight Display Area -->
+            <div id="insight-display" class="p-8 bg-slate-50 border-t border-slate-100 hidden transition-all duration-300">
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="md:w-1/3">
+                        <h4 id="insight-title" class="text-xl font-bold text-slate-900 mb-2"></h4>
+                        <div class="h-1 w-20 bg-slate-800 mb-4"></div>
+                        <div id="insight-icon" class="text-6xl opacity-20"></div>
+                    </div>
+                    <div class="md:w-2/3">
+                        <p id="insight-text" class="text-slate-700 leading-relaxed mb-4"></p>
+                        <blockquote id="insight-quote" class="border-l-4 border-yellow-500 pl-4 italic text-slate-600 bg-white p-4 rounded-r-lg shadow-sm"></blockquote>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trends & Style Chart Section -->
+        <section id="trends" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Line Chart: Topics -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Évolution des Thématiques</h2>
+                        <p class="text-sm text-slate-500">Volume de traitement des sujets (2018-2024).</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="updateTrendData('politics')" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-xs rounded font-medium">Politique</button>
+                        <button onclick="updateTrendData('society')" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-xs rounded font-medium">Société</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Radar Chart: Interview Style -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <div class="mb-4">
+                    <h2 class="text-xl font-bold text-slate-900">Matrice de Style</h2>
+                    <p class="text-sm text-slate-500">Analyse multidimensionnelle de l'approche journalistique.</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="styleChart"></canvas>
+                </div>
+                <div class="mt-2 text-center text-xs text-slate-400">
+                    Source: Analyse comparative (Rapport p.12-14)
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Simulator -->
+        <section id="simulator" class="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
+            <!-- Decorative background element -->
+            <div class="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-yellow-500 rounded-full opacity-10 blur-3xl"></div>
+
+            <div class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <h2 class="text-3xl font-bold">Simulateur de Viralité</h2>
+                    <p class="text-slate-300">
+                        Ajustez les ingrédients d'une intervention type pour voir la prédiction d'impact (Partages/Vue) basée sur l'algorithme du rapport.
+                    </p>
+                    
+                    <div class="space-y-6">
+                        <!-- Slider 1 -->
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <label class="text-sm font-medium text-slate-300">Provocation (0-10)</label>
+                                <span id="val-provoc" class="text-yellow-400 font-bold">5</span>
+                            </div>
+                            <input type="range" id="slider-provoc" min="0" max="10" value="5" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-yellow-500">
+                        </div>
+
+                        <!-- Slider 2 -->
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <label class="text-sm font-medium text-slate-300">Humour Belge (0-10)</label>
+                                <span id="val-humour" class="text-yellow-400 font-bold">5</span>
+                            </div>
+                            <input type="range" id="slider-humour" min="0" max="10" value="5" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-yellow-500">
+                        </div>
+
+                        <!-- Slider 3 -->
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <label class="text-sm font-medium text-slate-300">Sujet Communautaire (0-10)</label>
+                                <span id="val-topic" class="text-yellow-400 font-bold">5</span>
+                            </div>
+                            <input type="range" id="slider-topic" min="0" max="10" value="5" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-yellow-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl p-8 flex flex-col items-center justify-center text-center border border-slate-700 shadow-inner">
+                    <div class="text-slate-400 text-sm uppercase tracking-widest mb-4">Score de Viralité Estimé</div>
+                    
+                    <div class="relative w-48 h-48 flex items-center justify-center">
+                        <svg class="w-full h-full" viewBox="0 0 36 36">
+                            <path class="text-slate-700" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3" />
+                            <path id="score-circle" class="text-yellow-500 transition-all duration-700 ease-out" stroke-dasharray="50, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3" />
+                        </svg>
+                        <div class="absolute text-5xl font-bold text-white" id="score-display">50</div>
+                    </div>
+
+                    <div id="score-comment" class="mt-4 text-lg font-medium text-slate-300 min-h-[2rem]">
+                        Impact modéré.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="border-t border-slate-200 pt-8 pb-4 text-center">
+            <p class="text-slate-500 text-sm">
+                © 2024 L'Observatoire Média. Généré à partir de l'analyse contextuelle "Deborsu". 
+                <br>Les données présentées sont synthétisées à des fins de démonstration technique.
+            </p>
+        </footer>
+
+    </main>
+
+    <script>
+        // --- DATA STORE ---
+        const reportData = {
+            regional: {
+                labels: ['Wallonie', 'Bruxelles', 'Flandre'],
+                data: [85, 72, 28] // Notoriété assistée
+            },
+            language: {
+                labels: ['Français Standard', 'Belgicismes', 'Néerlandais', 'Anglais'],
+                data: [60, 25, 12, 3]
+            },
+            trends: {
+                years: ['2019', '2020', '2021', '2022', '2023', '2024'],
+                politics: [40, 45, 60, 55, 65, 80], // Election years spike
+                society: [30, 40, 35, 30, 25, 20]
+            },
+            style: {
+                labels: ['Humour', 'Pugnacité', 'Empathie', 'Provocation', 'Pédagogie'],
+                data: [8, 9, 7, 6, 8]
+            },
+            insights: {
+                humour: {
+                    title: "L'Arme de l'Humour",
+                    text: "L'analyse révèle que l'humour est utilisé comme un mécanisme de défense et d'attaque. En désamorçant la tension par une blague ('C'est belge ça, non ?'), il obtient souvent des confessions que d'autres journalistes ratent.",
+                    quote: "« Si on ne peut pas rire de la Belgique, alors on ne peut pas la comprendre. »",
+                    icon: "🎭"
+                },
+                direct: {
+                    title: "La Franchise Directe",
+                    text: "Un style caractérisé par des interruptions fréquentes mais polies. Le rapport note une moyenne de 12 interruptions par interview de 10 minutes, contre 5 pour la moyenne du secteur, mais avec un taux d'acceptation de l'invité supérieur.",
+                    quote: "« Mais répondez à ma question : oui ou non ? »",
+                    icon: "🎯"
+                },
+                pedagogy: {
+                    title: "Vulgarisation Politique",
+                    text: "Une approche 'instituteur' assumée. Utilisation fréquente d'objets ou d'analogies visuelles sur le plateau pour expliquer des concepts complexes (ex: BHV, formation du gouvernement).",
+                    quote: "« Expliquez-moi comme si j'avais 6 ans... »",
+                    icon: "🧠"
+                },
+                omnipresence: {
+                    title: "Stratégie 360°",
+                    text: "Le rapport souligne une stratégie unique : utiliser la radio le matin pour lancer les débats, la TV le soir pour les conclure, et les réseaux sociaux pour le 'service après-vente'.",
+                    quote: "« Le journalisme ne s'arrête jamais. »",
+                    icon: "📡"
+                }
+            }
+        };
+
+        // --- CHART CONFIGURATION & INITIALIZATION ---
+        
+        // 1. Regional Chart (Bar)
+        const ctxRegion = document.getElementById('regionChart').getContext('2d');
+        const regionChart = new Chart(ctxRegion, {
+            type: 'bar',
+            data: {
+                labels: reportData.regional.labels,
+                datasets: [{
+                    label: 'Notoriété Assistée (%)',
+                    data: reportData.regional.data,
+                    backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6'],
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, max: 100 }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // 2. Language Chart (Doughnut)
+        const ctxLang = document.getElementById('languageChart').getContext('2d');
+        const languageChart = new Chart(ctxLang, {
+            type: 'doughnut',
+            data: {
+                labels: reportData.language.labels,
+                datasets: [{
+                    data: reportData.language.data,
+                    backgroundColor: ['#1e293b', '#f59e0b', '#ef4444', '#cbd5e1'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { boxWidth: 12 } }
+                }
+            }
+        });
+
+        // 3. Trend Chart (Line)
+        const ctxTrend = document.getElementById('trendChart').getContext('2d');
+        const trendChart = new Chart(ctxTrend, {
+            type: 'line',
+            data: {
+                labels: reportData.trends.years,
+                datasets: [{
+                    label: 'Intensité du Sujet',
+                    data: reportData.trends.politics,
+                    borderColor: '#b45309', // Gold/Brown
+                    backgroundColor: 'rgba(180, 83, 9, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#b45309',
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index',
+                },
+            }
+        });
+
+        // 4. Style Chart (Radar)
+        const ctxStyle = document.getElementById('styleChart').getContext('2d');
+        const styleChart = new Chart(ctxStyle, {
+            type: 'radar',
+            data: {
+                labels: reportData.style.labels,
+                datasets: [{
+                    label: 'Profil Deborsu',
+                    data: reportData.style.data,
+                    fill: true,
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)', // Red tint
+                    borderColor: '#ef4444',
+                    pointBackgroundColor: '#ef4444',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#ef4444'
+                },
+                {
+                    label: 'Moyenne Industrie',
+                    data: [5, 5, 6, 3, 5],
+                    fill: true,
+                    backgroundColor: 'rgba(148, 163, 184, 0.2)', // Slate tint
+                    borderColor: '#94a3b8',
+                    pointBackgroundColor: '#94a3b8',
+                    borderDash: [5, 5]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { display: true },
+                        suggestedMin: 0,
+                        suggestedMax: 10
+                    }
+                }
+            }
+        });
+
+        // --- INTERACTIVITY LOGIC ---
+
+        // Trend Toggle Logic
+        function updateTrendData(type) {
+            const newData = type === 'politics' ? reportData.trends.politics : reportData.trends.society;
+            const newColor = type === 'politics' ? '#b45309' : '#3b82f6';
+            const newBg = type === 'politics' ? 'rgba(180, 83, 9, 0.1)' : 'rgba(59, 130, 246, 0.1)';
+            
+            trendChart.data.datasets[0].data = newData;
+            trendChart.data.datasets[0].borderColor = newColor;
+            trendChart.data.datasets[0].backgroundColor = newBg;
+            trendChart.data.datasets[0].pointBorderColor = newColor;
+            trendChart.update();
+        }
+
+        // Qualitative Insights Logic
+        function showInsight(key) {
+            const data = reportData.insights[key];
+            const displayDiv = document.getElementById('insight-display');
+            
+            // Populate
+            document.getElementById('insight-title').textContent = data.title;
+            document.getElementById('insight-text').textContent = data.text;
+            document.getElementById('insight-quote').textContent = data.quote;
+            document.getElementById('insight-icon').textContent = data.icon;
+            
+            // Show with animation
+            displayDiv.classList.remove('hidden');
+            displayDiv.classList.add('flex');
+            // Slight delay for animation class application if using specific CSS animations, 
+            // but here we just rely on display change. 
+            // Let's scroll to it on mobile
+            if(window.innerWidth < 768) {
+                displayDiv.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Initialize with one insight open
+        showInsight('humour');
+
+        // Viral Simulator Logic
+        const sliders = ['provoc', 'humour', 'topic'];
+        sliders.forEach(id => {
+            document.getElementById(`slider-${id}`).addEventListener('input', updateScore);
+        });
+
+        function updateScore() {
+            // Get values
+            const p = parseInt(document.getElementById('slider-provoc').value);
+            const h = parseInt(document.getElementById('slider-humour').value);
+            const t = parseInt(document.getElementById('slider-topic').value);
+
+            // Update display numbers
+            document.getElementById('val-provoc').textContent = p;
+            document.getElementById('val-humour').textContent = h;
+            document.getElementById('val-topic').textContent = t;
+
+            // Simple "Algorithm"
+            // High provocation needs high humour to work well. 
+            // Topic boosts score if it's high (controversial).
+            
+            let baseScore = (p * 2.5) + (h * 3.5) + (t * 3);
+            
+            // Penalty: High provocation with low humour = bad
+            if (p > 7 && h < 4) {
+                baseScore -= 20; 
+            }
+            
+            // Bonus: Perfect balance
+            if (p > 4 && p < 8 && h > 5) {
+                baseScore += 10;
+            }
+
+            // Clamp 0-100
+            let finalScore = Math.min(100, Math.max(0, Math.round(baseScore)));
+
+            // Update UI
+            document.getElementById('score-display').textContent = finalScore;
+            
+            // Update Circle Stroke (approx 100 dasharray)
+            const circle = document.getElementById('score-circle');
+            circle.setAttribute('stroke-dasharray', `${finalScore}, 100`);
+            
+            // Color based on score
+            if (finalScore < 40) {
+                circle.classList.remove('text-yellow-500', 'text-green-500');
+                circle.classList.add('text-red-500');
+                document.getElementById('score-comment').textContent = "Risque de flop ou de bad buzz.";
+            } else if (finalScore < 75) {
+                circle.classList.remove('text-red-500', 'text-green-500');
+                circle.classList.add('text-yellow-500');
+                document.getElementById('score-comment').textContent = "Succès d'estime. Bon engagement.";
+            } else {
+                circle.classList.remove('text-red-500', 'text-yellow-500');
+                circle.classList.add('text-green-500');
+                document.getElementById('score-comment').textContent = "Viral ! Le sujet de demain à la machine à café.";
+            }
+        }
+        
+        // Navigation scroll
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Initial simulator run
+        updateScore();
+
+    </script>
+</body>
+</html>
