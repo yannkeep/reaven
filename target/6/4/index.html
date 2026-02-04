@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infographie Interactive : Tous Fraudeurs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Montserrat:wght@400;600;800&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #fdfbf7;
+            color: #1a202c;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-btn {
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            border-color: #ef4444;
+            color: #ef4444;
+            background-color: rgba(239, 68, 68, 0.05);
+        }
+    </style>
+    <!-- Chosen Palette: Journalistic Investigation - Warm Paper (#fdfbf7), Ink Black (#1a202c), Alert Red (#ef4444), Slate Grey (#64748b) -->
+    <!-- Application Structure Plan:
+        1. Contextual Hero: Immerses the user in the "investigation" atmosphere.
+        2. Technical Data Grid (The Facts): Quick consumption cards for key metadata.
+        3. Analytical Core (The Critique): A split-view section comparing "Journalistic Ethics" vs "Public Reception" using a Radar Chart to visualize qualitative gaps, controlled by tabs.
+        4. Financial Breakdown (The Cost): A deep dive into the estimated budget using a Doughnut chart, with interactive drill-down for details on production costs.
+        5. Strategic Outlook (The Future): A step-by-process view for future recommendations.
+        Rationale: Moves from facts -> subjective analysis -> hard numbers -> future perspective.
+    -->
+    <!-- Visualization & Content Choices:
+        - Radar Chart (Chart.js): Compares 5 qualitative dimensions (Ethics, Info, Entertainment, etc.) between 'Journalist' and 'Viewer'. Goal: Compare/Relationships. Justification: Best for multivariate comparison.
+        - Doughnut Chart (Chart.js): Shows budget allocation. Goal: Inform/Proportion. Interaction: Click to reveal details. Justification: Familiarity and clarity for percentages.
+        - Styled Cards/Grid: For Fiche Technique and Future Outlook. Goal: Organize. Justification: Clean, readable layout without SVG.
+        - Tabbed Interface: Manages text density in the Analysis section.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-extrabold text-gray-900 tracking-tight">DOSSIER<span class="text-red-600">.</span></span>
+                </div>
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="#fiche" class="text-gray-600 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium transition">Fiche Technique</a>
+                    <a href="#analyse" class="text-gray-600 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium transition">Analyse</a>
+                    <a href="#budget" class="text-gray-600 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium transition">Budget</a>
+                    <a href="#futur" class="text-gray-600 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium transition">Le Futur</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="relative bg-white overflow-hidden border-b border-gray-200">
+        <div class="max-w-7xl mx-auto">
+            <div class="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+                <main class="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+                    <div class="sm:text-center lg:text-left">
+                        <span class="inline-block py-1 px-3 rounded-full bg-red-100 text-red-800 text-xs font-bold tracking-wide uppercase mb-4">Docu-Fiction Événement</span>
+                        <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+                            <span class="block xl:inline">Enquête sur</span>
+                            <span class="block text-red-600 xl:inline">"Tous Fraudeurs"</span>
+                        </h1>
+                        <p class="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                            Plongée analytique dans le programme de Christophe Deborsu. Entre pédagogie citoyenne et spectacle télévisuel, décryptage d'un phénomène médiatique belge.
+                        </p>
+                        <div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                            <div class="rounded-md shadow">
+                                <a href="#analyse" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-red-600 hover:bg-red-700 md:py-4 md:text-lg transition">
+                                    Voir l'Analyse
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+        <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 bg-gray-50 flex items-center justify-center border-l border-gray-100">
+            <!-- Simulated Visual Element (No Image/SVG) -->
+            <div class="p-8 text-center">
+                <div class="text-9xl font-black text-gray-200 select-none">?</div>
+                <p class="text-gray-400 font-bold uppercase tracking-widest mt-4">Fraude ou Fiction ?</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 1: Fiche Technique -->
+    <section id="fiche" class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-extrabold text-gray-900">Fiche Technique</h2>
+                <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+                    Les données clés pour comprendre l'identité du programme avant d'aborder la critique de fond.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Card 1 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border-t-4 border-red-500 card-hover">
+                    <div class="text-gray-400 text-xs font-bold uppercase tracking-wide mb-1">Diffuseur & Auteur</div>
+                    <div class="text-2xl font-bold text-gray-900 mb-2">RTL TVI</div>
+                    <p class="text-gray-600 text-sm">Christophe Deborsu à la présentation et à l'enquête.</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border-t-4 border-gray-800 card-hover">
+                    <div class="text-gray-400 text-xs font-bold uppercase tracking-wide mb-1">Format</div>
+                    <div class="text-2xl font-bold text-gray-900 mb-2">Docu-Fiction</div>
+                    <p class="text-gray-600 text-sm">Mélange d'interviews réelles et de mises en situation (caméras cachées).</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border-t-4 border-red-500 card-hover">
+                    <div class="text-gray-400 text-xs font-bold uppercase tracking-wide mb-1">Thématiques</div>
+                    <div class="text-2xl font-bold text-gray-900 mb-2">Fraude Sociale</div>
+                    <p class="text-gray-600 text-sm">Travail au noir, évasion fiscale, abus sociaux.</p>
+                </div>
+                <!-- Card 4 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border-t-4 border-gray-800 card-hover">
+                    <div class="text-gray-400 text-xs font-bold uppercase tracking-wide mb-1">Réception</div>
+                    <div class="text-2xl font-bold text-gray-900 mb-2">Polarisante</div>
+                    <p class="text-gray-600 text-sm">Forte audience et débats intenses sur les réseaux sociaux.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Analyse & Critique -->
+    <section id="analyse" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-12">
+                <h2 class="text-3xl font-extrabold text-gray-900">Analyse Critique et Réception</h2>
+                <p class="mt-4 max-w-3xl text-lg text-gray-500">
+                    Le programme divise. D'un côté, une démarche journalistique qui se veut pédagogique ; de l'autre, une perception publique oscillant entre prise de conscience et malaise. Ce graphique radar met en lumière le décalage entre l'intention journalistique et le ressenti spectateur.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <!-- Interactive Chart Column -->
+                <div class="bg-white p-4 rounded-xl shadow-lg border border-gray-100 flex flex-col">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 text-center">Profil d'Impact : Journaliste vs Public</h3>
+                    <div class="chart-container flex-grow">
+                        <canvas id="critiqueChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center text-sm text-gray-400 italic">
+                        Estimation qualitative basée sur l'analyse de contenu et les retours réseaux.
+                    </div>
+                </div>
+
+                <!-- Content & Tabs Column -->
+                <div class="flex flex-col h-full">
+                    <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
+                        <button onclick="switchTab('critique')" id="tab-critique" class="tab-btn active flex-1 py-2 px-4 rounded-md text-sm font-medium focus:outline-none">Critique Journalistique</button>
+                        <button onclick="switchTab('avis')" id="tab-avis" class="tab-btn flex-1 py-2 px-4 rounded-md text-sm font-medium focus:outline-none text-gray-500 hover:text-gray-700">Avis Public</button>
+                    </div>
+
+                    <!-- Critique Content -->
+                    <div id="content-critique" class="bg-gray-50 p-8 rounded-lg border border-gray-200 flex-grow">
+                        <h4 class="text-xl font-bold text-gray-900 mb-4">La fin justifie-t-elle les moyens ?</h4>
+                        <p class="text-gray-700 mb-4 leading-relaxed">
+                            <strong>Le Verdict :</strong> Christophe Deborsu réussit le pari de la vulgarisation. En incarnant le sujet, il rend tangible des mécanismes fiscaux abstraits. Cependant, le format "docu-fiction" brouille les pistes.
+                        </p>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-green-100 text-green-600 font-bold text-sm mr-3">&#10003;</span>
+                                <span class="text-sm text-gray-600"><strong>Points Forts :</strong> Audace du sujet, qualité de production, impact immédiat sur le débat public.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-red-100 text-red-600 font-bold text-sm mr-3">!</span>
+                                <span class="text-sm text-gray-600"><strong>Points Faibles :</strong> Risque de stigmatisation, mise en scène parfois excessive qui peut affaiblir la crédibilité journalistique pure.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Avis Content -->
+                    <div id="content-avis" class="hidden bg-gray-50 p-8 rounded-lg border border-gray-200 flex-grow">
+                        <h4 class="text-xl font-bold text-gray-900 mb-4">Un miroir dérangeant</h4>
+                        <p class="text-gray-700 mb-4 leading-relaxed">
+                            <strong>Le Ressenti :</strong> Pour le téléspectateur, le programme agit comme un électrochoc. Beaucoup se reconnaissent dans les "petites fraudes" du quotidien, créant un sentiment de culpabilité collective ou, à l'inverse, de rejet défensif.
+                        </p>
+                        <div class="space-y-4">
+                            <div class="border-l-4 border-gray-300 pl-4 py-1">
+                                <p class="text-sm italic text-gray-600">"C'est courageux de montrer ça. On paie trop d'impôts, c'est pour ça qu'on fraude !"</p>
+                            </div>
+                            <div class="border-l-4 border-gray-300 pl-4 py-1">
+                                <p class="text-sm italic text-gray-600">"Encore une émission pour monter les gens les uns contre les autres. Et les gros fraudeurs ?"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Budget Estimé -->
+    <section id="budget" class="py-16 bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-extrabold text-white">Estimation Budgétaire</h2>
+                <p class="mt-4 max-w-2xl text-xl text-gray-400 mx-auto">
+                    Reconstitution estimative des coûts pour un prime-time de ce calibre (~150k€). Cliquez sur le graphique pour le détail.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                <!-- Visualization -->
+                <div class="relative">
+                    <div class="chart-container mx-auto">
+                        <canvas id="budgetChart"></canvas>
+                    </div>
+                    <!-- Center Label Simulation -->
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div class="text-center">
+                            <span class="block text-3xl font-bold text-white">150k€</span>
+                            <span class="text-xs text-gray-400 uppercase">Total Estimé</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Details -->
+                <div id="budget-details" class="bg-gray-800 rounded-lg p-8 border border-gray-700 shadow-xl min-h-[300px] flex flex-col justify-center transition-all duration-300">
+                    <div class="uppercase tracking-wide text-xs text-red-400 font-bold mb-2">Détail du poste</div>
+                    <h3 id="budget-title" class="text-3xl font-bold text-white mb-4">Production & Tournage</h3>
+                    <div id="budget-amount" class="text-4xl font-light text-gray-200 mb-6">~67.500 €</div>
+                    <p id="budget-desc" class="text-gray-400 leading-relaxed text-lg">
+                        Représente la part la plus importante. Inclut les équipes techniques, le matériel de caméra cachée spécifique, les assurances, les lieux de tournage et la logistique sur plusieurs semaines d'enquête.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: Le Futur -->
+    <section id="futur" class="py-16 bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-12 text-center md:text-left">
+                <h2 class="text-3xl font-extrabold text-gray-900">Et pour la suite ?</h2>
+                <p class="mt-4 max-w-3xl text-lg text-gray-500">
+                    Au-delà du constat, quelles pistes pour transformer l'indignation en évolution sociétale ? Voici trois axes majeurs.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Step 1 -->
+                <div class="relative group">
+                    <div class="absolute inset-0 bg-red-600 rounded-lg shadow-lg transform translate-x-2 translate-y-2 transition group-hover:translate-x-3 group-hover:translate-y-3"></div>
+                    <div class="relative bg-white p-8 rounded-lg border border-gray-200 shadow-sm h-full flex flex-col">
+                        <div class="text-6xl font-black text-gray-100 absolute top-4 right-4 z-0">1</div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 relative z-10">Transparence</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed relative z-10 flex-grow">
+                            Clarifier la frontière entre optimisation et fraude. Une législation plus lisible réduirait la "fraude par ignorance" et renforcerait l'adhésion à l'impôt.
+                        </p>
+                        <div class="mt-6 w-12 h-1 bg-red-500"></div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="relative group">
+                    <div class="absolute inset-0 bg-gray-800 rounded-lg shadow-lg transform translate-x-2 translate-y-2 transition group-hover:translate-x-3 group-hover:translate-y-3"></div>
+                    <div class="relative bg-white p-8 rounded-lg border border-gray-200 shadow-sm h-full flex flex-col">
+                        <div class="text-6xl font-black text-gray-100 absolute top-4 right-4 z-0">2</div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 relative z-10">Éducation</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed relative z-10 flex-grow">
+                            Passer de la répression à l'éducation civique. Expliquer concrètement "où va l'argent" pour redonner du sens à la contribution collective.
+                        </p>
+                        <div class="mt-6 w-12 h-1 bg-gray-800"></div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="relative group">
+                    <div class="absolute inset-0 bg-red-600 rounded-lg shadow-lg transform translate-x-2 translate-y-2 transition group-hover:translate-x-3 group-hover:translate-y-3"></div>
+                    <div class="relative bg-white p-8 rounded-lg border border-gray-200 shadow-sm h-full flex flex-col">
+                        <div class="text-6xl font-black text-gray-100 absolute top-4 right-4 z-0">3</div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 relative z-10">Le "Match Retour"</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed relative z-10 flex-grow">
+                            Pourquoi pas un "Tous Responsables" ? Un documentaire miroir montrant l'impact positif de l'argent public bien géré pour restaurer la confiance.
+                        </p>
+                        <div class="mt-6 w-12 h-1 bg-red-500"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-50 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-base text-gray-400">
+                &copy; 2024 Analyse Média Indépendante. Basé sur le documentaire "Tous Fraudeurs".
+                <br>Les données budgétaires sont des estimations simulées à des fins d'illustration.
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- Shared Configurations ---
+        Chart.defaults.font.family = "'Roboto', sans-serif";
+        Chart.defaults.color = '#64748b';
+
+        const commonTooltip = {
+            callbacks: {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    if (Array.isArray(label)) {
+                        return label.join(' ');
+                    } else {
+                        return label;
+                    }
+                }
+            },
+            backgroundColor: 'rgba(26, 32, 44, 0.9)',
+            titleColor: '#fff',
+            bodyColor: '#cbd5e1',
+            padding: 12,
+            cornerRadius: 8,
+            displayColors: true
+        };
+
+        // --- 1. Radar Chart: Analysis (Critique vs Public) ---
+        const ctxRadar = document.getElementById('critiqueChart').getContext('2d');
+        const critiqueChart = new Chart(ctxRadar, {
+            type: 'radar',
+            data: {
+                labels: ['Pédagogie', 'Sensationnalisme', ['Rigueur', 'Éthique'], 'Divertissement', ['Impact', 'Sociétal']],
+                datasets: [
+                    {
+                        label: 'Angle Journaliste',
+                        data: [7, 8, 6, 8, 7],
+                        fill: true,
+                        backgroundColor: 'rgba(239, 68, 68, 0.2)', // Red-500
+                        borderColor: '#ef4444',
+                        pointBackgroundColor: '#ef4444',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#ef4444'
+                    },
+                    {
+                        label: 'Ressenti Public',
+                        data: [8, 6, 5, 9, 8],
+                        fill: true,
+                        backgroundColor: 'rgba(31, 41, 55, 0.2)', // Gray-800
+                        borderColor: '#1f2937',
+                        pointBackgroundColor: '#1f2937',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#1f2937'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { color: '#e2e8f0' },
+                        grid: { color: '#e2e8f0' },
+                        pointLabels: {
+                            font: { size: 12, weight: 'bold' },
+                            color: '#1a202c'
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: 10,
+                        ticks: { backdropColor: 'transparent' }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: commonTooltip
+                }
+            }
+        });
+
+        // --- 2. Doughnut Chart: Budget Breakdown ---
+        const budgetData = [45, 20, 15, 10, 10];
+        const budgetLabels = [
+            ['Production', '(Tournage)'], 
+            ['Post-Prod', '(Montage)'], 
+            ['Équipe', 'Éditoriale'], 
+            ['Matériel', '& Logistique'], 
+            ['Promo', '& Admin']
+        ];
+        const budgetDescriptions = [
+            "Représente la part la plus importante. Inclut les équipes techniques, le matériel de caméra cachée spécifique, les assurances, les lieux de tournage et la logistique sur plusieurs semaines d'enquête.",
+            "Phase cruciale pour un docu-fiction : montage dynamique, étalonnage, mixage sonore, floutage des visages et création des séquences narratives.",
+            "Salaires des journalistes, du présentateur vedette, des enquêteurs de l'ombre et des scénaristes pour structurer le récit.",
+            "Location de matériel de pointe (drones, micro-caméras), véhicules, défraiements et hébergement des équipes.",
+            "Frais de structure, communication, publicité, community management et frais juridiques préventifs."
+        ];
+        const budgetAmounts = ["~67.500 €", "~30.000 €", "~22.500 €", "~15.000 €", "~15.000 €"];
+        const budgetTitles = ["Production & Tournage", "Post-Production", "Équipe Éditoriale", "Matériel & Logistique", "Promo & Admin"];
+
+        const ctxBudget = document.getElementById('budgetChart').getContext('2d');
+        const budgetChart = new Chart(ctxBudget, {
+            type: 'doughnut',
+            data: {
+                labels: budgetLabels,
+                datasets: [{
+                    data: budgetData,
+                    backgroundColor: [
+                        '#ef4444', // Red-500
+                        '#b91c1c', // Red-700
+                        '#fca5a5', // Red-300
+                        '#4b5563', // Gray-600
+                        '#9ca3af'  // Gray-400
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 15
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: commonTooltip
+                },
+                onClick: (e, activeEls) => {
+                    if (activeEls.length > 0) {
+                        const index = activeEls[0].index;
+                        updateBudgetInfo(index);
+                    }
+                }
+            }
+        });
+
+        function updateBudgetInfo(index) {
+            const container = document.getElementById('budget-details');
+            const titleEl = document.getElementById('budget-title');
+            const amountEl = document.getElementById('budget-amount');
+            const descEl = document.getElementById('budget-desc');
+
+            // Simple fade effect
+            container.style.opacity = '0.5';
+            setTimeout(() => {
+                titleEl.textContent = budgetTitles[index];
+                amountEl.textContent = budgetAmounts[index];
+                descEl.textContent = budgetDescriptions[index];
+                container.style.opacity = '1';
+            }, 200);
+        }
+
+        // --- Interaction Logic: Tabs ---
+        function switchTab(tabId) {
+            const contentCritique = document.getElementById('content-critique');
+            const contentAvis = document.getElementById('content-avis');
+            const btnCritique = document.getElementById('tab-critique');
+            const btnAvis = document.getElementById('tab-avis');
+
+            if (tabId === 'critique') {
+                contentCritique.classList.remove('hidden');
+                contentAvis.classList.add('hidden');
+                
+                btnCritique.classList.add('active', 'text-gray-900');
+                btnCritique.classList.remove('text-gray-500');
+                
+                btnAvis.classList.remove('active', 'text-gray-900');
+                btnAvis.classList.add('text-gray-500');
+            } else {
+                contentCritique.classList.add('hidden');
+                contentAvis.classList.remove('hidden');
+                
+                btnAvis.classList.add('active', 'text-gray-900');
+                btnAvis.classList.remove('text-gray-500');
+                
+                btnCritique.classList.remove('active', 'text-gray-900');
+                btnCritique.classList.add('text-gray-500');
+            }
+        }
+    </script>
+</body>
+</html>
