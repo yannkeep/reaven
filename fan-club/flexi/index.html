@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport d'Investigation Numérique : Cible GitHub Pages</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f0; /* Warm neutral background */
+            color: #1f2937;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e5e5e0;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #a8a29e;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #78716c;
+        }
+
+        /* Chart Container Utilities */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 350px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Node Map Styles */
+        .node {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .node.active {
+            border-color: #f59e0b; /* Amber-500 */
+            background-color: #fffbeb;
+        }
+        
+        .connector-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* Tabs */
+        .tab-btn.active {
+            border-bottom: 2px solid #f59e0b;
+            color: #b45309;
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutral Technical (Cream, Stone, Amber accent) -->
+    <!-- Application Structure Plan: Dashboard layout. Top: Global stats. Middle: Interactive Network Map (Central Interaction). Bottom: Detail Data Tables & Charts. Designed to visualize the 'Connection' between the domains and the GitHub hub. -->
+    <!-- Visualization & Content Choices: 
+         1. Network Map (HTML/Canvas): To visualize the CNAME relationship requested.
+         2. Bar Chart (Chart.js): To compare 'Confidence Score' or 'Content Size' of targets.
+         3. Dynamic Tables: To list DNS records and file paths found.
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-[#f5f5f0] text-stone-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <header class="bg-white border-b border-stone-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center gap-2">
+                        <span class="text-2xl text-amber-600 font-bold">⌖</span>
+                        <h1 class="text-xl font-bold tracking-tight text-stone-800">OSINT<span class="text-amber-600">DASH</span></h1>
+                    </div>
+                    <nav class="hidden sm:ml-8 sm:flex sm:space-x-8">
+                        <button onclick="navTo('dashboard')" class="tab-btn active border-transparent text-stone-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Tableau de Bord</button>
+                        <button onclick="navTo('dns')" class="tab-btn border-transparent text-stone-500 hover:text-stone-700 hover:border-stone-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Analyse DNS/CNAME</button>
+                        <button onclick="navTo('content')" class="tab-btn border-transparent text-stone-500 hover:text-stone-700 hover:border-stone-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Contenu & GitHub</button>
+                    </nav>
+                </div>
+                <div class="flex items-center">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 animate-pulse">
+                        En cours d'analyse
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+            <!-- Context Intro -->
+            <section class="mb-8">
+                <div class="bg-white rounded-lg shadow-sm border border-stone-200 p-6">
+                    <h2 class="text-lg font-medium text-stone-900 mb-2">Périmètre de Recherche</h2>
+                    <p class="text-stone-600 text-sm leading-relaxed">
+                        Cette interface présente les résultats consolidés de l'analyse ciblant les domaines <strong>ouaisfi.eu</strong> et <strong>ccplc.eu</strong>. 
+                        L'objectif est d'identifier les corrélations techniques, spécifiquement les redirections <strong>CNAME</strong> pointant vers l'infrastructure 
+                        <strong>yannkeep.github.io</strong>. Utilisez les visualisations ci-dessous pour explorer les liens d'infrastructure et le contenu détecté.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Dashboard View -->
+            <div id="view-dashboard" class="space-y-6 animate-fade-in">
+                
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+                    <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-stone-200">
+                        <div class="px-4 py-5 sm:p-6">
+                            <dt class="text-sm font-medium text-stone-500 truncate">Cibles Identifiées</dt>
+                            <dd class="mt-1 text-3xl font-semibold text-stone-900">3</dd>
+                            <div class="mt-2 text-xs text-stone-500">ouaisfi.eu, ccplc.eu, yannkeep</div>
+                        </div>
+                    </div>
+                    <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-stone-200">
+                        <div class="px-4 py-5 sm:p-6">
+                            <dt class="text-sm font-medium text-stone-500 truncate">Correspondances CNAME</dt>
+                            <dd class="mt-1 text-3xl font-semibold text-amber-600">100%</dd>
+                            <div class="mt-2 text-xs text-stone-500">Lien confirmé vers GitHub Pages</div>
+                        </div>
+                    </div>
+                    <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-stone-200">
+                        <div class="px-4 py-5 sm:p-6">
+                            <dt class="text-sm font-medium text-stone-500 truncate">Fichiers Critiques</dt>
+                            <dd class="mt-1 text-3xl font-semibold text-stone-900">12</dd>
+                            <div class="mt-2 text-xs text-stone-500">Config, Index, Assets</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Network Visualization Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Interactive Map -->
+                    <div class="lg:col-span-2 bg-white rounded-lg shadow-sm border border-stone-200 flex flex-col">
+                        <div class="px-6 py-4 border-b border-stone-100 flex justify-between items-center">
+                            <h3 class="text-lg font-medium text-stone-900">Topologie de l'Infrastructure</h3>
+                            <button id="refresh-map" class="text-xs text-amber-600 hover:text-amber-700 font-medium">Réinitialiser la vue</button>
+                        </div>
+                        <div class="p-6 relative flex-grow bg-stone-50" style="min-height: 400px;">
+                            <!-- Canvas for drawing lines -->
+                            <canvas id="network-canvas" class="connector-canvas"></canvas>
+                            
+                            <!-- Nodes (HTML elements for accessibility and interaction) -->
+                            <div id="nodes-container" class="relative w-full h-full">
+                                <!-- Nodes will be injected by JS -->
+                            </div>
+                        </div>
+                        <div class="px-6 py-3 bg-stone-50 border-t border-stone-100 text-xs text-stone-500 flex justify-between">
+                            <span>● Domaine Cible</span>
+                            <span>■ Hub GitHub</span>
+                            <span>▲ Fichier Asset</span>
+                        </div>
+                    </div>
+
+                    <!-- Target Detail Panel (Changes on Click) -->
+                    <div class="lg:col-span-1 bg-white rounded-lg shadow-sm border border-stone-200 flex flex-col h-full">
+                        <div class="px-6 py-4 border-b border-stone-100">
+                            <h3 class="text-lg font-medium text-stone-900">Détails de la Cible</h3>
+                        </div>
+                        <div id="detail-panel" class="p-6 flex-grow flex flex-col justify-center text-center text-stone-500">
+                            <div class="text-4xl mb-3">☝️</div>
+                            <p>Sélectionnez un nœud sur la carte pour voir l'analyse détaillée.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DNS Analysis View -->
+            <div id="view-dns" class="hidden space-y-6">
+                <div class="bg-white rounded-lg shadow-sm border border-stone-200">
+                    <div class="px-6 py-5 border-b border-stone-200">
+                        <h3 class="text-lg font-medium text-stone-900">Enregistrements DNS & CNAME</h3>
+                        <p class="mt-1 text-sm text-stone-500">Analyse des pointeurs entre les domaines personnalisés et l'infrastructure GitHub.</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-stone-200">
+                                <thead class="bg-stone-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">Source (Domaine)</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">Type</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">Destination (Cible)</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">Statut</th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-stone-500 uppercase tracking-wider">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dns-table-body" class="bg-white divide-y divide-stone-200">
+                                    <!-- Rows injected via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow-sm border border-stone-200 p-6 flex flex-col">
+                        <h4 class="text-base font-medium text-stone-900 mb-4">Distribution des Types de Requêtes</h4>
+                        <div class="chart-container flex-grow">
+                            <canvas id="dnsChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm border border-stone-200 p-6">
+                         <h4 class="text-base font-medium text-stone-900 mb-4">Logique de Résolution</h4>
+                         <div class="space-y-4">
+                             <div class="flex items-start">
+                                 <div class="flex-shrink-0 h-6 w-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs font-bold">1</div>
+                                 <div class="ml-4">
+                                     <p class="text-sm font-medium text-stone-900">Requête Initiale</p>
+                                     <p class="text-sm text-stone-500">Le client demande <code>www.ouaisfi.eu</code>.</p>
+                                 </div>
+                             </div>
+                             <div class="flex items-start">
+                                 <div class="flex-shrink-0 h-6 w-6 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 text-xs font-bold">2</div>
+                                 <div class="ml-4">
+                                     <p class="text-sm font-medium text-stone-900">Redirection CNAME</p>
+                                     <p class="text-sm text-stone-500">Le DNS répond "Voir <code>yannkeep.github.io</code>".</p>
+                                 </div>
+                             </div>
+                             <div class="flex items-start">
+                                 <div class="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-bold">3</div>
+                                 <div class="ml-4">
+                                     <p class="text-sm font-medium text-stone-900">Résolution IP (A Record)</p>
+                                     <p class="text-sm text-stone-500">GitHub Pages fournit l'IP finale (185.199.x.x).</p>
+                                 </div>
+                             </div>
+                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content View -->
+            <div id="view-content" class="hidden space-y-6">
+                <div class="bg-white rounded-lg shadow-sm border border-stone-200 p-6">
+                    <h3 class="text-lg font-medium text-stone-900 mb-4">Analyse de Contenu Croisée</h3>
+                    <p class="mb-4 text-sm text-stone-600">Comparaison des structures de fichiers entre les domaines cibles.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                         <div class="chart-container">
+                            <canvas id="contentChart"></canvas>
+                        </div>
+                        <div class="space-y-4 overflow-y-auto max-h-[350px]">
+                            <h4 class="text-sm font-semibold text-stone-800 uppercase tracking-wide">Fichiers Détectés</h4>
+                            <div id="file-list" class="space-y-2">
+                                <!-- File items injected via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-stone-200 mt-auto">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <p class="text-center text-xs text-stone-400">Généré par Analyseur OSINT • Données simulées pour démonstration d'interface</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Data Model ---
+        // Mock data representing the findings from the user's prompt
+        const investigationData = {
+            nodes: [
+                { id: 'hub', label: 'yannkeep.github.io', type: 'hub', x: 50, y: 50, status: 'Active', ip: '185.199.108.153' },
+                { id: 't1', label: 'ouaisfi.eu', type: 'target', x: 20, y: 30, status: 'Redirecting', parent: 'hub' },
+                { id: 't2', label: 'ccplc.eu', type: 'target', x: 80, y: 30, status: 'Redirecting', parent: 'hub' },
+                { id: 't1_www', label: 'www.ouaisfi.eu', type: 'sub', x: 20, y: 70, status: 'CNAME', parent: 't1' },
+                { id: 't2_www', label: 'www.ccplc.eu', type: 'sub', x: 80, y: 70, status: 'CNAME', parent: 't2' }
+            ],
+            dnsRecords: [
+                { source: 'ouaisfi.eu', type: 'A', dest: '185.199.108.153', status: 'Résolu' },
+                { source: 'www.ouaisfi.eu', type: 'CNAME', dest: 'yannkeep.github.io', status: 'Verrouillé' },
+                { source: 'ccplc.eu', type: 'A', dest: '185.199.110.153', status: 'Résolu' },
+                { source: 'www.ccplc.eu', type: 'CNAME', dest: 'yannkeep.github.io', status: 'Verrouillé' },
+                { source: 'yannkeep.github.io', type: 'A', dest: '185.199.108.153', status: 'Authoritatif' }
+            ],
+            files: [
+                { name: 'index.html', size: '14kb', type: 'HTML', matches: ['ouaisfi.eu', 'ccplc.eu'] },
+                { name: 'styles.css', size: '42kb', type: 'CSS', matches: ['ouaisfi.eu'] },
+                { name: 'main.js', size: '128kb', type: 'JS', matches: ['ccplc.eu'] },
+                { name: 'CNAME', size: '1kb', type: 'Config', matches: ['yannkeep.github.io'] },
+                { name: 'logo.png', size: '12kb', type: 'Image', matches: ['ouaisfi.eu', 'ccplc.eu'] }
+            ]
+        };
+
+        // --- State ---
+        let state = {
+            currentView: 'dashboard',
+            selectedNode: null
+        };
+
+        // --- Core Functions ---
+
+        function init() {
+            renderNodes();
+            drawConnections();
+            renderDNSTable();
+            renderFileList();
+            initCharts();
+            
+            // Handle window resize for canvas redraw
+            window.addEventListener('resize', () => {
+                drawConnections();
+            });
+        }
+
+        function navTo(viewId) {
+            // Update State
+            state.currentView = viewId;
+            
+            // Update Tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'text-stone-900', 'border-b-2');
+                btn.classList.add('text-stone-500', 'border-transparent');
+                if(btn.textContent.toLowerCase().includes(viewId === 'dashboard' ? 'tableau' : viewId === 'dns' ? 'dns' : 'contenu')) {
+                    btn.classList.add('active', 'text-stone-900', 'border-b-2');
+                    btn.classList.remove('text-stone-500', 'border-transparent');
+                }
+            });
+
+            // Update Views
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-dns').classList.add('hidden');
+            document.getElementById('view-content').classList.add('hidden');
+            
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+
+            // Redraw charts if needed (Chart.js sometimes needs this on tab switch)
+            if(viewId !== 'dashboard') {
+                // Trigger chart updates if necessary
+            }
+        }
+
+        // --- Network Map Logic ---
+
+        function renderNodes() {
+            const container = document.getElementById('nodes-container');
+            container.innerHTML = '';
+            
+            investigationData.nodes.forEach(node => {
+                const el = document.createElement('div');
+                el.className = `node absolute flex flex-col items-center justify-center p-2 rounded-lg border-2 ${getNodeColor(node.type)} bg-white shadow-sm`;
+                el.style.left = `${node.x}%`;
+                el.style.top = `${node.y}%`;
+                el.style.transform = 'translate(-50%, -50%)'; // Center pivot
+                el.style.width = '120px';
+                
+                // Icon based on type
+                let icon = '🌐';
+                if(node.type === 'hub') icon = '🏗️';
+                if(node.type === 'sub') icon = '🔗';
+
+                el.innerHTML = `
+                    <div class="text-2xl mb-1">${icon}</div>
+                    <div class="text-xs font-bold text-center break-all leading-tight">${node.label}</div>
+                    <div class="text-[10px] text-stone-400 mt-1">${node.type.toUpperCase()}</div>
+                `;
+
+                el.onclick = () => selectNode(node, el);
+                container.appendChild(el);
+            });
+        }
+
+        function getNodeColor(type) {
+            if (type === 'hub') return 'border-amber-500 text-amber-900';
+            if (type === 'target') return 'border-red-400 text-red-900';
+            return 'border-stone-300 text-stone-600';
+        }
+
+        function drawConnections() {
+            const canvas = document.getElementById('network-canvas');
+            const container = document.getElementById('nodes-container');
+            
+            // Resize canvas to match container
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Style
+            ctx.strokeStyle = '#d6d3d1'; // stone-300
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+
+            investigationData.nodes.forEach(node => {
+                if (node.parent) {
+                    const parent = investigationData.nodes.find(n => n.id === node.parent);
+                    if (parent) {
+                        // Calculate coords based on percentages
+                        const startX = (node.x / 100) * canvas.width;
+                        const startY = (node.y / 100) * canvas.height;
+                        const endX = (parent.x / 100) * canvas.width;
+                        const endY = (parent.y / 100) * canvas.height;
+
+                        ctx.beginPath();
+                        ctx.moveTo(startX, startY);
+                        ctx.lineTo(endX, endY);
+                        ctx.stroke();
+                    }
+                }
+            });
+        }
+
+        function selectNode(node, el) {
+            // Visual feedback
+            document.querySelectorAll('.node').forEach(n => n.classList.remove('active', 'border-amber-500'));
+            el.classList.add('active', 'border-amber-500');
+            state.selectedNode = node;
+
+            // Update Panel
+            const panel = document.getElementById('detail-panel');
+            panel.innerHTML = `
+                <div class="text-left space-y-4 animate-fade-in">
+                    <div class="pb-4 border-b border-stone-100">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-800 mb-2">
+                            ${node.type.toUpperCase()}
+                        </span>
+                        <h4 class="text-xl font-bold text-stone-900 break-all">${node.label}</h4>
+                        <p class="text-xs text-stone-500 mt-1">ID: ${node.id}</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-xs text-stone-400 uppercase">Statut</p>
+                            <p class="font-medium text-stone-800">${node.status}</p>
+                        </div>
+                         <div>
+                            <p class="text-xs text-stone-400 uppercase">IP détectée</p>
+                            <p class="font-medium text-stone-800 font-mono text-xs">${node.ip || 'Résolution CNAME'}</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-stone-100">
+                        <button class="w-full bg-stone-900 hover:bg-stone-800 text-white py-2 px-4 rounded text-sm transition-colors" onclick="alert('Lancement du scan profond sur ' + '${node.label}')">
+                            Lancer Scan Profond
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Data Tables & Charts ---
+
+        function renderDNSTable() {
+            const tbody = document.getElementById('dns-table-body');
+            investigationData.dnsRecords.forEach(record => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-stone-900">${record.source}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-500"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${record.type === 'CNAME' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}">${record.type}</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-500 font-mono">${record.dest}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-500">${record.status}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a href="#" class="text-amber-600 hover:text-amber-900">Vérifier</a>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderFileList() {
+            const list = document.getElementById('file-list');
+            investigationData.files.forEach(file => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-3 bg-stone-50 rounded border border-stone-200 hover:bg-stone-100 transition";
+                div.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <span class="text-stone-400">📄</span>
+                        <div>
+                            <p class="text-sm font-medium text-stone-900">${file.name}</p>
+                            <p class="text-xs text-stone-500">${file.matches.join(', ')}</p>
+                        </div>
+                    </div>
+                    <span class="text-xs font-mono text-stone-400">${file.size}</span>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function initCharts() {
+            // DNS Types Chart
+            const ctxDNS = document.getElementById('dnsChart').getContext('2d');
+            new Chart(ctxDNS, {
+                type: 'doughnut',
+                data: {
+                    labels: ['CNAME (Redirection)', 'A (Adresse IPv4)', 'TXT (Verification)', 'MX (Mail)'],
+                    datasets: [{
+                        data: [45, 30, 15, 10],
+                        backgroundColor: ['#d97706', '#4b5563', '#a8a29e', '#e7e5e4'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, font: { family: 'Inter', size: 11 } } }
+                    }
+                }
+            });
+
+            // Content Similarity Chart
+            const ctxContent = document.getElementById('contentChart').getContext('2d');
+            new Chart(ctxContent, {
+                type: 'bar',
+                data: {
+                    labels: ['Structure HTML', 'Scripts JS', 'Styles CSS', 'Assets Image'],
+                    datasets: [{
+                        label: 'Similarité (%)',
+                        data: [95, 80, 60, 45],
+                        backgroundColor: '#d97706',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 100, grid: { color: '#f5f5f4' } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
