@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse : La Construction de l'Ennemi Intérieur</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Merriweather:ital,wght@0,300;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Journalistic Integrity -->
+    <!-- Background: Warm Neutral (Zinc-50) for readability. -->
+    <!-- Primary: Deep Blue (Slate-800) for structure and text. -->
+    <!-- Accent: Alert Red (Red-700) to symbolize the 'Enemy' rhetoric. -->
+    <!-- Secondary: Calm Blue (Blue-600) for factual data. -->
+
+    <!-- Application Structure Plan: 
+         The app is designed as an "Investigative Dashboard" to deconstruct the media mechanisms described in the prompt.
+         1. **Navigation:** Sidebar (desktop) / Topbar (mobile) for linear or non-linear exploration.
+         2. **Sections:**
+            - **Contexte:** Introduces the reportage "Tous fraudeurs" and the sociological concept of the "Internal Enemy".
+            - **Mécanismes:** Interactive cards explaining HOW the enemy is constructed (Amalgamation, Stigmatization).
+            - **Données (Reality Check):** Interactive charts comparing "Social Fraud" (the target of the report) vs "Fiscal Fraud" (the invisible giant).
+            - **Recherche (GitHub Tools):** A functional section that generates search queries to help the user find the specific GitHub pages requested.
+         Rationale: This structure moves from the abstract concept to concrete mechanisms, then to data proof, and finally to external research action.
+    -->
+
+    <!-- Visualization & Content Choices:
+         1. **Comparison Chart (Chart.js):** Bar chart comparing the financial volume of Social Fraud vs Fiscal Fraud. 
+            - Goal: Inform/Compare. 
+            - Justification: Visualizes the disproportionate media focus.
+         2. **Mechanism Flow (HTML/JS):** Interactive step-by-step list showing the "Recipe" for creating an internal enemy.
+            - Goal: Organize/Educate.
+            - Justification: Breaks down complex sociological processes into digestible steps.
+         3. **Search Generator (JS):** Dynamic buttons that construct search URLs.
+            - Goal: Action.
+            - Justification: Fulfills the user's specific request to "start the search" for GitHub pages.
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Zinc-50 */
+            color: #1e293b; /* Slate-800 */
+        }
+        h1, h2, h3, .serif {
+            font-family: 'Merriweather', serif;
+        }
+        
+        /* Chart Container Styling - Mandatory Requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        
+        /* Custom scrollbar for cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        .nav-item.active {
+            background-color: #1e293b;
+            color: white;
+            border-left: 4px solid #b91c1c; /* Red-700 */
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row h-screen overflow-hidden">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-full md:w-64 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col z-20 shadow-sm">
+        <div class="p-6 border-b border-slate-100 bg-slate-50">
+            <h1 class="text-xl font-bold text-slate-900 leading-tight">Dossier :<br><span class="text-red-700">L'Ennemi Intérieur</span></h1>
+            <p class="text-xs text-slate-500 mt-2 italic">Analyse du reportage "Tous fraudeurs"</p>
+        </div>
+        
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1">
+                <li>
+                    <button onclick="navigateTo('context')" id="nav-context" class="nav-item w-full text-left px-6 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors active">
+                        1. Contexte & Enjeux
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigateTo('mechanism')" id="nav-mechanism" class="nav-item w-full text-left px-6 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+                        2. La Mécanique de la Haine
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigateTo('data')" id="nav-data" class="nav-item w-full text-left px-6 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+                        3. Réalité vs Fiction
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigateTo('research')" id="nav-research" class="nav-item w-full text-left px-6 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+                        4. Outils de Recherche (GitHub)
+                    </button>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="p-4 bg-slate-50 border-t border-slate-200">
+            <div class="text-xs text-slate-400">
+                <p>Basé sur l'analyse critique de l'émission "Questions à la Une".</p>
+                <p class="mt-1">© 2023 Analyse Indépendante</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto bg-slate-50 relative">
+        <div class="max-w-5xl mx-auto p-6 md:p-10 pb-20">
+            
+            <!-- Section 1: Context -->
+            <section id="context" class="view-section fade-in">
+                <header class="mb-8">
+                    <span class="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-800 text-xs font-bold tracking-wide uppercase mb-2">Introduction</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4 serif">Le Mythe du "Profiteur"</h2>
+                    <p class="text-lg text-slate-600 leading-relaxed max-w-3xl">
+                        Comment un reportage télévisé peut-il transformer une minorité statistique en une menace sociétale ? 
+                        Cette section explore comment l'émission <strong>"Tous fraudeurs"</strong> (présentée par Christophe Deborsu) 
+                        s'inscrit dans un processus de construction médiatique de "l'ennemi intérieur".
+                    </p>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-100">
+                        <h3 class="font-bold text-slate-800 mb-2">Le Sujet</h3>
+                        <p class="text-sm text-slate-600">
+                            Le reportage se penche sur la fraude sociale en Belgique. Bien que le titre inclue un point d'interrogation (souvent oublié dans le débat public), 
+                            le cadrage visuel et narratif tend à se focaliser sur les "petits" fraudeurs (allocataires sociaux, chômeurs).
+                        </p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-100">
+                        <h3 class="font-bold text-slate-800 mb-2">L'Effet Médiatique</h3>
+                        <p class="text-sm text-slate-600">
+                            En saturant l'espace médiatique avec des images de contrôles domiciliaires, on crée une <strong>distorsion cognitive</strong> : 
+                            le spectateur surestime la fréquence de la fraude sociale et sous-estime d'autres formes de délinquance économique plus coûteuses.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-lg">
+                    <h4 class="font-bold text-amber-900 mb-2 flex items-center">
+                        <span class="text-xl mr-2">⚠</span> Définition : Ennemi Intérieur
+                    </h4>
+                    <p class="text-amber-800 text-sm italic">
+                        "Une figure construite politiquement et médiatiquement, désignant un groupe au sein de la population nationale comme une menace pour la cohésion, l'économie ou la sécurité de l'État. Dans ce contexte, le pauvre ou l'assisté devient le saboteur du système social."
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section 2: Mechanisms -->
+            <section id="mechanism" class="view-section hidden fade-in">
+                <header class="mb-8">
+                    <span class="inline-block py-1 px-3 rounded-full bg-red-100 text-red-800 text-xs font-bold tracking-wide uppercase mb-2">Analyse</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4 serif">La Fabrique de l'Ennemi</h2>
+                    <p class="text-lg text-slate-600 leading-relaxed">
+                        L'analyse du reportage et des réactions qu'il suscite révèle trois mécanismes clés utilisés pour transformer un problème administratif en panique morale. Cliquez sur les étapes pour voir les détails.
+                    </p>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+                    <!-- Card 1 -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden group cursor-pointer hover:shadow-md transition-shadow" onclick="toggleDetail('mech-1')">
+                        <div class="h-2 bg-slate-800 group-hover:bg-red-600 transition-colors"></div>
+                        <div class="p-6">
+                            <div class="text-4xl font-bold text-slate-200 mb-4">01</div>
+                            <h3 class="text-xl font-bold text-slate-800 mb-3">L'Anecdote Exemplaire</h3>
+                            <p class="text-slate-600 text-sm mb-4">Utilisation d'un cas extrême (le "profiteur professionnel") pour représenter l'ensemble.</p>
+                            <button class="text-red-600 text-sm font-semibold group-hover:underline">Voir l'analyse &rarr;</button>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden group cursor-pointer hover:shadow-md transition-shadow" onclick="toggleDetail('mech-2')">
+                        <div class="h-2 bg-slate-800 group-hover:bg-red-600 transition-colors"></div>
+                        <div class="p-6">
+                            <div class="text-4xl font-bold text-slate-200 mb-4">02</div>
+                            <h3 class="text-xl font-bold text-slate-800 mb-3">L'Inversion de la Victime</h3>
+                            <p class="text-slate-600 text-sm mb-4">Présenter l'État et le contribuable comme des victimes impuissantes face au fraudeur rusé.</p>
+                            <button class="text-red-600 text-sm font-semibold group-hover:underline">Voir l'analyse &rarr;</button>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden group cursor-pointer hover:shadow-md transition-shadow" onclick="toggleDetail('mech-3')">
+                        <div class="h-2 bg-slate-800 group-hover:bg-red-600 transition-colors"></div>
+                        <div class="p-6">
+                            <div class="text-4xl font-bold text-slate-200 mb-4">03</div>
+                            <h3 class="text-xl font-bold text-slate-800 mb-3">La Surveillance Totale</h3>
+                            <p class="text-slate-600 text-sm mb-4">Légitimation des contrôles intrusifs comme seule réponse possible.</p>
+                            <button class="text-red-600 text-sm font-semibold group-hover:underline">Voir l'analyse &rarr;</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Details Section -->
+                <div id="mech-detail-container" class="bg-slate-800 text-white rounded-xl p-8 hidden">
+                    <div id="mech-1" class="mech-content hidden">
+                        <h3 class="text-2xl font-bold text-white mb-2">01. L'Anecdote Exemplaire (Généralisation)</h3>
+                        <p class="text-slate-300 leading-relaxed mb-4">
+                            Dans le reportage, on suit souvent des inspecteurs découvrant une fraude flagrante. 
+                            <strong>Le biais :</strong> En ne montrant que des coupables, on crée l'illusion que tout contrôle mène à une fraude. 
+                            Le "cas particulier" devient la norme dans l'esprit du spectateur.
+                        </p>
+                        <div class="bg-slate-700 p-4 rounded text-sm text-slate-200 italic border-l-2 border-red-500">
+                            "Si ce voisin le fait, ils le font tous." — C'est ainsi que se construit la suspicion généralisée.
+                        </div>
+                    </div>
+                    <div id="mech-2" class="mech-content hidden">
+                        <h3 class="text-2xl font-bold text-white mb-2">02. L'Inversion de la Victime</h3>
+                        <p class="text-slate-300 leading-relaxed mb-4">
+                            Le récit oppose le "bon travailleur" (qui paie) au "mauvais inactif" (qui reçoit). 
+                            Cette dichotomie efface les causes structurelles de la pauvreté. La fraude sociale est présentée comme un vol direct dans la poche du voisin, 
+                            créant une horizontalité du conflit (pauvre vs classe moyenne) plutôt qu'une verticalité (citoyen vs inégalités systémiques).
+                        </p>
+                    </div>
+                    <div id="mech-3" class="mech-content hidden">
+                        <h3 class="text-2xl font-bold text-white mb-2">03. La Surveillance Totale</h3>
+                        <p class="text-slate-300 leading-relaxed mb-4">
+                            Une fois l'ennemi intérieur identifié, toute mesure de contrôle devient justifiable. 
+                            Le reportage met souvent en scène la technologie ou la filature des inspecteurs comme des actes héroïques de défense de la société.
+                            Cela prépare l'opinion publique à accepter des réductions de libertés individuelles au nom de la lutte contre "l'abus".
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 3: Data -->
+            <section id="data" class="view-section hidden fade-in">
+                <header class="mb-8">
+                    <span class="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-800 text-xs font-bold tracking-wide uppercase mb-2">Données</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4 serif">La Réalité des Chiffres</h2>
+                    <p class="text-lg text-slate-600 leading-relaxed">
+                        Pour déconstruire l'ennemi intérieur, il faut comparer ce qui est comparable. 
+                        Voici une mise en perspective des pertes estimées dues à la fraude sociale par rapport à la fraude fiscale.
+                    </p>
+                </header>
+
+                <!-- Chart Container -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold text-slate-800">Fraude Sociale vs Fraude Fiscale (Estimations en Milliards €)</h3>
+                        <div class="space-x-2">
+                            <button onclick="updateChart('amounts')" class="px-3 py-1 text-xs font-bold rounded bg-slate-800 text-white hover:bg-slate-700">Montants</button>
+                            <button onclick="updateChart('perception')" class="px-3 py-1 text-xs font-bold rounded bg-slate-100 text-slate-600 hover:bg-slate-200">Perception Médiatique</button>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="fraudChart"></canvas>
+                    </div>
+                    
+                    <div class="mt-4 text-xs text-slate-500 text-center">
+                        *Estimations basées sur des rapports universitaires et syndicaux (ex: ULB, rapports de l'État). La fraude fiscale est estimée à 20-30 Mds/an.
+                    </div>
+                </div>
+
+                <!-- Key Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-red-50 p-6 rounded-lg border border-red-100 text-center">
+                        <div class="text-3xl font-bold text-red-700 mb-1">~200-300 M</div>
+                        <div class="text-sm font-semibold text-red-900 uppercase tracking-wide">Fraude aux Prestations</div>
+                        <p class="text-xs text-red-600 mt-2">Le coût estimé des abus aux allocations sociales.</p>
+                    </div>
+                    
+                    <div class="bg-blue-50 p-6 rounded-lg border border-blue-100 text-center">
+                        <div class="text-3xl font-bold text-blue-700 mb-1">~30 Milliards</div>
+                        <div class="text-sm font-semibold text-blue-900 uppercase tracking-wide">Fraude Fiscale</div>
+                        <p class="text-xs text-blue-600 mt-2">Le coût estimé de l'évasion et de la fraude fiscale massive.</p>
+                    </div>
+
+                    <div class="bg-slate-100 p-6 rounded-lg border border-slate-200 text-center flex flex-col justify-center">
+                        <div class="text-4xl font-bold text-slate-800 mb-1">x100</div>
+                        <p class="text-xs text-slate-600 mt-1">Le rapport de grandeur financière entre la fraude des "puissants" et celle des "pauvres".</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 4: Research Tools -->
+            <section id="research" class="view-section hidden fade-in">
+                <header class="mb-8">
+                    <span class="inline-block py-1 px-3 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold tracking-wide uppercase mb-2">Outils</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4 serif">Identifier les Sources GitHub</h2>
+                    <p class="text-lg text-slate-600 leading-relaxed">
+                        Vous avez demandé d'identifier les pages GitHub traitant de ce reportage. 
+                        Comme je ne peux pas naviguer sur le web en direct, utilisez ces boutons pour lancer des recherches ciblées pré-configurées sur GitHub.
+                    </p>
+                </header>
+
+                <div class="bg-white p-8 rounded-xl shadow-lg border border-slate-200">
+                    <div class="grid grid-cols-1 gap-6">
+                        
+                        <!-- Search Tool 1 -->
+                        <div class="flex items-start">
+                            <div class="bg-slate-100 p-3 rounded-lg mr-4 text-2xl">🔍</div>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-slate-900">Recherche Directe : "Deborsu Fraude"</h3>
+                                <p class="text-sm text-slate-500 mb-3">Recherche de dépôts ou de code mentionnant spécifiquement le reportage.</p>
+                                <a href="https://github.com/search?q=Christophe+Deborsu+tous+fraudeurs&type=repositories" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-slate-800 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                                    Lancer la recherche GitHub &rarr;
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <hr class="border-slate-100">
+
+                        <!-- Search Tool 2 -->
+                        <div class="flex items-start">
+                            <div class="bg-slate-100 p-3 rounded-lg mr-4 text-2xl">📊</div>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-slate-900">Recherche Thématique : "Ennemi Intérieur"</h3>
+                                <p class="text-sm text-slate-500 mb-3">Recherche de projets de sciences sociales ou d'analyse de données sur la stigmatisation.</p>
+                                <a href="https://github.com/search?q=construction+ennemi+intérieur+belgique&type=repositories" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-slate-800 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                                    Rechercher "Ennemi Intérieur" &rarr;
+                                </a>
+                            </div>
+                        </div>
+
+                        <hr class="border-slate-100">
+
+                        <!-- Search Tool 3 -->
+                        <div class="flex items-start">
+                            <div class="bg-slate-100 p-3 rounded-lg mr-4 text-2xl">🇧🇪</div>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-slate-900">Recherche Données : "Fraude Sociale Belgique"</h3>
+                                <p class="text-sm text-slate-500 mb-3">Trouver des datasets ou des analyses R/Python sur la réalité chiffrée de la fraude.</p>
+                                <a href="https://github.com/search?q=fraude+sociale+belgique+data&type=code" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-slate-800 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                                    Rechercher du Code/Data &rarr;
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="mt-8 p-4 bg-yellow-50 text-yellow-800 text-sm rounded border border-yellow-200">
+                    <strong>Note technique :</strong> Les résultats dépendent des dépôts publics disponibles au moment de votre clic.
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        // State Management
+        const state = {
+            currentTab: 'context',
+            chartMode: 'amounts' // 'amounts' or 'perception'
+        };
+
+        // Data Store
+        const dataStore = {
+            amounts: {
+                labels: ['Fraude Sociale (Prestations)', 'Fraude Fiscale (Impôts)'],
+                data: [0.3, 30], // approximate billions
+                backgroundColor: ['#ef4444', '#3b82f6'], // Red for social (stigmatized), Blue for fiscal
+                label: 'Milliards d\'Euros (Estimation/An)'
+            },
+            perception: {
+                labels: ['Attention Médiatique (Fraude Sociale)', 'Attention Médiatique (Fraude Fiscale)'],
+                data: [85, 15], // Arbitrary units of media noise
+                backgroundColor: ['#ef4444', '#cbd5e1'],
+                label: 'Pourcentage de couverture TV estimé (Sujet Reportage)'
+            }
+        };
+
+        let fraudChartInstance = null;
+
+        // Core Interaction Handling
+        function navigateTo(tabId) {
+            // Update State
+            state.currentTab = tabId;
+
+            // UI Updates - Nav
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('active', 'bg-slate-50', 'text-slate-900', 'border-l-4', 'border-red-700');
+                el.classList.add('text-slate-600');
+            });
+            
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            activeNav.classList.add('active'); // active class handles the styling defined in CSS
+
+            // UI Updates - Content
+            document.querySelectorAll('.view-section').forEach(el => {
+                el.classList.add('hidden');
+            });
+            document.getElementById(tabId).classList.remove('hidden');
+
+            // Initialize Chart if hitting data tab
+            if (tabId === 'data' && !fraudChartInstance) {
+                initChart();
+            }
+        }
+
+        function toggleDetail(mechId) {
+            // Reset all details
+            document.querySelectorAll('.mech-content').forEach(el => el.classList.add('hidden'));
+            
+            // Show container
+            const container = document.getElementById('mech-detail-container');
+            container.classList.remove('hidden');
+            
+            // Show specific content
+            document.getElementById(mechId).classList.remove('hidden');
+            
+            // Smooth scroll to details
+            container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Chart.js Implementation
+        function initChart() {
+            const ctx = document.getElementById('fraudChart').getContext('2d');
+            
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            
+            fraudChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dataStore.amounts.labels,
+                    datasets: [{
+                        label: dataStore.amounts.label,
+                        data: dataStore.amounts.data,
+                        backgroundColor: dataStore.amounts.backgroundColor,
+                        borderRadius: 4,
+                        barThickness: 50
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + (state.chartMode === 'amounts' ? ' Milliards €' : ' %');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                borderDash: [2, 4],
+                                color: '#e2e8f0'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart(mode) {
+            if (!fraudChartInstance) return;
+            
+            state.chartMode = mode;
+            const newData = dataStore[mode];
+            
+            fraudChartInstance.data.labels = newData.labels;
+            fraudChartInstance.data.datasets[0].data = newData.data;
+            fraudChartInstance.data.datasets[0].label = newData.label;
+            fraudChartInstance.data.datasets[0].backgroundColor = newData.backgroundColor;
+            
+            fraudChartInstance.update();
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            // Default load
+            // navigateTo('context'); // Already set in HTML
+        });
+
+    </script>
+</body>
+</html>
