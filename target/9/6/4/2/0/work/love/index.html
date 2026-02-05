@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OUAISFIEU — Monitoring Citoyen v4.0</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg: #0a0a0c;
+  --bg2: #111114;
+  --bg3: #18181c;
+  --bg4: #222228;
+  --red: #c41e3a;
+  --red-dim: #8a1528;
+  --amber: #d4a017;
+  --amber-dim: #9a7412;
+  --green: #2ecc71;
+  --green-dim: #1a7a42;
+  --blue: #1a5fb4;
+  --blue-bright: #3d8bfd;
+  --cyan: #00bcd4;
+  --white: #e8e6e3;
+  --gray: #888;
+  --gray-dim: #555;
+  --border: #2a2a30;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+  --glow-red: 0 0 20px rgba(196,30,58,0.3);
+  --glow-amber: 0 0 20px rgba(212,160,23,0.2);
+  --glow-green: 0 0 20px rgba(46,204,113,0.2);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { font-size:14px; }
+body { font-family:var(--mono); background:var(--bg); color:var(--white); overflow-x:hidden; }
+
+/* BOOT SCREEN */
+#boot { position:fixed; inset:0; z-index:9999; background:var(--bg); display:flex; flex-direction:column; justify-content:center; align-items:center; transition:opacity 0.6s; }
+#boot.done { opacity:0; pointer-events:none; }
+#boot-log { width:min(700px,90vw); font-size:12px; line-height:1.8; }
+#boot-log .line { opacity:0; animation:fadeIn 0.15s forwards; color:var(--gray); }
+#boot-log .ok { color:var(--green); font-weight:600; }
+#boot-log .title { color:var(--red); font-weight:700; font-size:14px; letter-spacing:2px; }
+#boot-log .idx { color:var(--gray-dim); margin-right:8px; }
+@keyframes fadeIn { to { opacity:1 } }
+
+/* MAIN APP */
+#app { display:none; min-height:100vh; }
+#app.active { display:flex; flex-direction:column; }
+
+/* HEADER */
+header { background:var(--bg2); border-bottom:2px solid var(--red); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+.logo { display:flex; align-items:center; gap:12px; }
+.logo-mark { width:32px; height:32px; border:2px solid var(--red); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--red); font-size:11px; letter-spacing:1px; }
+.logo-text { font-family:var(--sans); font-weight:700; font-size:15px; letter-spacing:2px; }
+.logo-text span { color:var(--red); }
+.header-meta { font-size:10px; color:var(--gray); text-align:right; }
+.header-meta .ver { color:var(--amber); }
+
+/* NAV TABS */
+.nav-bar { background:var(--bg2); border-bottom:1px solid var(--border); display:flex; gap:0; overflow-x:auto; padding:0 12px; }
+.nav-tab { padding:10px 18px; font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); border:none; background:none; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; transition:all 0.2s; }
+.nav-tab:hover { color:var(--white); background:var(--bg3); }
+.nav-tab.active { color:var(--red); border-bottom-color:var(--red); }
+
+/* PANELS */
+.panel { display:none; padding:20px; flex:1; }
+.panel.active { display:block; }
+
+/* SECTION HEADERS */
+.sec { font-family:var(--sans); font-weight:700; font-size:13px; letter-spacing:2px; text-transform:uppercase; padding:8px 12px; margin:16px 0 12px; border-left:3px solid var(--red); background:var(--bg3); }
+.sec.amber { border-color:var(--amber); }
+.sec.green { border-color:var(--green); }
+.sec.blue { border-color:var(--blue-bright); }
+
+/* KPI GRID */
+.kpi-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin:12px 0; }
+.kpi { background:var(--bg3); border:1px solid var(--border); padding:14px; border-radius:2px; position:relative; overflow:hidden; }
+.kpi::before { content:''; position:absolute; top:0; left:0; width:3px; height:100%; background:var(--red); }
+.kpi.amber::before { background:var(--amber); }
+.kpi.green::before { background:var(--green); }
+.kpi.blue::before { background:var(--blue-bright); }
+.kpi-val { font-size:22px; font-weight:700; color:var(--white); font-family:var(--sans); }
+.kpi-label { font-size:10px; color:var(--gray); margin-top:4px; letter-spacing:0.5px; text-transform:uppercase; }
+.kpi-ctx { font-size:10px; color:var(--amber); margin-top:6px; font-style:italic; }
+.kpi .trend { position:absolute; top:10px; right:10px; font-size:10px; }
+.trend.up { color:var(--red); }
+.trend.down { color:var(--green); }
+.trend.stable { color:var(--gray); }
+
+/* CARDS */
+.card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:14px; margin:12px 0; }
+.card { background:var(--bg3); border:1px solid var(--border); padding:16px; border-radius:2px; transition:border-color 0.2s, box-shadow 0.2s; cursor:default; }
+.card:hover { border-color:var(--red); box-shadow:var(--glow-red); }
+.card-title { font-family:var(--sans); font-weight:600; font-size:13px; color:var(--white); margin-bottom:8px; }
+.card-body { font-size:11px; color:var(--gray); line-height:1.7; }
+.card-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+.tag { font-size:9px; padding:2px 8px; border-radius:1px; font-weight:500; letter-spacing:0.5px; text-transform:uppercase; }
+.tag-red { background:var(--red-dim); color:#f8a; }
+.tag-amber { background:var(--amber-dim); color:#fd8; }
+.tag-green { background:var(--green-dim); color:#8fa; }
+.tag-blue { background:rgba(26,95,180,0.3); color:var(--blue-bright); }
+
+/* TIMELINE */
+.timeline { margin:12px 0; position:relative; padding-left:24px; }
+.timeline::before { content:''; position:absolute; left:8px; top:0; bottom:0; width:2px; background:var(--border); }
+.tl-item { margin-bottom:14px; position:relative; }
+.tl-item::before { content:''; position:absolute; left:-20px; top:6px; width:10px; height:10px; border-radius:50%; background:var(--red); border:2px solid var(--bg); }
+.tl-item.juridique::before { background:var(--amber); }
+.tl-item.projection::before { background:var(--blue-bright); }
+.tl-item.impact::before { background:var(--red); box-shadow:0 0 8px rgba(196,30,58,0.5); }
+.tl-item.mobilisation::before { background:var(--green); }
+.tl-date { font-size:10px; color:var(--amber); font-weight:600; letter-spacing:1px; }
+.tl-text { font-size:11px; color:var(--white); margin-top:3px; line-height:1.5; }
+.tl-type { font-size:9px; color:var(--gray); text-transform:uppercase; letter-spacing:1px; }
+
+/* GRAPH */
+#graph-canvas { width:100%; height:500px; background:var(--bg2); border:1px solid var(--border); border-radius:2px; position:relative; overflow:hidden; }
+.graph-node { position:absolute; padding:6px 12px; font-size:10px; font-weight:600; letter-spacing:0.5px; border-radius:2px; cursor:grab; user-select:none; transition:box-shadow 0.2s; white-space:nowrap; z-index:2; }
+.graph-node:hover { z-index:10; }
+.graph-node.dossier_central { background:var(--red); color:white; box-shadow:var(--glow-red); }
+.graph-node.concept { background:var(--bg4); border:1px solid var(--amber); color:var(--amber); }
+.graph-node.thematique { background:var(--bg4); border:1px solid var(--blue-bright); color:var(--blue-bright); }
+.graph-node.juridique { background:var(--bg4); border:1px solid var(--green); color:var(--green); }
+.graph-node.outil, .graph-node.alternative { background:var(--bg4); border:1px solid var(--cyan); color:var(--cyan); }
+.graph-node.recours { background:var(--bg4); border:1px solid var(--amber); color:var(--amber); }
+.graph-node.impact { background:var(--bg4); border:1px solid var(--red); color:var(--red); }
+
+/* SEARCH */
+.search-box { display:flex; gap:8px; margin:12px 0; }
+.search-input { flex:1; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:10px 14px; font-family:var(--mono); font-size:12px; outline:none; border-radius:2px; }
+.search-input:focus { border-color:var(--red); }
+.search-input::placeholder { color:var(--gray-dim); }
+.filter-btn { background:var(--bg3); border:1px solid var(--border); color:var(--gray); padding:8px 14px; font-family:var(--mono); font-size:10px; cursor:pointer; letter-spacing:1px; text-transform:uppercase; transition:all 0.2s; border-radius:2px; }
+.filter-btn:hover, .filter-btn.active { border-color:var(--red); color:var(--red); }
+
+/* TABLE */
+.data-table { width:100%; border-collapse:collapse; margin:12px 0; font-size:11px; }
+.data-table th { background:var(--bg3); color:var(--amber); font-weight:600; letter-spacing:1px; text-transform:uppercase; padding:10px; text-align:left; border-bottom:2px solid var(--border); font-size:10px; }
+.data-table td { padding:10px; border-bottom:1px solid var(--border); color:var(--gray); vertical-align:top; }
+.data-table tr:hover td { background:var(--bg3); color:var(--white); }
+
+/* DETAIL PANEL */
+.detail-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:200; backdrop-filter:blur(4px); }
+.detail-overlay.open { display:flex; justify-content:center; align-items:center; }
+.detail-box { background:var(--bg2); border:1px solid var(--red); max-width:700px; width:90vw; max-height:80vh; overflow-y:auto; padding:24px; position:relative; }
+.detail-close { position:absolute; top:12px; right:16px; background:none; border:none; color:var(--red); font-size:18px; cursor:pointer; font-family:var(--mono); }
+.detail-title { font-family:var(--sans); font-weight:700; font-size:16px; color:var(--red); margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px; }
+.detail-body { font-size:12px; color:var(--gray); line-height:1.8; }
+.detail-body strong { color:var(--white); }
+.detail-body .stat { color:var(--amber); font-weight:600; }
+
+/* EXPORT */
+.export-bar { display:flex; gap:8px; margin:12px 0; flex-wrap:wrap; }
+.btn { padding:8px 16px; font-family:var(--mono); font-size:10px; letter-spacing:1px; text-transform:uppercase; border:1px solid; cursor:pointer; background:transparent; transition:all 0.2s; border-radius:2px; }
+.btn-red { border-color:var(--red); color:var(--red); }
+.btn-red:hover { background:var(--red); color:white; }
+.btn-green { border-color:var(--green); color:var(--green); }
+.btn-green:hover { background:var(--green); color:var(--bg); }
+.btn-amber { border-color:var(--amber); color:var(--amber); }
+.btn-amber:hover { background:var(--amber); color:var(--bg); }
+.btn-blue { border-color:var(--blue-bright); color:var(--blue-bright); }
+.btn-blue:hover { background:var(--blue-bright); color:white; }
+
+/* FOOTER */
+footer { background:var(--bg2); border-top:1px solid var(--border); padding:10px 20px; display:flex; justify-content:space-between; font-size:10px; color:var(--gray); }
+footer a { color:var(--red); text-decoration:none; }
+
+/* BLINK */
+.blink { animation:blink 1.2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background:var(--gray-dim); }
+
+/* RESPONSIVE */
+@media(max-width:768px) {
+  .kpi-row { grid-template-columns:1fr 1fr; }
+  .card-grid { grid-template-columns:1fr; }
+  .kpi-val { font-size:18px; }
+  header { flex-direction:column; gap:8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- BOOT SEQUENCE -->
+<div id="boot">
+  <div id="boot-log"></div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <header>
+    <div class="logo">
+      <div class="logo-mark">OFU</div>
+      <div class="logo-text"><span>MONITORING</span> CITOYEN</div>
+    </div>
+    <div class="header-meta">
+      <div>ouaisfi.eu · dataset <span class="ver">v4.0</span></div>
+      <div id="clock"></div>
+    </div>
+  </header>
+
+  <div class="nav-bar">
+    <button class="nav-tab active" data-panel="sitrep">SITREP</button>
+    <button class="nav-tab" data-panel="deborsu">AFFAIRE DEBORSU</button>
+    <button class="nav-tab" data-panel="arizona">BUDGET ARIZONA</button>
+    <button class="nav-tab" data-panel="mld">MALADES L.D.</button>
+    <button class="nav-tab" data-panel="graphe">GRAPHE RELATIONS</button>
+    <button class="nav-tab" data-panel="corpus">CORPUS</button>
+    <button class="nav-tab" data-panel="glossaire">GLOSSAIRE</button>
+    <button class="nav-tab" data-panel="export">EXPORT</button>
+  </div>
+
+  <!-- ═══ SITREP ═══ -->
+  <div class="panel active" id="panel-sitrep">
+    <div class="sec">Situation Report — 5 février 2026</div>
+    <div class="kpi-row" id="kpi-sitrep"></div>
+
+    <div class="sec amber">Alerte : 5 boucles destructrices identifiées</div>
+    <div class="card-grid" id="boucles-grid"></div>
+
+    <div class="sec green">Alternative : Économie Contributive Provisionnée (ECP)</div>
+    <div class="kpi-row">
+      <div class="kpi green"><div class="kpi-val">24 000 €</div><div class="kpi-label">Budget ouaisfieu</div><div class="kpi-ctx">vs 21-24 Mrd€/an de dépenses passives</div></div>
+      <div class="kpi green"><div class="kpi-val">978 000</div><div class="kpi-label">Inactifs contraints</div><div class="kpi-ctx">Vivier contributif potentiel</div></div>
+      <div class="kpi green"><div class="kpi-val">1M€/h</div><div class="kpi-label">Coût inactivité</div><div class="kpi-ctx">1 million d'euros par heure</div></div>
+      <div class="kpi green"><div class="kpi-val">0 €</div><div class="kpi-label">Coût opérationnel</div><div class="kpi-ctx">Hébergement gratuit, bénévolat, logiciels libres</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ DEBORSU ═══ -->
+  <div class="panel" id="panel-deborsu">
+    <div class="sec">Affaire Deborsu — "Sans boulot : tous fraudeurs ?"</div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-val">410 860</div><div class="kpi-label">Téléspectateurs</div><div class="kpi-ctx">39,1% de part de marché</div></div>
+      <div class="kpi"><div class="kpi-val">+100</div><div class="kpi-label">Plaintes CSA</div><div class="kpi-ctx">Enquête ouverte art. 2.4-1</div></div>
+      <div class="kpi amber"><div class="kpi-val">120:1</div><div class="kpi-label">Ratio montage</div><div class="kpi-ctx">1h d'interview → 30 sec diffusées</div></div>
+      <div class="kpi"><div class="kpi-val">150-200K€</div><div class="kpi-label">Coût production</div><div class="kpi-ctx">Potentiellement avec subventions publiques</div></div>
+    </div>
+
+    <div class="sec amber">Méthodologie contestée</div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-title">Statistique IWEPS démentie</div>
+        <div class="card-body">Deborsu a cité l'IWEPS pour une statistique sur les allocations sociales wallonnes — <strong>l'IWEPS a démenti avoir réalisé cette comparaison</strong> (source: La Libre).</div>
+        <div class="card-tags"><span class="tag tag-red">FACT-CHECK FAIL</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Gaëlle Denys (CPAS Verviers)</div>
+        <div class="card-body">Interviewée <strong>pendant plus d'1 heure</strong> pour seulement <strong>30 secondes au montage final</strong> — ratio 120:1. Dénonce "l'instrumentalisation de la misère sociale".</div>
+        <div class="card-tags"><span class="tag tag-amber">MONTAGE SÉLECTIF</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Laetitia — Victime du reportage</div>
+        <div class="card-body">"L'image qu'ils ont donnée de moi est <strong>fausse</strong>. Je ne suis pas une profiteuse. J'ai reçu énormément de messages et d'<strong>insultes</strong>."</div>
+        <div class="card-tags"><span class="tag tag-red">PRÉJUDICE DOCUMENTÉ</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Cadrage épisodique vs thématique</div>
+        <div class="card-body">Histoires individuelles présentées sans contexte systémique. Le public attribue la responsabilité aux individus plutôt qu'au système. <strong>Aucun fact-checker crédité</strong>.</div>
+        <div class="card-tags"><span class="tag tag-amber">PROPAGANDE SOCIOLOGIQUE</span></div>
+      </div>
+    </div>
+
+    <div class="sec blue">Voies de recours — Tableau de bord juridique</div>
+    <table class="data-table">
+      <thead><tr><th>Instance</th><th>Délai</th><th>Coût</th><th>Sanction possible</th><th>Statut</th></tr></thead>
+      <tbody>
+        <tr><td><strong>CDJ</strong></td><td>2 mois (→ 7/01/2026)</td><td>Gratuit</td><td>Publication décision (moral)</td><td style="color:var(--amber)">⚠ Transmis</td></tr>
+        <tr><td><strong>CSA</strong></td><td>En cours</td><td>Gratuit</td><td>Avertissement / Amende</td><td style="color:var(--amber)">⚠ Enquête ouverte</td></tr>
+        <tr><td><strong>Action civile</strong></td><td>5 ans</td><td>165€ + avocat</td><td>Dommages-intérêts</td><td style="color:var(--gray)">○ Possible</td></tr>
+        <tr><td><strong>Unia</strong></td><td>Variable</td><td>Gratuit</td><td>Médiation / Action justice</td><td style="color:var(--gray)">○ Possible</td></tr>
+        <tr><td><strong>APD (RGPD)</strong></td><td>~400j</td><td>Gratuit</td><td>Jusqu'à 20M€</td><td style="color:var(--gray)">○ Possible</td></tr>
+        <tr><td><strong>CEDH</strong></td><td>4 mois post-Cassation</td><td>Gratuit</td><td>Art. 8 + Art. 14</td><td style="color:var(--gray-dim)">— Après voies internes</td></tr>
+        <tr><td><strong>ONU (De Schutter)</strong></td><td>Permanent</td><td>Gratuit</td><td>Rapport thématique</td><td style="color:var(--gray)">○ Communication possible</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sec">Impact documenté — Recherche académique</div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-val">+19%</div><div class="kpi-label">Symptômes dépressifs</div><div class="kpi-ctx">Pak (2020), N=67 076</div></div>
+      <div class="kpi"><div class="kpi-val">+29%</div><div class="kpi-label">Dépression majeure</div><div class="kpi-ctx">Probabilité accrue chez stigmatisés</div></div>
+      <div class="kpi amber"><div class="kpi-val">20-50%</div><div class="kpi-label">Non-recours</div><div class="kpi-ctx">Éligibles qui n'utilisent pas les aides</div></div>
+      <div class="kpi"><div class="kpi-val">5 ans</div><div class="kpi-label">Durée impact</div><div class="kpi-ctx">Benefits Street cité comme "preuve" 5 ans après</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ ARIZONA ═══ -->
+  <div class="panel" id="panel-arizona">
+    <div class="sec">Budget Arizona 2025-2029 — Anatomie</div>
+    <div class="kpi-row" id="kpi-arizona"></div>
+
+    <div class="sec amber">Mesures détaillées</div>
+    <table class="data-table" id="table-mesures">
+      <thead><tr><th>Mesure</th><th>Montant</th><th>Horizon</th><th>Impact</th></tr></thead>
+      <tbody id="tbody-mesures"></tbody>
+    </table>
+
+    <div class="sec blue">Projections 2024-2042</div>
+    <div class="card-grid" id="projections-grid"></div>
+
+    <div class="sec">Timeline Arizona</div>
+    <div class="timeline" id="timeline-arizona"></div>
+  </div>
+
+  <!-- ═══ MALADES LONGUE DURÉE ═══ -->
+  <div class="panel" id="panel-mld">
+    <div class="sec">Malades de Longue Durée — Situation 2026</div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-val">549 996</div><div class="kpi-label">Personnes en invalidité</div><div class="kpi-ctx">+4,46% en un an, doublé depuis 2008</div></div>
+      <div class="kpi"><div class="kpi-val">36,9%</div><div class="kpi-label">Troubles mentaux</div><div class="kpi-ctx">1ère cause — liée aux conditions de travail</div></div>
+      <div class="kpi"><div class="kpi-val">60%</div><div class="kpi-label">Femmes</div><div class="kpi-ctx">Surreprésentation massive</div></div>
+      <div class="kpi amber"><div class="kpi-val">10%</div><div class="kpi-label">Sanction Arizona</div><div class="kpi-ctx">×4 : était 2,5%, maintenant 10%</div></div>
+    </div>
+
+    <div class="sec amber">Quatre vagues de réformes ReAT</div>
+    <div class="card-grid" id="vagues-grid"></div>
+
+    <div class="sec blue">Efficacité réelle des réinsertions</div>
+    <div class="kpi-row">
+      <div class="kpi blue"><div class="kpi-val">96 520</div><div class="kpi-label">Reprises partielles 2023</div><div class="kpi-ctx">vs 43 383 en 2017</div></div>
+      <div class="kpi blue"><div class="kpi-val">46,85%</div><div class="kpi-label">Reprises complètes</div><div class="kpi-ctx">Baromètre ReAT</div></div>
+      <div class="kpi"><div class="kpi-val">65%</div><div class="kpi-label">Trajets arrêtés</div><div class="kpi-ctx">Pour raisons médicales (FGTB)</div></div>
+      <div class="kpi"><div class="kpi-val">72%</div><div class="kpi-label">C4 médical</div><div class="kpi-ctx">Trajets → licenciement force majeure</div></div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi amber"><div class="kpi-val">318</div><div class="kpi-label">Médecins-conseils</div><div class="kpi-ctx">Pour 500 000+ malades. Besoin : 1 000</div></div>
+      <div class="kpi"><div class="kpi-val">218 000</div><div class="kpi-label">Dossiers à réexaminer</div><div class="kpi-ctx">D'ici 2029, prévision 17% sorties</div></div>
+      <div class="kpi"><div class="kpi-val">+48,8%</div><div class="kpi-label">Hausse 60-64 ans</div><div class="kpi-ctx">Effet du relèvement âge pension</div></div>
+      <div class="kpi"><div class="kpi-val">1,9 Mrd€</div><div class="kpi-label">Économie visée</div><div class="kpi-ctx">Objectif : 100 000 retours emploi</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ GRAPHE ═══ -->
+  <div class="panel" id="panel-graphe">
+    <div class="sec">Graphe de Relations — Corpus Transversal</div>
+    <p style="font-size:11px;color:var(--gray);margin:8px 0">Chaque nœud représente une thématique. Les connexions montrent les liens documentés entre l'affaire Deborsu et les sujets transversaux. <span style="color:var(--amber)">Cliquez sur un nœud</span> pour voir les détails.</p>
+    <div id="graph-canvas"></div>
+    <div id="graph-detail" style="margin-top:12px"></div>
+  </div>
+
+  <!-- ═══ CORPUS ═══ -->
+  <div class="panel" id="panel-corpus">
+    <div class="sec">Corpus documentaire — 19 documents</div>
+    <div class="search-box">
+      <input class="search-input" id="corpus-search" placeholder="Rechercher dans le corpus..." oninput="filterCorpus()">
+      <button class="filter-btn" data-filter="all" onclick="setFilter(this)">Tous</button>
+      <button class="filter-btn" data-filter="analyse" onclick="setFilter(this)">Analyses</button>
+      <button class="filter-btn" data-filter="dossier" onclick="setFilter(this)">Dossiers</button>
+      <button class="filter-btn" data-filter="plaidoyer" onclick="setFilter(this)">Plaidoyers</button>
+      <button class="filter-btn" data-filter="essai" onclick="setFilter(this)">Essais</button>
+    </div>
+    <div class="card-grid" id="corpus-grid"></div>
+  </div>
+
+  <!-- ═══ GLOSSAIRE ═══ -->
+  <div class="panel" id="panel-glossaire">
+    <div class="sec">Glossaire — Lexique citoyen</div>
+    <div class="search-box">
+      <input class="search-input" id="gloss-search" placeholder="Rechercher un terme..." oninput="filterGlossaire()">
+    </div>
+    <table class="data-table" id="table-glossaire">
+      <thead><tr><th style="width:180px">Terme</th><th>Définition</th></tr></thead>
+      <tbody id="tbody-glossaire"></tbody>
+    </table>
+  </div>
+
+  <!-- ═══ EXPORT ═══ -->
+  <div class="panel" id="panel-export">
+    <div class="sec green">Export & Interopérabilité</div>
+    <p style="font-size:11px;color:var(--gray);margin:12px 0;line-height:1.8">Le dataset v4.0 est conçu pour être importé dans n'importe quel outil. Tout est structuré en JSON consommable directement par JavaScript, Python, D3.js, Chart.js, Hugo, Jekyll, Appsmith, Google Sheets ou Obsidian.</p>
+    <div class="export-bar">
+      <button class="btn btn-red" onclick="exportJSON()">⬇ TÉLÉCHARGER JSON v4</button>
+      <button class="btn btn-green" onclick="exportCSV()">⬇ EXPORT CSV CHIFFRES</button>
+      <button class="btn btn-blue" onclick="copyJSON()">📋 COPIER JSON</button>
+    </div>
+    <div class="sec amber" style="margin-top:20px">Comment utiliser ce dataset</div>
+    <div class="card-grid">
+      <div class="card"><div class="card-title">JavaScript / React</div><div class="card-body"><code style="color:var(--green)">const data = JSON.parse(fichier);</code><br>Accès direct : <code style="color:var(--green)">data.affaire_deborsu.audience.telespectateurs</code></div></div>
+      <div class="card"><div class="card-title">Python / Pandas</div><div class="card-body"><code style="color:var(--green)">import json; data = json.load(open('dataset_v4.json'))</code><br><code style="color:var(--green)">df = pd.DataFrame(data['budget_arizona']['projections'])</code></div></div>
+      <div class="card"><div class="card-title">Hugo / Jekyll</div><div class="card-body">Placer dans <code style="color:var(--green)">_data/</code> ou <code style="color:var(--green)">data/</code> — accessible via templates Liquid/Go.</div></div>
+      <div class="card"><div class="card-title">Obsidian</div><div class="card-body">Importer comme note JSON ou utiliser le plugin Dataview pour requêter les données.</div></div>
+    </div>
+
+    <div class="sec" style="margin-top:20px">Écosystème plateformes</div>
+    <table class="data-table">
+      <thead><tr><th>ID</th><th>Nom</th><th>Rôle</th><th>Tech</th><th>URL</th></tr></thead>
+      <tbody id="tbody-plateformes"></tbody>
+    </table>
+  </div>
+
+  <footer>
+    <span>ouaisfi.eu · <a href="https://github.com/ouaisfieu" target="_blank">github.com/ouaisfieu</a> · <a href="https://bsky.app/profile/ouaisfi.eu" target="_blank">@ouaisfi.eu</a></span>
+    <span>Souveraineté numérique · Zéro dépendance · CC BY-NC 4.0</span>
+  </footer>
+</div>
+
+<!-- DETAIL OVERLAY -->
+<div class="detail-overlay" id="detail-overlay" onclick="if(event.target===this)closeDetail()">
+  <div class="detail-box">
+    <button class="detail-close" onclick="closeDetail()">✕</button>
+    <div class="detail-title" id="detail-title"></div>
+    <div class="detail-body" id="detail-body"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// EMBEDDED DATASET (subset for UI — full JSON exported separately)
+// ══════════════════════════════════════════════════════════════
+
+const DS = {
+  chiffres: [
+    {label:"Personnes en inactivité contrainte",val:"978 000",ctx:"21-24 Mrd€/an = 1M€/heure",trend:"up"},
+    {label:"Déficit sécurité sociale 2024",val:"18,2 Mrd€",ctx:"Budget structurellement déficitaire",trend:"up"},
+    {label:"Ajustement Arizona 2025-2029",val:"9,2 Mrd€",ctx:"60% économies, 40% recettes",trend:"stable"},
+    {label:"Déficit prévu 2030",val:"6,5% PIB",ctx:"≈ 40 milliards € — Bureau du Plan",trend:"up"},
+    {label:"Dette publique 2025",val:"104% PIB",ctx:"Vers 119% en 2030, 155% en 2042",trend:"up"},
+    {label:"Population BIM",val:"2,4M",ctx:"21% population belge, +400K depuis 2020",trend:"up"},
+    {label:"Malades longue durée",val:"550 000",ctx:"Plus que le nombre total de chômeurs",trend:"up"},
+    {label:"Belges en risque AROPE",val:"2,1M",ctx:"18,3% de la population",trend:"up"}
+  ],
+  boucles: [
+    {id:1,nom:"Transfert comptable fantôme",txt:"Exclusion chômage fédéral → basculement RIS communal → économie fédérale = surcoût communal → bilan consolidé nul ou négatif"},
+    {id:2,nom:"Piège du taux marginal",txt:"Taux marginal >100% pour précaires → activation coercitive vers emplois précaires → appauvrissement paradoxal"},
+    {id:3,nom:"Spirale austéritaire (piège grec)",txt:"Économies → déficit structurel 11 Mrd 2029 → nouvelles économies → contraction économie → creusement déficit"},
+    {id:4,nom:"Fragmentation régionale",txt:"Mesures calibrées Flandre (plein emploi) → appliquées BXL/Wallonie (chômage structurel) → misère, pas emplois"},
+    {id:5,nom:"Dégradation capital humain",txt:"Gel 5 ans + renoncement soins + précarisation → dégradation employabilité → inverse de l'objectif"}
+  ],
+  mesures_arizona: [
+    {m:"Limitation chômage 24 mois",mt:"902M → 2 Mrd",h:"2026-2029",i:"30 122 exclusions vague 1 + 90 000 d'ici 2027"},
+    {m:"Réinsertion MLD",mt:"1,9 Mrd",h:"2026-2029",i:"218 000 dossiers réexaminés, objectif 100K retours"},
+    {m:"Gel enveloppe bien-être (5 ans)",mt:"2,8 Mrd",h:"2025-2029",i:"Érosion pouvoir d'achat allocataires"},
+    {m:"Indexation plafonnée",mt:"883M/an",h:"2026+2028",i:"Saut d'index déguisé — perte pouvoir d'achat généralisée"},
+    {m:"Norme santé réduite à 2%",mt:"2 Mrd cumulés",h:"2026-2027",i:"Trou budget santé vs besoin 3,2%"},
+    {m:"Sanctions maladie ×4",mt:"non chiffré",h:"2026",i:"2,5% → 10% indemnité"},
+    {m:"Épaules larges (plus-values)",mt:"~1 Mrd",h:"2026-2029",i:"Pour 1€ capital, 5-6€ coupés dans le social"}
+  ],
+  projections: [
+    {a:2024,d:4.4,det:104,int:10},
+    {a:2029,d:5.7,det:119,int:19},
+    {a:2035,d:6.5,det:135,int:27},
+    {a:2042,d:7.5,det:155,int:40}
+  ],
+  timeline: [
+    {d:"2021",e:"Vague 1 ReAT — Création coordinateurs retour au travail",t:"reforme"},
+    {d:"01/2023",e:"Vague 2 — Contacts obligatoires, sanction 2,5%",t:"reforme"},
+    {d:"31/01/2025",e:"Accord coalition Arizona signé",t:"politique"},
+    {d:"04/2025",e:"S&P révise perspective Belgique → négative",t:"financier"},
+    {d:"06/2025",e:"Fitch dégrade la Belgique à A+",t:"financier"},
+    {d:"06/2025",e:"Bureau du Plan : déficit 6,5% en 2030",t:"analyse"},
+    {d:"07/11/2025",e:"Diffusion 'Tous Fraudeurs' — RTL-TVI — 410 860 téléspectateurs",t:"impact"},
+    {d:"29/10/2025",e:"Recours constitutionnel Article 23 — limitation chômage",t:"juridique"},
+    {d:"15/12/2025",e:"Grève front commun syndical",t:"mobilisation"},
+    {d:"01/01/2026",e:"Vague 3 Arizona — Sanctions 10%, certificats 3 mois max",t:"impact"},
+    {d:"01/2026",e:"30 122 premières exclusions du chômage",t:"impact"},
+    {d:"03/2026",e:"Vague 2 exclusions : 8-20 ans de chômage cumulé",t:"impact"},
+    {d:"31/03/2026",e:"Échéance dépôt dossier EP ouaisfieu",t:"projet"},
+    {d:"2026-2027",e:"Arrêt Cour Constitutionnelle attendu",t:"juridique"},
+    {d:"2030",e:"Déficit prévu 6,5% PIB / Dette 120% PIB",t:"projection"},
+    {d:"2042",e:"Convergence crises : climat + vieillissement + dette",t:"projection"}
+  ],
+  vagues: [
+    {v:1,d:"2021",m:"Création coordinateurs ReAT (40→100)",s:"modérée",c:"green"},
+    {v:2,d:"01/2023",m:"Contacts obligatoires 4e/7e/11e mois, sanction 2,5%",s:"moyenne",c:"amber"},
+    {v:3,d:"01/01/2026",m:"Certificats 3 mois max, sanction 10%, suspension totale si absence",s:"haute",c:"red"},
+    {v:4,d:"2027+",m:"Certificat initial 3 semaines, renouvellement annuel, 218 000 réexamens",s:"critique",c:"red"}
+  ],
+  graphe_noeuds: [
+    {id:"N01",l:"AFFAIRE DEBORSU",t:"dossier_central",x:50,y:45},
+    {id:"N02",l:"Poverty Porn",t:"concept",x:25,y:20},
+    {id:"N03",l:"Malades L.D.",t:"thematique",x:78,y:25},
+    {id:"N04",l:"Budget Arizona",t:"thematique",x:80,y:55},
+    {id:"N05",l:"Particratie",t:"thematique",x:20,y:70},
+    {id:"N06",l:"Surveillance",t:"thematique",x:10,y:40},
+    {id:"N07",l:"Propagande",t:"concept",x:35,y:12},
+    {id:"N08",l:"Art. 23 Standstill",t:"juridique",x:65,y:80},
+    {id:"N09",l:"Dystopie",t:"concept",x:12,y:15},
+    {id:"N10",l:"Intelligence Citoyenne",t:"outil",x:55,y:85},
+    {id:"N11",l:"ECP",t:"alternative",x:82,y:80},
+    {id:"N12",l:"CSA / CDJ",t:"recours",x:42,y:25},
+    {id:"N13",l:"Mythe Fraude",t:"concept",x:68,y:15},
+    {id:"N14",l:"Non-recours",t:"impact",x:88,y:40},
+    {id:"N15",l:"État Voyou",t:"concept",x:30,y:85},
+    {id:"N16",l:"Division Classes",t:"concept",x:55,y:15}
+  ],
+  graphe_aretes: [
+    {s:"N01",c:"N02"},{s:"N01",c:"N07"},{s:"N01",c:"N12"},{s:"N01",c:"N13"},
+    {s:"N01",c:"N14"},{s:"N01",c:"N16"},{s:"N02",c:"N09"},{s:"N03",c:"N04"},
+    {s:"N03",c:"N01"},{s:"N04",c:"N05"},{s:"N04",c:"N08"},{s:"N04",c:"N11"},
+    {s:"N05",c:"N15"},{s:"N06",c:"N09"},{s:"N07",c:"N02"},{s:"N10",c:"N01"},
+    {s:"N10",c:"N04"},{s:"N10",c:"N11"},{s:"N13",c:"N16"},{s:"N14",c:"N03"}
+  ],
+  corpus: [
+    {id:"DOC01",t:"L'affaire Tous Fraudeurs : anatomie d'un documentaire controversé",tp:"analyse",th:["Deborsu","Poverty Porn","Recours","Non-recours"],w:5500},
+    {id:"DOC02",t:"La fabrique de l'ennemi intérieur : du reportage à la dystopie",tp:"analyse_theorique",th:["Deborsu","Propagande","Dystopie","Division"],w:8000},
+    {id:"DOC03",t:"Malades de longue durée en Belgique : politique de pression croissante",tp:"dossier",th:["MLD","Arizona","Art. 23"],w:6000},
+    {id:"DOC04",t:"Budget Arizona : désastre social programmé — Projections 2042",tp:"dossier",th:["Arizona","Art. 23","ECP"],w:12000},
+    {id:"DOC05",t:"Belgique : Particratie, Citoyenneté et Totalitarisme",tp:"essai",th:["Particratie","État Voyou","Art. 23"],w:15000},
+    {id:"DOC06",t:"Veille citoyenne et intelligence non marchande — panorama mondial",tp:"dossier",th:["Intelligence Citoyenne"],w:10000},
+    {id:"DOC07",t:"L'Intelligence Citoyenne : levier stratégique",tp:"dossier",th:["Intelligence Citoyenne","ECP"],w:8000},
+    {id:"DOC08",t:"Cahier des Charges Contre-Institution Numérique",tp:"cahier_des_charges",th:["Intelligence Citoyenne","ECP"],w:5000},
+    {id:"DOC09",t:"Plaidoyer ECP — Économie Contributive Provisionnée",tp:"plaidoyer",th:["ECP","Arizona"],w:3000},
+    {id:"DOC10",t:"Plaidoyer STOP Arizona — Défense du Modèle Social",tp:"plaidoyer",th:["Arizona","Art. 23"],w:3000},
+    {id:"DOC11",t:"Scandale Démocratique Belge : Le Citoyen Pigeon",tp:"essai",th:["Particratie","État Voyou"],w:4000},
+    {id:"DOC12",t:"Parlementaires Belges : Constitution, Partis, Réalité",tp:"analyse",th:["Particratie"],w:6000},
+    {id:"DOC13",t:"Éducation Permanente en FWB : moratoire 2026-2028",tp:"analyse",th:["Intelligence Citoyenne"],w:3000},
+    {id:"DOC14",t:"Guide complet financements civic tech belge",tp:"guide",th:["Intelligence Citoyenne","ECP"],w:4000},
+    {id:"DOC15",t:"Formation intelligence citoyenne : deux lieux bruxellois",tp:"analyse",th:["Intelligence Citoyenne"],w:3000},
+    {id:"DOC16",t:"Trois guerres civiques",tp:"essai",th:["Particratie","Division"],w:5000},
+    {id:"DOC17",t:"Dossier candidature Éducation Permanente",tp:"administratif",th:["Intelligence Citoyenne"],w:8000},
+    {id:"DOC18",t:"Ouaisfieu : Décryptage initiative citoyenne",tp:"analyse",th:["Intelligence Citoyenne","ECP"],w:3000},
+    {id:"DOC19",t:"Module Tests de Recrutement",tp:"cahier_des_charges",th:["Intelligence Citoyenne"],w:4000}
+  ],
+  glossaire: [
+    {t:"Particratie",d:"Régime où le pouvoir réel est détenu par les états-majors des partis, pas par le Parlement"},
+    {t:"Pilarisation",d:"Organisation de la société belge en 'piliers' (catholique, socialiste, libéral)"},
+    {t:"DIKW",d:"Données → Information → Connaissance → Sagesse — pyramide méthodologique"},
+    {t:"ECP",d:"Économie Contributive Provisionnée — contribution sans perte de droits sociaux"},
+    {t:"Intelligence Civile",d:"Transposition de l'intelligence économique au service de la société civile"},
+    {t:"BIM",d:"Bénéficiaire de l'Intervention Majorée — accès aux tarifs sociaux"},
+    {t:"AROPE",d:"At Risk Of Poverty or social Exclusion — indicateur européen"},
+    {t:"OSINT",d:"Open Source Intelligence — renseignement à partir de sources ouvertes"},
+    {t:"Standstill",d:"Principe constitutionnel interdisant la régression significative des droits sociaux (Art. 23)"},
+    {t:"Poverty Porn",d:"Spectacularisation médiatique de la pauvreté à des fins d'audience"},
+    {t:"Pauvretisme",d:"Discrimination envers les pauvres — concept d'Olivier De Schutter (ONU, 2022)"},
+    {t:"État Voyou",d:"État qui refuse systémiquement d'appliquer les décisions de justice"},
+    {t:"Propagande sociologique",d:"Propagande invisible opérant via le climat général des idées (Ellul, 1962)"},
+    {t:"Forkability",d:"Capacité d'un projet à être cloné et adapté localement par n'importe quel citoyen"},
+    {t:"RIS",d:"Revenu d'Intégration Sociale — aide de dernier recours gérée par les CPAS"},
+    {t:"ReAT",d:"Return to Action Teams — dispositif de réinsertion malades longue durée"},
+    {t:"SDA",d:"Service des Décisions Anticipées — organe fiscal belge pour les rulings"},
+    {t:"CCPLC",d:"Collectif Citoyen pour la Participation Libre & Consciente"}
+  ],
+  plateformes: [
+    {id:"P01",n:"ouaisfi.eu",r:"Hub Central",t:"Grav CMS",u:"https://ouaisfi.eu"},
+    {id:"P02",n:"DOCTech",r:"Documentation (~30 fiches)",t:"Jekyll",u:"https://ouaisfieu.github.io/tech/"},
+    {id:"P03",n:"BXL2030",r:"Prospective Bruxelloise",t:"Jekyll",u:"https://ouaisfieu.github.io/bxl2030/"},
+    {id:"P05",n:"Dossiers",r:"Analyses de Fond",t:"Jekyll",u:"https://ouaisfieu.github.io/dossiers/"},
+    {id:"P06",n:"11·60 bis",r:"Éditorial Local",t:"Hugo",u:"https://dl.ouaisfi.eu/1160/"},
+    {id:"P08",n:"EARL",r:"Intelligence Citoyenne",t:"Hugo",u:"https://dl.ouaisfi.eu/earl/"},
+    {id:"P09",n:"GPTPardi",r:"IA Citoyenne",t:"Jekyll",u:"https://ouaisfieu.github.io/GPTPardi/"},
+    {id:"P10",n:"Appsmith",r:"Back-Office",t:"Appsmith",u:"https://ouaisfieu.appsmith.com"},
+    {id:"P11",n:"SECU",r:"Dossier MLD / SEO",t:"HTML/CSS/JS",u:"https://ouaisfieu.github.io/1160/secu/"}
+  ]
+};
+
+// ══════════════════════════════════════════════════════════════
+// BOOT SEQUENCE
+// ══════════════════════════════════════════════════════════════
+const BOOT = [
+  {text:"OUAISFIEU MONITORING CITOYEN v4.0",cls:"title"},
+  {text:"Initialisation noyau citoyen..."},
+  {text:`Chargement dataset enrichi: ${DS.corpus.length} documents, ${DS.chiffres.length} indicateurs, ${DS.glossaire.length} termes`},
+  {text:"Module AFFAIRE DEBORSU: +100 plaintes CSA, 7 voies de recours cartographiées"},
+  {text:`Module ARIZONA: ${DS.mesures_arizona.length} mesures, ${DS.projections.length} jalons de projection 2024-2042`},
+  {text:`Module MLD: 4 vagues ReAT, 549 996 personnes en invalidité`},
+  {text:`Graphe relations: ${DS.graphe_noeuds.length} nœuds × ${DS.graphe_aretes.length} connexions transversales`},
+  {text:`Cadre théorique: Schmitt, Girard, Bauman, Wacquant, Chomsky, Ellul — 8 convergences dystopiques`},
+  {text:"Export: JSON v4.0 + CSV chiffres clés — prêt"},
+  {text:">>> SYSTÈME OPÉRATIONNEL — BIENVENUE, FIEU <<<",cls:"ok"}
+];
+
+function runBoot(){
+  const log=document.getElementById('boot-log');
+  BOOT.forEach((l,i)=>{
+    setTimeout(()=>{
+      const div=document.createElement('div');
+      div.className='line '+(l.cls||'');
+      div.innerHTML=`<span class="idx">[${String(i).padStart(2,'0')}]</span>${l.text}`;
+      log.appendChild(div);
+      if(i===BOOT.length-1){
+        setTimeout(()=>{
+          document.getElementById('boot').classList.add('done');
+          document.getElementById('app').classList.add('active');
+          initApp();
+        },900);
+      }
+    },i*200);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// APP INIT
+// ══════════════════════════════════════════════════════════════
+function initApp(){
+  initClock();
+  initTabs();
+  buildSitrep();
+  buildArizona();
+  buildVagues();
+  buildGraph();
+  buildCorpus();
+  buildGlossaire();
+  buildPlateformes();
+}
+
+function initClock(){
+  const el=document.getElementById('clock');
+  const tick=()=>{el.textContent=new Date().toLocaleString('fr-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit'})};
+  tick();setInterval(tick,1000);
+}
+
+function initTabs(){
+  document.querySelectorAll('.nav-tab').forEach(tab=>{
+    tab.addEventListener('click',()=>{
+      document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-'+tab.dataset.panel).classList.add('active');
+    });
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// BUILD PANELS
+// ══════════════════════════════════════════════════════════════
+function buildSitrep(){
+  const g=document.getElementById('kpi-sitrep');
+  DS.chiffres.forEach(c=>{
+    const cls=c.trend==='up'?'':'amber';
+    g.innerHTML+=`<div class="kpi ${cls}"><div class="trend ${c.trend}">${c.trend==='up'?'▲':'●'}</div><div class="kpi-val">${c.val}</div><div class="kpi-label">${c.label}</div><div class="kpi-ctx">${c.ctx}</div></div>`;
+  });
+  const bg=document.getElementById('boucles-grid');
+  DS.boucles.forEach(b=>{
+    bg.innerHTML+=`<div class="card"><div class="card-title" style="color:var(--amber)">#${b.id} — ${b.nom}</div><div class="card-body">${b.txt}</div></div>`;
+  });
+}
+
+function buildArizona(){
+  const kpi=document.getElementById('kpi-arizona');
+  kpi.innerHTML=`
+    <div class="kpi"><div class="kpi-val">9,2 Mrd€</div><div class="kpi-label">Ajustement 2025-2029</div><div class="kpi-ctx">60% économies, 40% recettes</div></div>
+    <div class="kpi"><div class="kpi-val">30 122</div><div class="kpi-label">Exclusions vague 1</div><div class="kpi-ctx">Basculement RIS/CPAS — jan. 2026</div></div>
+    <div class="kpi amber"><div class="kpi-val">6,5%</div><div class="kpi-label">Déficit 2030</div><div class="kpi-ctx">≈ 40 Mrd€ — Bureau du Plan</div></div>
+    <div class="kpi"><div class="kpi-val">155%</div><div class="kpi-label">Dette 2042</div><div class="kpi-ctx">Convergence crises en vue</div></div>
+  `;
+  const tb=document.getElementById('tbody-mesures');
+  DS.mesures_arizona.forEach(m=>{
+    tb.innerHTML+=`<tr><td><strong>${m.m}</strong></td><td style="color:var(--amber)">${m.mt}</td><td>${m.h}</td><td>${m.i}</td></tr>`;
+  });
+  const pg=document.getElementById('projections-grid');
+  DS.projections.forEach(p=>{
+    pg.innerHTML+=`<div class="card"><div class="card-title" style="color:var(--blue-bright)">${p.a}</div><div class="card-body">Déficit: <strong>${p.d}% PIB</strong> · Dette: <strong>${p.det}% PIB</strong> · Charge intérêts: <strong>${p.int} Mrd€/an</strong></div></div>`;
+  });
+  const tl=document.getElementById('timeline-arizona');
+  DS.timeline.forEach(t=>{
+    tl.innerHTML+=`<div class="tl-item ${t.t}"><div class="tl-date">${t.d}</div><div class="tl-text">${t.e}</div><div class="tl-type">${t.t}</div></div>`;
+  });
+}
+
+function buildVagues(){
+  const g=document.getElementById('vagues-grid');
+  DS.vagues.forEach(v=>{
+    g.innerHTML+=`<div class="card" style="border-left:3px solid var(--${v.c})"><div class="card-title">Vague ${v.v} — ${v.d}</div><div class="card-body">${v.m}</div><div class="card-tags"><span class="tag tag-${v.c==='red'?'red':v.c==='amber'?'amber':'green'}">Sévérité: ${v.s}</span></div></div>`;
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// GRAPH
+// ══════════════════════════════════════════════════════════════
+function buildGraph(){
+  const canvas=document.getElementById('graph-canvas');
+  const W=canvas.offsetWidth, H=canvas.offsetHeight||500;
+  
+  // SVG for lines
+  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.style.cssText="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none";
+  canvas.appendChild(svg);
+
+  // Draw edges
+  DS.graphe_aretes.forEach(a=>{
+    const s=DS.graphe_noeuds.find(n=>n.id===a.s);
+    const c=DS.graphe_noeuds.find(n=>n.id===a.c);
+    if(s&&c){
+      const line=document.createElementNS("http://www.w3.org/2000/svg","line");
+      line.setAttribute("x1",s.x+"%"); line.setAttribute("y1",s.y+"%");
+      line.setAttribute("x2",c.x+"%"); line.setAttribute("y2",c.y+"%");
+      line.setAttribute("stroke","#333"); line.setAttribute("stroke-width","1");
+      line.setAttribute("opacity","0.5");
+      svg.appendChild(line);
+    }
+  });
+
+  // Draw nodes
+  DS.graphe_noeuds.forEach(n=>{
+    const div=document.createElement('div');
+    div.className=`graph-node ${n.t}`;
+    div.style.left=`calc(${n.x}% - 50px)`;
+    div.style.top=`calc(${n.y}% - 14px)`;
+    div.textContent=n.l;
+    div.onclick=()=>showNodeDetail(n);
+    canvas.appendChild(div);
+  });
+}
+
+function showNodeDetail(n){
+  const det=document.getElementById('graph-detail');
+  const conns=DS.graphe_aretes.filter(a=>a.s===n.id||a.c===n.id);
+  const linked=conns.map(a=>{
+    const otherId=a.s===n.id?a.c:a.s;
+    return DS.graphe_noeuds.find(x=>x.id===otherId)?.l||otherId;
+  });
+  det.innerHTML=`<div class="card" style="border-color:var(--red)"><div class="card-title">${n.l}</div><div class="card-body">Type: <strong>${n.t}</strong><br>Connexions (${linked.length}): ${linked.map(l=>`<span class="tag tag-blue">${l}</span>`).join(' ')}</div></div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// CORPUS
+// ══════════════════════════════════════════════════════════════
+let currentFilter='all';
+function buildCorpus(){renderCorpus(DS.corpus)}
+function renderCorpus(docs){
+  const g=document.getElementById('corpus-grid');
+  g.innerHTML='';
+  docs.forEach(d=>{
+    const tagColors={analyse:'red',analyse_theorique:'red',dossier:'blue',plaidoyer:'amber',essai:'green',guide:'green',cahier_des_charges:'blue',administratif:'amber'};
+    g.innerHTML+=`<div class="card" onclick="showDocDetail('${d.id}')"><div class="card-title">${d.t}</div><div class="card-body">${d.w.toLocaleString()} mots</div><div class="card-tags"><span class="tag tag-${tagColors[d.tp]||'blue'}">${d.tp}</span>${d.th.map(t=>`<span class="tag tag-amber">${t}</span>`).join('')}</div></div>`;
+  });
+}
+function filterCorpus(){
+  const q=document.getElementById('corpus-search').value.toLowerCase();
+  let docs=DS.corpus;
+  if(currentFilter!=='all') docs=docs.filter(d=>d.tp.includes(currentFilter));
+  if(q) docs=docs.filter(d=>d.t.toLowerCase().includes(q)||d.th.some(t=>t.toLowerCase().includes(q)));
+  renderCorpus(docs);
+}
+function setFilter(btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter=btn.dataset.filter;
+  filterCorpus();
+}
+function showDocDetail(id){
+  const d=DS.corpus.find(x=>x.id===id);
+  if(!d)return;
+  document.getElementById('detail-title').textContent=d.t;
+  document.getElementById('detail-body').innerHTML=`
+    <strong>ID:</strong> ${d.id}<br>
+    <strong>Type:</strong> ${d.tp}<br>
+    <strong>Taille:</strong> ${d.w.toLocaleString()} mots<br>
+    <strong>Thèmes:</strong> ${d.th.join(', ')}<br><br>
+    <em>Ce document fait partie du corpus ouaisfieu. Consultez la version complète sur les plateformes du projet.</em>
+  `;
+  document.getElementById('detail-overlay').classList.add('open');
+}
+function closeDetail(){document.getElementById('detail-overlay').classList.remove('open')}
+
+// ══════════════════════════════════════════════════════════════
+// GLOSSAIRE
+// ══════════════════════════════════════════════════════════════
+function buildGlossaire(){renderGlossaire(DS.glossaire)}
+function renderGlossaire(items){
+  const tb=document.getElementById('tbody-glossaire');
+  tb.innerHTML='';
+  items.forEach(g=>{
+    tb.innerHTML+=`<tr><td><strong style="color:var(--amber)">${g.t}</strong></td><td>${g.d}</td></tr>`;
+  });
+}
+function filterGlossaire(){
+  const q=document.getElementById('gloss-search').value.toLowerCase();
+  renderGlossaire(DS.glossaire.filter(g=>g.t.toLowerCase().includes(q)||g.d.toLowerCase().includes(q)));
+}
+
+// ══════════════════════════════════════════════════════════════
+// PLATEFORMES
+// ══════════════════════════════════════════════════════════════
+function buildPlateformes(){
+  const tb=document.getElementById('tbody-plateformes');
+  DS.plateformes.forEach(p=>{
+    tb.innerHTML+=`<tr><td style="color:var(--amber)">${p.id}</td><td><strong>${p.n}</strong></td><td>${p.r}</td><td>${p.t}</td><td><a href="${p.u}" target="_blank" style="color:var(--blue-bright)">${p.u.replace('https://','')}</a></td></tr>`;
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════════════════════════
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(DS,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ouaisfieu_dataset_v4.json';a.click();
+}
+function exportCSV(){
+  let csv='Label,Valeur,Contexte,Tendance\n';
+  DS.chiffres.forEach(c=>csv+=`"${c.label}","${c.val}","${c.ctx}","${c.trend}"\n`);
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ouaisfieu_chiffres_v4.csv';a.click();
+}
+function copyJSON(){
+  navigator.clipboard.writeText(JSON.stringify(DS,null,2)).then(()=>alert('Dataset copié dans le presse-papier !'));
+}
+
+// ══════════════════════════════════════════════════════════════
+// START
+// ══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',runBoot);
+</script>
+</body>
+</html>
