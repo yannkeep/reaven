@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rapport d'analyse — pac-g.be</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --paper: #faf9f6;
+    --red: #c0392b;
+    --red-light: #e74c3c;
+    --red-dark: #922b21;
+    --gold: #d4a53c;
+    --gold-light: #f0d78c;
+    --slate: #5a6275;
+    --mist: #e8e6e1;
+    --cream: #f5f0e8;
+    --green: #27ae60;
+    --orange: #e67e22;
+    --blue: #2980b9;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.7;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(160deg, #1a1a2e 0%, #2d1b3d 30%, #c0392b 100%);
+    padding: 2rem;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 80%, rgba(212,165,60,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 40% at 80% 20%, rgba(192,57,43,0.2) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    padding: 0.5rem 1.5rem;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 100px;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 1;
+    animation: fadeDown 0.8s ease-out;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 7vw, 5.5rem);
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.1;
+    position: relative;
+    z-index: 1;
+    animation: fadeUp 1s ease-out;
+    max-width: 900px;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  .hero-sub {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: rgba(255,255,255,0.65);
+    margin-top: 1.5rem;
+    position: relative;
+    z-index: 1;
+    animation: fadeUp 1s ease-out 0.2s both;
+    max-width: 600px;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 2rem;
+    margin-top: 3rem;
+    position: relative;
+    z-index: 1;
+    animation: fadeUp 1s ease-out 0.4s both;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .hero-meta span {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.85rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    animation: bounce 2s infinite;
+  }
+
+  .scroll-hint svg { width: 24px; height: 24px; stroke: rgba(255,255,255,0.3); fill: none; stroke-width: 2; }
+
+  /* ─── NAV ─── */
+  .toc {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(250,249,246,0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--mist);
+    padding: 0.75rem 2rem;
+    overflow-x: auto;
+  }
+
+  .toc-inner {
+    display: flex;
+    gap: 0.25rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    justify-content: center;
+    flex-wrap: nowrap;
+  }
+
+  .toc a {
+    text-decoration: none;
+    color: var(--slate);
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.4rem 0.9rem;
+    border-radius: 100px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .toc a:hover {
+    background: var(--red);
+    color: #fff;
+  }
+
+  /* ─── SECTIONS ─── */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  section {
+    padding: 5rem 0;
+  }
+
+  section + section {
+    border-top: 1px solid var(--mist);
+  }
+
+  .section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 1rem;
+  }
+
+  .section-label::before {
+    content: '';
+    width: 24px;
+    height: 2px;
+    background: var(--red);
+    border-radius: 1px;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 900;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+    color: var(--ink);
+  }
+
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 2.5rem 0 1rem;
+    color: var(--ink);
+  }
+
+  p {
+    color: var(--slate);
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+
+  /* ─── IDENTITY CARD ─── */
+  .id-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid var(--mist);
+    overflow: hidden;
+    margin: 2rem 0;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+  }
+
+  .id-card-header {
+    background: linear-gradient(135deg, var(--red-dark) 0%, var(--red) 100%);
+    padding: 1.5rem 2rem;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .id-card-header h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.2rem;
+  }
+
+  .id-card-header .tag {
+    background: rgba(255,255,255,0.2);
+    padding: 0.3rem 0.8rem;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .id-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0;
+  }
+
+  .id-item {
+    padding: 1.25rem 2rem;
+    border-bottom: 1px solid var(--mist);
+    border-right: 1px solid var(--mist);
+  }
+
+  .id-item:last-child { border-right: none; }
+
+  .id-item-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--slate);
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+
+  .id-item-value {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* ─── STAT BLOCKS ─── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.25rem;
+    margin: 2rem 0;
+  }
+
+  .stat-block {
+    background: #fff;
+    border: 1px solid var(--mist);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .stat-block:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  }
+
+  .stat-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--red);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--slate);
+    margin-top: 0.5rem;
+    font-weight: 500;
+  }
+
+  /* ─── PILLARS ─── */
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .pillar {
+    background: #fff;
+    border: 1px solid var(--mist);
+    border-radius: 12px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .pillar:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.06);
+  }
+
+  .pillar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+  }
+
+  .pillar:nth-child(1)::before { background: var(--red); }
+  .pillar:nth-child(2)::before { background: var(--gold); }
+  .pillar:nth-child(3)::before { background: var(--green); }
+  .pillar:nth-child(4)::before { background: var(--blue); }
+
+  .pillar-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .pillar:nth-child(1) .pillar-icon { background: rgba(192,57,43,0.1); }
+  .pillar:nth-child(2) .pillar-icon { background: rgba(212,165,60,0.15); }
+  .pillar:nth-child(3) .pillar-icon { background: rgba(39,174,96,0.1); }
+  .pillar:nth-child(4) .pillar-icon { background: rgba(41,128,185,0.1); }
+
+  .pillar h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    margin-bottom: 0.75rem;
+    color: var(--ink);
+  }
+
+  .pillar p {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* ─── UX GAUGE ─── */
+  .gauge-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .gauge-card {
+    background: #fff;
+    border: 1px solid var(--mist);
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+  }
+
+  .gauge-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+
+  .gauge-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+
+  .gauge-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .gauge-bar {
+    height: 8px;
+    background: var(--mist);
+    border-radius: 100px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+  }
+
+  .gauge-fill {
+    height: 100%;
+    border-radius: 100px;
+    transition: width 1s ease-out;
+  }
+
+  .gauge-note {
+    font-size: 0.8rem;
+    color: var(--slate);
+  }
+
+  /* ─── TECH STACK ─── */
+  .tech-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+  }
+
+  .tech-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 100px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid var(--mist);
+    background: #fff;
+    color: var(--ink);
+  }
+
+  .tech-pill .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  /* ─── SWOT-STYLE ─── */
+  .swot {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  @media (max-width: 640px) {
+    .swot { grid-template-columns: 1fr; }
+  }
+
+  .swot-card {
+    border-radius: 12px;
+    padding: 2rem;
+    position: relative;
+  }
+
+  .swot-card h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .swot-card ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .swot-card li {
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .swot-card li::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 0.5rem;
+  }
+
+  .swot-strength {
+    background: rgba(39,174,96,0.06);
+    border: 1px solid rgba(39,174,96,0.15);
+  }
+  .swot-strength h4 { color: #1e8449; }
+  .swot-strength li::before { background: var(--green); }
+  .swot-strength li { color: #1e6b3a; }
+
+  .swot-weakness {
+    background: rgba(231,76,60,0.06);
+    border: 1px solid rgba(231,76,60,0.15);
+  }
+  .swot-weakness h4 { color: var(--red-dark); }
+  .swot-weakness li::before { background: var(--red); }
+  .swot-weakness li { color: #8b2418; }
+
+  .swot-opportunity {
+    background: rgba(41,128,185,0.06);
+    border: 1px solid rgba(41,128,185,0.15);
+  }
+  .swot-opportunity h4 { color: #1f6f9f; }
+  .swot-opportunity li::before { background: var(--blue); }
+  .swot-opportunity li { color: #1a5c83; }
+
+  .swot-threat {
+    background: rgba(230,126,34,0.06);
+    border: 1px solid rgba(230,126,34,0.15);
+  }
+  .swot-threat h4 { color: #b5621a; }
+  .swot-threat li::before { background: var(--orange); }
+  .swot-threat li { color: #8f4e15; }
+
+  /* ─── PARTNERS ─── */
+  .partner-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .partner-tag {
+    padding: 0.4rem 0.9rem;
+    background: var(--cream);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: var(--slate);
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+
+  .partner-tag:hover {
+    background: var(--gold-light);
+    color: var(--ink);
+  }
+
+  .partner-tag.institutional {
+    background: rgba(192,57,43,0.08);
+    color: var(--red-dark);
+    font-weight: 600;
+  }
+
+  /* ─── REGIONALES MAP ─── */
+  .regionales-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+  }
+
+  .regionale-chip {
+    background: #fff;
+    border: 1px solid var(--mist);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: center;
+    color: var(--ink);
+    transition: all 0.2s;
+  }
+
+  .regionale-chip:hover {
+    border-color: var(--red);
+    color: var(--red);
+    box-shadow: 0 2px 12px rgba(192,57,43,0.1);
+  }
+
+  /* ─── SOCIAL PROOF ─── */
+  .social-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin: 1.5rem 0;
+  }
+
+  .social-card {
+    flex: 1;
+    min-width: 160px;
+    background: #fff;
+    border: 1px solid var(--mist);
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: center;
+  }
+
+  .social-card .platform {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--slate);
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+
+  .social-card .count {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .social-card .desc {
+    font-size: 0.8rem;
+    color: var(--slate);
+    margin-top: 0.25rem;
+  }
+
+  /* ─── TIMELINE ─── */
+  .timeline {
+    position: relative;
+    margin: 2rem 0;
+    padding-left: 2rem;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--mist);
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -2rem;
+    top: 0.5rem;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--red);
+    border: 3px solid var(--paper);
+    box-shadow: 0 0 0 2px var(--red);
+  }
+
+  .timeline-year {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--red);
+    font-weight: 600;
+  }
+
+  .timeline-text {
+    font-size: 0.95rem;
+    color: var(--slate);
+    margin-top: 0.2rem;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    background: var(--ink);
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    padding: 3rem 2rem;
+    font-size: 0.85rem;
+  }
+
+  footer a {
+    color: var(--gold-light);
+    text-decoration: none;
+  }
+
+  /* ─── CALLOUT ─── */
+  .callout {
+    background: var(--cream);
+    border-left: 4px solid var(--gold);
+    border-radius: 0 8px 8px 0;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .callout p { margin: 0; color: var(--ink); font-style: italic; }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+    40% { transform: translateX(-50%) translateY(-8px); }
+    60% { transform: translateX(-50%) translateY(-4px); }
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    section { padding: 3rem 0; }
+    .id-grid { grid-template-columns: 1fr 1fr; }
+    .toc-inner { justify-content: flex-start; }
+    .hero { min-height: 90vh; }
+  }
+
+  @media (max-width: 480px) {
+    .id-grid { grid-template-columns: 1fr; }
+    .container { padding: 0 1.25rem; }
+  }
+
+  /* Print */
+  @media print {
+    .hero { min-height: auto; padding: 3rem; break-after: page; }
+    .toc { display: none; }
+    .stat-block, .pillar, .gauge-card { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<header class="hero">
+  <span class="hero-badge">Rapport d'analyse web</span>
+  <h1>Présence et Action<br>Culturelles — <em>pac-g.be</em></h1>
+  <p class="hero-sub">Audit complet du plus grand mouvement d'éducation permanente de la Fédération Wallonie-Bruxelles : identité, structure, UX/UI, technologies et présence digitale.</p>
+  <div class="hero-meta">
+    <span>📅 Février 2026</span>
+    <span>🌐 pac-g.be</span>
+    <span>📍 Bruxelles, BE</span>
+  </div>
+  <div class="scroll-hint">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </div>
+</header>
+
+<!-- ═══════════════ NAV ═══════════════ -->
+<nav class="toc">
+  <div class="toc-inner">
+    <a href="#identite">Identité</a>
+    <a href="#chiffres">Chiffres clés</a>
+    <a href="#offre">Offre</a>
+    <a href="#regionales">Réseau</a>
+    <a href="#ux">UX / UI</a>
+    <a href="#tech">Technologies</a>
+    <a href="#social">Preuve sociale</a>
+    <a href="#swot">SWOT</a>
+    <a href="#recommandations">Recommandations</a>
+  </div>
+</nav>
+
+<!-- ═══════════════ 1. IDENTITÉ ═══════════════ -->
+<section id="identite">
+  <div class="container">
+    <div class="section-label">01 — Identité</div>
+    <h2>Fiche d'identité du mouvement</h2>
+    <p>PAC — Présence et Action Culturelles — est un mouvement écosocialiste d'éducation permanente et populaire, reconnu officiellement par le Ministère de la Culture de la Fédération Wallonie-Bruxelles. Fondé en 1969, il s'inscrit dans la filiation directe des Cercles d'Éducation Ouvrière créés par le Mouvement Ouvrier au début du 20ᵉ siècle.</p>
+
+    <div class="id-card">
+      <div class="id-card-header">
+        <h3>PAC — Présence et Action Culturelles</h3>
+        <span class="tag">ASBL</span>
+      </div>
+      <div class="id-grid">
+        <div class="id-item">
+          <div class="id-item-label">Statut juridique</div>
+          <div class="id-item-value">ASBL — BE 0446.019.163</div>
+        </div>
+        <div class="id-item">
+          <div class="id-item-label">Fondation</div>
+          <div class="id-item-value">1969 (56 ans)</div>
+        </div>
+        <div class="id-item">
+          <div class="id-item-label">Siège</div>
+          <div class="id-item-value">Rue Lambert Crickx 5, 1070 Bruxelles</div>
+        </div>
+        <div class="id-item">
+          <div class="id-item-label">Téléphone</div>
+          <div class="id-item-value">02/545 79 11</div>
+        </div>
+        <div class="id-item">
+          <div class="id-item-label">Positionnement</div>
+          <div class="id-item-value">Mouvement écosocialiste</div>
+        </div>
+        <div class="id-item">
+          <div class="id-item-label">Reconnaissance</div>
+          <div class="id-item-value">Ministère de la Culture FWB</div>
+        </div>
+        <div class="id-item">
+          <div class="id-item-label">Effectif</div>
+          <div class="id-item-value">~50 employé·e·s</div>
+        </div>
+        <div class="id-item">
+          <div class="id-item-label">Zone d'action</div>
+          <div class="id-item-value">Belgique francophone</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p>« Socialiste et laïque, PAC promeut et défend la justice sociale, l'égalité, la solidarité et la fraternité. »</p>
+    </div>
+
+    <h3>Valeurs fondamentales</h3>
+    <p>Le mouvement porte un socle de valeurs clairement revendiqué : justice sociale, égalité, solidarité, fraternité et laïcité. Historiquement lié au Parti Socialiste belge, PAC revendique cependant son indépendance structurelle. Il se définit comme un espace de rassemblement de progressistes et s'inscrit pleinement dans la mouvance écosocialiste.</p>
+  </div>
+</section>
+
+<!-- ═══════════════ 2. CHIFFRES ═══════════════ -->
+<section id="chiffres">
+  <div class="container">
+    <div class="section-label">02 — Chiffres clés</div>
+    <h2>Le mouvement en chiffres</h2>
+    <p>PAC est le plus grand mouvement d'éducation permanente de la Fédération Wallonie-Bruxelles, avec un ancrage territorial remarquable et un réseau dense de sections locales couvrant l'intégralité du territoire francophone belge.</p>
+
+    <div class="stats-row">
+      <div class="stat-block">
+        <div class="stat-number">56</div>
+        <div class="stat-label">Années d'existence</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-number">11</div>
+        <div class="stat-label">Régionales</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-number">~200</div>
+        <div class="stat-label">Sections locales</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-number">~50</div>
+        <div class="stat-label">Employé·e·s</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-number">~3,2M€</div>
+        <div class="stat-label">Budget annuel</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-number">10K</div>
+        <div class="stat-label">Exemplaires du magazine</div>
+      </div>
+    </div>
+
+    <h3>Chronologie du mouvement</h3>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-year">Début XXᵉ s.</div>
+        <div class="timeline-text">Création des Cercles d'Éducation Ouvrière par le Mouvement Ouvrier</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">1969</div>
+        <div class="timeline-text">Fondation de Présence et Action Culturelles (PAC)</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">Années 2000</div>
+        <div class="timeline-text">Développement des régionales et des campagnes de sensibilisation (Asseoir l'Espoir, Caddy Minimum Garanti…)</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2020s</div>
+        <div class="timeline-text">Adoption du positionnement écosocialiste, digitalisation avec podcasts et outils numériques</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 3. OFFRE ═══════════════ -->
+<section id="offre">
+  <div class="container">
+    <div class="section-label">03 — Offre de services</div>
+    <h2>Quatre piliers d'action</h2>
+    <p>L'action de PAC s'articule autour de quatre axes stratégiques, formant un socle cohérent d'éducation permanente visant l'émancipation citoyenne, la vigilance démocratique et la lutte contre toutes les formes de discrimination.</p>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="pillar-icon">🎤</div>
+        <h4>Citoyenneté & Éducation politique</h4>
+        <p>Animations, projets collectifs, rencontres-débats, prises de position et manifestations pour développer l'analyse critique de la société contemporaine.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon">📚</div>
+        <h4>Formation</h4>
+        <p>Formations de formateur·trice·s, d'animateur·trice·s, d'écrivain·e·s public·que·s, approche interculturelle et approche du genre via l'Université Populaire.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon">✍️</div>
+        <h4>Édition & Publications</h4>
+        <p>Magazine « Agir par la Culture » (trimestriel, 10 000 ex.), Cahiers de l'Éducation permanente, études, analyses et ouvrages de société.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon">📢</div>
+        <h4>Campagnes de sensibilisation</h4>
+        <p>Campagnes thématiques sur la sécurité sociale, les droits des citoyens, les discriminations : expositions itinérantes, ciné-débats, podcasts.</p>
+      </div>
+    </div>
+
+    <h3>Formations proposées en 2025–2026</h3>
+    <p>Le catalogue de formations couvre un spectre large et original, allant de l'écriture publique à la création sonore. Parmi les offres identifiées sur le site :</p>
+    <div class="tech-pills">
+      <span class="tech-pill">Devenir Écrivain·e public·que</span>
+      <span class="tech-pill">Dire pour Agir (animateur·trice)</span>
+      <span class="tech-pill">Animer un atelier d'arpentage</span>
+      <span class="tech-pill">Écologie depuis les marges</span>
+      <span class="tech-pill">Animation d'ateliers d'expression</span>
+      <span class="tech-pill">Création d'une balade sonore</span>
+      <span class="tech-pill">Le conflit, dynamique transformatrice</span>
+      <span class="tech-pill">Jeu Communa</span>
+      <span class="tech-pill">Jeu Merci l'impôt ?</span>
+      <span class="tech-pill">Agir face aux paroles excluantes</span>
+      <span class="tech-pill">Formation PEPS</span>
+      <span class="tech-pill">Monte ton anecdote gesticulée</span>
+    </div>
+
+    <h3>Outils pédagogiques</h3>
+    <p>PAC développe des outils innovants tels que le jeu de la ficelle sur le téléphone portable et le postcolonialisme, les podcasts « Les Jours Heureux », le spectacle collectif « Chronique d'un sexisme ordinaire » et des expositions itinérantes comme « Witches – Le renouveau des sorcières ».</p>
+  </div>
+</section>
+
+<!-- ═══════════════ 4. RÉSEAU ═══════════════ -->
+<section id="regionales">
+  <div class="container">
+    <div class="section-label">04 — Réseau territorial</div>
+    <h2>11 régionales en Belgique francophone</h2>
+    <p>PAC dispose d'un maillage territorial dense couvrant l'ensemble de la Fédération Wallonie-Bruxelles, avec des équipes locales travaillant à l'empouvoirement des citoyen·ne·s par le biais d'actions collectives et culturelles. La régionale de Bruxelles, par exemple, compte à elle seule 21 locales et une vingtaine d'écrivain·e·s public·que·s.</p>
+
+    <div class="regionales-grid">
+      <div class="regionale-chip">Brabançonne</div>
+      <div class="regionale-chip">Bruxelles</div>
+      <div class="regionale-chip">Centre</div>
+      <div class="regionale-chip">Charleroi</div>
+      <div class="regionale-chip">Dinant-Philippeville</div>
+      <div class="regionale-chip">Huy-Waremme</div>
+      <div class="regionale-chip">Liège</div>
+      <div class="regionale-chip">Mons-Borinage</div>
+      <div class="regionale-chip">Namur</div>
+      <div class="regionale-chip">Verviers</div>
+      <div class="regionale-chip">Wallonie Picarde</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 5. UX / UI ═══════════════ -->
+<section id="ux">
+  <div class="container">
+    <div class="section-label">05 — Expérience utilisateur</div>
+    <h2>Évaluation UX / UI</h2>
+    <p>Le site pac-g.be présente une architecture informationnelle riche et structurée, avec un double niveau de navigation (menu principal + menu secondaire utilitaire). L'identité visuelle est cohérente avec le positionnement écosocialiste du mouvement. Voici l'évaluation détaillée par critère :</p>
+
+    <div class="gauge-grid">
+      <div class="gauge-card">
+        <div class="gauge-header">
+          <span class="gauge-title">Architecture de l'information</span>
+          <span class="gauge-score" style="color: var(--green);">8/10</span>
+        </div>
+        <div class="gauge-bar">
+          <div class="gauge-fill" style="width: 80%; background: var(--green);"></div>
+        </div>
+        <div class="gauge-note">Navigation hiérarchique claire : Accueil, Régionales, Actu, Formations, Publications, Analyses, Outils, Expos, Campagnes, Calendrier</div>
+      </div>
+
+      <div class="gauge-card">
+        <div class="gauge-header">
+          <span class="gauge-title">Richesse du contenu</span>
+          <span class="gauge-score" style="color: var(--green);">9/10</span>
+        </div>
+        <div class="gauge-bar">
+          <div class="gauge-fill" style="width: 90%; background: var(--green);"></div>
+        </div>
+        <div class="gauge-note">Contenu dense et régulièrement mis à jour : analyses par année (2020–2026), formations détaillées, agenda des événements</div>
+      </div>
+
+      <div class="gauge-card">
+        <div class="gauge-header">
+          <span class="gauge-title">Design & Identité visuelle</span>
+          <span class="gauge-score" style="color: var(--gold);">6/10</span>
+        </div>
+        <div class="gauge-bar">
+          <div class="gauge-fill" style="width: 60%; background: var(--gold);"></div>
+        </div>
+        <div class="gauge-note">Design fonctionnel mais daté, typique d'un thème WordPress classique ; visuels événementiels de qualité variable</div>
+      </div>
+
+      <div class="gauge-card">
+        <div class="gauge-header">
+          <span class="gauge-title">Navigation mobile (responsive)</span>
+          <span class="gauge-score" style="color: var(--gold);">6.5/10</span>
+        </div>
+        <div class="gauge-bar">
+          <div class="gauge-fill" style="width: 65%; background: var(--gold);"></div>
+        </div>
+        <div class="gauge-note">Adaptatif mais sous-menus parfois complexes sur petit écran ; menu hamburger présent</div>
+      </div>
+
+      <div class="gauge-card">
+        <div class="gauge-header">
+          <span class="gauge-title">Appels à l'action (CTA)</span>
+          <span class="gauge-score" style="color: var(--green);">7.5/10</span>
+        </div>
+        <div class="gauge-bar">
+          <div class="gauge-fill" style="width: 75%; background: var(--green);"></div>
+        </div>
+        <div class="gauge-note">Boutons « Billets » et « S'inscrire » bien positionnés sur les événements ; newsletter et calendrier facilement accessibles</div>
+      </div>
+
+      <div class="gauge-card">
+        <div class="gauge-header">
+          <span class="gauge-title">Clarté des menus</span>
+          <span class="gauge-score" style="color: var(--gold);">6/10</span>
+        </div>
+        <div class="gauge-bar">
+          <div class="gauge-fill" style="width: 60%; background: var(--gold);"></div>
+        </div>
+        <div class="gauge-note">10 entrées principales + sous-menus denses ; risque de surcharge cognitive pour un visiteur néophyte</div>
+      </div>
+    </div>
+
+    <h3>Structure de navigation</h3>
+    <p>Le site propose un double système de navigation. Le menu principal comprend 10 entrées avec sous-menus détaillés (Formations : 12 sous-entrées, Analyses : 7 années archivées, Outils : 5 ressources). Le menu secondaire donne accès aux fonctions utilitaires : Le mouvement, Shop, Presse, Newsletter, Location de salle, Postuler et Contact. Cette richesse est à double tranchant : elle reflète la diversité de l'offre mais peut intimider un utilisateur non initié.</p>
+  </div>
+</section>
+
+<!-- ═══════════════ 6. TECHNOLOGIES ═══════════════ -->
+<section id="tech">
+  <div class="container">
+    <div class="section-label">06 — Stack technique</div>
+    <h2>Technologies identifiées</h2>
+    <p>Le site est bâti sur un CMS WordPress, choix pertinent pour une organisation associative nécessitant une gestion de contenu décentralisée entre les différentes régionales et le siège central. Plusieurs extensions viennent enrichir les fonctionnalités.</p>
+
+    <div class="tech-pills">
+      <span class="tech-pill"><span class="dot" style="background: #21759b;"></span> WordPress (CMS)</span>
+      <span class="tech-pill"><span class="dot" style="background: #777bb4;"></span> PHP (Backend)</span>
+      <span class="tech-pill"><span class="dot" style="background: #e44d26;"></span> HTML5 / CSS3</span>
+      <span class="tech-pill"><span class="dot" style="background: #27ae60;"></span> ai1ec (Calendrier)</span>
+      <span class="tech-pill"><span class="dot" style="background: #f39c12;"></span> WooCommerce (Boutique)</span>
+      <span class="tech-pill"><span class="dot" style="background: #3498db;"></span> Plugin Newsletter</span>
+      <span class="tech-pill"><span class="dot" style="background: #9b59b6;"></span> Sous-domaine boutique.pac-g.be</span>
+    </div>
+
+    <h3>Évaluation des performances</h3>
+    <div class="gauge-grid">
+      <div class="gauge-card">
+        <div class="gauge-header">
+          <span class="gauge-title">Vitesse de chargement estimée</span>
+          <span class="gauge-score" style="color: var(--gold);">Moyenne</span>
+        </div>
+        <div class="gauge-bar">
+          <div class="gauge-fill" style="width: 55%; background: var(--gold);"></div>
+        </div>
+        <div class="gauge-note">Nombreux plugins WordPress, images à optimiser davantage ; structure HTML chargée typique de WP</div>
+      </div>
+
+      <div class="gauge-card">
+        <div class="gauge-header">
+          <span class="gauge-title">SEO & Référencement</span>
+          <span class="gauge-score" style="color: var(--green);">Bon</span>
+        </div>
+        <div class="gauge-bar">
+          <div class="gauge-fill" style="width: 75%; background: var(--green);"></div>
+        </div>
+        <div class="gauge-note">Bien indexé par Google, URLs sémantiques, présence de catégories et taxonomies WordPress exploitées</div>
+      </div>
+    </div>
+
+    <h3>Écosystème digital</h3>
+    <p>Au-delà du site principal, PAC maintient un sous-domaine dédié à la boutique (boutique.pac-g.be), un système d'inscription newsletter, et un calendrier intégré d'événements (plugin All-in-One Event Calendar). Le site sert de hub central pour l'ensemble des régionales, chacune disposant de sa page dédiée avec agenda propre.</p>
+  </div>
+</section>
+
+<!-- ═══════════════ 7. PREUVE SOCIALE ═══════════════ -->
+<section id="social">
+  <div class="container">
+    <div class="section-label">07 — Réassurance & preuve sociale</div>
+    <h2>Crédibilité et partenariats</h2>
+
+    <h3>Financeurs institutionnels</h3>
+    <p>Le site affiche en pied de page les logos de ses principaux soutiens financiers, constituant un puissant marqueur de légitimité institutionnelle :</p>
+    <div class="partner-cloud">
+      <span class="partner-tag institutional">Fédération Wallonie-Bruxelles</span>
+      <span class="partner-tag institutional">Région Wallonne</span>
+      <span class="partner-tag institutional">Région de Bruxelles-Capitale</span>
+      <span class="partner-tag institutional">Loterie Nationale</span>
+      <span class="partner-tag institutional">Service Public Francophone Bruxellois</span>
+      <span class="partner-tag institutional">Wallonie-Bruxelles International</span>
+      <span class="partner-tag institutional">Union Européenne (FSE)</span>
+      <span class="partner-tag institutional">Provinces</span>
+    </div>
+
+    <h3>Réseau de partenaires associatifs</h3>
+    <p>PAC se définit comme un espace de rassemblement de progressistes et développe un vaste réseau de collaborations :</p>
+    <div class="partner-cloud">
+      <span class="partner-tag">CIRE</span>
+      <span class="partner-tag">C.N.A.P.D.</span>
+      <span class="partner-tag">MOC</span>
+      <span class="partner-tag">CAL</span>
+      <span class="partner-tag">CEPAG</span>
+      <span class="partner-tag">Territoires de la Mémoire</span>
+      <span class="partner-tag">ATTAC</span>
+      <span class="partner-tag">Bruxelles Laïque</span>
+      <span class="partner-tag">Etopia</span>
+      <span class="partner-tag">Peuple et Culture</span>
+      <span class="partner-tag">FGTB</span>
+      <span class="partner-tag">Solidaris</span>
+      <span class="partner-tag">I.E.V.</span>
+      <span class="partner-tag">GSARA</span>
+      <span class="partner-tag">RéSO-J</span>
+      <span class="partner-tag">Femmes Prévoyantes Socialistes</span>
+      <span class="partner-tag">Centres Culturels</span>
+      <span class="partner-tag">Maisons de Jeunes</span>
+      <span class="partner-tag">Éditions du Cerisier</span>
+      <span class="partner-tag">Théâtre et Publics</span>
+      <span class="partner-tag">Coalition Diversité Culturelle</span>
+    </div>
+
+    <h3>Présence digitale</h3>
+    <div class="social-row">
+      <div class="social-card">
+        <div class="platform">LinkedIn</div>
+        <div class="count">592</div>
+        <div class="desc">followers</div>
+      </div>
+      <div class="social-card">
+        <div class="platform">Instagram</div>
+        <div class="count">2 660</div>
+        <div class="desc">followers · 377 posts</div>
+      </div>
+      <div class="social-card">
+        <div class="platform">Facebook</div>
+        <div class="count">Actif</div>
+        <div class="desc">page mouvement</div>
+      </div>
+      <div class="social-card">
+        <div class="platform">YouTube</div>
+        <div class="count">Actif</div>
+        <div class="desc">vidéos & podcasts</div>
+      </div>
+    </div>
+
+    <h3>Éléments manquants</h3>
+    <p>Le site ne propose pas de témoignages de participant·e·s aux formations, pas d'études de cas chiffrées sur l'impact des actions, et pas de vidéo institutionnelle de présentation du mouvement. Ces éléments pourraient considérablement renforcer la réassurance auprès des nouveaux publics.</p>
+  </div>
+</section>
+
+<!-- ═══════════════ 8. SWOT ═══════════════ -->
+<section id="swot">
+  <div class="container">
+    <div class="section-label">08 — Analyse SWOT</div>
+    <h2>Forces, faiblesses, opportunités, menaces</h2>
+
+    <div class="swot">
+      <div class="swot-card swot-strength">
+        <h4>✅ Forces</h4>
+        <ul>
+          <li>Plus grand mouvement d'éducation permanente de la FWB — légitimité historique incontestable</li>
+          <li>Reconnaissance institutionnelle par 8+ financeurs publics de premier plan</li>
+          <li>Maillage territorial dense : 11 régionales, ~200 sections locales</li>
+          <li>Offre de formations diversifiée et originale (écriture publique, arpentage, balades sonores…)</li>
+          <li>Contenu éditorial riche : magazine trimestriel, analyses annuelles, cahiers d'éducation permanente</li>
+          <li>Positionnement idéologique clair et assumé (écosocialisme)</li>
+          <li>Réseau de partenariats associatifs très large (20+ organisations)</li>
+        </ul>
+      </div>
+
+      <div class="swot-card swot-weakness">
+        <h4>⚠️ Faiblesses</h4>
+        <ul>
+          <li>Design du site daté, typique d'un WordPress générique — manque de modernité visuelle</li>
+          <li>Navigation complexe : 10 entrées principales avec sous-menus denses, surcharge cognitive possible</li>
+          <li>Absence de témoignages de bénéficiaires et d'études d'impact</li>
+          <li>Pas de vidéo institutionnelle de présentation du mouvement</li>
+          <li>Présence réseaux sociaux modeste (592 LinkedIn, 2 660 Instagram)</li>
+          <li>Performances techniques moyennes (accumulation de plugins WordPress)</li>
+          <li>Sous-menus non simplifiés pour le mobile</li>
+        </ul>
+      </div>
+
+      <div class="swot-card swot-opportunity">
+        <h4>🔵 Opportunités</h4>
+        <ul>
+          <li>Refonte UX/UI pour moderniser l'image et simplifier le parcours utilisateur</li>
+          <li>Création de contenus vidéo (témoignages, reportages de formations, mini-docs)</li>
+          <li>Développement d'une stratégie de contenu sur les réseaux sociaux</li>
+          <li>Mise en place d'un système de mesure d'impact social (KPIs publics)</li>
+          <li>Optimisation de la performance technique (cache, CDN, images WebP)</li>
+          <li>Podcasts déjà existants — potentiel d'amplification de l'audience</li>
+        </ul>
+      </div>
+
+      <div class="swot-card swot-threat">
+        <h4>🟠 Menaces</h4>
+        <ul>
+          <li>Dépendance aux financements publics — vulnérabilité aux coupes budgétaires</li>
+          <li>Concurrence d'autres mouvements d'éducation permanente plus agiles digitalement</li>
+          <li>Image potentiellement perçue comme militante, pouvant limiter la portée auprès de publics non-affiliés</li>
+          <li>Évolution des usages numériques : risque de décrochage si le digital n'est pas modernisé</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 9. RECOMMANDATIONS ═══════════════ -->
+<section id="recommandations">
+  <div class="container">
+    <div class="section-label">09 — Recommandations</div>
+    <h2>Pistes d'amélioration prioritaires</h2>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="pillar-icon">🎨</div>
+        <h4>Refonte du design</h4>
+        <p>Moderniser l'identité visuelle web : typographie contemporaine, espacement généreux, palette cohérente avec le logo écosocialiste. Simplifier l'arborescence à 6–7 entrées principales maximum.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon">🎬</div>
+        <h4>Contenus vidéo & témoignages</h4>
+        <p>Produire une vidéo institutionnelle de 2 min, collecter des témoignages de participant·e·s, documenter l'impact des campagnes avec des chiffres concrets.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon">⚡</div>
+        <h4>Performance technique</h4>
+        <p>Auditer et réduire les plugins WordPress, implémenter un cache (WP Rocket), convertir les images en WebP, utiliser un CDN pour les assets statiques.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon">📱</div>
+        <h4>Stratégie social media</h4>
+        <p>Développer une ligne éditoriale digitale cohérente, augmenter la fréquence des publications Instagram/LinkedIn, exploiter les Reels et les formats courts.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer>
+  <p>Rapport d'analyse — <strong>pac-g.be</strong> — Présence et Action Culturelles<br>
+  Généré en février 2026 · Site analysé : <a href="https://www.pac-g.be" target="_blank">www.pac-g.be</a></p>
+</footer>
+
+</body>
+</html>
