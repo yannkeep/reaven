@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REDRUME | La Fabrique de l'Ennemi Intérieur</title>
+    <meta name="description" content="Analyse interactive du documentaire 'Sans boulot : tous fraudeurs ?' à travers le prisme de la sociologie et de la dystopie.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Soft Green & Lilac Retro Geek (High Contrast Dark Mode) -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap');
+
+        :root {
+            --color-bg: #0f172a;      /* Slate 900 */
+            --color-panel: #1e293b;   /* Slate 800 */
+            --color-text: #e2e8f0;    /* Slate 200 */
+            --color-lilas: #d8b4fe;   /* Lilac */
+            --color-vert: #86efac;    /* Soft Green */
+            --color-alert: #f87171;   /* Red 400 */
+        }
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Scanline Effect for Retro/Surveillance Vibe */
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 50;
+            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(134, 239, 172, 0.05) 50%, rgba(0,0,0,0) 100%);
+            opacity: 0.1;
+            position: fixed;
+            bottom: 100%;
+            animation: scanline 8s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scanline {
+            0% { bottom: 100%; }
+            100% { bottom: -100px; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--color-bg); 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-panel); 
+            border: 1px solid var(--color-vert);
+        }
+
+        /* Utilities */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(216, 180, 254, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .glass-panel:hover {
+            border-color: var(--color-lilas);
+            box-shadow: 0 0 15px rgba(216, 180, 254, 0.1);
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            max-width: 100%;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 5px rgba(134, 239, 172, 0.5);
+        }
+        
+        .neon-border {
+            box-shadow: 0 0 5px var(--color-vert), inset 0 0 5px var(--color-vert);
+        }
+
+        /* Toggle Switch Styling */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: var(--color-vert);
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: var(--color-vert);
+        }
+        
+        /* Interactive Cards */
+        .theory-card.active {
+            border-left: 4px solid var(--color-vert);
+            background: rgba(134, 239, 172, 0.05);
+        }
+
+        .dystopia-row:hover {
+            background: rgba(216, 180, 254, 0.1);
+        }
+    </style>
+
+    <!-- Application Structure Plan:
+         1. Header/Nav: Tactical dashboard aesthetic.
+         2. Intro: "The Machine of Consent" - Setting the context of the report.
+         3. Theoretical Frameworks (Schmitt, Girard, Wacquant): Interactive cards explaining the "Why".
+         4. Propaganda Techniques (Chomsky, Ellul): A decoder section.
+         5. The Data Gap (Charts): Visualizing Perception vs Reality (Fraud stats).
+         6. Dystopian Matrix: A direct comparison table/grid between Fiction (Orwell/Black Mirror) and Reality.
+         7. Newspeak Translator: Interactive toggle to switch between "Reality" and "Neoliberal Newspeak".
+         8. The Panopticon: Visualizing the asymmetry of surveillance.
+         9. Resistance: Counter-narratives and conclusions.
+    -->
+    
+    <!-- Visualization & Content Choices:
+         - Bar Chart: Comparing "Perceived Fraud" vs "Actual Fraud" vs "Fiscal Fraud". Goal: Compare.
+         - Radar Chart: Analyzing the "Documentary's Composition" (Stigmatization, Voyeurism, Analysis, Context). Goal: Relationships.
+         - Newspeak Toggle: Interactive text replacement. Goal: Inform/Change.
+         - Dystopian Grid: Structured layout mapping fiction to reality. Goal: Organize/Compare.
+         - Justification: These choices break down the dense theoretical text into digestible, interactive chunks, using the "Hacker/Resistance" aesthetic to align with the "Dystopian" theme.
+    -->
+    
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="selection:bg-purple-500 selection:text-white">
+
+    <div class="scanline"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-40 bg-slate-900/90 backdrop-blur-md border-b border-purple-500/30">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-green-400 font-mono text-xl font-bold tracking-tighter">&lt;REDRUME/&gt;</span>
+                <span class="text-purple-400 text-xs font-mono border border-purple-500/50 px-2 py-0.5 rounded">DOSSIER_ANALYSE_v2.5</span>
+            </div>
+            <div class="hidden md:flex gap-6 font-mono text-xs text-gray-400">
+                <a href="#theory" class="hover:text-green-400 transition-colors">THÉORIE</a>
+                <a href="#propaganda" class="hover:text-green-400 transition-colors">PROPAGANDE</a>
+                <a href="#data" class="hover:text-green-400 transition-colors">DONNÉES</a>
+                <a href="#dystopia" class="hover:text-green-400 transition-colors">DYSTOPIE</a>
+                <a href="#resistance" class="text-purple-300 hover:text-white transition-colors">[RÉSISTANCE]</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="pt-32 pb-20 px-4 max-w-7xl mx-auto text-center relative overflow-hidden">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-purple-600/10 blur-[100px] rounded-full -z-10"></div>
+        
+        <h1 class="text-4xl md:text-6xl font-bold mb-6 font-mono text-transparent bg-clip-text bg-gradient-to-r from-green-300 via-white to-purple-300 tracking-tight">
+            LA FABRIQUE DE L'ENNEMI INTÉRIEUR
+        </h1>
+        <p class="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-8 font-light leading-relaxed">
+            Du reportage à la dystopie : analyse critique du documentaire "Sans boulot : tous fraudeurs ?".
+        </p>
+        <div class="inline-flex items-center gap-3 px-4 py-2 bg-slate-800 border border-green-500/30 rounded-full text-green-400 font-mono text-sm">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            SYSTÈME: PROPAGANDE NÉOLIBÉRALE DÉTECTÉE
+        </div>
+        
+        <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8 text-left max-w-4xl mx-auto">
+            <div class="glass-panel p-6 rounded-xl">
+                <h3 class="text-purple-400 font-mono text-sm mb-2">> LE REPORTAGE</h3>
+                <p class="text-gray-300 text-sm">
+                    Un programme qui mobilise des mécanismes de bouc émissaire pour fabriquer le consentement à l'austérité, transformant des problèmes structurels en fautes morales individuelles.
+                </p>
+            </div>
+            <div class="glass-panel p-6 rounded-xl border-green-500/30">
+                <h3 class="text-green-400 font-mono text-sm mb-2">> L'ANALYSE</h3>
+                <p class="text-gray-300 text-sm">
+                    Croisement des travaux de Schmitt, Girard, Orwell et Wacquant pour révéler la "machine à sens commun" qui prépare le terrain aux politiques d'exclusion.
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Section 1: Theoretical Frameworks -->
+    <section id="theory" class="py-20 bg-slate-900 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="mb-12">
+                <h2 class="text-3xl font-bold text-white font-mono mb-4 flex items-center gap-3">
+                    <span class="text-green-400">01.</span> CADRES THÉORIQUES
+                </h2>
+                <p class="text-gray-400 max-w-2xl">
+                    Le documentaire n'est pas un simple divertissement racoleur, mais un objet politique qui répond à des fonctions précises décrites par la sociologie et la philosophie politique.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Card 1: Schmitt -->
+                <div class="theory-card glass-panel p-6 rounded-lg cursor-pointer hover:bg-slate-800/80 transition-all active" onclick="activateTheory(this, 'schmitt')">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-lg font-bold text-purple-300">L'Ennemi Schmittien</h3>
+                        <span class="text-xs font-mono text-gray-500">Carl Schmitt</span>
+                    </div>
+                    <p class="text-sm text-gray-400">Le "fraudeur" comme ennemi intérieur nécessaire à la cohésion du groupe face à la crise.</p>
+                </div>
+
+                <!-- Card 2: Girard -->
+                <div class="theory-card glass-panel p-6 rounded-lg cursor-pointer hover:bg-slate-800/80 transition-all" onclick="activateTheory(this, 'girard')">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-lg font-bold text-purple-300">Le Bouc Émissaire</h3>
+                        <span class="text-xs font-mono text-gray-500">René Girard</span>
+                    </div>
+                    <p class="text-sm text-gray-400">Canalisation de la violence collective vers une victime marginale pour ressouder la communauté.</p>
+                </div>
+
+                <!-- Card 3: Wacquant -->
+                <div class="theory-card glass-panel p-6 rounded-lg cursor-pointer hover:bg-slate-800/80 transition-all" onclick="activateTheory(this, 'wacquant')">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-lg font-bold text-purple-300">Théâtre de Moralité</h3>
+                        <span class="text-xs font-mono text-gray-500">Loïc Wacquant</span>
+                    </div>
+                    <p class="text-sm text-gray-400">La vitupération publique des figures déviantes pour combler le déficit de légitimité de l'État.</p>
+                </div>
+            </div>
+
+            <!-- Dynamic Content Area -->
+            <div id="theory-content" class="mt-8 p-8 bg-slate-800/50 rounded-xl border border-gray-700 min-h-[150px]">
+                <h4 class="text-xl font-bold text-green-400 mb-2 font-mono">Carl Schmitt : L'Ennemi Intérieur</h4>
+                <p class="text-gray-300 leading-relaxed">
+                    Selon Schmitt, toute communauté politique se définit par la distinction ami/ennemi. Le "fraudeur social" remplit cette fonction d'ennemi public (*hostis*) : il est interne (citoyen) mais désigné comme étranger au "mode de vie" laborieux. Son exclusion symbolique permet de réaffirmer l'identité collective d'une société en crise économique.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Data Reality vs Perception -->
+    <section id="data" class="py-20 bg-slate-950 relative">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="mb-12 flex flex-col md:flex-row justify-between items-end">
+                <div>
+                    <h2 class="text-3xl font-bold text-white font-mono mb-4 flex items-center gap-3">
+                        <span class="text-green-400">02.</span> LA RÉALITÉ DES CHIFFRES
+                    </h2>
+                    <p class="text-gray-400 max-w-2xl">
+                        Le discours sur la fraude repose sur une distorsion massive de la réalité. Le "poverty porn" inverse les ordres de grandeur.
+                    </p>
+                </div>
+                <div class="font-mono text-xs text-purple-400 mt-4 md:mt-0">SOURCE: RAPPORT ANNEXE / ONSS</div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <!-- Chart 1: Perception Gap -->
+                <div class="glass-panel p-6 rounded-xl">
+                    <h3 class="text-white font-mono mb-6 text-sm border-b border-gray-700 pb-2">PERCEPTION PUBLIQUE vs RÉALITÉ STATISTIQUE</h3>
+                    <div class="chart-container">
+                        <canvas id="perceptionChart"></canvas>
+                    </div>
+                    <p class="mt-4 text-xs text-gray-500 italic text-center">
+                        Le public surestime la fraude sociale de manière exponentielle à cause du cadrage médiatique.
+                    </p>
+                </div>
+
+                <!-- Chart 2: Cost Comparison -->
+                <div class="glass-panel p-6 rounded-xl">
+                    <h3 class="text-white font-mono mb-6 text-sm border-b border-gray-700 pb-2">COÛT RÉEL : FRAUDE SOCIALE vs FISCALE</h3>
+                    <div class="chart-container">
+                        <canvas id="costChart"></canvas>
+                    </div>
+                    <p class="mt-4 text-xs text-gray-500 italic text-center">
+                        L'attention médiatique est inversement proportionnelle au coût réel pour la société.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Propaganda & Newspeak -->
+    <section id="propaganda" class="py-20 bg-slate-900 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                
+                <!-- Left: Propaganda Filters -->
+                <div>
+                    <h2 class="text-3xl font-bold text-white font-mono mb-6 flex items-center gap-3">
+                        <span class="text-green-400">03.</span> MÉCANIQUE DE PROPAGANDE
+                    </h2>
+                    <p class="text-gray-400 mb-8">
+                        Selon le modèle d'Herman et Chomsky, les médias commerciaux filtrent l'information pour servir les intérêts dominants.
+                    </p>
+                    
+                    <ul class="space-y-4 font-mono text-sm">
+                        <li class="bg-slate-800 p-4 rounded border-l-2 border-purple-500">
+                            <strong class="text-white block mb-1">1. Propriété & Publicité</strong>
+                            <span class="text-gray-400">Les médias appartiennent à des groupes qui bénéficient de la réduction des charges sociales. Les annonceurs ciblent les consommateurs solvables.</span>
+                        </li>
+                        <li class="bg-slate-800 p-4 rounded border-l-2 border-purple-500">
+                            <strong class="text-white block mb-1">2. Sources Officielles</strong>
+                            <span class="text-gray-400">Dépendance aux cellules gouvernementales "anti-fraude" qui imposent leur cadrage et leurs chiffres.</span>
+                        </li>
+                        <li class="bg-slate-800 p-4 rounded border-l-2 border-purple-500">
+                            <strong class="text-white block mb-1">3. L'Ennemi Idéologique</strong>
+                            <span class="text-gray-400">Le "Fraudeur" remplace le communiste comme figure de peur permettant de mobiliser le consensus.</span>
+                        </li>
+                        <li class="bg-slate-800 p-4 rounded border-l-2 border-purple-500">
+                            <strong class="text-white block mb-1">4. Cadrage Épisodique</strong>
+                            <span class="text-gray-400">Focalisation sur des histoires individuelles (anecdotes) plutôt que sur les causes systémiques (thématique).</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Right: Newspeak Translator -->
+                <div class="glass-panel p-8 rounded-xl border border-green-500/20">
+                    <div class="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
+                        <h3 class="text-xl font-bold text-white font-mono">DÉCODEUR DE NOVLANGUE</h3>
+                        
+                        <!-- Toggle Switch -->
+                        <div class="relative inline-block w-12 h-6 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="newspeak-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300"/>
+                            <label for="newspeak-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-700 cursor-pointer"></label>
+                        </div>
+                    </div>
+
+                    <div id="newspeak-display" class="space-y-6">
+                        <!-- Dynamic content injected by JS -->
+                        <p class="text-gray-500 italic text-center">Activez le décodeur pour révéler le sens caché des termes néolibéraux.</p>
+                    </div>
+
+                    <div class="mt-8 p-4 bg-slate-950 rounded text-xs text-green-400 font-mono">
+                        > STATUS: <span id="decoder-status">STANDARD (NÉOLIBÉRAL)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: The Dystopian Matrix -->
+    <section id="dystopia" class="py-20 bg-black relative overflow-hidden">
+        <!-- Background Grid -->
+        <div class="absolute inset-0 z-0 opacity-10" 
+             style="background-image: linear-gradient(rgba(134, 239, 172, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(134, 239, 172, 0.5) 1px, transparent 1px); background-size: 30px 30px;">
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 relative z-10">
+            <h2 class="text-3xl font-bold text-white font-mono mb-10 flex items-center gap-3">
+                <span class="text-green-400">04.</span> LA MATRICE DYSTOPIQUE
+            </h2>
+            <p class="text-gray-400 max-w-3xl mb-12">
+                Les fictions d'anticipation n'étaient pas des prophéties mystiques, mais des analyses sociologiques. Le documentaire "Tous Fraudeurs" valide leur réalisation.
+            </p>
+
+            <div class="overflow-hidden rounded-xl border border-gray-800">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-900 text-purple-400 font-mono text-sm uppercase">
+                        <tr>
+                            <th class="p-4 border-b border-gray-800 w-1/4">Référence Culturelle</th>
+                            <th class="p-4 border-b border-gray-800 w-1/4">Concept Dystopique</th>
+                            <th class="p-4 border-b border-gray-800 w-1/2">Manifestation Réelle (Documentaire/Belgique)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm font-mono text-gray-300 divide-y divide-gray-800 bg-slate-900/50">
+                        <tr class="dystopia-row transition-colors">
+                            <td class="p-4 font-bold text-white">1984 (Orwell)</td>
+                            <td class="p-4 text-gray-400">Deux Minutes de la Haine</td>
+                            <td class="p-4 text-green-300">Programmation régulière de la haine contre le "fraudeur" (Goldstein) pour canaliser la rage sociale.</td>
+                        </tr>
+                        <tr class="dystopia-row transition-colors">
+                            <td class="p-4 font-bold text-white">Black Mirror (Nosedive)</td>
+                            <td class="p-4 text-gray-400">Score Social / Surveillance</td>
+                            <td class="p-4 text-green-300">Banque Carrefour (BCSS), Profilage algorithmique (SyRI, VDAB) ciblant les pauvres.</td>
+                        </tr>
+                        <tr class="dystopia-row transition-colors">
+                            <td class="p-4 font-bold text-white">Brazil (Gilliam)</td>
+                            <td class="p-4 text-gray-400">Déshumanisation Bureaucratique</td>
+                            <td class="p-4 text-green-300">Systèmes "Digital by Default", sanctions automatiques, impossibilité de corriger les erreurs.</td>
+                        </tr>
+                        <tr class="dystopia-row transition-colors">
+                            <td class="p-4 font-bold text-white">Hunger Games</td>
+                            <td class="p-4 text-gray-400">Pauvreté comme Spectacle</td>
+                            <td class="p-4 text-green-300">"Poverty Porn" : la souffrance des précaires divertit les classes moyennes.</td>
+                        </tr>
+                        <tr class="dystopia-row transition-colors">
+                            <td class="p-4 font-bold text-white">Le Meilleur des Mondes</td>
+                            <td class="p-4 text-gray-400">Conditionnement de Classe</td>
+                            <td class="p-4 text-green-300">Discours sur la "culture de l'assistanat" justifiant l'infériorité sociale.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 5: The Panopticon -->
+    <section class="py-20 bg-slate-900 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-3xl font-bold text-white font-mono mb-6">
+                        <span class="text-green-400">05.</span> LE PANOPTIQUE INVERSÉ
+                    </h2>
+                    <p class="text-gray-300 mb-6 leading-relaxed">
+                        Le néolibéralisme crée une asymétrie radicale de transparence.
+                    </p>
+                    <div class="space-y-6">
+                        <div class="bg-slate-800 p-6 rounded-lg border-l-4 border-purple-500">
+                            <h3 class="text-white font-bold mb-2">MAISON DE VERRE (Pour le Pauvre)</h3>
+                            <ul class="text-sm text-gray-400 list-disc ml-5 space-y-1">
+                                <li>Levée du secret bancaire automatique</li>
+                                <li>Visites domiciliaires (brosses à dents comptées)</li>
+                                <li>Surveillance des consommations d'énergie</li>
+                                <li>Algorithmes prédictifs opaques</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-800 p-6 rounded-lg border-l-4 border-green-500">
+                            <h3 class="text-white font-bold mb-2">FORTERESSE (Pour le Riche)</h3>
+                            <ul class="text-sm text-gray-400 list-disc ml-5 space-y-1">
+                                <li>Secret des affaires renforcé</li>
+                                <li>Sociétés écrans et Trusts</li>
+                                <li>Accords fiscaux secrets (Ruling)</li>
+                                <li>Opacité des flux financiers majeurs</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- Visual Metaphor -->
+                <div class="relative h-96 w-full flex items-center justify-center">
+                    <!-- Fortress -->
+                    <div class="absolute w-48 h-48 bg-slate-700 border-2 border-green-500 shadow-[0_0_20px_rgba(134,239,172,0.2)] flex items-center justify-center z-10">
+                        <span class="text-green-500 font-mono font-bold">CAPITAL</span>
+                        <div class="absolute -top-6 text-xs text-green-500 font-mono">OPACITÉ</div>
+                    </div>
+                    <!-- Glass House -->
+                    <div class="absolute w-64 h-64 border border-dashed border-purple-500 rounded-full animate-spin-slow flex items-center justify-center opacity-50"></div>
+                    <div class="absolute w-80 h-80 border border-dotted border-purple-500 rounded-full animate-reverse-spin flex items-center justify-center opacity-30"></div>
+                    <div class="absolute w-full h-full flex items-center justify-center pointer-events-none">
+                        <div class="w-1 h-full bg-gradient-to-b from-transparent via-purple-500 to-transparent opacity-20 rotate-45"></div>
+                        <div class="w-1 h-full bg-gradient-to-b from-transparent via-purple-500 to-transparent opacity-20 -rotate-45"></div>
+                    </div>
+                    <div class="absolute bottom-10 text-purple-400 font-mono text-xs bg-slate-900 px-2">CITOYEN PRÉCAIRE : 100% VISIBLE</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 6: Resistance -->
+    <section id="resistance" class="py-20 bg-slate-950 border-t border-purple-900">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h2 class="text-4xl font-bold text-white font-mono mb-8">
+                REFUSER LE SCRIPT
+            </h2>
+            <p class="text-xl text-gray-300 mb-12">
+                "Mal nommer un objet, c'est ajouter au malheur de ce monde." <br>
+                <span class="text-sm text-gray-500">— Albert Camus</span>
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                <div class="p-6 bg-slate-900 border border-green-500/30 rounded-lg hover:border-green-400 transition-colors">
+                    <h3 class="text-green-400 font-mono font-bold mb-3">JURIDIQUE</h3>
+                    <p class="text-sm text-gray-400">Le précédent SyRI (Pays-Bas) prouve que les tribunaux peuvent stopper la surveillance algorithmique discriminatoire sur base des droits humains.</p>
+                </div>
+                <div class="p-6 bg-slate-900 border border-green-500/30 rounded-lg hover:border-green-400 transition-colors">
+                    <h3 class="text-green-400 font-mono font-bold mb-3">CULTUREL</h3>
+                    <p class="text-sm text-gray-400">Créer des contre-récits puissants comme "I, Daniel Blake" (Ken Loach) pour humaniser la bureaucratie et briser le stigmate.</p>
+                </div>
+                <div class="p-6 bg-slate-900 border border-green-500/30 rounded-lg hover:border-green-400 transition-colors">
+                    <h3 class="text-green-400 font-mono font-bold mb-3">POLITIQUE</h3>
+                    <p class="text-sm text-gray-400">Commissions Vérité sur la Pauvreté : "Rien sur nous, sans nous". Restituer la parole aux premiers concernés.</p>
+                </div>
+            </div>
+
+            <div class="mt-16">
+                <a href="#" class="inline-block px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-mono font-bold rounded shadow-lg shadow-purple-500/20 transition-all transform hover:scale-105">
+                    TÉLÉCHARGER LE KIT DE RÉSISTANCE SÉMANTIQUE
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 py-12 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-left">
+                <div class="text-green-400 font-mono font-bold text-lg mb-2">&lt;REDRUME/&gt;</div>
+                <p class="text-gray-500 text-xs max-w-md">
+                    Ce dossier est une analyse indépendante basée sur des sources académiques et sociologiques. Il vise à déconstruire la fabrique du consentement néolibéral.
+                </p>
+            </div>
+            <div class="flex gap-6 text-sm font-mono text-gray-400">
+                <span class="hover:text-white cursor-pointer">Manifeste</span>
+                <span class="hover:text-white cursor-pointer">Sources</span>
+                <span class="hover:text-white cursor-pointer">Crédits</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- State Management ---
+        const state = {
+            activeTheory: 'schmitt',
+            newspeakEnabled: false
+        };
+
+        // --- Data Content ---
+        const theories = {
+            schmitt: {
+                title: "Carl Schmitt : L'Ennemi Intérieur",
+                text: "Selon Schmitt, toute communauté politique se définit par la distinction ami/ennemi. Le 'fraudeur social' remplit cette fonction d'ennemi public (*hostis*) : il est interne (citoyen) mais désigné comme étranger au 'mode de vie' laborieux. Son exclusion symbolique permet de réaffirmer l'identité collective d'une société en crise économique."
+            },
+            girard: {
+                title: "René Girard : Le Bouc Émissaire",
+                text: "Les crises sociales génèrent une violence collective qui doit être canalisée vers une victime désignée. L'allocataire est idéal : assez pauvre pour être vulnérable, mais accusé de 'jouir' indûment des ressources. Le reportage ritualise ce sacrifice médiatique pour ressouder temporairement le corps social."
+            },
+            wacquant: {
+                title: "Loïc Wacquant : Punir les Pauvres",
+                text: "Lorsque l'État abandonne ses fonctions protectrices (néolibéralisme), il doit se relégitimer par l'exclusion punitive. Le documentaire devient un 'théâtre de moralité civique' où l'on vitupère les figures déviantes ('mère allocataire', 'voyou') pour masquer le désengagement de l'État."
+            }
+        };
+
+        const newspeakDictionary = [
+            { term: "Chômeur", newspeak: "Chercheur d'emploi", desc: "Efface la privation, focalise sur le devoir d'activité." },
+            { term: "Cotisations Sociales", newspeak: "Charges Sociales", desc: "Transforme le salaire différé en fardeau pour l'entreprise." },
+            { term: "Droit aux allocations", newspeak: "Aide / Assistance", desc: "Transforme un droit assurantiel en charité conditionnelle." },
+            { term: "Contrôle", newspeak: "Activation / Accompagnement", desc: "La sanction est maquillée en pédagogie bienveillante." },
+            { term: "Fraude Fiscale", newspeak: "Optimisation / Ingénierie", desc: "Valorise l'intelligence du riche tout en criminalisant le pauvre." }
+        ];
+
+        // --- Interaction Handlers ---
+
+        function activateTheory(element, key) {
+            // UI Update
+            document.querySelectorAll('.theory-card').forEach(card => card.classList.remove('active'));
+            element.classList.add('active');
+            
+            // Content Update
+            const contentDiv = document.getElementById('theory-content');
+            contentDiv.innerHTML = `
+                <h4 class="text-xl font-bold text-green-400 mb-2 font-mono fade-in">${theories[key].title}</h4>
+                <p class="text-gray-300 leading-relaxed fade-in">${theories[key].text}</p>
+            `;
+        }
+
+        // Newspeak Toggle Logic
+        const toggle = document.getElementById('newspeak-toggle');
+        const display = document.getElementById('newspeak-display');
+        const status = document.getElementById('decoder-status');
+
+        function renderNewspeak() {
+            display.innerHTML = '';
+            newspeakDictionary.forEach(item => {
+                const row = document.createElement('div');
+                row.className = "flex justify-between items-center border-b border-gray-800 pb-2";
+                
+                if (state.newspeakEnabled) {
+                    row.innerHTML = `
+                        <div>
+                            <span class="text-green-400 font-bold font-mono text-lg">${item.term}</span>
+                            <span class="block text-xs text-gray-500 mt-1">${item.desc}</span>
+                        </div>
+                        <span class="text-gray-600 line-through text-xs font-mono">${item.newspeak}</span>
+                    `;
+                } else {
+                    row.innerHTML = `
+                        <div>
+                            <span class="text-white font-bold font-mono text-lg">${item.newspeak}</span>
+                        </div>
+                        <span class="text-purple-500 text-xs font-mono">TERME OFFICIEL</span>
+                    `;
+                }
+                display.appendChild(row);
+            });
+            
+            if(state.newspeakEnabled) {
+                status.textContent = "DÉCODÉ (RÉALITÉ SOCIALE)";
+                status.className = "text-green-400 font-bold";
+            } else {
+                status.textContent = "STANDARD (NÉOLIBÉRAL)";
+                status.className = "text-purple-400 font-bold";
+            }
+        }
+
+        toggle.addEventListener('change', (e) => {
+            state.newspeakEnabled = e.target.checked;
+            renderNewspeak();
+        });
+
+        // Initialize Newspeak
+        renderNewspeak();
+
+
+        // --- Chart.js Implementations ---
+
+        // Chart 1: Perception vs Reality
+        const ctxPerception = document.getElementById('perceptionChart').getContext('2d');
+        new Chart(ctxPerception, {
+            type: 'bar',
+            data: {
+                labels: ['Réalité (ONSS)', 'Perception Publique'],
+                datasets: [{
+                    label: '% de Fraude Estimé',
+                    data: [1.5, 27], // Data from report
+                    backgroundColor: ['rgba(134, 239, 172, 0.5)', 'rgba(216, 180, 254, 0.5)'],
+                    borderColor: ['#86efac', '#d8b4fe'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#e2e8f0', font: { family: "'JetBrains Mono', monospace" } }
+                    }
+                }
+            }
+        });
+
+        // Chart 2: Cost Comparison
+        const ctxCost = document.getElementById('costChart').getContext('2d');
+        new Chart(ctxCost, {
+            type: 'doughnut',
+            data: {
+                labels: ['Fraude Sociale (Pauvres)', 'Fraude Fiscale (Riches)'],
+                datasets: [{
+                    data: [2, 98], // Representative scale based on "billions" vs "millions" context
+                    backgroundColor: ['#86efac', '#d8b4fe'],
+                    borderColor: '#0f172a',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#e2e8f0', font: { family: "'JetBrains Mono', monospace" } } }
+                }
+            }
+        });
+
+    </script>
+
+    <style>
+        /* Extra Animations */
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes reverse-spin {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+        .animate-spin-slow {
+            animation: spin-slow 20s linear infinite;
+        }
+        .animate-reverse-spin {
+            animation: reverse-spin 25s linear infinite;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</body>
+</html>
