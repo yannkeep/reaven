@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OUAISFIEU — Intelligence Workstation v3.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════════════
+   CSS VARIABLES & RESET
+   ═══════════════════════════════════════════════════════ */
+:root {
+  --bg-void: #06070a;
+  --bg-panel: #0b0c10;
+  --bg-raised: #10111a;
+  --bg-hover: #161824;
+  --border-dim: #1a1c2e;
+  --border-mid: #2a2d45;
+  --border-bright: #3a3e5c;
+  --text-ghost: #3a3e5c;
+  --text-dim: #5a5f80;
+  --text-mid: #8a8fb0;
+  --text-bright: #c8ccee;
+  --text-white: #e8eaff;
+  --red: #c41e3a;
+  --red-dim: rgba(196,30,58,0.15);
+  --red-glow: rgba(196,30,58,0.4);
+  --blue: #1a5fb4;
+  --blue-dim: rgba(26,95,180,0.15);
+  --green: #26a269;
+  --green-dim: rgba(38,162,105,0.15);
+  --green-bright: #33d17a;
+  --amber: #d4a017;
+  --amber-dim: rgba(212,160,23,0.15);
+  --purple: #813d9c;
+  --cyan: #00838f;
+  --phosphor: #00ff41;
+  --mono: 'IBM Plex Mono', 'Courier New', monospace;
+  --display: 'Space Mono', monospace;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { font-size: 13px; }
+body {
+  font-family: var(--mono);
+  background: var(--bg-void);
+  color: var(--text-mid);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* SCANLINES */
+body::after {
+  content: '';
+  position: fixed; top:0; left:0; right:0; bottom:0;
+  pointer-events: none; z-index: 10000;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px, transparent 2px,
+    rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px
+  );
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-void); }
+::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: var(--red); }
+
+/* ═══════════════════════════════════════════════════════
+   BOOT SCREEN
+   ═══════════════════════════════════════════════════════ */
+#boot-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--bg-void);
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.6s ease, visibility 0.6s;
+}
+#boot-screen.done { opacity: 0; visibility: hidden; pointer-events: none; }
+#boot-log {
+  max-width: 650px; width: 90%; padding: 40px;
+}
+#boot-log .line {
+  opacity: 0; transform: translateY(4px);
+  animation: bootIn 0.25s forwards;
+  font-size: 11px; color: var(--text-dim);
+  margin-bottom: 3px; white-space: nowrap;
+}
+#boot-log .line.title { font-size: 15px; color: var(--text-white); font-weight: 700; letter-spacing: 3px; margin-bottom: 12px; }
+#boot-log .line.ok { color: var(--green-bright); }
+#boot-log .line .idx { color: var(--text-ghost); margin-right: 8px; }
+@keyframes bootIn { to { opacity: 1; transform: translateY(0); } }
+
+.cursor-blink {
+  display: inline-block; width: 8px; height: 14px;
+  background: var(--phosphor);
+  animation: blink 0.7s step-end infinite;
+  vertical-align: middle; margin-left: 4px;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ═══════════════════════════════════════════════════════
+   MAIN LAYOUT
+   ═══════════════════════════════════════════════════════ */
+#app { display: none; flex-direction: column; min-height: 100vh; }
+#app.active { display: flex; }
+
+/* HEADER */
+#header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--red);
+  background: linear-gradient(180deg, #0e0f16 0%, var(--bg-void) 100%);
+  flex-shrink: 0;
+  position: relative;
+}
+#header::after {
+  content: ''; position: absolute; bottom: -1px; left: 0;
+  width: 100%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--red), transparent);
+}
+.header-left { display: flex; align-items: center; gap: 14px; }
+.header-title {
+  font-family: var(--display); font-size: 17px; font-weight: 700;
+  color: var(--text-white); letter-spacing: 4px;
+  text-shadow: 1px 0 var(--red), -1px 0 var(--blue);
+  position: relative;
+}
+.header-sub { font-size: 9px; color: var(--red); letter-spacing: 2px; text-transform: uppercase; }
+.header-right { display: flex; align-items: center; gap: 18px; font-size: 10px; }
+.clock { color: var(--amber); font-variant-numeric: tabular-nums; letter-spacing: 1px; }
+.status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green-bright);
+  box-shadow: 0 0 6px var(--green-bright);
+  display: inline-block; margin-right: 4px;
+  animation: pulse 2s ease infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* TABS */
+#tabs {
+  display: flex; border-bottom: 1px solid var(--border-dim);
+  background: var(--bg-panel); flex-shrink: 0;
+  overflow-x: auto;
+}
+.tab {
+  padding: 11px 22px; cursor: pointer;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px;
+  color: var(--text-dim); border: none; background: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s; white-space: nowrap;
+  text-transform: uppercase;
+}
+.tab:hover { color: var(--text-bright); background: var(--bg-raised); }
+.tab.active {
+  color: var(--text-white); background: var(--bg-raised);
+  border-bottom-color: var(--red);
+}
+.tab .ico { margin-right: 6px; opacity: 0.4; }
+.tab-spacer { flex: 1; }
+.tab-meta { padding: 11px 18px; font-size: 8px; color: var(--text-ghost); letter-spacing: 1px; align-self: center; }
+
+/* CONTENT */
+#content {
+  flex: 1; padding: 20px; max-width: 1300px;
+  margin: 0 auto; width: 100%;
+}
+.panel { display: none; animation: fadeIn 0.3s ease; }
+.panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* FOOTER */
+#footer {
+  border-top: 1px solid var(--border-dim);
+  padding: 8px 20px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 8px; color: var(--text-ghost); letter-spacing: 1px;
+  background: var(--bg-panel); flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════════════
+   REUSABLE COMPONENTS
+   ═══════════════════════════════════════════════════════ */
+
+/* SECTION HEADING */
+.sec-head {
+  font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
+  margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.sec-head.red { color: var(--red); }
+.sec-head.blue { color: var(--blue); }
+.sec-head.green { color: var(--green); }
+.sec-head.amber { color: var(--amber); }
+.sec-head.purple { color: var(--purple); }
+.sec-head::before { content: '▸'; }
+
+/* KPI CARDS */
+.kpi-grid { display: grid; gap: 12px; margin-bottom: 20px; }
+.kpi-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.kpi-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.kpi-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.kpi {
+  border: 1px solid var(--border-dim); padding: 14px;
+  background: var(--bg-panel); position: relative; overflow: hidden;
+  transition: border-color 0.2s;
+}
+.kpi:hover { border-color: var(--border-bright); }
+.kpi.red { border-color: var(--red); background: var(--red-dim); }
+.kpi.blue { border-color: var(--blue); background: var(--blue-dim); }
+.kpi.green { border-color: var(--green); background: var(--green-dim); }
+.kpi.amber { border-color: var(--amber); background: var(--amber-dim); }
+.kpi-label { font-size: 8px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+.kpi.red .kpi-label { color: var(--red); }
+.kpi.blue .kpi-label { color: var(--blue); }
+.kpi.green .kpi-label { color: var(--green); }
+.kpi.amber .kpi-label { color: var(--amber); }
+.kpi-value { font-size: 30px; font-weight: 700; color: var(--text-white); line-height: 1; }
+.kpi.red .kpi-value { color: var(--red); }
+.kpi.blue .kpi-value { color: var(--blue); }
+.kpi.green .kpi-value { color: var(--green-bright); }
+.kpi.amber .kpi-value { color: var(--amber); }
+.kpi-detail { font-size: 10px; color: var(--text-dim); margin-top: 4px; }
+
+/* BADGE */
+.badge {
+  display: inline-block; padding: 1px 7px; font-size: 8px;
+  border: 1px solid currentColor; letter-spacing: 1px;
+  text-transform: uppercase; line-height: 1.6;
+}
+.badge-red { color: var(--red); }
+.badge-blue { color: var(--blue); }
+.badge-green { color: var(--green); }
+.badge-amber { color: var(--amber); }
+.badge-dim { color: var(--text-dim); }
+
+/* PROGRESS BAR */
+.prog { margin-bottom: 8px; }
+.prog-header { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-dim); margin-bottom: 3px; }
+.prog-track { height: 4px; background: var(--bg-void); border: 1px solid var(--border-dim); }
+.prog-fill { height: 100%; transition: width 1.2s cubic-bezier(0.22,1,0.36,1); }
+
+/* BOX */
+.box {
+  border: 1px solid var(--border-dim); padding: 14px;
+  margin-bottom: 16px; background: var(--bg-panel);
+}
+.box.red-border { border-color: var(--red); background: var(--red-dim); }
+.box.blue-border { border-color: var(--blue); }
+
+/* DATA TABLE */
+.dtable { width: 100%; border-collapse: collapse; font-size: 11px; }
+.dtable thead th {
+  text-align: left; padding: 7px 10px; font-size: 8px; font-weight: 600;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--text-dim); border-bottom: 1px solid var(--border-mid);
+}
+.dtable tbody td {
+  padding: 6px 10px; border-bottom: 1px solid var(--border-dim);
+  color: var(--text-mid); vertical-align: top;
+}
+.dtable tbody tr:hover td { background: var(--bg-raised); color: var(--text-bright); }
+.dtable .val { color: var(--text-white); font-weight: 600; font-variant-numeric: tabular-nums; }
+.dtable .up { color: var(--red); }
+.dtable .down { color: var(--green); }
+.dtable .flat { color: var(--text-ghost); }
+
+/* GRID CARDS */
+.card-grid { display: grid; gap: 10px; }
+.card-grid-2 { grid-template-columns: 1fr 1fr; }
+.card-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.card {
+  border: 1px solid var(--border-dim); padding: 12px;
+  background: var(--bg-panel); transition: border-color 0.2s;
+}
+.card:hover { border-color: var(--border-bright); }
+.card-title { color: var(--text-white); font-weight: 600; font-size: 12px; margin-bottom: 4px; }
+.card-role { font-size: 10px; color: var(--text-dim); margin-bottom: 4px; }
+.card-tech { font-size: 10px; color: var(--amber); }
+.card-detail { font-size: 9px; color: var(--text-ghost); margin-top: 5px; line-height: 1.5; }
+.card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+
+/* TIMELINE */
+.tl-item {
+  display: flex; gap: 10px; font-size: 11px; margin-bottom: 7px;
+  padding-left: 10px;
+  border-left: 2px solid var(--border-dim);
+}
+.tl-item.red-line { border-left-color: var(--red); }
+.tl-item.blue-line { border-left-color: var(--blue); }
+.tl-item.green-line { border-left-color: var(--green-bright); }
+.tl-item.amber-line { border-left-color: var(--amber); }
+.tl-date { color: var(--text-dim); min-width: 80px; font-variant-numeric: tabular-nums; }
+.tl-text { color: var(--text-mid); }
+
+/* INPUT */
+.search-input {
+  width: 100%; padding: 9px 14px;
+  background: var(--bg-void); border: 1px solid var(--border-dim);
+  color: var(--green-bright); font-family: var(--mono); font-size: 11px;
+  outline: none; letter-spacing: 0.5px;
+  transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--green); }
+.search-input::placeholder { color: var(--text-ghost); }
+
+/* CHART CONTAINER */
+.chart-box { position: relative; margin-bottom: 20px; }
+.chart-box canvas { max-height: 280px; }
+
+/* BUTTON ROW */
+.btn-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+.btn-tag {
+  padding: 5px 10px; font-size: 9px; font-family: var(--mono);
+  background: var(--bg-raised); color: var(--text-dim);
+  border: 1px solid var(--border-dim); cursor: pointer;
+  letter-spacing: 0.5px; transition: all 0.15s;
+}
+.btn-tag:hover { border-color: var(--border-bright); color: var(--text-bright); }
+.btn-tag.active { background: var(--blue); color: var(--text-white); border-color: var(--blue); }
+
+/* EXPORT BTN */
+.btn-export {
+  padding: 8px 18px; font-size: 10px; font-family: var(--mono);
+  background: var(--red); color: #fff; border: none;
+  cursor: pointer; letter-spacing: 1px; text-transform: uppercase;
+  transition: background 0.2s;
+}
+.btn-export:hover { background: #e0224a; }
+.btn-export-green { background: var(--green); }
+.btn-export-green:hover { background: #2fbd78; }
+
+/* COMPARAISON COLS */
+.vs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 11px; }
+.vs-col-title { font-weight: 700; margin-bottom: 6px; }
+.vs-col-title.red { color: var(--red); }
+.vs-col-title.green { color: var(--green-bright); }
+.vs-line { color: var(--text-dim); margin-bottom: 3px; }
+
+/* INFO TEXT */
+.info-text { font-size: 11px; color: var(--text-mid); line-height: 1.75; }
+.info-text .hl-red { color: var(--red); font-weight: 500; }
+.info-text .hl-blue { color: var(--blue); font-weight: 500; }
+.info-text .hl-green { color: var(--green-bright); font-weight: 500; }
+.info-text .hl-amber { color: var(--amber); font-weight: 500; }
+.info-text .hl-white { color: var(--text-white); font-weight: 600; }
+
+/* RAW JSON */
+.json-pre {
+  background: var(--bg-void); border: 1px solid var(--border-dim);
+  padding: 14px; font-size: 10px; color: var(--green-bright);
+  overflow: auto; max-height: 550px; line-height: 1.55;
+  tab-size: 2;
+}
+
+/* RESPONSIVE */
+@media (max-width: 800px) {
+  .kpi-grid-3, .kpi-grid-4 { grid-template-columns: 1fr 1fr; }
+  .card-grid-2, .card-grid-3 { grid-template-columns: 1fr; }
+  .vs-grid { grid-template-columns: 1fr; }
+  #header { flex-wrap: wrap; gap: 8px; }
+  .header-right { font-size: 9px; }
+  #content { padding: 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ BOOT SCREEN ═══════════════ -->
+<div id="boot-screen">
+  <div id="boot-log"></div>
+</div>
+
+<!-- ═══════════════ MAIN APP ═══════════════ -->
+<div id="app">
+  <!-- HEADER -->
+  <div id="header">
+    <div class="header-left">
+      <div class="header-title">OUAISFIEU</div>
+      <span class="header-sub">Intelligence Workstation</span>
+      <span class="badge badge-green">v3.0</span>
+    </div>
+    <div class="header-right">
+      <span style="color:var(--text-ghost)">CCPLC · Contre-Institution Numérique</span>
+      <span class="clock" id="clock"></span>
+      <span><span class="status-dot"></span><span style="color:var(--green-bright);font-size:10px">ONLINE</span></span>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div id="tabs">
+    <button class="tab active" data-panel="sitrep"><span class="ico">◉</span>SITREP</button>
+    <button class="tab" data-panel="ecosystem"><span class="ico">⬡</span>Écosystème</button>
+    <button class="tab" data-panel="arizona"><span class="ico">▲</span>Arizona</button>
+    <button class="tab" data-panel="data"><span class="ico">█</span>Données</button>
+    <button class="tab" data-panel="finance"><span class="ico">€</span>Financement</button>
+    <button class="tab" data-panel="raw"><span class="ico">{ }</span>Dataset / Export</button>
+    <div class="tab-spacer"></div>
+    <div class="tab-meta">CC BY-NC 4.0 · HÉBERGEMENT 0€ · TRAÇAGE 0 · PUB 0</div>
+  </div>
+
+  <!-- CONTENT -->
+  <div id="content">
+
+    <!-- ══════════ PANEL: SITREP ══════════ -->
+    <div class="panel active" id="panel-sitrep">
+      <div class="kpi-grid kpi-grid-4" id="sitrep-kpis"></div>
+      <div class="box" id="sitrep-report"></div>
+      <div class="sec-head red" style="margin-top:20px">Menaces actives</div>
+      <div id="sitrep-threats"></div>
+      <div class="sec-head green" style="margin-top:24px">Forces confirmées</div>
+      <div id="sitrep-forces"></div>
+      <div class="sec-head amber" style="margin-top:24px">Progression axes CCPLC</div>
+      <div class="chart-box"><canvas id="chart-radar"></canvas></div>
+    </div>
+
+    <!-- ══════════ PANEL: ECOSYSTEM ══════════ -->
+    <div class="panel" id="panel-ecosystem">
+      <div class="sec-head blue">Cartographie technique — <span id="eco-count"></span> nœuds</div>
+      <div class="card-grid card-grid-2" id="eco-cards"></div>
+      <div class="sec-head amber" style="margin-top:24px">Stack technique</div>
+      <div id="eco-stack"></div>
+      <div class="sec-head green" style="margin-top:24px">Répartition par générateur statique</div>
+      <div class="chart-box"><canvas id="chart-ssg"></canvas></div>
+      <div class="sec-head purple" style="margin-top:20px">Trois piliers narratifs</div>
+      <div class="card-grid card-grid-3" id="eco-piliers"></div>
+    </div>
+
+    <!-- ══════════ PANEL: ARIZONA ══════════ -->
+    <div class="panel" id="panel-arizona">
+      <div class="kpi-grid kpi-grid-4" id="arizona-kpis"></div>
+      <div class="sec-head red">Projections dette & déficit 2025–2042</div>
+      <div class="chart-box"><canvas id="chart-projections"></canvas></div>
+      <div class="sec-head blue" style="margin-top:8px">Timeline des impacts</div>
+      <div id="arizona-timeline" style="max-height:320px;overflow-y:auto;padding-right:8px"></div>
+      <div class="box red-border" style="margin-top:20px">
+        <div class="sec-head red">Arizona vs Ouaisfieu — le face-à-face</div>
+        <div class="vs-grid" id="arizona-vs"></div>
+      </div>
+      <div class="sec-head amber" style="margin-top:20px">Mesures Arizona — décomposition</div>
+      <div class="chart-box"><canvas id="chart-arizona-bar"></canvas></div>
+    </div>
+
+    <!-- ══════════ PANEL: DATA ══════════ -->
+    <div class="panel" id="panel-data">
+      <input class="search-input" id="data-search" type="text" placeholder="FILTRER LES DONNÉES... (ex: deficit, invalide, emploi)">
+      <div class="sec-head green" style="margin-top:14px">Chiffres clés — <span id="data-count"></span> entrées</div>
+      <div style="overflow-x:auto"><table class="dtable" id="data-table"></table></div>
+      <div class="sec-head amber" style="margin-top:24px">Documents par thématique</div>
+      <div class="chart-box"><canvas id="chart-thematiques"></canvas></div>
+      <div class="sec-head purple" style="margin-top:8px">Détail des thématiques</div>
+      <div id="data-thematiques"></div>
+    </div>
+
+    <!-- ══════════ PANEL: FINANCE ══════════ -->
+    <div class="panel" id="panel-finance">
+      <div class="sec-head green">Opportunités de financement — <span id="fin-count"></span> pistes</div>
+      <div id="fin-cards"></div>
+      <div class="box" style="margin-top:20px">
+        <div class="sec-head amber">Stratégie budget recommandée</div>
+        <div class="info-text">
+          Mix optimal : <span class="hl-green">40% public / 60% privé</span>.<br>
+          <span class="hl-white">Phase 1</span> : PCI (5-35K€) + FRB (3-50K€) — action immédiate, dès 2026.<br>
+          <span class="hl-white">Phase 2</span> : Erasmus+ KA210 (30-60K€) — partenariat transnational requis.<br>
+          <span class="hl-white">Phase 3</span> : CERV (50-300K€) — horizon 2-3 ans, consortium multi-pays.<br>
+          Budget type petit projet : <span class="hl-white">15 000 — 30 000 €/an</span>.<br>
+          Budget type moyen projet : <span class="hl-white">50 000 — 100 000 € sur 2-3 ans</span>.
+        </div>
+      </div>
+      <div class="box red-border" style="margin-top:16px">
+        <div class="sec-head red">Ratio coût / impact — l'argument massue</div>
+        <div class="kpi-grid kpi-grid-2">
+          <div class="kpi red">
+            <div class="kpi-label">Budget total ouaisfieu</div>
+            <div class="kpi-value">24 000 €</div>
+          </div>
+          <div class="kpi red">
+            <div class="kpi-label">Coût inactivité adressée</div>
+            <div class="kpi-value">21-24 Mrd€/an</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:var(--amber);text-align:center;font-weight:600;letter-spacing:1px">
+          1 € investi ↔ 1 000 000 € de problème structurel adressé
+        </div>
+      </div>
+      <div class="sec-head blue" style="margin-top:20px">Répartition montants max par source</div>
+      <div class="chart-box"><canvas id="chart-finance"></canvas></div>
+    </div>
+
+    <!-- ══════════ PANEL: RAW / EXPORT ══════════ -->
+    <div class="panel" id="panel-raw">
+      <div class="sec-head green">Dataset complet — <span id="raw-table-count"></span> tables · Prêt pour import</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <button class="btn-export" onclick="exportJSON()">⬇ TÉLÉCHARGER JSON COMPLET</button>
+        <button class="btn-export btn-export-green" onclick="exportCSV()">⬇ EXPORT CSV (chiffres clés)</button>
+        <button class="btn-export" style="background:var(--blue)" onclick="copyJSON()">📋 COPIER DANS LE PRESSE-PAPIER</button>
+      </div>
+      <div class="sec-head amber" style="margin-top:8px">Navigateur de tables</div>
+      <div class="btn-row" id="raw-tabs"></div>
+      <div class="json-pre" id="raw-json"></div>
+      <div class="box" style="margin-top:20px">
+        <div class="sec-head blue">Comment importer ce dataset</div>
+        <div class="info-text">
+          <span class="hl-white">JavaScript :</span> <code style="color:var(--green-bright)">const data = JSON.parse(fichier);</code><br>
+          <span class="hl-white">Python :</span> <code style="color:var(--green-bright)">import json; data = json.load(open('ouaisfieu_dataset.json'))</code><br>
+          <span class="hl-white">Obsidian / Notion :</span> Importer le JSON ou utiliser les CSV individuels.<br>
+          <span class="hl-white">Google Sheets :</span> Utiliser l'export CSV, puis Fichier → Importer.<br>
+          <span class="hl-white">Appsmith :</span> Coller le JSON dans un JS Object ou une Datasource REST mock.<br>
+          <span class="hl-white">D3.js / Chart.js :</span> Le dataset est directement consommable, chaque table est un array d'objets.<br>
+          <span class="hl-white">Hugo / Jekyll :</span> Placer le fichier dans <code style="color:var(--green-bright)">_data/</code> ou <code style="color:var(--green-bright)">data/</code> — accessible via templates.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- FOOTER -->
+  <div id="footer">
+    <span>ouaisfi.eu · github.com/ouaisfieu · @ouaisfi.eu (Bluesky)</span>
+    <span id="footer-stats"></span>
+    <span>Souveraineté numérique · Zéro dépendance · Fork it.</span>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  DATASET COMPLET DU PROJET OUAISFIEU
+//  Ce bloc est autonome et exportable tel quel.
+// ═══════════════════════════════════════════════════════════════
+const DATASET = {
+
+  meta: {
+    projet: "ouaisfieu",
+    nom_complet: "Contre-Institution Numérique de Veille Citoyenne",
+    type: "Civic Tech / Éducation Permanente",
+    statut: "Actif — Phase de structuration",
+    licence: "CC BY-NC 4.0 (Creative Commons Attribution Non-Commercial)",
+    contact_email: "souad.effek@ouaisfi.eu",
+    social_bluesky: "@ouaisfi.eu",
+    budget_operationnel: 0,
+    budget_projet_ECP: 24000,
+    date_creation_estimee: "2023",
+    echeance_cle: "2026-03-31",
+    echeance_description: "Dépôt dossier reconnaissance Éducation Permanente",
+    cadre_legal: "Décret du 17 juillet 2003 — Fédération Wallonie-Bruxelles",
+    objectif_formation: "100 citoyens formés d'ici 2026",
+    entite_signataire: "Cellule Analyse — Ouaisfi.eu",
+    philosophie: "Transformer l'indignation passive en capacité d'action éclairée",
+    modele_economique: "Coût quasi-nul — hébergement gratuit, bénévolat, logiciels libres",
+    methode_DIKW: "Données → Information → Connaissance → Sagesse",
+    charte: "Open Laboratory, bienveillance, licence libre, pas de cotisation, structure liquide",
+    forkability: "Tout citoyen peut cloner le projet pour créer un ouaisfieu local",
+    url_hub: "https://ouaisfi.eu",
+    url_github: "https://github.com/ouaisfieu",
+  },
+
+  plateformes: [
+    { id:"P01", nom:"ouaisfi.eu", role:"Hub Central / Portail", tech:"Grav CMS", theme:"Learn2", hebergement:"GitHub Pages", url:"https://ouaisfi.eu", contenu:"My Spot, Up Yours, navigation centrale", statut:"actif", priorite:"critique", generateur:"Grav" },
+    { id:"P02", nom:"DOCTech", role:"Documentation Citoyenne (~30 fiches)", tech:"Jekyll", theme:"Just the Docs", hebergement:"GitHub Pages", url:"https://ouaisfieu.github.io/tech/", contenu:"Notions (subjectivation, violence, soft power), Dossiers (démocratie belge), Belgique (pilarisation, particratie, compromis), Et quoi? (autonomie)", statut:"actif", priorite:"haute", generateur:"Jekyll" },
+    { id:"P03", nom:"BXL2030", role:"Prospective Bruxelloise", tech:"Jekyll", theme:"Minimal Mistakes", hebergement:"GitHub Pages", url:"https://ouaisfieu.github.io/bxl2030/", contenu:"Lead-dexing, fiches personnalités publiques (Manente, Bouchez), #leaddexing Bluesky", statut:"actif", priorite:"haute", generateur:"Jekyll" },
+    { id:"P04", nom:"BXL2042", role:"Extension Prospective Long-Terme", tech:"Jekyll", theme:"standard", hebergement:"GitHub Pages", url:"https://ouaisfieu.github.io/bxl2042/", contenu:"Scénarios prospectifs horizon 2042, convergence crises", statut:"actif", priorite:"moyenne", generateur:"Jekyll" },
+    { id:"P05", nom:"Dossiers", role:"Analyses Critiques de Fond", tech:"Jekyll", theme:"Minimal Mistakes", hebergement:"GitHub Pages", url:"https://ouaisfieu.github.io/dossiers/", contenu:"4 dossiers critiques (économie, citoyenneté, démocratie, surveillance)", statut:"actif", priorite:"haute", generateur:"Jekyll" },
+    { id:"P06", nom:"11·60 bis", role:"Éditorial / Actualité Locale", tech:"Hugo", theme:"FixIt", hebergement:"GitHub Pages", url:"https://dl.ouaisfi.eu/1160/", contenu:"Articles éditoriaux, ancrage Auderghem (code postal 1160)", statut:"actif", priorite:"haute", generateur:"Hugo" },
+    { id:"P07", nom:"Biologia", role:"Blog Auto-bio-logique", tech:"Hugo", theme:"FixIt", hebergement:"GitHub Pages", url:"https://dl.ouaisfi.eu/biologia/", contenu:"Réflexions personnelles, zone de test Obsidian Publish", statut:"actif", priorite:"basse", generateur:"Hugo" },
+    { id:"P08", nom:"EARL", role:"Documentation Intelligence Citoyenne", tech:"Hugo", theme:"Relearn", hebergement:"GitHub Pages", url:"https://dl.ouaisfi.eu/earl/", contenu:"Méthodologies veille, transposition IE → intelligence civile", statut:"actif", priorite:"haute", generateur:"Hugo" },
+    { id:"P09", nom:"GPTPardi", role:"Projet IA / Recherche Assistée", tech:"Jekyll", theme:"standard", hebergement:"GitHub Pages", url:"https://ouaisfieu.github.io/GPTPardi/", contenu:"Assistant IA — 'Don't be evil, just do it'", statut:"actif", priorite:"moyenne", generateur:"Jekyll" },
+    { id:"P10", nom:"Appsmith", role:"Backend Applicatif", tech:"Appsmith (Low-Code)", theme:"n/a", hebergement:"Cloud Appsmith", url:"https://ouaisfieu.appsmith.com", contenu:"Applications internes, tableaux de bord", statut:"actif", priorite:"moyenne", generateur:"n/a" },
+    { id:"P11", nom:"dl.ouaisfi.eu", role:"Serveur de Téléchargement", tech:"Hugo", theme:"divers", hebergement:"GitHub Pages", url:"https://dl.ouaisfi.eu", contenu:"Fichiers, PDFs, données téléchargeables", statut:"actif", priorite:"haute", generateur:"Hugo" },
+  ],
+
+  piliers: [
+    { id:"PIL1", nom:"Analyse Politique", alias:"La Tête", description:"Décrypter la particratie, la pilarisation, le compromis à la belge et la complexité institutionnelle", icone:"🧠", couleur:"#c41e3a" },
+    { id:"PIL2", nom:"Transparence Numérique", alias:"Le Corps", description:"Incarner le refus du capitalisme de surveillance : Low-tech, Open Source, zéro traçage, hébergement gratuit", icone:"🔓", couleur:"#1a5fb4" },
+    { id:"PIL3", nom:"Éducation Permanente", alias:"Les Jambes", description:"Fournir les méthodes pour passer de l'observation à l'action citoyenne (CCPLC, DIKW)", icone:"🦿", couleur:"#26a269" },
+  ],
+
+  axes_ccplc: [
+    { id:"AXE1", nom:"Observer", description:"Veille citoyenne structurée et collaborative sur enjeux politiques, sociaux, économiques", progression:70, couleur:"#c41e3a" },
+    { id:"AXE2", nom:"Documenter", description:"Production d'analyses, de dossiers de fond et de fiches thématiques accessibles", progression:65, couleur:"#1a5fb4" },
+    { id:"AXE3", nom:"Outiller", description:"Développer et partager des méthodes et outils pratiques pour l'analyse critique", progression:50, couleur:"#26a269" },
+    { id:"AXE4", nom:"Former", description:"Ateliers-débats, webinaires, sessions de formation, transfert de compétences", progression:25, couleur:"#d4a017" },
+    { id:"AXE5", nom:"Connecter", description:"Tisser les liens avec société civile, monde académique, médias associatifs", progression:35, couleur:"#813d9c" },
+    { id:"AXE6", nom:"Évaluer", description:"Mesurer l'impact qualitatif et quantitatif des actions (téléchargements, citations)", progression:15, couleur:"#00838f" },
+  ],
+
+  thematiques: [
+    { id:"T01", nom:"Système Politique Belge", sujets:["Particratie","Pilarisation","Fédéralisme","Compromis à la belge","Complexité institutionnelle","Déclin des piliers"], documents:12, priorite:"haute" },
+    { id:"T02", nom:"Démocratie Participative", sujets:["Budgets participatifs","Panels citoyens","Inclusion numérique","Decidim","CitizenLab","MonOpinion"], documents:8, priorite:"haute" },
+    { id:"T03", nom:"Intelligence Éco. → Civile", sujets:["Veille stratégique","OSINT","Cycle DIKW","Fact-checking","IE transposée","Intelligence collective"], documents:15, priorite:"critique" },
+    { id:"T04", nom:"Communs Numériques", sujets:["Open Source","Open Data","Souveraineté données","Solid Protocol","FHIR","Git Scraping"], documents:6, priorite:"moyenne" },
+    { id:"T05", nom:"Prospective Urbaine BXL", sujets:["Bruxelles 2030","Bruxelles 2042","Crises systémiques","Lead-dexing","Personnalités publiques"], documents:7, priorite:"haute" },
+    { id:"T06", nom:"Budget Arizona & Austérité", sujets:["Austérité 2025-2029","Malades longue durée","Limitation chômage 24 mois","CPAS saturés","Exclusions","Recours constitutionnel Art.23"], documents:10, priorite:"critique" },
+    { id:"T07", nom:"Économie Contributive (ECP)", sujets:["ECP","Ruling fiscal SDA","Loi volontariat 2005","Inactivité contrainte 978K","Contribution sans perte droits"], documents:4, priorite:"haute" },
+    { id:"T08", nom:"Tests Recrutement / Profilage", sujets:["Selor","Actiris","Profilage algorithmique","Simulation tests","Biais recrutement"], documents:3, priorite:"moyenne" },
+    { id:"T09", nom:"Surveillance & CCTV", sujets:["Caméras Bruxelles","Capitalisme de surveillance","Vie privée","Documentaire controverse"], documents:4, priorite:"moyenne" },
+    { id:"T10", nom:"Éducation Permanente (cadre)", sujets:["Décret 2003","Moratoire 2026-2028","280 associations reconnues","2300 professionnels","Kaléidoscope FWB"], documents:6, priorite:"critique" },
+  ],
+
+  chiffres_cles: [
+    { label:"Invalides Belgique (31/12/2024)", valeur:549996, unite:"personnes", source:"INAMI", tendance:"hausse", contexte:"Doublement depuis 2008, +4,46% en un an" },
+    { label:"Coût inactivité contrainte/an", valeur:21000000000, unite:"€", source:"SPF Sécurité Sociale", tendance:"stable", contexte:"978.000 personnes = 1M€/heure" },
+    { label:"Exclusions chômage Arizona vague 1", valeur:30122, unite:"personnes", source:"Bureau du Plan", tendance:"hausse", contexte:"Dès janvier 2026, +12,7% bénéficiaires RIS" },
+    { label:"Déficit sécu. sociale 2024", valeur:18200000000, unite:"€", source:"BNB", tendance:"hausse", contexte:"Budget fédéral structurellement déficitaire" },
+    { label:"Ajustement Arizona visé 2025-2029", valeur:9200000000, unite:"€", source:"Accord coalition Arizona", tendance:"fixe", contexte:"60% économies, 40% recettes nouvelles" },
+    { label:"Déficit prévu 2030", valeur:6.5, unite:"% PIB", source:"Bureau fédéral du Plan", tendance:"hausse", contexte:"≈ 40 milliards €, ne se réduit pas comme prévu" },
+    { label:"Dette publique 2025", valeur:104, unite:"% PIB", source:"BNB", tendance:"hausse", contexte:"Vers 119% en 2030, 155% en 2042" },
+    { label:"Population BIM (juin 2025)", valeur:2400000, unite:"personnes", source:"AIM / Mutualités", tendance:"hausse", contexte:"21% population belge, +400K depuis 2020" },
+    { label:"Taux d'emploi Belgique", valeur:72.1, unite:"%", source:"Eurostat", tendance:"stable", contexte:"vs 75,4% moyenne UE. Objectif Arizona: 80% en 2029" },
+    { label:"Belges en risque AROPE", valeur:2100000, unite:"personnes", source:"Eurostat", tendance:"hausse", contexte:"18,3% de la population" },
+    { label:"Budget projet ouaisfieu", valeur:24000, unite:"€", source:"Projet", tendance:"fixe", contexte:"Budget total ECP, coût opérationnel = 0€" },
+    { label:"Associations EP reconnues FWB", valeur:280, unite:"asbl", source:"CFWB", tendance:"stable", contexte:"2300 professionnels formés, moratoire 2026-2028" },
+    { label:"Charge d'intérêts dette 2025", valeur:10000000000, unite:"€/an", source:"Agence de la dette", tendance:"hausse", contexte:"Vers 19 Mrd en 2030, 40 Mrd en 2042" },
+    { label:"Étudiants insécurité alimentaire", valeur:58, unite:"%", source:"Enquêtes", tendance:"hausse", contexte:"Précarité étudiante en hausse structurelle" },
+    { label:"Malades longue durée > chômeurs", valeur:500000, unite:"personnes", source:"INAMI/ONEM", tendance:"hausse", contexte:"Plus de MLD que de chômeurs en Belgique" },
+    { label:"Surcoût CPAS Bruxelles (Arizona)", valeur:80000000, unite:"€", source:"Estimations", tendance:"hausse", contexte:"19 CPAS bruxellois, 240 ETP manquants" },
+    { label:"Sanctions quadruplées (10%)", valeur:10, unite:"% indemnité", source:"Vague 3 Arizona", tendance:"hausse", contexte:"Était 2,5%, passé à 10% au 01/01/2026" },
+    { label:"Dossiers invalidité à réexaminer", valeur:218000, unite:"dossiers", source:"Conclave 11/2025", tendance:"fixe", contexte:"D'ici 2029, prévision 17% sorties supplémentaires" },
+    { label:"Enveloppe bien-être supprimée", valeur:2800000000, unite:"€", source:"Accord Arizona", tendance:"fixe", contexte:"Revalorisation allocations basses gelée 5 ans" },
+    { label:"Risque BIM invalidité prolongée", valeur:68, unite:"% risque accru", source:"AIM / INAMI", tendance:"stable", contexte:"BIM = 68% plus de chance de passer en invalidité" },
+  ],
+
+  timeline_arizona: [
+    { date:"2021", event:"Vague 1 ReAT — Création coordinateurs retour au travail (40→100)", type:"reforme" },
+    { date:"2023-01", event:"Vague 2 — Contacts obligatoires 4e/7e/11e mois, sanction 2,5%", type:"reforme" },
+    { date:"2025-01-31", event:"Accord coalition Arizona signé (N-VA, MR, CD&V, Vooruit, Les Engagés)", type:"politique" },
+    { date:"2025-10-29", event:"Recours constitutionnel Art. 23 (standstill) — arrêt attendu fin 2026", type:"juridique" },
+    { date:"2025-11-26", event:"Conclave budgétaire — Vague 4 annoncée, 218K dossiers", type:"politique" },
+    { date:"2026-01-01", event:"Vague 3 active — Sanctions x4 (10%), certificats 3 mois max", type:"reforme" },
+    { date:"2026-01", event:"30.122 premières exclusions chômage → transfert CPAS", type:"impact" },
+    { date:"2026-03", event:"Vague 2 exclusions (8-20 ans chômage cumulé)", type:"impact" },
+    { date:"2026-03-31", event:"ÉCHÉANCE PROJET: Dépôt dossier EP — ouaisfieu / CCPLC", type:"projet" },
+    { date:"2027", event:"Vague 4 — Certificat 3 semaines, cotisation employeurs étendue", type:"reforme" },
+    { date:"2027", event:"Arrêt Cour Constitutionnelle attendu — risque annulation", type:"juridique" },
+    { date:"2027", event:"90.000 exclusions chômage cumulées estimées", type:"impact" },
+    { date:"2029", event:"218.000 dossiers invalidité réexaminés, objectif 80% taux emploi", type:"impact" },
+    { date:"2030", event:"Déficit 6,5% PIB (40 Mrd €), dette 119% PIB", type:"projection" },
+    { date:"2035", event:"Convergence crises — ratio dépendance 67+ atteint 37%", type:"projection" },
+    { date:"2042", event:"Horizon BXL2042 — dette 155% PIB, charge intérêts 40 Mrd/an", type:"projection" },
+  ],
+
+  mesures_arizona_detail: [
+    { mesure:"Limitation chômage 24 mois", impact_personnes:90000, economies_estimees:1500000000, statut:"adopté" },
+    { mesure:"Gel enveloppe bien-être (5 ans)", impact_personnes:2100000, economies_estimees:2800000000, statut:"adopté" },
+    { mesure:"Sanctions MLD x4 (2,5%→10%)", impact_personnes:549996, economies_estimees:1900000000, statut:"actif" },
+    { mesure:"Suppression prépension", impact_personnes:50000, economies_estimees:800000000, statut:"adopté" },
+    { mesure:"Hausse tickets modérateurs", impact_personnes:2400000, economies_estimees:500000000, statut:"prévu" },
+    { mesure:"Coupe fonctionnement SPF (-1,8%)", impact_personnes:0, economies_estimees:200000000, statut:"actif" },
+    { mesure:"Vente actifs publics (Proximus/bpost/BNP)", impact_personnes:0, economies_estimees:3000000000, statut:"prévu" },
+  ],
+
+  financements_potentiels: [
+    { id:"F01", nom:"PCI — Citoyenneté & Interculturalité", montant_min:5000, montant_max:35000, duree:"1 an", source:"FWB (Décret PCI 2018)", pertinence:95, echeance:"SUBside, fin fév.→fin mars", details:"Budget 665K€ en 2025, 3 axes (jeunes, interculturel, racisme)" },
+    { id:"F02", nom:"Erasmus+ KA210 (simplifié)", montant_min:30000, montant_max:60000, duree:"6-24 mois", source:"UE / BIJ", pertinence:80, echeance:"5 mars 2026", details:"Condition: 1 partenaire dans autre pays programme" },
+    { id:"F03", nom:"CERV — Engagement citoyens", montant_min:50000, montant_max:300000, duree:"1-3 ans", source:"UE (1,55 Mrd € 2021-2027)", pertinence:75, echeance:"Appels annuels", details:"Volet engagement + participation citoyenne, Charte droits fondamentaux" },
+    { id:"F04", nom:"Fondation Roi Baudouin", montant_min:3750, montant_max:50000, duree:"variable", source:"FRB (180 appels/an)", pertinence:85, echeance:"Continu", details:"Fonds VINCI (jeunes), P&V (citoyenneté active), Générations solidaires" },
+    { id:"F05", nom:"Organisation de Jeunesse (OJ)", montant_min:20000, montant_max:100000, duree:"4 ans renouvelable", source:"FWB (Décret OJ 2009)", pertinence:60, echeance:"Variable", details:"Si public <30 ans majoritaire. Mission CRACS, art. 76 citoyenneté" },
+    { id:"F06", nom:"Crowdfunding (Growfunding)", montant_min:1000, montant_max:25000, duree:"ponctuel", source:"Privé / Dons", pertinence:70, echeance:"À tout moment", details:"Réduction impôt 45% pour donateurs (min 40€/an). Plateformes: Growfunding, Koalect" },
+  ],
+
+  technologies: [
+    { categorie:"Générateurs Sites Statiques", outils:["Grav CMS (PHP)","Hugo (Go)","Jekyll (Ruby)"], usage:"Production sites web", detail:"3 SSG = séparation contenu/présentation, pas de base de données" },
+    { categorie:"Hébergement", outils:["GitHub Pages","CDN global (Cloudflare)"], usage:"Hosting gratuit, résilient", detail:"Supporte pics de trafic, impossible à faire tomber, coût 0€" },
+    { categorie:"Collaboration", outils:["GitHub Issues/PR","Markdown","Git (versioning)"], usage:"Contribution citoyenne ouverte", detail:"Tout contributeur peut proposer modifications via Pull Request" },
+    { categorie:"Thèmes", outils:["Learn2","Just the Docs","Minimal Mistakes","FixIt","Relearn"], usage:"Design adapté par plateforme", detail:"Chaque thème choisi pour sa fonction (doc, blog, éditorial)" },
+    { categorie:"IA & Recherche", outils:["GPTPardi","Claude (Anthropic)","ChatGPT (OpenAI)"], usage:"Recherche assistée, rédaction", detail:"Transparence totale sur l'usage IA, pas de contenu non-vérifié" },
+    { categorie:"Réseau Social", outils:["Bluesky (@ouaisfi.eu)"], usage:"Seul canal social actif", detail:"Choix éthique: protocole AT décentralisé vs Twitter/X" },
+    { categorie:"Données & Formats", outils:["YAML","JSON","Markdown","CC BY-NC 4.0"], usage:"Open Data, interopérabilité", detail:"Tout contenu réutilisable sous licence libre non-commerciale" },
+    { categorie:"Infrastructure Future", outils:["Decidim","Solid Protocol","FHIR","Git Scraping","Athumi"], usage:"Prochaine génération", detail:"Decidim (délibération), Solid (souveraineté données), FHIR (santé/social)" },
+  ],
+
+  projections_dette: [
+    { annee:2025, dette_pib:104, deficit_pib:5.4, charge_interets_mrd:10, dep_sociales_pib:25.8, coef_dependance_67:28.5, population_67_plus_m:2.2, impact_climat_pib:0.5, source:"BfP/BNB/CEV 2024" },
+    { annee:2028, dette_pib:112, deficit_pib:5.4, charge_interets_mrd:14, dep_sociales_pib:26.2, coef_dependance_67:30, population_67_plus_m:2.35, impact_climat_pib:0.7, source:"BfP" },
+    { annee:2030, dette_pib:119, deficit_pib:6.5, charge_interets_mrd:19, dep_sociales_pib:26.5, coef_dependance_67:32, population_67_plus_m:2.5, impact_climat_pib:1.0, source:"BfP/BNB" },
+    { annee:2035, dette_pib:135, deficit_pib:7.0, charge_interets_mrd:27, dep_sociales_pib:28.0, coef_dependance_67:37, population_67_plus_m:2.9, impact_climat_pib:2.0, source:"Extrapolation BfP/CEV" },
+    { annee:2042, dette_pib:155, deficit_pib:8.0, charge_interets_mrd:40, dep_sociales_pib:29.2, coef_dependance_67:41, population_67_plus_m:3.3, impact_climat_pib:3.5, source:"Extrapolation/BXL2042" },
+  ],
+
+  comparaison_approches: {
+    arizona: {
+      nom:"Approche Arizona (punitive)",
+      budget:"9,2 Mrd € d'ajustement",
+      methode:"Suppression allocations → forcer l'emploi",
+      risque_principal:"Boucles destructrices auto-alimentées, recours constitutionnel Art. 23",
+      impact_social:"90.000 exclusions chômage, CPAS saturés, 240 ETP manquants BXL",
+      hypothese_cle:"Supprimer allocations = créer emploi (non démontré pour publics éloignés)",
+      paris_fragiles:["Effets retour 7,9 Mrd se matérialisent","Tissu social tient le choc","Marchés en tension absorbent 100K personnes"]
+    },
+    ouaisfieu: {
+      nom:"Approche ouaisfieu (contributive — ECP)",
+      budget:"24 000 €",
+      methode:"Contribution citoyenne → réduction inactivité sans perte de droits",
+      risque_principal:"Dépendance reconnaissance institutionnelle, projet solo",
+      impact_social:"Valorisation compétences, inclusion numérique, intelligence collective",
+      mecanisme:"Ruling fiscal SDA + cadre loi volontariat 2005",
+      potentiel:"978.000 personnes en inactivité contrainte = vivier contributif massif"
+    },
+  },
+
+  menaces_projet: [
+    { type:"Institutionnel", description:"Moratoire EP 2026-2028 — gel des nouvelles reconnaissances", severite:"critique", mitigation:"Explorer Décret OJ, PCI, CERV comme alternatives" },
+    { type:"Financier", description:"Budget quasi-nul, dépendance totale au bénévolat", severite:"haute", mitigation:"Candidature FRB + PCI dès 2026, crowdfunding" },
+    { type:"Juridique", description:"Pas d'ASBL formelle — limite crédibilité institutionnelle", severite:"haute", mitigation:"Création ASBL avant dépôt dossier EP" },
+    { type:"Technique", description:"Fragmentation multi-plateformes (3 SSG, 11 sites)", severite:"moyenne", mitigation:"Migration hub central vers Jekyll unifié (cahier des charges existant)" },
+    { type:"Humain", description:"Risque d'épuisement — projet porté quasi-solo", severite:"haute", mitigation:"Objectif 100 citoyens formés, partenariats ASBL reconnues" },
+    { type:"Politique", description:"Sujets sensibles (corruption, surveillance, drogues)", severite:"moyenne", mitigation:"Architecture statique = pas de serveur piratable, surface d'attaque nulle" },
+  ],
+
+  forces_projet: [
+    { type:"Architecture Technique", description:"Résiliente, coût 0€, impossible à censurer (statique pur)", score:95 },
+    { type:"Éthique Radicale", description:"Zéro traçage, zéro pub, transparence totale du code source", score:98 },
+    { type:"Production Documentaire", description:"Massive et sourcée — ~65 documents, 10 thématiques", score:85 },
+    { type:"Positionnement Unique", description:"Seul projet transposant l'IE en intelligence civile pour EP belge", score:90 },
+    { type:"Reproductibilité (Fork)", description:"Tout collectif peut cloner et adapter = franchise activiste", score:88 },
+    { type:"Alignement Légal", description:"Conformité démontrée avec Décret EP 2003 (tableau publié)", score:80 },
+  ],
+
+  ecosysteme_civictech_belge: [
+    { nom:"Participation.brussels", type:"Plateforme régionale", tech:"Decidim", url:"https://participation.brussels" },
+    { nom:"Democratie.brussels", type:"Service régional", tech:"Decidim", url:"https://democratie.brussels" },
+    { nom:"MonOpinion", type:"Consultation fédérale", tech:"SPF BOSA", url:"https://monopinion.belgium.be" },
+    { nom:"CitizenLab", type:"Entreprise (~70 clients)", tech:"Propriétaire", url:"https://citizenlab.co" },
+    { nom:"Particitiz", type:"Association", tech:"Divers", url:"https://particitiz.be" },
+    { nom:"Open Data Wallonia-Bruxelles", type:"Portail données ouvertes", tech:"CKAN", url:"https://opendata.brussels" },
+  ],
+
+  partenaires_potentiels: [
+    { type:"Universités populaires", exemples:["ULB Extension","UCLouvain Saint-Louis"], pertinence:"haute" },
+    { type:"Médias associatifs", exemples:["Agir par la Culture","Alter Echos","Médor"], pertinence:"haute" },
+    { type:"ASBL EP reconnues", exemples:["CPCP","RTA/Intermag","Collectiv-a","CESEP"], pertinence:"critique" },
+    { type:"Coordinations territoriales", exemples:["Coordination Brabant wallon (23 organismes)"], pertinence:"moyenne" },
+    { type:"Réseaux européens", exemples:["EAEA (éducation adultes)","Erasmus+ partenaires"], pertinence:"moyenne" },
+  ],
+
+  depots_github: [
+    { nom:"tech", contenu:"DOCTech + CCPLC", pages:true },
+    { nom:"bxl2030", contenu:"Prospective Bruxelles 2030 + Lead-dexing", pages:true },
+    { nom:"bxl2042", contenu:"Prospective 2042", pages:true },
+    { nom:"dossiers", contenu:"4 dossiers critiques", pages:true },
+    { nom:"GPTPardi", contenu:"Projet IA recherche", pages:true },
+    { nom:"ouaisfieu.github.io", contenu:"Site principal GitHub Pages", pages:true },
+  ],
+
+  reseaux_sociaux: [
+    { plateforme:"Bluesky", handle:"@ouaisfi.eu", statut:"actif", justification:"Protocole AT décentralisé, éthique open source" },
+    { plateforme:"YouTube", handle:"@ouaisfieu", statut:"non trouvé", justification:"Mentionné mais inexistant" },
+    { plateforme:"itch.io", handle:"ouaisfieu", statut:"non trouvé", justification:"Intention pédagogique (newsgame) — pas encore actif" },
+    { plateforme:"Mastodon", handle:"n/a", statut:"non trouvé", justification:"Aucune instance identifiée" },
+    { plateforme:"Twitter/X", handle:"n/a", statut:"inactif", justification:"Boutons de partage uniquement, pas de compte" },
+  ],
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  UTILITY FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+function fmt(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(1) + ' Mrd';
+  if (n >= 1e6) return (n/1e6).toFixed(1) + ' M';
+  if (n >= 1e3) return new Intl.NumberFormat('fr-BE').format(n);
+  return String(n);
+}
+
+function $(sel) { return document.querySelector(sel); }
+function $$(sel) { return document.querySelectorAll(sel); }
+
+function daysUntil(dateStr) {
+  return Math.ceil((new Date(dateStr) - new Date()) / 864e5);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BOOT SEQUENCE
+// ═══════════════════════════════════════════════════════════════
+
+const BOOT_LINES = [
+  { text: "OUAISFIEU INTELLIGENCE WORKSTATION v3.0", cls: "title" },
+  { text: "Initialisation noyau citoyen..." },
+  { text: `Chargement dataset: ${DATASET.plateformes.length} plateformes, ${DATASET.thematiques.length} thématiques, ${DATASET.chiffres_cles.length} indicateurs` },
+  { text: "Connexion réseau veille: CCPLC / OSINT / DIKW / EARL..." },
+  { text: `Scan menaces: ${DATASET.menaces_projet.length} actives · ${DATASET.forces_projet.length} forces confirmées` },
+  { text: `Module Arizona: projections 2025-2042 · ${DATASET.timeline_arizona.length} événements chargés` },
+  { text: `Module financement: ${DATASET.financements_potentiels.length} pistes · pertinence calculée` },
+  { text: `Tables dataset: ${Object.keys(DATASET).length} · Export JSON/CSV prêt` },
+  { text: ">>> SYSTÈME OPÉRATIONNEL — BIENVENUE, FIEU <<<", cls: "ok" },
+];
+
+function runBoot() {
+  const log = $('#boot-log');
+  BOOT_LINES.forEach((l, i) => {
+    setTimeout(() => {
+      const div = document.createElement('div');
+      div.className = 'line ' + (l.cls || '');
+      div.style.animationDelay = '0s';
+      div.innerHTML = `<span class="idx">[${String(i).padStart(2,'0')}]</span>${l.text}`;
+      log.appendChild(div);
+      if (i === BOOT_LINES.length - 1) {
+        setTimeout(() => {
+          const cur = document.createElement('span');
+          cur.className = 'cursor-blink';
+          log.appendChild(cur);
+        }, 200);
+        setTimeout(() => {
+          $('#boot-screen').classList.add('done');
+          $('#app').classList.add('active');
+          initApp();
+        }, 1200);
+      }
+    }, i * 220);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  APP INIT
+// ═══════════════════════════════════════════════════════════════
+
+function initApp() {
+  initClock();
+  initTabs();
+  buildSitrep();
+  buildEcosystem();
+  buildArizona();
+  buildData();
+  buildFinance();
+  buildRaw();
+  buildFooter();
+}
+
+function initClock() {
+  function tick() {
+    $('#clock').textContent = new Date().toLocaleTimeString('fr-BE');
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+function initTabs() {
+  $$('.tab[data-panel]').forEach(tab => {
+    tab.addEventListener('click', () => {
+      $$('.tab').forEach(t => t.classList.remove('active'));
+      $$('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      $(`#panel-${tab.dataset.panel}`).classList.add('active');
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PANEL BUILDERS
+// ═══════════════════════════════════════════════════════════════
+
+function buildSitrep() {
+  const dl = daysUntil(DATASET.meta.echeance_cle);
+  const totalDocs = DATASET.thematiques.reduce((a,t) => a + t.documents, 0);
+
+  $('#sitrep-kpis').innerHTML = `
+    <div class="kpi red"><div class="kpi-label">Échéance EP</div><div class="kpi-value">${dl}j</div><div class="kpi-detail">avant 31 mars 2026</div></div>
+    <div class="kpi blue"><div class="kpi-label">Plateformes</div><div class="kpi-value">${DATASET.plateformes.length}</div><div class="kpi-detail">actives dans l'écosystème</div></div>
+    <div class="kpi green"><div class="kpi-label">Coût opérationnel</div><div class="kpi-value">0 €</div><div class="kpi-detail">hébergement & outillage</div></div>
+    <div class="kpi amber"><div class="kpi-label">Documents produits</div><div class="kpi-value">~${totalDocs}</div><div class="kpi-detail">sur ${DATASET.thematiques.length} thématiques</div></div>
+  `;
+
+  const now = new Date().toLocaleDateString('fr-BE');
+  $('#sitrep-report').innerHTML = `
+    <div class="sec-head red">Situation Report — ${now}</div>
+    <div class="info-text">
+      Projet <span class="hl-white">ouaisfieu</span> — contre-institution numérique belge de veille citoyenne.
+      Écosystème déployé sur <span class="hl-blue">3 générateurs statiques</span> (Grav, Hugo, Jekyll),
+      <span class="hl-blue">${DATASET.plateformes.length} plateformes</span>,
+      <span class="hl-blue">6+ dépôts GitHub</span> actifs avec Pages.<br>
+      Mission triple : <span class="hl-red">analyse politique</span> ·
+      <span class="hl-green">transparence numérique</span> ·
+      <span class="hl-amber">éducation permanente</span>.<br>
+      Objectif institutionnel : reconnaissance EP (Décret 17/07/2003 FWB) avant le <span class="hl-white">31/03/2026</span>.<br>
+      Contexte hostile : <span class="hl-red">moratoire EP 2026-2028</span>, budget Arizona en déploiement,
+      <span class="hl-red">${fmt(DATASET.chiffres_cles[0].valeur)}</span> invalides,
+      <span class="hl-red">${fmt(DATASET.chiffres_cles[2].valeur)}</span> exclusions chômage imminentes.<br>
+      Approche contributive (ECP) : <span class="hl-amber">24 000 € vs 21-24 Mrd €/an</span> d'inactivité contrainte.
+    </div>
+  `;
+
+  const severityColor = s => s === 'critique' ? 'badge-red' : s === 'haute' ? 'badge-amber' : 'badge-dim';
+  $('#sitrep-threats').innerHTML = DATASET.menaces_projet.map(m => `
+    <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;font-size:11px">
+      <span class="badge ${severityColor(m.severite)}">${m.severite}</span>
+      <span style="color:var(--text-dim);min-width:90px">${m.type}</span>
+      <span style="color:var(--text-mid);flex:1">${m.description}</span>
+      <span style="color:var(--text-ghost);font-size:10px;max-width:280px">${m.mitigation}</span>
+    </div>
+  `).join('');
+
+  $('#sitrep-forces').innerHTML = DATASET.forces_projet.map(f => `
+    <div class="prog">
+      <div class="prog-header"><span>${f.type} — ${f.description}</span><span>${f.score}%</span></div>
+      <div class="prog-track"><div class="prog-fill" style="width:${f.score}%;background:var(--green)"></div></div>
+    </div>
+  `).join('');
+
+  // Radar chart
+  new Chart($('#chart-radar'), {
+    type: 'radar',
+    data: {
+      labels: DATASET.axes_ccplc.map(a => a.nom),
+      datasets: [{
+        label: 'Progression %',
+        data: DATASET.axes_ccplc.map(a => a.progression),
+        backgroundColor: 'rgba(196,30,58,0.12)',
+        borderColor: '#c41e3a',
+        borderWidth: 2,
+        pointBackgroundColor: DATASET.axes_ccplc.map(a => a.couleur),
+        pointRadius: 5,
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { r: { beginAtZero: true, max: 100, grid: { color: '#1a1c2e' }, angleLines: { color: '#1a1c2e' }, pointLabels: { color: '#8a8fb0', font: { family: "'IBM Plex Mono'", size: 11 } }, ticks: { display: false } } },
+      plugins: { legend: { display: false } },
+    }
+  });
+}
+
+function buildEcosystem() {
+  $('#eco-count').textContent = DATASET.plateformes.length;
+
+  const prioColor = p => p === 'critique' ? 'badge-red' : p === 'haute' ? 'badge-blue' : p === 'moyenne' ? 'badge-amber' : 'badge-dim';
+  const prioBorder = p => p === 'critique' ? 'border-color:var(--red)' : p === 'haute' ? 'border-color:var(--blue)' : '';
+
+  $('#eco-cards').innerHTML = DATASET.plateformes.map(p => `
+    <div class="card" style="${prioBorder(p.priorite)}">
+      <div class="card-head">
+        <span class="card-title">${p.nom}</span>
+        <span class="badge ${prioColor(p.priorite)}">${p.priorite}</span>
+      </div>
+      <div class="card-role">${p.role}</div>
+      <div class="card-tech">${p.tech} · ${p.theme !== 'n/a' ? p.theme : 'custom'}</div>
+      <div class="card-detail">${p.contenu}</div>
+      ${p.url ? `<div style="margin-top:4px;font-size:9px"><a href="${p.url}" target="_blank" style="color:var(--blue);text-decoration:none">${p.url.replace('https://','')}</a></div>` : ''}
+    </div>
+  `).join('');
+
+  $('#eco-stack').innerHTML = `<table class="dtable"><thead><tr><th>Catégorie</th><th>Outils</th><th>Usage</th><th>Détail</th></tr></thead><tbody>` +
+    DATASET.technologies.map(t => `
+      <tr>
+        <td style="color:var(--text-dim)">${t.categorie}</td>
+        <td style="color:var(--amber)">${t.outils.join(' · ')}</td>
+        <td>${t.usage}</td>
+        <td style="color:var(--text-ghost);font-size:10px">${t.detail}</td>
+      </tr>
+    `).join('') + '</tbody></table>';
+
+  // SSG pie chart
+  const ssgCount = {};
+  DATASET.plateformes.forEach(p => { ssgCount[p.generateur] = (ssgCount[p.generateur]||0)+1; });
+  new Chart($('#chart-ssg'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(ssgCount),
+      datasets: [{ data: Object.values(ssgCount), backgroundColor: ['#c41e3a','#1a5fb4','#26a269','#d4a017'], borderColor: '#0b0c10', borderWidth: 2 }]
+    },
+    options: {
+      responsive: true, cutout: '60%',
+      plugins: { legend: { position: 'bottom', labels: { color: '#8a8fb0', font: { family: "'IBM Plex Mono'", size: 10 }, padding: 16 } } }
+    }
+  });
+
+  $('#eco-piliers').innerHTML = DATASET.piliers.map(p => `
+    <div class="card" style="border-color:${p.couleur}">
+      <div style="font-size:28px;margin-bottom:6px">${p.icone}</div>
+      <div class="card-title" style="color:${p.couleur}">${p.nom}</div>
+      <div style="font-size:10px;color:var(--text-dim);margin-bottom:4px">${p.alias}</div>
+      <div class="card-detail">${p.description}</div>
+    </div>
+  `).join('');
+}
+
+function buildArizona() {
+  const d = DATASET.chiffres_cles;
+  $('#arizona-kpis').innerHTML = `
+    <div class="kpi red"><div class="kpi-label">Invalides 2024</div><div class="kpi-value">${fmt(549996)}</div><div class="kpi-detail">x2 depuis 2008</div></div>
+    <div class="kpi amber"><div class="kpi-label">Objectif retour emploi</div><div class="kpi-value">100K</div><div class="kpi-detail">d'ici 2029</div></div>
+    <div class="kpi red"><div class="kpi-label">Ajustement Arizona</div><div class="kpi-value">9,2 Mrd</div><div class="kpi-detail">60% économies / 40% recettes</div></div>
+    <div class="kpi blue"><div class="kpi-label">Déficit prévu 2030</div><div class="kpi-value">6,5%</div><div class="kpi-detail">PIB ≈ 40 Mrd €</div></div>
+  `;
+
+  // Projections chart
+  const proj = DATASET.projections_dette;
+  new Chart($('#chart-projections'), {
+    type: 'line',
+    data: {
+      labels: proj.map(p => p.annee),
+      datasets: [
+        { label: 'Dette % PIB', data: proj.map(p=>p.dette_pib), borderColor: '#c41e3a', backgroundColor: 'rgba(196,30,58,0.08)', fill: true, tension: 0.3, pointRadius: 5 },
+        { label: 'Charge intérêts (Mrd€)', data: proj.map(p=>p.charge_interets_mrd), borderColor: '#d4a017', backgroundColor: 'transparent', tension: 0.3, pointRadius: 5 },
+        { label: 'Dép. sociales % PIB', data: proj.map(p=>p.dep_sociales_pib), borderColor: '#1a5fb4', backgroundColor: 'transparent', tension: 0.3, pointRadius: 5 },
+        { label: 'Coef. dépendance 67+ %', data: proj.map(p=>p.coef_dependance_67), borderColor: '#813d9c', backgroundColor: 'transparent', tension: 0.3, pointRadius: 5, borderDash: [5,3] },
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: { grid: { color: '#1a1c2e' }, ticks: { color: '#5a5f80', font: { family: "'IBM Plex Mono'", size: 10 } } },
+        y: { grid: { color: '#1a1c2e' }, ticks: { color: '#5a5f80', font: { family: "'IBM Plex Mono'", size: 10 } } },
+      },
+      plugins: { legend: { labels: { color: '#8a8fb0', font: { family: "'IBM Plex Mono'", size: 10 }, padding: 12 } } }
+    }
+  });
+
+  // Timeline
+  const typeColor = t => t==='impact'?'red-line':t==='projet'?'green-line':t==='juridique'?'amber-line':'blue-line';
+  const typeBadge = t => t==='impact'?'badge-red':t==='projet'?'badge-green':t==='juridique'?'badge-amber':'badge-dim';
+  $('#arizona-timeline').innerHTML = DATASET.timeline_arizona.map(e => `
+    <div class="tl-item ${typeColor(e.type)}">
+      <span class="tl-date">${e.date}</span>
+      <span class="badge ${typeBadge(e.type)}">${e.type}</span>
+      <span class="tl-text">${e.event}</span>
+    </div>
+  `).join('');
+
+  // VS
+  const az = DATASET.comparaison_approches.arizona;
+  const ou = DATASET.comparaison_approches.ouaisfieu;
+  $('#arizona-vs').innerHTML = `
+    <div>
+      <div class="vs-col-title red">${az.nom}</div>
+      <div class="vs-line">Budget : <span class="val" style="color:var(--text-white)">${az.budget}</span></div>
+      <div class="vs-line">Méthode : ${az.methode}</div>
+      <div class="vs-line" style="color:var(--red)">Impact : ${az.impact_social}</div>
+      <div class="vs-line">Hypothèse : ${az.hypothese_cle}</div>
+      <div class="vs-line" style="margin-top:6px;color:var(--text-ghost)">Paris fragiles :</div>
+      ${az.paris_fragiles.map(p => `<div class="vs-line" style="padding-left:10px;color:var(--red)">· ${p}</div>`).join('')}
+    </div>
+    <div>
+      <div class="vs-col-title green">${ou.nom}</div>
+      <div class="vs-line">Budget : <span class="val" style="color:var(--text-white)">${ou.budget}</span></div>
+      <div class="vs-line">Méthode : ${ou.methode}</div>
+      <div class="vs-line" style="color:var(--green-bright)">Impact : ${ou.impact_social}</div>
+      <div class="vs-line">Mécanisme : ${ou.mecanisme}</div>
+      <div class="vs-line" style="color:var(--amber);margin-top:6px">${ou.potentiel}</div>
+    </div>
+  `;
+
+  // Mesures bar chart
+  const mes = DATASET.mesures_arizona_detail;
+  new Chart($('#chart-arizona-bar'), {
+    type: 'bar',
+    data: {
+      labels: mes.map(m => m.mesure.length > 30 ? m.mesure.slice(0,30)+'…' : m.mesure),
+      datasets: [{
+        label: 'Économies estimées (Mrd€)',
+        data: mes.map(m => m.economies_estimees / 1e9),
+        backgroundColor: mes.map(m => m.statut==='actif'?'#c41e3a':m.statut==='adopté'?'#d4a017':'#3a3e5c'),
+        borderColor: '#0b0c10', borderWidth: 1,
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true,
+      scales: {
+        x: { grid: { color: '#1a1c2e' }, ticks: { color: '#5a5f80', font: { family: "'IBM Plex Mono'", size: 9 } } },
+        y: { grid: { color: '#1a1c2e' }, ticks: { color: '#8a8fb0', font: { family: "'IBM Plex Mono'", size: 9 } } },
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+function buildData() {
+  function renderTable(filter = '') {
+    const filtered = DATASET.chiffres_cles.filter(c => c.label.toLowerCase().includes(filter.toLowerCase()) || c.source.toLowerCase().includes(filter.toLowerCase()) || c.contexte.toLowerCase().includes(filter.toLowerCase()));
+    $('#data-count').textContent = filtered.length;
+    const arrow = t => t==='hausse'?'<span class="up">▲</span>':t==='baisse'?'<span class="down">▼</span>':'<span class="flat">—</span>';
+    $('#data-table').innerHTML = `<thead><tr><th>Indicateur</th><th>Valeur</th><th>Unité</th><th>Source</th><th>↕</th><th>Contexte</th></tr></thead><tbody>` +
+      filtered.map(c => `<tr>
+        <td>${c.label}</td>
+        <td class="val">${fmt(c.valeur)}</td>
+        <td style="color:var(--text-ghost)">${c.unite}</td>
+        <td style="color:var(--text-dim)">${c.source}</td>
+        <td>${arrow(c.tendance)}</td>
+        <td style="color:var(--text-ghost);font-size:10px;max-width:250px">${c.contexte}</td>
+      </tr>`).join('') + '</tbody>';
+  }
+  renderTable();
+  $('#data-search').addEventListener('input', e => renderTable(e.target.value));
+
+  // Thematiques bar chart
+  new Chart($('#chart-thematiques'), {
+    type: 'bar',
+    data: {
+      labels: DATASET.thematiques.map(t => t.nom),
+      datasets: [{
+        label: 'Documents',
+        data: DATASET.thematiques.map(t => t.documents),
+        backgroundColor: DATASET.thematiques.map(t => t.priorite==='critique'?'#c41e3a':t.priorite==='haute'?'#1a5fb4':'#3a3e5c'),
+        borderColor: '#0b0c10', borderWidth: 1,
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true,
+      scales: {
+        x: { grid: { color: '#1a1c2e' }, ticks: { color: '#5a5f80', font: { family: "'IBM Plex Mono'", size: 9 } } },
+        y: { grid: { color: '#1a1c2e' }, ticks: { color: '#8a8fb0', font: { family: "'IBM Plex Mono'", size: 9 } } },
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // Thematiques detail
+  $('#data-thematiques').innerHTML = DATASET.thematiques.map(t => `
+    <div class="box" style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="color:var(--text-white);font-weight:600">${t.nom}</span>
+        <span><span class="badge ${t.priorite==='critique'?'badge-red':t.priorite==='haute'?'badge-blue':'badge-dim'}">${t.priorite}</span> <span style="color:var(--text-dim);font-size:10px;margin-left:6px">${t.documents} docs</span></span>
+      </div>
+      <div style="font-size:10px;color:var(--text-dim)">${t.sujets.join(' · ')}</div>
+    </div>
+  `).join('');
+}
+
+function buildFinance() {
+  const sorted = [...DATASET.financements_potentiels].sort((a,b) => b.pertinence - a.pertinence);
+  $('#fin-count').textContent = sorted.length;
+
+  $('#fin-cards').innerHTML = sorted.map(f => `
+    <div class="box" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="color:var(--text-white);font-weight:600;font-size:12px">${f.nom}</span>
+        <span class="badge ${f.pertinence>=85?'badge-green':f.pertinence>=70?'badge-amber':'badge-dim'}">PERTINENCE ${f.pertinence}%</span>
+      </div>
+      <div class="prog"><div class="prog-track"><div class="prog-fill" style="width:${f.pertinence}%;background:${f.pertinence>=85?'var(--green)':'var(--amber)'}"></div></div></div>
+      <div style="display:flex;gap:20px;font-size:11px;color:var(--text-dim);margin-top:6px;flex-wrap:wrap">
+        <span>Montant : <span style="color:var(--text-white)">${fmt(f.montant_min)} — ${fmt(f.montant_max)} €</span></span>
+        <span>Durée : <span style="color:var(--text-white)">${f.duree}</span></span>
+        <span>Source : <span style="color:var(--blue)">${f.source}</span></span>
+        <span>Échéance : <span style="color:var(--amber)">${f.echeance}</span></span>
+      </div>
+      <div style="font-size:10px;color:var(--text-ghost);margin-top:4px">${f.details}</div>
+    </div>
+  `).join('');
+
+  // Finance chart
+  new Chart($('#chart-finance'), {
+    type: 'bar',
+    data: {
+      labels: sorted.map(f => f.nom.length > 25 ? f.nom.slice(0,25)+'…' : f.nom),
+      datasets: [{
+        label: 'Montant max (€)',
+        data: sorted.map(f => f.montant_max),
+        backgroundColor: sorted.map(f => f.pertinence>=85?'#26a269':f.pertinence>=70?'#d4a017':'#3a3e5c'),
+        borderColor: '#0b0c10', borderWidth: 1,
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: { grid: { color: '#1a1c2e' }, ticks: { color: '#8a8fb0', font: { family: "'IBM Plex Mono'", size: 9 } } },
+        y: { grid: { color: '#1a1c2e' }, ticks: { color: '#5a5f80', font: { family: "'IBM Plex Mono'", size: 9 } }, beginAtZero: true },
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+function buildRaw() {
+  const keys = Object.keys(DATASET);
+  $('#raw-table-count').textContent = keys.length;
+  let currentKey = 'meta';
+
+  function showTable(key) {
+    currentKey = key;
+    $$('#raw-tabs .btn-tag').forEach(b => b.classList.toggle('active', b.dataset.key === key));
+    const val = DATASET[key];
+    const count = Array.isArray(val) ? val.length : typeof val === 'object' ? Object.keys(val).length : 1;
+    $('#raw-json').textContent = JSON.stringify(val, null, 2);
+  }
+
+  $('#raw-tabs').innerHTML = keys.map(k => {
+    const v = DATASET[k];
+    const c = Array.isArray(v) ? v.length : typeof v === 'object' ? Object.keys(v).length : 1;
+    return `<button class="btn-tag ${k==='meta'?'active':''}" data-key="${k}">${k} (${c})</button>`;
+  }).join('');
+
+  $$('#raw-tabs .btn-tag').forEach(btn => {
+    btn.addEventListener('click', () => showTable(btn.dataset.key));
+  });
+
+  showTable('meta');
+}
+
+function buildFooter() {
+  const totalDocs = DATASET.thematiques.reduce((a,t)=>a+t.documents, 0);
+  $('#footer-stats').textContent = `3 SSG · ${DATASET.plateformes.length} plateformes · 6+ dépôts · ~${totalDocs} documents · ${DATASET.chiffres_cles.length} indicateurs · ${Object.keys(DATASET).length} tables`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  EXPORT FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(DATASET, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ouaisfieu_dataset_complet.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function exportCSV() {
+  const headers = ['label','valeur','unite','source','tendance','contexte'];
+  const rows = DATASET.chiffres_cles.map(c => headers.map(h => `"${String(c[h]).replace(/"/g,'""')}"`).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ouaisfieu_chiffres_cles.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function copyJSON() {
+  navigator.clipboard.writeText(JSON.stringify(DATASET, null, 2)).then(() => {
+    const btn = document.querySelector('.btn-export[style*="blue"]');
+    const orig = btn.textContent;
+    btn.textContent = '✓ COPIÉ !';
+    btn.style.background = 'var(--green)';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = 'var(--blue)'; }, 2000);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GO
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', runBoot);
+</script>
+</body>
+</html>
