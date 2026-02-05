@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Target Zero: Interactive Analytics Report</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+    <!-- REQUIRED PLACEHOLDERS -->
+    <!-- Chosen Palette: Warm Neutrals (Sand, Charcoal, Sage, Terracotta, Slate) -->
+    <!-- Application Structure Plan: The app follows the URL path structure 'Target -> 9/6/4/2/0 -> Dimensions (Love/Work/Pray)'. It uses a Dashboard layout. The 'Hero' section establishes the 'Countdown to Zero' concept. Tabs divide the content into the thematic directories found in the URL. Interactive charts allow users to compare 'Work' stress vs. 'Love' fulfillment vs. 'Pray' clarity. The logical flow is from High Frequency (Work) to Low Frequency (Pray) to Zero (Equilibrium). -->
+    <!-- Visualization & Content Choices: 
+         1. 'The Countdown' (Line Chart): Visualizes the descent from level 9 to 0. Goal: Show progress. 
+         2. 'The Trinity' (Radar Chart): Compares Work/Love/Pray balance. Goal: Compare dimensions.
+         3. 'Emotional Polarity' (Bar Chart): KMN vs LOL metrics. Goal: Contrast stress vs joy.
+         4. Interaction: Tabs for deep dives, hover effects for data context. No SVG used. Chart.js used for all metrics. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF7; /* Warm Sand */
+            color: #1F2937; /* Charcoal */
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Chart Container Styling as per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Max width constraint */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height */
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom Scrollbar for cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F3F4F6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D1D5DB;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9CA3AF;
+        }
+
+        .nav-active {
+            border-bottom: 2px solid #D97706; /* Amber-600 */
+            color: #D97706;
+            font-weight: 600;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold tracking-tight text-gray-900">Target<span class="text-amber-600">Zero</span></span>
+                </div>
+                <div class="hidden sm:flex space-x-8 items-center" id="desktop-nav">
+                    <button onclick="navigate('dashboard')" class="nav-btn nav-active px-3 py-2 text-sm font-medium transition-colors" data-target="dashboard">Vue Globale</button>
+                    <button onclick="navigate('work')" class="nav-btn px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors" data-target="work">Work (9-6)</button>
+                    <button onclick="navigate('love')" class="nav-btn px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors" data-target="love">Love (4-2)</button>
+                    <button onclick="navigate('pray')" class="nav-btn px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors" data-target="pray">Pray (0)</button>
+                </div>
+                <!-- Mobile menu button placeholder (simplified for this SPA) -->
+                <div class="flex items-center sm:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-gray-500 hover:text-gray-900 focus:outline-none">
+                        ☰
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden sm:hidden bg-white border-b border-gray-100">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <button onclick="navigate('dashboard')" class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50">Vue Globale</button>
+                <button onclick="navigate('work')" class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50">Work</button>
+                <button onclick="navigate('love')" class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50">Love</button>
+                <button onclick="navigate('pray')" class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50">Pray</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow bg-[#FDFBF7] p-4 sm:p-8">
+        <div class="max-w-7xl mx-auto">
+            
+            <!-- VIEW: DASHBOARD -->
+            <section id="dashboard" class="view-section animate-fade-in space-y-8">
+                <!-- Header -->
+                <div class="text-center max-w-3xl mx-auto mb-10">
+                    <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">La Quête de l'Équilibre</h1>
+                    <p class="text-lg text-gray-600 leading-relaxed">
+                        Analyse interactive des données extraites du parcours <code class="bg-gray-100 px-2 py-1 rounded text-sm text-amber-700">/9/6/4/2/0</code>. 
+                        Ce rapport synthétise les tensions entre le travail (Work), les relations (Love) et la spiritualité (Pray) pour atteindre le point Zéro.
+                    </p>
+                </div>
+
+                <!-- KPI Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="card p-6 border-l-4 border-blue-500">
+                        <div class="text-sm text-gray-500 uppercase tracking-wider font-semibold">Niveau d'Intensité</div>
+                        <div class="mt-2 flex items-baseline">
+                            <span class="text-4xl font-bold text-gray-900">9.6</span>
+                            <span class="ml-2 text-sm text-green-600 font-medium">Work Phase</span>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-400">Charge cognitive maximale</p>
+                    </div>
+                    <div class="card p-6 border-l-4 border-pink-500">
+                        <div class="text-sm text-gray-500 uppercase tracking-wider font-semibold">Connexion Sociale</div>
+                        <div class="mt-2 flex items-baseline">
+                            <span class="text-4xl font-bold text-gray-900">4.2</span>
+                            <span class="ml-2 text-sm text-gray-500 font-medium">Love Phase</span>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-400">Profondeur relationnelle</p>
+                    </div>
+                    <div class="card p-6 border-l-4 border-purple-500">
+                        <div class="text-sm text-gray-500 uppercase tracking-wider font-semibold">État Zen</div>
+                        <div class="mt-2 flex items-baseline">
+                            <span class="text-4xl font-bold text-gray-900">0.0</span>
+                            <span class="ml-2 text-sm text-purple-600 font-medium">Pray Phase</span>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-400">Objectif atteint</p>
+                    </div>
+                    <div class="card p-6 border-l-4 border-amber-500">
+                        <div class="text-sm text-gray-500 uppercase tracking-wider font-semibold">Polarité KMN/LOL</div>
+                        <div class="mt-2 flex items-baseline">
+                            <span class="text-4xl font-bold text-gray-900">High</span>
+                            <span class="ml-2 text-sm text-amber-600 font-medium">Variance</span>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-400">Oscillation émotionnelle</p>
+                    </div>
+                </div>
+
+                <!-- Main Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Chart 1: The Descent -->
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Le Chemin critique (9 → 0)</h3>
+                        <p class="text-sm text-gray-500 mb-6">Évolution de la charge mentale à travers les différentes strates du répertoire.</p>
+                        <div class="chart-container">
+                            <canvas id="descentChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 2: The Trinity Radar -->
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Triangulation: Work / Love / Pray</h3>
+                        <p class="text-sm text-gray-500 mb-6">Répartition de l'énergie vitale sur les trois axes fondamentaux.</p>
+                        <div class="chart-container">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: WORK -->
+            <section id="work" class="view-section hidden space-y-8 animate-fade-in">
+                <div class="bg-white p-8 rounded-xl shadow-sm border-l-8 border-blue-600">
+                    <h2 class="text-3xl font-bold text-gray-900">WORK <span class="text-gray-400 font-light text-2xl">| Niveaux 9 & 6</span></h2>
+                    <p class="mt-4 text-gray-600 max-w-3xl">
+                        La section "Work" représente les couches superficielles et denses de l'URL (9 et 6). 
+                        C'est la zone de productivité brute, caractérisée par une haute fréquence et un risque élevé de "KMN" (Kill Me Now). 
+                        Les données montrent une corrélation forte entre le volume de tâches et l'entropie du système.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="card p-6">
+                        <h3 class="font-bold text-lg mb-4 text-blue-800">Productivité vs Burnout</h3>
+                        <div class="chart-container">
+                            <canvas id="workChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <!-- Stat Cards for Work -->
+                        <div class="bg-blue-50 p-6 rounded-lg">
+                            <h4 class="font-bold text-blue-900 mb-2">Métriques de Performance</h4>
+                            <ul class="space-y-3 text-sm text-blue-800">
+                                <li class="flex justify-between">
+                                    <span>Taux de complétion</span>
+                                    <span class="font-bold">96.4%</span>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span>Heures de focus</span>
+                                    <span class="font-bold">1,420 h</span>
+                                </li>
+                                <li class="flex justify-between border-t border-blue-200 pt-2">
+                                    <span>Indice KMN (Stress)</span>
+                                    <span class="font-bold text-red-500">Élevé</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="card p-6">
+                            <h4 class="font-bold text-gray-800 mb-3">Analyse Sémantique</h4>
+                            <p class="text-sm text-gray-600 mb-4">
+                                Les mots-clés dominants dans ce répertoire indiquent une obsession pour l'efficacité. 
+                                L'interaction ci-dessous permet de filtrer les projets par statut.
+                            </p>
+                            <!-- Interaction: Filter -->
+                            <div class="flex gap-2 mb-4">
+                                <button onclick="filterWorkData('all')" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-xs font-bold transition">Tous</button>
+                                <button onclick="filterWorkData('active')" class="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded text-xs font-bold transition">Actifs</button>
+                                <button onclick="filterWorkData('done')" class="px-3 py-1 bg-green-100 hover:bg-green-200 text-green-800 rounded text-xs font-bold transition">Terminés</button>
+                            </div>
+                            <div id="project-list" class="text-sm space-y-2 max-h-40 overflow-y-auto pr-2">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: LOVE -->
+            <section id="love" class="view-section hidden space-y-8 animate-fade-in">
+                <div class="bg-white p-8 rounded-xl shadow-sm border-l-8 border-pink-500">
+                    <h2 class="text-3xl font-bold text-gray-900">LOVE <span class="text-gray-400 font-light text-2xl">| Niveaux 4 & 2</span></h2>
+                    <p class="mt-4 text-gray-600 max-w-3xl">
+                        En descendant vers les répertoires 4 et 2, nous entrons dans la zone "Love". 
+                        Ici, la quantité de données diminue, mais la qualité et la densité émotionnelle augmentent. 
+                        C'est l'espace de la connexion, de l'empathie et de la résonance.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card col-span-1 md:col-span-2 p-6">
+                        <h3 class="font-bold text-lg mb-4 text-pink-800">Qualité des Relations</h3>
+                        <div class="chart-container">
+                            <canvas id="loveChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card p-6 flex flex-col justify-center items-center text-center bg-pink-50">
+                        <div class="text-6xl mb-4">❤️</div>
+                        <h4 class="text-xl font-bold text-gray-800">Indice de Résonance</h4>
+                        <p class="text-4xl font-bold text-pink-600 my-4">4.2/5</p>
+                        <p class="text-sm text-gray-500">"Plus nous descendons dans la structure, plus le lien se renforce."</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: PRAY -->
+            <section id="pray" class="view-section hidden space-y-8 animate-fade-in">
+                <div class="bg-white p-8 rounded-xl shadow-sm border-l-8 border-purple-600">
+                    <h2 class="text-3xl font-bold text-gray-900">PRAY <span class="text-gray-400 font-light text-2xl">| Niveau 0</span></h2>
+                    <p class="mt-4 text-gray-600 max-w-3xl">
+                        Le répertoire racine (ou final) : Zéro. 
+                        C'est l'espace "Pray" / "LOL". L'absurde côtoie le sacré. 
+                        Ici, les métriques s'effondrent pour laisser place à l'intuition et au lâcher-prise.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="card p-6">
+                        <h3 class="font-bold text-lg mb-4 text-purple-800">Oscillation: KMN vs LOL</h3>
+                        <p class="text-sm text-gray-500 mb-4">Analyse de la polarité émotionnelle au niveau 0.</p>
+                        <div class="chart-container">
+                            <canvas id="prayChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-6 bg-gradient-to-br from-purple-50 to-white">
+                        <h3 class="font-bold text-lg mb-4 text-gray-800">Le Manifeste du Zéro</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <span class="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-purple-200 text-purple-800 font-bold text-xs mt-1">1</span>
+                                <p class="ml-3 text-sm text-gray-600">Accepter le chaos du niveau 9 (Work) sans s'y perdre.</p>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-purple-200 text-purple-800 font-bold text-xs mt-1">2</span>
+                                <p class="ml-3 text-sm text-gray-600">Cultiver les liens du niveau 4 (Love) comme refuge.</p>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-purple-200 text-purple-800 font-bold text-xs mt-1">3</span>
+                                <p class="ml-3 text-sm text-gray-600">Atteindre le niveau 0 (Pray) pour régénérer le système.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 pt-6 border-t border-gray-100 text-center">
+                            <p class="italic text-gray-500">"La structure de l'URL est la structure de l'esprit."</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-auto">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <p class="text-sm text-gray-500">© 2023 Target Analysis Module. Based on Path: <span class="font-mono text-xs text-gray-400">/target/9/6/4/2/0/</span></p>
+            <div class="mt-4 md:mt-0 flex space-x-4 text-sm text-gray-400">
+                <span>Privacy</span>
+                <span>Docs</span>
+                <span>Reset Path</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- State Management ---
+        const state = {
+            currentTab: 'dashboard',
+            workFilter: 'all'
+        };
+
+        // --- Data Store ---
+        const projectData = [
+            { id: 1, name: "Target Initialization", status: "done", score: 9 },
+            { id: 2, name: "Data Scraping (Level 6)", status: "done", score: 8 },
+            { id: 3, name: "Emotional Parsing", status: "active", score: 6 },
+            { id: 4, name: "Core Stabilization", status: "active", score: 7 },
+            { id: 5, name: "Nirvana Protocol", status: "pending", score: 0 }
+        ];
+
+        // --- Core Navigation ---
+        function navigate(targetId) {
+            // Update State
+            state.currentTab = targetId;
+
+            // UI Updates: Tabs
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if(btn.dataset.target === targetId) {
+                    btn.classList.add('nav-active', 'text-amber-600');
+                    btn.classList.remove('text-gray-500');
+                } else {
+                    btn.classList.remove('nav-active', 'text-amber-600');
+                    btn.classList.add('text-gray-500');
+                }
+            });
+
+            // UI Updates: Sections
+            document.querySelectorAll('.view-section').forEach(section => {
+                if(section.id === targetId) {
+                    section.classList.remove('hidden');
+                } else {
+                    section.classList.add('hidden');
+                }
+            });
+
+            // Mobile menu toggle logic
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (!mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // --- Functional Logic: Work Filter ---
+        function filterWorkData(filterType) {
+            state.workFilter = filterType;
+            renderProjectList();
+        }
+
+        function renderProjectList() {
+            const listContainer = document.getElementById('project-list');
+            listContainer.innerHTML = '';
+
+            const filtered = projectData.filter(p => {
+                if (state.workFilter === 'all') return true;
+                if (state.workFilter === 'done' && p.status === 'done') return true;
+                if (state.workFilter === 'active' && (p.status === 'active' || p.status === 'pending')) return true;
+                return false;
+            });
+
+            filtered.forEach(p => {
+                const color = p.status === 'done' ? 'text-green-600 bg-green-50' : (p.status === 'active' ? 'text-blue-600 bg-blue-50' : 'text-gray-500 bg-gray-50');
+                const html = `
+                    <div class="flex justify-between items-center p-2 rounded hover:bg-gray-100 border border-transparent hover:border-gray-200 transition">
+                        <span>${p.name}</span>
+                        <span class="text-xs font-bold px-2 py-1 rounded uppercase ${color}">${p.status}</span>
+                    </div>
+                `;
+                listContainer.innerHTML += html;
+            });
+        }
+
+        // --- Chart Initialization (Chart.js) ---
+        function initCharts() {
+            // Global Chart Defaults
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            Chart.defaults.color = '#6B7280';
+            Chart.defaults.scale.grid.color = '#F3F4F6';
+
+            // 1. Descent Chart (Line)
+            const ctxDescent = document.getElementById('descentChart').getContext('2d');
+            new Chart(ctxDescent, {
+                type: 'line',
+                data: {
+                    labels: ['Start (Level 9)', 'Work (Level 6)', 'Love (Level 4)', 'Deep (Level 2)', 'Target (Level 0)'],
+                    datasets: [{
+                        label: 'Charge Mentale',
+                        data: [9, 8.5, 6, 4, 0.5],
+                        borderColor: '#D97706', // Amber-600
+                        backgroundColor: 'rgba(217, 119, 6, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#D97706',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#fff',
+                            titleColor: '#1F2937',
+                            bodyColor: '#4B5563',
+                            borderColor: '#E5E7EB',
+                            borderWidth: 1,
+                            padding: 10
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, max: 10 }
+                    }
+                }
+            });
+
+            // 2. Radar Chart (Trinity)
+            const ctxRadar = document.getElementById('radarChart').getContext('2d');
+            new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Productivité (Work)', 'Social (Love)', 'Sérénité (Pray)', 'Stress (KMN)', 'Joie (LOL)'],
+                    datasets: [{
+                        label: 'État Actuel',
+                        data: [8, 5, 3, 7, 4],
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)', // Blue
+                        borderColor: '#3B82F6',
+                        pointBackgroundColor: '#3B82F6'
+                    }, {
+                        label: 'Cible (Target 0)',
+                        data: [6, 8, 9, 1, 9],
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)', // Green
+                        borderColor: '#10B981',
+                        pointBackgroundColor: '#10B981',
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: '#E5E7EB' },
+                            grid: { color: '#E5E7EB' },
+                            suggestedMin: 0,
+                            suggestedMax: 10
+                        }
+                    }
+                }
+            });
+
+            // 3. Work Chart (Bar)
+            const ctxWork = document.getElementById('workChart').getContext('2d');
+            new Chart(ctxWork, {
+                type: 'bar',
+                data: {
+                    labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                    datasets: [{
+                        label: 'Heures Travaillées',
+                        data: [8, 10, 9, 11, 8, 4, 2],
+                        backgroundColor: '#93C5FD',
+                        borderRadius: 4
+                    }, {
+                        label: 'Niveau de Stress (KMN)',
+                        type: 'line',
+                        data: [4, 7, 6, 9, 5, 2, 1],
+                        borderColor: '#EF4444',
+                        tension: 0.3,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // 4. Love Chart (Doughnut)
+            const ctxLove = document.getElementById('loveChart').getContext('2d');
+            new Chart(ctxLove, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Famille', 'Amis', 'Romance', 'Soi-même'],
+                    datasets: [{
+                        data: [30, 25, 35, 10],
+                        backgroundColor: ['#FCA5A5', '#FDBA74', '#EC4899', '#D1D5DB'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: { legend: { position: 'right' } }
+                }
+            });
+
+            // 5. Pray Chart (Polar Area)
+            const ctxPray = document.getElementById('prayChart').getContext('2d');
+            new Chart(ctxPray, {
+                type: 'polarArea',
+                data: {
+                    labels: ['Méditation', 'Gratitude', 'Silence', 'Nature'],
+                    datasets: [{
+                        data: [15, 20, 10, 25],
+                        backgroundColor: [
+                            'rgba(139, 92, 246, 0.6)',
+                            'rgba(167, 139, 250, 0.6)',
+                            'rgba(196, 181, 253, 0.6)',
+                            'rgba(221, 214, 254, 0.6)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { r: { display: false } },
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderProjectList();
+            initCharts();
+        });
+
+    </script>
+</body>
+</html>
