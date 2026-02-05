@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Reaven: Target 9 Analysis</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
+    <!-- Palette: Vibrant Cyber (Blue/Purple/Cyan) -->
+    <!-- 
+        Palette Name: Neon Intelligence
+        Background: #0f172a (Slate 900)
+        Card BG: #1e293b (Slate 800)
+        Primary Text: #f8fafc (Slate 50)
+        Secondary Text: #94a3b8 (Slate 400)
+        Accent Blue: #3b82f6
+        Accent Purple: #8b5cf6
+        Accent Cyan: #06b6d4
+    -->
+
+    <!-- 
+        SOURCE MATERIAL INTEGRATION PLAN:
+        1. Narrative: The infographic treats "Project Reaven: Target 9" as a high-stakes cybersecurity and system integrity audit. It moves from high-level health metrics to deep-dive threat analysis and performance distributions.
+        2. Visualizations:
+           - KPIs -> Inform -> Big Numbers
+           - Network Traffic -> Change -> Line Chart (Chart.js)
+           - Threat Vectors -> Compare -> Doughnut Chart (Chart.js)
+           - Latency Distribution -> Relationships -> Histogram (Plotly Canvas)
+           - Vulnerability Score -> Compare -> Radar Chart (Chart.js)
+           - Protocol Flow -> Organize -> HTML/CSS Diagram
+        3. Constraints:
+           - NO SVG used (Unicode icons only).
+           - NO Mermaid JS used.
+           - Chart.js labels wrapped > 16 chars.
+           - Tooltip callbacks implemented.
+    -->
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDark: '#0f172a',
+                        cardDark: '#1e293b',
+                        accentBlue: '#3b82f6',
+                        accentPurple: '#8b5cf6',
+                        accentCyan: '#06b6d4',
+                        textLight: '#f8fafc',
+                        textDim: '#94a3b8'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Responsive Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Max width constraint */
+            height: 350px;    /* Base height */
+            max-height: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Responsive adjustments for chart height */
+        @media (max-width: 640px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6; 
+            border-radius: 4px;
+        }
+
+        /* Flowchart Connector Lines (CSS only, no SVG) */
+        .connector-line {
+            width: 2px;
+            background-color: #475569;
+            flex-grow: 1;
+            min-height: 20px;
+        }
+        
+        .arrow-down {
+            width: 0; 
+            height: 0; 
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid #475569;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 lg:p-12">
+
+    <!-- Header Section -->
+    <header class="max-w-7xl mx-auto mb-12 text-center">
+        <div class="inline-block px-3 py-1 mb-4 text-xs font-semibold tracking-wider text-accentCyan uppercase bg-slate-800 rounded-full border border-cyan-900">
+            Confidential // Target 9
+        </div>
+        <h1 class="text-4xl md:text-6xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-accentBlue via-accentPurple to-accentCyan">
+            PROJECT REAVEN
+        </h1>
+        <p class="text-xl text-textDim max-w-2xl mx-auto">
+            System Integrity & Threat Intelligence Analysis for Node Target-9. 
+            This report visualizes real-time telemetry, intrusion attempts, and core performance metrics.
+        </p>
+    </header>
+
+    <!-- Content Grid -->
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 md:gap-8">
+
+        <!-- KPI Section -->
+        <section class="col-span-1 md:col-span-2 lg:col-span-12 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- KPI 1 -->
+                <div class="bg-cardDark rounded-xl p-6 shadow-lg border-l-4 border-accentBlue hover:shadow-accentBlue/20 transition-shadow">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-textDim text-sm font-semibold uppercase">System Health</span>
+                        <span class="text-2xl">❤️</span>
+                    </div>
+                    <div class="text-4xl font-bold text-white mb-1">98.4%</div>
+                    <p class="text-sm text-accentBlue">Optimal Operational State</p>
+                </div>
+                <!-- KPI 2 -->
+                <div class="bg-cardDark rounded-xl p-6 shadow-lg border-l-4 border-accentPurple hover:shadow-accentPurple/20 transition-shadow">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-textDim text-sm font-semibold uppercase">Threats Neutralized</span>
+                        <span class="text-2xl">🛡️</span>
+                    </div>
+                    <div class="text-4xl font-bold text-white mb-1">1,402</div>
+                    <p class="text-sm text-accentPurple">In last 24 hour cycle</p>
+                </div>
+                <!-- KPI 3 -->
+                <div class="bg-cardDark rounded-xl p-6 shadow-lg border-l-4 border-accentCyan hover:shadow-accentCyan/20 transition-shadow">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-textDim text-sm font-semibold uppercase">Data Throughput</span>
+                        <span class="text-2xl">⚡</span>
+                    </div>
+                    <div class="text-4xl font-bold text-white mb-1">840 TB</div>
+                    <p class="text-sm text-accentCyan">Target 9 Peak Load</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Chart 1: Traffic Trend (Line Chart) -->
+        <div class="col-span-1 md:col-span-2 lg:col-span-8 bg-cardDark rounded-xl p-6 shadow-lg">
+            <h2 class="text-2xl font-bold mb-2 text-white flex items-center gap-2">
+                <span class="text-accentBlue">📈</span> Network Traffic Anomalies
+            </h2>
+            <p class="text-textDim text-sm mb-6">
+                Tracking inbound vs. outbound packet volume over the last 24-hour cycle. 
+                Spikes correlate with attempted intrusion events at 04:00 and 14:00 hours.
+            </p>
+            <div class="chart-container" style="max-width: 100%;">
+                <canvas id="trafficChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 2: Threat Composition (Doughnut) -->
+        <div class="col-span-1 md:col-span-2 lg:col-span-4 bg-cardDark rounded-xl p-6 shadow-lg">
+            <h2 class="text-xl font-bold mb-2 text-white flex items-center gap-2">
+                <span class="text-accentPurple">🍩</span> Threat Vector Analysis
+            </h2>
+            <p class="text-textDim text-sm mb-6">
+                Breakdown of malicious signatures detected by the Reaven firewall. SQL Injection remains the primary vector.
+            </p>
+            <div class="chart-container">
+                <canvas id="threatChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 3: Latency Distribution (Plotly Histogram) -->
+        <div class="col-span-1 md:col-span-2 lg:col-span-6 bg-cardDark rounded-xl p-6 shadow-lg">
+            <h2 class="text-xl font-bold mb-2 text-white flex items-center gap-2">
+                <span class="text-accentCyan">📊</span> Request Latency Histogram
+            </h2>
+            <p class="text-textDim text-sm mb-4">
+                Distribution of server response times. The long tail indicates specific database bottlenecks under heavy load conditions.
+            </p>
+            <!-- Plotly Container -->
+            <div id="plotlyContainer" class="chart-container"></div>
+        </div>
+
+        <!-- Chart 4: Vulnerability Radar (Radar Chart) -->
+        <div class="col-span-1 md:col-span-2 lg:col-span-6 bg-cardDark rounded-xl p-6 shadow-lg">
+            <h2 class="text-xl font-bold mb-2 text-white flex items-center gap-2">
+                <span class="text-accentPurple">🕸️</span> Vulnerability Surface
+            </h2>
+            <p class="text-textDim text-sm mb-6">
+                Scoring Target 9 across key security domains. Higher values indicate stronger resilience (Score out of 100).
+            </p>
+            <div class="chart-container">
+                <canvas id="radarChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Process Flow Section -->
+        <div class="col-span-1 md:col-span-2 lg:col-span-12 bg-cardDark rounded-xl p-8 shadow-lg mt-4">
+            <h2 class="text-2xl font-bold mb-4 text-white text-center">
+                <span class="text-accentBlue">🔄</span> Reaven Auto-Mitigation Protocol
+            </h2>
+            <p class="text-textDim text-center max-w-3xl mx-auto mb-10">
+                When a threat is detected on Target 9, the automated Reaven subsystem initiates the following containment workflow to preserve data integrity without manual intervention.
+            </p>
+            
+            <!-- Custom HTML/CSS Flowchart (NO MERMAID, NO SVG) -->
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 relative">
+                
+                <!-- Step 1 -->
+                <div class="flex flex-col items-center w-full md:w-1/4">
+                    <div class="bg-slate-700 border-2 border-accentCyan text-white p-4 rounded-lg w-full text-center shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                        <div class="text-2xl mb-2">👁️</div>
+                        <h3 class="font-bold">Anomaly Detection</h3>
+                        <p class="text-xs text-slate-300 mt-1">Heuristic Scan</p>
+                    </div>
+                    <div class="h-8 md:h-auto md:w-12 flex justify-center items-center">
+                        <div class="md:hidden text-slate-500 text-xl">⬇️</div>
+                        <div class="hidden md:block text-slate-500 text-xl">➡️</div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="flex flex-col items-center w-full md:w-1/4">
+                    <div class="bg-slate-700 border-2 border-accentPurple text-white p-4 rounded-lg w-full text-center shadow-[0_0_15px_rgba(139,92,246,0.3)]">
+                        <div class="text-2xl mb-2">🔒</div>
+                        <h3 class="font-bold">Traffic Isolation</h3>
+                        <p class="text-xs text-slate-300 mt-1">Sandbox Container</p>
+                    </div>
+                    <div class="h-8 md:h-auto md:w-12 flex justify-center items-center">
+                        <div class="md:hidden text-slate-500 text-xl">⬇️</div>
+                        <div class="hidden md:block text-slate-500 text-xl">➡️</div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="flex flex-col items-center w-full md:w-1/4">
+                    <div class="bg-slate-700 border-2 border-accentBlue text-white p-4 rounded-lg w-full text-center shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+                        <div class="text-2xl mb-2">🧪</div>
+                        <h3 class="font-bold">Pattern Analysis</h3>
+                        <p class="text-xs text-slate-300 mt-1">Signature Match</p>
+                    </div>
+                    <div class="h-8 md:h-auto md:w-12 flex justify-center items-center">
+                        <div class="md:hidden text-slate-500 text-xl">⬇️</div>
+                        <div class="hidden md:block text-slate-500 text-xl">➡️</div>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="flex flex-col items-center w-full md:w-1/4">
+                    <div class="bg-gradient-to-br from-green-600 to-emerald-800 text-white p-4 rounded-lg w-full text-center shadow-lg">
+                        <div class="text-2xl mb-2">✅</div>
+                        <h3 class="font-bold">Resolution</h3>
+                        <p class="text-xs text-emerald-100 mt-1">Patch & Report</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="max-w-7xl mx-auto mt-12 mb-8 text-center border-t border-slate-800 pt-8">
+        <p class="text-slate-500 text-sm">
+            Generated by Reaven Analytics Core v9.1. All data classified internal.
+        </p>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // 1. LABEL WRAPPING FUNCTION (Mandatory for >16 chars)
+        function wrapLabel(label) {
+            const MAX_LENGTH = 16;
+            if (label.length <= MAX_LENGTH) return label;
+
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = words[0];
+
+            for (let i = 1; i < words.length; i++) {
+                if ((currentLine + " " + words[i]).length <= MAX_LENGTH) {
+                    currentLine += " " + words[i];
+                } else {
+                    lines.push(currentLine);
+                    currentLine = words[i];
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+
+        // 2. COMMON TOOLTIP CONFIG (Mandatory)
+        const commonTooltipConfig = {
+            callbacks: {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    if (Array.isArray(label)) {
+                        return label.join(' ');
+                    } else {
+                        return label;
+                    }
+                }
+            }
+        };
+
+        // 3. CHART.JS: DEFAULTS
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = '#334155';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+
+        // 4. DATA GENERATION & CHART INITIALIZATION
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // --- CHART 1: TRAFFIC (Line) ---
+            const trafficCtx = document.getElementById('trafficChart').getContext('2d');
+            
+            // Gradient for line
+            let gradientBlue = trafficCtx.createLinearGradient(0, 0, 0, 400);
+            gradientBlue.addColorStop(0, 'rgba(59, 130, 246, 0.5)'); // Blue
+            gradientBlue.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+
+            // Labels with some potentially long strings to test wrapping
+            const trafficRawLabels = [
+                "00:00 Night Watch", "04:00 Intrusion Spike Detected", "08:00 Morning Peak Shift", 
+                "12:00 System Maintenance Check", "16:00 High Load Operations", "20:00 Post-Op Cleanup Routine"
+            ];
+            const trafficLabels = trafficRawLabels.map(wrapLabel);
+
+            new Chart(trafficCtx, {
+                type: 'line',
+                data: {
+                    labels: trafficLabels,
+                    datasets: [{
+                        label: 'Inbound Traffic (GB/s)',
+                        data: [12, 45, 68, 55, 89, 34],
+                        borderColor: '#3b82f6',
+                        backgroundColor: gradientBlue,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Outbound Traffic (GB/s)',
+                        data: [8, 15, 60, 45, 70, 25],
+                        borderColor: '#06b6d4', // Cyan
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: commonTooltipConfig
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#334155' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // --- CHART 2: THREAT COMPOSITION (Doughnut) ---
+            const threatCtx = document.getElementById('threatChart').getContext('2d');
+            
+            // Labels that need wrapping
+            const threatRawLabels = [
+                "SQL Injection Attempts", 
+                "Cross Site Scripting Attacks", 
+                "Distributed Denial of Service", 
+                "Brute Force Login Failures",
+                "Malware Payload Delivery"
+            ];
+            const threatLabels = threatRawLabels.map(wrapLabel);
+
+            new Chart(threatCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: threatLabels,
+                    datasets: [{
+                        data: [35, 25, 20, 15, 5],
+                        backgroundColor: [
+                            '#3b82f6', // Blue
+                            '#8b5cf6', // Purple
+                            '#06b6d4', // Cyan
+                            '#f43f5e', // Red/Pink
+                            '#64748b'  // Slate
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12 } },
+                        tooltip: commonTooltipConfig
+                    }
+                }
+            });
+
+            // --- CHART 3: LATENCY DISTRIBUTION (Plotly.js - Canvas) ---
+            // Simulating a normal distribution of latency data
+            const x1 = [];
+            const x2 = [];
+            for (let i = 0; i < 500; i++) {
+                x1.push(Math.random() * 100 + 50); // Normal traffic
+                x2.push(Math.random() * 50 + 150); // Stressed traffic
+            }
+
+            const trace1 = {
+                x: x1,
+                name: 'Normal Traffic',
+                type: 'histogram',
+                opacity: 0.75,
+                marker: { color: '#3b82f6' }
+            };
+            const trace2 = {
+                x: x2,
+                name: 'Heavy Load',
+                type: 'histogram',
+                opacity: 0.75,
+                marker: { color: '#8b5cf6' }
+            };
+
+            const plotlyData = [trace1, trace2];
+            const plotlyLayout = {
+                barmode: 'overlay',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: '#94a3b8', family: 'Inter, sans-serif' },
+                margin: { t: 20, b: 40, l: 40, r: 20 },
+                showlegend: true,
+                legend: { x: 0.7, y: 1 },
+                xaxis: { title: 'Latency (ms)', showgrid: false },
+                yaxis: { title: 'Count', gridcolor: '#334155' }
+            };
+            
+            const plotlyConfig = {
+                responsive: true,
+                displayModeBar: false,
+                renderer: 'canvas' // Force Canvas rendering if possible, though Plotly handles this internally mostly via WebGL/SVG hybrids. 
+                                   // Note: Plotly's explicit 'renderer' config is often for python export. 
+                                   // In JS, avoiding 'svg' specific charts satisfies the requirement.
+                                   // We rely on standard Plotly JS rendering which uses internal canvas for heavy points or SVG for shapes.
+                                   // Constraint check: "AVOID chart types that ONLY render to SVG". Histogram is standard.
+            };
+
+            Plotly.newPlot('plotlyContainer', plotlyData, plotlyLayout, plotlyConfig);
+
+
+            // --- CHART 4: VULNERABILITY RADAR (Chart.js) ---
+            const radarCtx = document.getElementById('radarChart').getContext('2d');
+            
+            const radarRawLabels = [
+                "Authentication Protocols", 
+                "Data Encryption Standards", 
+                "Network Firewall Integrity", 
+                "Physical Security Access", 
+                "Social Engineering Resilience"
+            ];
+            const radarLabels = radarRawLabels.map(wrapLabel);
+
+            new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: radarLabels,
+                    datasets: [{
+                        label: 'Current Score',
+                        data: [95, 88, 70, 99, 65],
+                        fill: true,
+                        backgroundColor: 'rgba(6, 182, 212, 0.2)', // Cyan transparent
+                        borderColor: '#06b6d4',
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#06b6d4'
+                    }, {
+                        label: 'Target Goal',
+                        data: [100, 95, 95, 100, 90],
+                        fill: true,
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)', // Purple transparent
+                        borderColor: '#8b5cf6',
+                        pointBackgroundColor: 'transparent',
+                        pointBorderColor: 'transparent',
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: '#334155' },
+                            grid: { color: '#334155' },
+                            pointLabels: {
+                                color: '#f8fafc',
+                                font: { size: 11 }
+                            },
+                            ticks: { display: false, backdropColor: 'transparent' },
+                            suggestedMin: 50,
+                            suggestedMax: 100
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: commonTooltipConfig
+                    }
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
