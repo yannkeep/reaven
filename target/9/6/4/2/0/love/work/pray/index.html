@@ -3,802 +3,1322 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OUAISFIEU — Monitoring Citoyen v4.0</title>
+<title>BRIEFING STRATÉGIQUE — Sûreté de l'État & Décideurs | Projet Ouaisfieu</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
-
 :root {
-  --bg: #0a0a0c;
-  --bg2: #111114;
-  --bg3: #18181c;
-  --bg4: #222228;
-  --red: #c41e3a;
-  --red-dim: #8a1528;
-  --amber: #d4a017;
-  --amber-dim: #9a7412;
-  --green: #2ecc71;
-  --green-dim: #1a7a42;
-  --blue: #1a5fb4;
-  --blue-bright: #3d8bfd;
-  --cyan: #00bcd4;
-  --white: #e8e6e3;
-  --gray: #888;
-  --gray-dim: #555;
-  --border: #2a2a30;
-  --mono: 'IBM Plex Mono', monospace;
-  --sans: 'IBM Plex Sans', sans-serif;
-  --glow-red: 0 0 20px rgba(196,30,58,0.3);
-  --glow-amber: 0 0 20px rgba(212,160,23,0.2);
-  --glow-green: 0 0 20px rgba(46,204,113,0.2);
+  --bg-primary: #0a0c10;
+  --bg-secondary: #111520;
+  --bg-tertiary: #161b28;
+  --bg-card: #1a2035;
+  --text-primary: #e8ecf4;
+  --text-secondary: #8b95a8;
+  --text-muted: #5a6478;
+  --accent-red: #d32f2f;
+  --accent-red-dark: #8b1a1a;
+  --accent-amber: #f5a623;
+  --accent-blue: #2979ff;
+  --accent-green: #43a047;
+  --accent-cyan: #00bcd4;
+  --border: #252d40;
+  --border-light: #2a3350;
+  --glow-red: rgba(211, 47, 47, 0.15);
+  --glow-blue: rgba(41, 121, 255, 0.1);
 }
 
-* { margin:0; padding:0; box-sizing:border-box; }
-html { font-size:14px; }
-body { font-family:var(--mono); background:var(--bg); color:var(--white); overflow-x:hidden; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* BOOT SCREEN */
-#boot { position:fixed; inset:0; z-index:9999; background:var(--bg); display:flex; flex-direction:column; justify-content:center; align-items:center; transition:opacity 0.6s; }
-#boot.done { opacity:0; pointer-events:none; }
-#boot-log { width:min(700px,90vw); font-size:12px; line-height:1.8; }
-#boot-log .line { opacity:0; animation:fadeIn 0.15s forwards; color:var(--gray); }
-#boot-log .ok { color:var(--green); font-weight:600; }
-#boot-log .title { color:var(--red); font-weight:700; font-size:14px; letter-spacing:2px; }
-#boot-log .idx { color:var(--gray-dim); margin-right:8px; }
-@keyframes fadeIn { to { opacity:1 } }
+html { scroll-behavior: smooth; }
 
-/* MAIN APP */
-#app { display:none; min-height:100vh; }
-#app.active { display:flex; flex-direction:column; }
+body {
+  font-family: 'Source Serif 4', Georgia, serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
 
-/* HEADER */
-header { background:var(--bg2); border-bottom:2px solid var(--red); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
-.logo { display:flex; align-items:center; gap:12px; }
-.logo-mark { width:32px; height:32px; border:2px solid var(--red); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--red); font-size:11px; letter-spacing:1px; }
-.logo-text { font-family:var(--sans); font-weight:700; font-size:15px; letter-spacing:2px; }
-.logo-text span { color:var(--red); }
-.header-meta { font-size:10px; color:var(--gray); text-align:right; }
-.header-meta .ver { color:var(--amber); }
+/* SCANLINES */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
 
-/* NAV TABS */
-.nav-bar { background:var(--bg2); border-bottom:1px solid var(--border); display:flex; gap:0; overflow-x:auto; padding:0 12px; }
-.nav-tab { padding:10px 18px; font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); border:none; background:none; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; transition:all 0.2s; }
-.nav-tab:hover { color:var(--white); background:var(--bg3); }
-.nav-tab.active { color:var(--red); border-bottom-color:var(--red); }
+/* ─── HEADER ─── */
+.header-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(10, 12, 16, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0;
+}
 
-/* PANELS */
-.panel { display:none; padding:20px; flex:1; }
-.panel.active { display:block; }
+.header-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 2rem;
+}
 
-/* SECTION HEADERS */
-.sec { font-family:var(--sans); font-weight:700; font-size:13px; letter-spacing:2px; text-transform:uppercase; padding:8px 12px; margin:16px 0 12px; border-left:3px solid var(--red); background:var(--bg3); }
-.sec.amber { border-color:var(--amber); }
-.sec.green { border-color:var(--green); }
-.sec.blue { border-color:var(--blue-bright); }
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
 
-/* KPI GRID */
-.kpi-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin:12px 0; }
-.kpi { background:var(--bg3); border:1px solid var(--border); padding:14px; border-radius:2px; position:relative; overflow:hidden; }
-.kpi::before { content:''; position:absolute; top:0; left:0; width:3px; height:100%; background:var(--red); }
-.kpi.amber::before { background:var(--amber); }
-.kpi.green::before { background:var(--green); }
-.kpi.blue::before { background:var(--blue-bright); }
-.kpi-val { font-size:22px; font-weight:700; color:var(--white); font-family:var(--sans); }
-.kpi-label { font-size:10px; color:var(--gray); margin-top:4px; letter-spacing:0.5px; text-transform:uppercase; }
-.kpi-ctx { font-size:10px; color:var(--amber); margin-top:6px; font-style:italic; }
-.kpi .trend { position:absolute; top:10px; right:10px; font-size:10px; }
-.trend.up { color:var(--red); }
-.trend.down { color:var(--green); }
-.trend.stable { color:var(--gray); }
+.classification-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent-red);
+  background: rgba(211, 47, 47, 0.1);
+  border: 1px solid var(--accent-red);
+  padding: 0.25rem 0.6rem;
+  animation: pulse-border 3s ease-in-out infinite;
+}
 
-/* CARDS */
-.card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:14px; margin:12px 0; }
-.card { background:var(--bg3); border:1px solid var(--border); padding:16px; border-radius:2px; transition:border-color 0.2s, box-shadow 0.2s; cursor:default; }
-.card:hover { border-color:var(--red); box-shadow:var(--glow-red); }
-.card-title { font-family:var(--sans); font-weight:600; font-size:13px; color:var(--white); margin-bottom:8px; }
-.card-body { font-size:11px; color:var(--gray); line-height:1.7; }
-.card-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
-.tag { font-size:9px; padding:2px 8px; border-radius:1px; font-weight:500; letter-spacing:0.5px; text-transform:uppercase; }
-.tag-red { background:var(--red-dim); color:#f8a; }
-.tag-amber { background:var(--amber-dim); color:#fd8; }
-.tag-green { background:var(--green-dim); color:#8fa; }
-.tag-blue { background:rgba(26,95,180,0.3); color:var(--blue-bright); }
+@keyframes pulse-border {
+  0%, 100% { border-color: var(--accent-red); box-shadow: 0 0 5px var(--glow-red); }
+  50% { border-color: rgba(211,47,47,0.4); box-shadow: 0 0 15px var(--glow-red); }
+}
 
-/* TIMELINE */
-.timeline { margin:12px 0; position:relative; padding-left:24px; }
-.timeline::before { content:''; position:absolute; left:8px; top:0; bottom:0; width:2px; background:var(--border); }
-.tl-item { margin-bottom:14px; position:relative; }
-.tl-item::before { content:''; position:absolute; left:-20px; top:6px; width:10px; height:10px; border-radius:50%; background:var(--red); border:2px solid var(--bg); }
-.tl-item.juridique::before { background:var(--amber); }
-.tl-item.projection::before { background:var(--blue-bright); }
-.tl-item.impact::before { background:var(--red); box-shadow:0 0 8px rgba(196,30,58,0.5); }
-.tl-item.mobilisation::before { background:var(--green); }
-.tl-date { font-size:10px; color:var(--amber); font-weight:600; letter-spacing:1px; }
-.tl-text { font-size:11px; color:var(--white); margin-top:3px; line-height:1.5; }
-.tl-type { font-size:9px; color:var(--gray); text-transform:uppercase; letter-spacing:1px; }
+.header-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.08em;
+}
 
-/* GRAPH */
-#graph-canvas { width:100%; height:500px; background:var(--bg2); border:1px solid var(--border); border-radius:2px; position:relative; overflow:hidden; }
-.graph-node { position:absolute; padding:6px 12px; font-size:10px; font-weight:600; letter-spacing:0.5px; border-radius:2px; cursor:grab; user-select:none; transition:box-shadow 0.2s; white-space:nowrap; z-index:2; }
-.graph-node:hover { z-index:10; }
-.graph-node.dossier_central { background:var(--red); color:white; box-shadow:var(--glow-red); }
-.graph-node.concept { background:var(--bg4); border:1px solid var(--amber); color:var(--amber); }
-.graph-node.thematique { background:var(--bg4); border:1px solid var(--blue-bright); color:var(--blue-bright); }
-.graph-node.juridique { background:var(--bg4); border:1px solid var(--green); color:var(--green); }
-.graph-node.outil, .graph-node.alternative { background:var(--bg4); border:1px solid var(--cyan); color:var(--cyan); }
-.graph-node.recours { background:var(--bg4); border:1px solid var(--amber); color:var(--amber); }
-.graph-node.impact { background:var(--bg4); border:1px solid var(--red); color:var(--red); }
+.header-right {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
 
-/* SEARCH */
-.search-box { display:flex; gap:8px; margin:12px 0; }
-.search-input { flex:1; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:10px 14px; font-family:var(--mono); font-size:12px; outline:none; border-radius:2px; }
-.search-input:focus { border-color:var(--red); }
-.search-input::placeholder { color:var(--gray-dim); }
-.filter-btn { background:var(--bg3); border:1px solid var(--border); color:var(--gray); padding:8px 14px; font-family:var(--mono); font-size:10px; cursor:pointer; letter-spacing:1px; text-transform:uppercase; transition:all 0.2s; border-radius:2px; }
-.filter-btn:hover, .filter-btn.active { border-color:var(--red); color:var(--red); }
+.header-right .live-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent-green);
+  border-radius: 50%;
+  display: inline-block;
+  animation: blink-live 2s ease-in-out infinite;
+}
 
-/* TABLE */
-.data-table { width:100%; border-collapse:collapse; margin:12px 0; font-size:11px; }
-.data-table th { background:var(--bg3); color:var(--amber); font-weight:600; letter-spacing:1px; text-transform:uppercase; padding:10px; text-align:left; border-bottom:2px solid var(--border); font-size:10px; }
-.data-table td { padding:10px; border-bottom:1px solid var(--border); color:var(--gray); vertical-align:top; }
-.data-table tr:hover td { background:var(--bg3); color:var(--white); }
+@keyframes blink-live { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-/* DETAIL PANEL */
-.detail-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:200; backdrop-filter:blur(4px); }
-.detail-overlay.open { display:flex; justify-content:center; align-items:center; }
-.detail-box { background:var(--bg2); border:1px solid var(--red); max-width:700px; width:90vw; max-height:80vh; overflow-y:auto; padding:24px; position:relative; }
-.detail-close { position:absolute; top:12px; right:16px; background:none; border:none; color:var(--red); font-size:18px; cursor:pointer; font-family:var(--mono); }
-.detail-title { font-family:var(--sans); font-weight:700; font-size:16px; color:var(--red); margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px; }
-.detail-body { font-size:12px; color:var(--gray); line-height:1.8; }
-.detail-body strong { color:var(--white); }
-.detail-body .stat { color:var(--amber); font-weight:600; }
+/* ─── HERO ─── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 8rem 2rem 4rem;
+  position: relative;
+  overflow: hidden;
+}
 
-/* EXPORT */
-.export-bar { display:flex; gap:8px; margin:12px 0; flex-wrap:wrap; }
-.btn { padding:8px 16px; font-family:var(--mono); font-size:10px; letter-spacing:1px; text-transform:uppercase; border:1px solid; cursor:pointer; background:transparent; transition:all 0.2s; border-radius:2px; }
-.btn-red { border-color:var(--red); color:var(--red); }
-.btn-red:hover { background:var(--red); color:white; }
-.btn-green { border-color:var(--green); color:var(--green); }
-.btn-green:hover { background:var(--green); color:var(--bg); }
-.btn-amber { border-color:var(--amber); color:var(--amber); }
-.btn-amber:hover { background:var(--amber); color:var(--bg); }
-.btn-blue { border-color:var(--blue-bright); color:var(--blue-bright); }
-.btn-blue:hover { background:var(--blue-bright); color:white; }
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(211,47,47,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
 
-/* FOOTER */
-footer { background:var(--bg2); border-top:1px solid var(--border); padding:10px 20px; display:flex; justify-content:space-between; font-size:10px; color:var(--gray); }
-footer a { color:var(--red); text-decoration:none; }
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(41,121,255,0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
 
-/* BLINK */
-.blink { animation:blink 1.2s infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.hero-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
 
-/* SCROLLBAR */
-::-webkit-scrollbar { width:6px; height:6px; }
-::-webkit-scrollbar-track { background:var(--bg); }
-::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
-::-webkit-scrollbar-thumb:hover { background:var(--gray-dim); }
+.hero-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--accent-red);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
 
-/* RESPONSIVE */
-@media(max-width:768px) {
-  .kpi-row { grid-template-columns:1fr 1fr; }
-  .card-grid { grid-template-columns:1fr; }
-  .kpi-val { font-size:18px; }
-  header { flex-direction:column; gap:8px; }
+.hero-meta::before {
+  content: '■';
+  font-size: 0.5rem;
+}
+
+.hero h1 {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(2.8rem, 6vw, 5.5rem);
+  font-weight: 700;
+  line-height: 1.05;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.5rem;
+}
+
+.hero h1 .line-red {
+  color: var(--accent-red);
+  display: block;
+}
+
+.hero h1 .line-white {
+  color: var(--text-primary);
+  display: block;
+}
+
+.hero-subtitle {
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  max-width: 720px;
+  line-height: 1.8;
+  margin-bottom: 3rem;
+  font-weight: 300;
+}
+
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  max-width: 900px;
+}
+
+.hero-stat {
+  background: var(--bg-secondary);
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.hero-stat .number {
+  font-family: 'Oswald', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--accent-red);
+  line-height: 1;
+}
+
+.hero-stat .unit {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 0.4rem;
+}
+
+/* ─── NAV SECTION ─── */
+.nav-section {
+  position: sticky;
+  top: 52px;
+  z-index: 90;
+  background: rgba(17, 21, 32, 0.95);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+}
+
+.nav-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+}
+
+.nav-inner a {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 0.9rem 1.4rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s;
+}
+
+.nav-inner a:hover {
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.03);
+  border-bottom-color: var(--accent-red);
+}
+
+/* ─── SECTIONS ─── */
+.section {
+  padding: 5rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--accent-red);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-label::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--accent-red);
+}
+
+.section h2 {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  line-height: 1.15;
+}
+
+.section-intro {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  max-width: 780px;
+  margin-bottom: 3rem;
+  line-height: 1.8;
+}
+
+/* ─── THREAT MATRIX ─── */
+.threat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.threat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 2rem;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.threat-card:hover {
+  border-color: var(--border-light);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+
+.threat-card.critical { border-left: 3px solid var(--accent-red); }
+.threat-card.high { border-left: 3px solid var(--accent-amber); }
+.threat-card.medium { border-left: 3px solid var(--accent-blue); }
+
+.threat-level {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+}
+
+.threat-card.critical .threat-level { color: var(--accent-red); }
+.threat-card.high .threat-level { color: var(--accent-amber); }
+.threat-card.medium .threat-level { color: var(--accent-blue); }
+
+.threat-card h3 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+.threat-card p {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.threat-card .data-point {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--accent-cyan);
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+/* ─── TIMELINE ─── */
+.timeline {
+  position: relative;
+  padding-left: 3rem;
+  margin: 3rem 0;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--accent-red), var(--accent-amber), var(--accent-red));
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 2.5rem;
+  padding-left: 1rem;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -3.35rem;
+  top: 0.3rem;
+  width: 10px;
+  height: 10px;
+  background: var(--bg-primary);
+  border: 2px solid var(--accent-red);
+}
+
+.timeline-date {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--accent-red);
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+
+.timeline-item h4 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin: 0.3rem 0 0.5rem;
+}
+
+.timeline-item p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ─── DATA BLOCKS ─── */
+.data-block {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  padding: 2.5rem;
+  margin: 2rem 0;
+  position: relative;
+}
+
+.data-block::before {
+  content: attr(data-label);
+  position: absolute;
+  top: -0.5rem;
+  left: 1.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--accent-amber);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background: var(--bg-secondary);
+  padding: 0 0.5rem;
+}
+
+/* ─── COMPARISON TABLE ─── */
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  font-size: 0.88rem;
+}
+
+.comparison-table th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  background: var(--bg-secondary);
+}
+
+.comparison-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  vertical-align: top;
+}
+
+.comparison-table tr:hover td {
+  background: rgba(255,255,255,0.02);
+}
+
+.comparison-table .country-name {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  font-size: 0.95rem;
+}
+
+.tag-fail {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--accent-red);
+  background: rgba(211,47,47,0.1);
+  border: 1px solid rgba(211,47,47,0.3);
+  padding: 0.15rem 0.5rem;
+  letter-spacing: 0.08em;
+}
+
+.tag-ok {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--accent-green);
+  background: rgba(67,160,71,0.1);
+  border: 1px solid rgba(67,160,71,0.3);
+  padding: 0.15rem 0.5rem;
+  letter-spacing: 0.08em;
+}
+
+.tag-warn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--accent-amber);
+  background: rgba(245,166,35,0.1);
+  border: 1px solid rgba(245,166,35,0.3);
+  padding: 0.15rem 0.5rem;
+  letter-spacing: 0.08em;
+}
+
+/* ─── PYRAMID / FRAMEWORK ─── */
+.framework-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin: 3rem 0;
+}
+
+.framework-cell {
+  background: var(--bg-card);
+  padding: 2rem;
+  text-align: center;
+}
+
+.framework-cell .icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  filter: grayscale(0.3);
+}
+
+.framework-cell h4 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.framework-cell p {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ─── CALLOUT ─── */
+.callout {
+  border: 1px solid var(--accent-red);
+  background: rgba(211,47,47,0.05);
+  padding: 2rem 2.5rem;
+  margin: 3rem 0;
+  position: relative;
+}
+
+.callout::before {
+  content: '⚠';
+  font-size: 1.5rem;
+  position: absolute;
+  top: -0.8rem;
+  left: 1.5rem;
+  background: var(--bg-primary);
+  padding: 0 0.5rem;
+}
+
+.callout h4 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--accent-red);
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+}
+
+.callout p {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.callout .key-figure {
+  font-family: 'Oswald', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent-red);
+}
+
+/* ─── SOLUTION SECTION ─── */
+.solution-banner {
+  background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+  border: 1px solid var(--border-light);
+  padding: 3rem;
+  margin: 3rem 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+.solution-banner h3 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.solution-banner p {
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
+
+.solution-specs {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.spec-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+}
+
+.spec-label {
+  color: var(--text-muted);
+  width: 140px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+}
+
+.spec-value {
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+/* ─── RECOMMANDATIONS ─── */
+.reco-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.reco-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 2rem;
+  position: relative;
+  counter-increment: reco;
+}
+
+.reco-card::before {
+  content: counter(reco, decimal-leading-zero);
+  font-family: 'Oswald', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: rgba(211,47,47,0.15);
+  position: absolute;
+  top: 0.8rem;
+  right: 1.2rem;
+  line-height: 1;
+}
+
+.reco-card h4 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+  color: var(--text-primary);
+}
+
+.reco-card p {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ─── FOOTER ─── */
+.footer {
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  padding: 3rem 2rem;
+  margin-top: 4rem;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.footer-col h5 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+}
+
+.footer-col p, .footer-col a {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  text-decoration: none;
+}
+
+.footer-col a:hover { color: var(--accent-cyan); }
+
+.separator {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border), transparent);
+  margin: 4rem 0;
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 768px) {
+  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+  .framework-grid { grid-template-columns: 1fr; }
+  .solution-banner { grid-template-columns: 1fr; }
+  .threat-grid { grid-template-columns: 1fr; }
+  .header-right { display: none; }
+  .section { padding: 3rem 1.2rem; }
+  .comparison-table { font-size: 0.75rem; }
+  .comparison-table th, .comparison-table td { padding: 0.6rem; }
+}
+
+/* ANIMATIONS */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 </style>
 </head>
 <body>
 
-<!-- BOOT SEQUENCE -->
-<div id="boot">
-  <div id="boot-log"></div>
-</div>
-
-<!-- MAIN APP -->
-<div id="app">
-  <header>
-    <div class="logo">
-      <div class="logo-mark">OFU</div>
-      <div class="logo-text"><span>MONITORING</span> CITOYEN</div>
+<!-- HEADER -->
+<header class="header-bar">
+  <div class="header-inner">
+    <div class="header-left">
+      <span class="classification-badge">Note Stratégique</span>
+      <span class="header-title">Cellule Analyse — ouaisfi.eu</span>
     </div>
-    <div class="header-meta">
-      <div>ouaisfi.eu · dataset <span class="ver">v4.0</span></div>
-      <div id="clock"></div>
-    </div>
-  </header>
-
-  <div class="nav-bar">
-    <button class="nav-tab active" data-panel="sitrep">SITREP</button>
-    <button class="nav-tab" data-panel="deborsu">AFFAIRE DEBORSU</button>
-    <button class="nav-tab" data-panel="arizona">BUDGET ARIZONA</button>
-    <button class="nav-tab" data-panel="mld">MALADES L.D.</button>
-    <button class="nav-tab" data-panel="graphe">GRAPHE RELATIONS</button>
-    <button class="nav-tab" data-panel="corpus">CORPUS</button>
-    <button class="nav-tab" data-panel="glossaire">GLOSSAIRE</button>
-    <button class="nav-tab" data-panel="export">EXPORT</button>
-  </div>
-
-  <!-- ═══ SITREP ═══ -->
-  <div class="panel active" id="panel-sitrep">
-    <div class="sec">Situation Report — 5 février 2026</div>
-    <div class="kpi-row" id="kpi-sitrep"></div>
-
-    <div class="sec amber">Alerte : 5 boucles destructrices identifiées</div>
-    <div class="card-grid" id="boucles-grid"></div>
-
-    <div class="sec green">Alternative : Économie Contributive Provisionnée (ECP)</div>
-    <div class="kpi-row">
-      <div class="kpi green"><div class="kpi-val">24 000 €</div><div class="kpi-label">Budget ouaisfieu</div><div class="kpi-ctx">vs 21-24 Mrd€/an de dépenses passives</div></div>
-      <div class="kpi green"><div class="kpi-val">978 000</div><div class="kpi-label">Inactifs contraints</div><div class="kpi-ctx">Vivier contributif potentiel</div></div>
-      <div class="kpi green"><div class="kpi-val">1M€/h</div><div class="kpi-label">Coût inactivité</div><div class="kpi-ctx">1 million d'euros par heure</div></div>
-      <div class="kpi green"><div class="kpi-val">0 €</div><div class="kpi-label">Coût opérationnel</div><div class="kpi-ctx">Hébergement gratuit, bénévolat, logiciels libres</div></div>
+    <div class="header-right">
+      <span><span class="live-dot"></span> &nbsp;DOCUMENT ACTIF</span>
+      <span id="datetime"></span>
     </div>
   </div>
+</header>
 
-  <!-- ═══ DEBORSU ═══ -->
-  <div class="panel" id="panel-deborsu">
-    <div class="sec">Affaire Deborsu — "Sans boulot : tous fraudeurs ?"</div>
-    <div class="kpi-row">
-      <div class="kpi"><div class="kpi-val">410 860</div><div class="kpi-label">Téléspectateurs</div><div class="kpi-ctx">39,1% de part de marché</div></div>
-      <div class="kpi"><div class="kpi-val">+100</div><div class="kpi-label">Plaintes CSA</div><div class="kpi-ctx">Enquête ouverte art. 2.4-1</div></div>
-      <div class="kpi amber"><div class="kpi-val">120:1</div><div class="kpi-label">Ratio montage</div><div class="kpi-ctx">1h d'interview → 30 sec diffusées</div></div>
-      <div class="kpi"><div class="kpi-val">150-200K€</div><div class="kpi-label">Coût production</div><div class="kpi-ctx">Potentiellement avec subventions publiques</div></div>
-    </div>
-
-    <div class="sec amber">Méthodologie contestée</div>
-    <div class="card-grid">
-      <div class="card">
-        <div class="card-title">Statistique IWEPS démentie</div>
-        <div class="card-body">Deborsu a cité l'IWEPS pour une statistique sur les allocations sociales wallonnes — <strong>l'IWEPS a démenti avoir réalisé cette comparaison</strong> (source: La Libre).</div>
-        <div class="card-tags"><span class="tag tag-red">FACT-CHECK FAIL</span></div>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-meta">Briefing stratégique · Belgique · Février 2026</div>
+    <h1>
+      <span class="line-red">La Belgique est</span>
+      <span class="line-white">Structurellement Vulnérable</span>
+    </h1>
+    <p class="hero-subtitle">
+      Ce document synthétise l'état des menaces pesant sur la cohésion sociale, la sécurité économique et la souveraineté informationnelle de la Belgique. Il établit le diagnostic, identifie les failles systémiques, et propose un levier opérationnel issu de la société civile&nbsp;: le projet <strong>Ouaisfieu</strong>, contre-institution numérique de veille citoyenne.
+    </p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="number">978 000</div>
+        <div class="unit">Personnes en inactivité contrainte</div>
       </div>
-      <div class="card">
-        <div class="card-title">Gaëlle Denys (CPAS Verviers)</div>
-        <div class="card-body">Interviewée <strong>pendant plus d'1 heure</strong> pour seulement <strong>30 secondes au montage final</strong> — ratio 120:1. Dénonce "l'instrumentalisation de la misère sociale".</div>
-        <div class="card-tags"><span class="tag tag-amber">MONTAGE SÉLECTIF</span></div>
+      <div class="hero-stat">
+        <div class="number">10%</div>
+        <div class="unit">Emails VSSE interceptés par la Chine</div>
       </div>
-      <div class="card">
-        <div class="card-title">Laetitia — Victime du reportage</div>
-        <div class="card-body">"L'image qu'ils ont donnée de moi est <strong>fausse</strong>. Je ne suis pas une profiteuse. J'ai reçu énormément de messages et d'<strong>insultes</strong>."</div>
-        <div class="card-tags"><span class="tag tag-red">PRÉJUDICE DOCUMENTÉ</span></div>
+      <div class="hero-stat">
+        <div class="number">9 200</div>
+        <div class="unit">Condamnations État non exécutées (Fedasil)</div>
       </div>
-      <div class="card">
-        <div class="card-title">Cadrage épisodique vs thématique</div>
-        <div class="card-body">Histoires individuelles présentées sans contexte systémique. Le public attribue la responsabilité aux individus plutôt qu'au système. <strong>Aucun fact-checker crédité</strong>.</div>
-        <div class="card-tags"><span class="tag tag-amber">PROPAGANDE SOCIOLOGIQUE</span></div>
+      <div class="hero-stat">
+        <div class="number">6,5%</div>
+        <div class="unit">Déficit prévu 2030 (≈40 Mrd €)</div>
       </div>
     </div>
+  </div>
+</section>
 
-    <div class="sec blue">Voies de recours — Tableau de bord juridique</div>
-    <table class="data-table">
-      <thead><tr><th>Instance</th><th>Délai</th><th>Coût</th><th>Sanction possible</th><th>Statut</th></tr></thead>
+<!-- NAVIGATION -->
+<nav class="nav-section">
+  <div class="nav-inner">
+    <a href="#menaces">01 Menaces</a>
+    <a href="#cyber">02 Cyber</a>
+    <a href="#particratie">03 Particratie</a>
+    <a href="#arizona">04 Budget Arizona</a>
+    <a href="#comparatif">05 Comparatif Int.</a>
+    <a href="#ouaisfieu">06 Projet Ouaisfieu</a>
+    <a href="#recommandations">07 Recommandations</a>
+  </div>
+</nav>
+
+<!-- SECTION 1: MENACES -->
+<section class="section fade-in" id="menaces">
+  <div class="section-label">Section 01 — Matrice des menaces</div>
+  <h2>Cinq vulnérabilités convergentes</h2>
+  <p class="section-intro">
+    La Belgique fait face à une convergence inédite de fragilités structurelles. Aucune n'est fatale isolément. Leur interaction simultanée crée un risque systémique qui n'est ni anticipé ni gouverné.
+  </p>
+
+  <div class="threat-grid">
+    <div class="threat-card critical">
+      <div class="threat-level">Critique · Immédiat</div>
+      <h3>Espionnage étatique & cybermenaces</h3>
+      <p>Des hackers liés aux services de renseignement chinois ont exploité une vulnérabilité du logiciel Barracuda pour intercepter massivement les communications de la VSSE pendant deux ans (2021–2023). L'un des plus graves piratages jamais connus de ce service.</p>
+      <div class="data-point">→ ~10% des courriels externes de la Sûreté de l'État compromis. Fuite de relations avec ministères et données d'enquêtes.</div>
+    </div>
+
+    <div class="threat-card critical">
+      <div class="threat-level">Critique · Structurel</div>
+      <h3>Absence d'intelligence économique coordonnée</h3>
+      <p>La Belgique ne dispose d'aucun équivalent du SISSE français. Le modèle est fragmenté entre VSSE, SPF Économie, Régions. Pas de loi sur le renseignement économique. Le screening des investissements étrangers n'existe que depuis 2023.</p>
+      <div class="data-point">→ Les PME belges restent massivement non préparées au vol de données, ransomware et espionnage industriel.</div>
+    </div>
+
+    <div class="threat-card high">
+      <div class="threat-level">Élevé · En cours</div>
+      <h3>Démantèlement du modèle social (Arizona)</h3>
+      <p>L'accord budgétaire Arizona prévoit 9,2 milliards d'ajustement dont 60% en coupes sociales. Limitation du chômage à 24 mois, gel du bien-être pendant 5 ans, sanctions sur les malades longue durée, rationnement santé.</p>
+      <div class="data-point">→ 30 122 personnes basculent vers le RIS dès 2026. Surcoût de 80M€ pour les 19 CPAS bruxellois.</div>
+    </div>
+
+    <div class="threat-card high">
+      <div class="threat-level">Élevé · Systémique</div>
+      <h3>Dérive illibérale de la particratie</h3>
+      <p>Tentatives de contrôler la société civile (Loi Quintin), criminaliser la contestation (Loi anti-casseurs), mépris systématique des décisions de justice (9 200+ condamnations Fedasil non exécutées, affaire Klimaatzaak).</p>
+      <div class="data-point">→ L'État belge tolère des poches d'illégalité systémique. L'État de droit est en souffrance.</div>
+    </div>
+
+    <div class="threat-card medium">
+      <div class="threat-level">Modéré · Tendanciel</div>
+      <h3>Convergence climatique & démographique</h3>
+      <p>Le coefficient de dépendance 67+ passera de 28,5% à 41% d'ici 2042. L'impact climatique représentera 3-4% du PIB. La dette est projetée à 155% du PIB. Les crises convergent vers 2035-2042.</p>
+      <div class="data-point">→ Charge d'intérêts projetée : 35-45 Mrd€/an en 2042 vs 10 Mrd€ aujourd'hui.</div>
+    </div>
+
+    <div class="threat-card medium">
+      <div class="threat-level">Modéré · Sous-jacent</div>
+      <h3>Désertification informationnelle citoyenne</h3>
+      <p>Burn-out démocratique, complexité institutionnelle volontairement maintenue, absence de formation citoyenne structurée. 58% des étudiants en insécurité alimentaire. Le citoyen est exclu du jeu politique réel par la particratie.</p>
+      <div class="data-point">→ La Belgique est le seul pays de l'UE sans référendum d'initiative citoyenne ni recall.</div>
+    </div>
+  </div>
+</section>
+
+<div class="separator"></div>
+
+<!-- SECTION 2: CYBER -->
+<section class="section fade-in" id="cyber">
+  <div class="section-label">Section 02 — Cybersécurité & souveraineté informationnelle</div>
+  <h2>L'affaire Barracuda : autopsie d'un échec</h2>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-date">2021 — Début de l'intrusion</div>
+      <h4>Exploitation d'une vulnérabilité Barracuda (logiciel tiers)</h4>
+      <p>Des acteurs liés aux services de renseignement chinois commencent l'interception systématique des communications de la VSSE via une faille dans un logiciel de sécurité importé.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-date">2021–2023 — Deux ans d'exfiltration</div>
+      <h4>10% des courriels externes de la Sûreté de l'État siphonnés</h4>
+      <p>Relations avec ministères, données d'enquêtes, communications stratégiques. L'un des plus graves piratages jamais subis par un service de renseignement occidental.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-date">2023 — Découverte et audit interne</div>
+      <h4>Réaction tardive, dommages irréversibles</h4>
+      <p>L'audit révèle l'ampleur de la compromission. La dépendance envers des technologies importées et l'absence de contrôle proactif sont identifiées comme causes structurelles.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-date">2024–2025 — Enseignements</div>
+      <h4>Leçons non pleinement tirées</h4>
+      <p>Transferts de données vers des serveurs cloud hors UE persistent dans le secteur privé. La majorité des PME reste sans bouclier cyber. La Stratégie Cyber 2021–2025 (CCB) arrive à échéance sans successeur consolidé.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <h4>Point d'attention pour la Sûreté</h4>
+    <p>Les entreprises belges transfèrent couramment des données vers des serveurs cloud hors de l'UE sans évaluation des risques, exposant les savoir-faire belges en <strong>biotechnologie, logistique et défense</strong> aux programmes de la NSA et du FSB. Il n'existe aucun dispositif formel d'alerte pour les PME comparable au réseau DISSE français.</p>
+  </div>
+</section>
+
+<div class="separator"></div>
+
+<!-- SECTION 3: PARTICRATIE -->
+<section class="section fade-in" id="particratie">
+  <div class="section-label">Section 03 — Analyse institutionnelle</div>
+  <h2>Particratie : l'angle mort démocratique</h2>
+  <p class="section-intro">
+    La Constitution affirme le mandat libre et la séparation des pouvoirs. La pratique politique belge fonctionne en démocratie consociative et particratique où les partis détiennent un rôle central, réduisant l'autonomie des parlementaires à celle de « chambres d'entérinement ».
+  </p>
+
+  <div class="data-block" data-label="Tensions démocratiques 2024–2026">
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Domaine</th>
+          <th>Mesure / Événement</th>
+          <th>Enjeu</th>
+          <th>État</th>
+        </tr>
+      </thead>
       <tbody>
-        <tr><td><strong>CDJ</strong></td><td>2 mois (→ 7/01/2026)</td><td>Gratuit</td><td>Publication décision (moral)</td><td style="color:var(--amber)">⚠ Transmis</td></tr>
-        <tr><td><strong>CSA</strong></td><td>En cours</td><td>Gratuit</td><td>Avertissement / Amende</td><td style="color:var(--amber)">⚠ Enquête ouverte</td></tr>
-        <tr><td><strong>Action civile</strong></td><td>5 ans</td><td>165€ + avocat</td><td>Dommages-intérêts</td><td style="color:var(--gray)">○ Possible</td></tr>
-        <tr><td><strong>Unia</strong></td><td>Variable</td><td>Gratuit</td><td>Médiation / Action justice</td><td style="color:var(--gray)">○ Possible</td></tr>
-        <tr><td><strong>APD (RGPD)</strong></td><td>~400j</td><td>Gratuit</td><td>Jusqu'à 20M€</td><td style="color:var(--gray)">○ Possible</td></tr>
-        <tr><td><strong>CEDH</strong></td><td>4 mois post-Cassation</td><td>Gratuit</td><td>Art. 8 + Art. 14</td><td style="color:var(--gray-dim)">— Après voies internes</td></tr>
-        <tr><td><strong>ONU (De Schutter)</strong></td><td>Permanent</td><td>Gratuit</td><td>Rapport thématique</td><td style="color:var(--gray)">○ Communication possible</td></tr>
+        <tr>
+          <td class="country-name">Liberté d'association</td>
+          <td>Loi Quintin</td>
+          <td>Risque de dissolution administrative des ONG/Syndicats</td>
+          <td><span class="tag-warn">BLOQUÉ</span></td>
+        </tr>
+        <tr>
+          <td class="country-name">Droit de manifester</td>
+          <td>Loi anti-casseurs</td>
+          <td>Interdiction judiciaire de manifester</td>
+          <td><span class="tag-fail">CONTESTÉ</span></td>
+        </tr>
+        <tr>
+          <td class="country-name">État de droit</td>
+          <td>Crise de l'accueil</td>
+          <td>9 200+ condamnations non exécutées</td>
+          <td><span class="tag-fail">CRITIQUE</span></td>
+        </tr>
+        <tr>
+          <td class="country-name">Climat</td>
+          <td>Affaire Klimaatzaak</td>
+          <td>Non-respect des objectifs CO₂</td>
+          <td><span class="tag-fail">SOUS TENSION</span></td>
+        </tr>
+        <tr>
+          <td class="country-name">Vie privée</td>
+          <td>Visites domiciliaires</td>
+          <td>Inviolabilité du domicile</td>
+          <td><span class="tag-warn">FRONDE LOCALE</span></td>
+        </tr>
+        <tr>
+          <td class="country-name">Élections</td>
+          <td>Arrêt Mugemangango</td>
+          <td>Impartialité de la validation</td>
+          <td><span class="tag-fail">NON RÉSOLU</span></td>
+        </tr>
       </tbody>
     </table>
+  </div>
 
-    <div class="sec">Impact documenté — Recherche académique</div>
-    <div class="kpi-row">
-      <div class="kpi"><div class="kpi-val">+19%</div><div class="kpi-label">Symptômes dépressifs</div><div class="kpi-ctx">Pak (2020), N=67 076</div></div>
-      <div class="kpi"><div class="kpi-val">+29%</div><div class="kpi-label">Dépression majeure</div><div class="kpi-ctx">Probabilité accrue chez stigmatisés</div></div>
-      <div class="kpi amber"><div class="kpi-val">20-50%</div><div class="kpi-label">Non-recours</div><div class="kpi-ctx">Éligibles qui n'utilisent pas les aides</div></div>
-      <div class="kpi"><div class="kpi-val">5 ans</div><div class="kpi-label">Durée impact</div><div class="kpi-ctx">Benefits Street cité comme "preuve" 5 ans après</div></div>
+  <div class="callout">
+    <h4>Diagnostic consolidé</h4>
+    <p>Le régime belge n'est <strong>pas totalitaire</strong>, mais présente des symptômes inquiétants de <strong>dérive illibérale</strong>. Les tentatives de contrôler la société civile, criminaliser la contestation et gouverner par décrets montrent une tentation de réduire l'espace démocratique au seul jeu des partis au pouvoir. Le citoyen s'émancipe par deux voies : la <strong>résistance judiciaire</strong> (faire condamner l'État) et l'<strong>innovation délibérative</strong> (tirage au sort).</p>
+  </div>
+</section>
+
+<div class="separator"></div>
+
+<!-- SECTION 4: ARIZONA -->
+<section class="section fade-in" id="arizona">
+  <div class="section-label">Section 04 — Impact budgétaire</div>
+  <h2>Budget Arizona : un désastre social programmé ?</h2>
+  <p class="section-intro">
+    L'accord Arizona de novembre 2025 vise 9,2 milliards d'ajustement d'ici 2029. Mais le Bureau du Plan projette un déficit de 6,5% du PIB en 2030. La trajectoire actuelle est un programme de démantèlement du modèle social déguisé en exercice de rigueur.
+  </p>
+
+  <div class="framework-grid">
+    <div class="framework-cell">
+      <div class="icon">💣</div>
+      <h4>Transfert comptable fantôme</h4>
+      <p>La limitation du chômage à 24 mois ne réduit pas la dépense : elle la transfère aux communes. En comptabilité consolidée, l'économie est nulle ou négative.</p>
+    </div>
+    <div class="framework-cell">
+      <div class="icon">🎯</div>
+      <h4>Alternatives fiscales ignorées</h4>
+      <p>Taxe patrimoines > 1M€ : 17 Mrd€ potentiels. Lutte fraude fiscale : plusieurs milliards. Choix idéologique, pas nécessité économique.</p>
+    </div>
+    <div class="framework-cell">
+      <div class="icon">🏥</div>
+      <h4>Économie fantôme sur les malades</h4>
+      <p>100 000 remises au travail visées. Mesures punitives (-2,5% indemnités) vs causes structurelles. Trou santé : 2 Mrd€ selon la Coalition Santé.</p>
     </div>
   </div>
 
-  <!-- ═══ ARIZONA ═══ -->
-  <div class="panel" id="panel-arizona">
-    <div class="sec">Budget Arizona 2025-2029 — Anatomie</div>
-    <div class="kpi-row" id="kpi-arizona"></div>
-
-    <div class="sec amber">Mesures détaillées</div>
-    <table class="data-table" id="table-mesures">
-      <thead><tr><th>Mesure</th><th>Montant</th><th>Horizon</th><th>Impact</th></tr></thead>
-      <tbody id="tbody-mesures"></tbody>
+  <div class="data-block" data-label="Projections 2025–2042">
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Indicateur</th>
+          <th>2025</th>
+          <th>2030</th>
+          <th>2035</th>
+          <th>2042</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="country-name">Déficit (% PIB)</td>
+          <td>4,7%</td>
+          <td><span style="color:var(--accent-amber)">6,5%</span></td>
+          <td><span style="color:var(--accent-red)">~7-8%</span></td>
+          <td><span style="color:var(--accent-red)">~9-11%</span></td>
+        </tr>
+        <tr>
+          <td class="country-name">Dette (% PIB)</td>
+          <td>104%</td>
+          <td>119%</td>
+          <td>130-140%</td>
+          <td><span style="color:var(--accent-red)">145-165%</span></td>
+        </tr>
+        <tr>
+          <td class="country-name">Charge d'intérêts</td>
+          <td>~10 Mrd</td>
+          <td>~18-19 Mrd</td>
+          <td>~25-30 Mrd</td>
+          <td><span style="color:var(--accent-red)">~35-45 Mrd</span></td>
+        </tr>
+        <tr>
+          <td class="country-name">Coeff. dépendance 67+</td>
+          <td>28,5%</td>
+          <td>~32%</td>
+          <td>~37%</td>
+          <td>~41%</td>
+        </tr>
+        <tr>
+          <td class="country-name">Impact climatique (% PIB)</td>
+          <td>~0,5%</td>
+          <td>~1%</td>
+          <td>~2%</td>
+          <td><span style="color:var(--accent-red)">~3-4%</span></td>
+        </tr>
+      </tbody>
     </table>
-
-    <div class="sec blue">Projections 2024-2042</div>
-    <div class="card-grid" id="projections-grid"></div>
-
-    <div class="sec">Timeline Arizona</div>
-    <div class="timeline" id="timeline-arizona"></div>
+    <p style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--text-muted);margin-top:1rem;">Sources : Bureau fédéral du Plan, BNB, CEV 2024, FPB/Cerac, S&P, Fitch, ING.</p>
   </div>
 
-  <!-- ═══ MALADES LONGUE DURÉE ═══ -->
-  <div class="panel" id="panel-mld">
-    <div class="sec">Malades de Longue Durée — Situation 2026</div>
-    <div class="kpi-row">
-      <div class="kpi"><div class="kpi-val">549 996</div><div class="kpi-label">Personnes en invalidité</div><div class="kpi-ctx">+4,46% en un an, doublé depuis 2008</div></div>
-      <div class="kpi"><div class="kpi-val">36,9%</div><div class="kpi-label">Troubles mentaux</div><div class="kpi-ctx">1ère cause — liée aux conditions de travail</div></div>
-      <div class="kpi"><div class="kpi-val">60%</div><div class="kpi-label">Femmes</div><div class="kpi-ctx">Surreprésentation massive</div></div>
-      <div class="kpi amber"><div class="kpi-val">10%</div><div class="kpi-label">Sanction Arizona</div><div class="kpi-ctx">×4 : était 2,5%, maintenant 10%</div></div>
-    </div>
-
-    <div class="sec amber">Quatre vagues de réformes ReAT</div>
-    <div class="card-grid" id="vagues-grid"></div>
-
-    <div class="sec blue">Efficacité réelle des réinsertions</div>
-    <div class="kpi-row">
-      <div class="kpi blue"><div class="kpi-val">96 520</div><div class="kpi-label">Reprises partielles 2023</div><div class="kpi-ctx">vs 43 383 en 2017</div></div>
-      <div class="kpi blue"><div class="kpi-val">46,85%</div><div class="kpi-label">Reprises complètes</div><div class="kpi-ctx">Baromètre ReAT</div></div>
-      <div class="kpi"><div class="kpi-val">65%</div><div class="kpi-label">Trajets arrêtés</div><div class="kpi-ctx">Pour raisons médicales (FGTB)</div></div>
-      <div class="kpi"><div class="kpi-val">72%</div><div class="kpi-label">C4 médical</div><div class="kpi-ctx">Trajets → licenciement force majeure</div></div>
-    </div>
-    <div class="kpi-row">
-      <div class="kpi amber"><div class="kpi-val">318</div><div class="kpi-label">Médecins-conseils</div><div class="kpi-ctx">Pour 500 000+ malades. Besoin : 1 000</div></div>
-      <div class="kpi"><div class="kpi-val">218 000</div><div class="kpi-label">Dossiers à réexaminer</div><div class="kpi-ctx">D'ici 2029, prévision 17% sorties</div></div>
-      <div class="kpi"><div class="kpi-val">+48,8%</div><div class="kpi-label">Hausse 60-64 ans</div><div class="kpi-ctx">Effet du relèvement âge pension</div></div>
-      <div class="kpi"><div class="kpi-val">1,9 Mrd€</div><div class="kpi-label">Économie visée</div><div class="kpi-ctx">Objectif : 100 000 retours emploi</div></div>
-    </div>
+  <div class="callout">
+    <h4>Le paradoxe central</h4>
+    <p>La Belgique dépense <span class="key-figure">21-24 Mrd€/an</span> pour maintenir l'inactivité contrainte (soit 1M€ par heure), tout en refusant une taxe sur les patrimoines millionnaires qui rapporterait 17 milliards, tout en précarisant 2,1 millions de personnes dont le renoncement aux soins, à l'éducation et à l'activité coûtera infiniment plus cher demain.</p>
   </div>
+</section>
 
-  <!-- ═══ GRAPHE ═══ -->
-  <div class="panel" id="panel-graphe">
-    <div class="sec">Graphe de Relations — Corpus Transversal</div>
-    <p style="font-size:11px;color:var(--gray);margin:8px 0">Chaque nœud représente une thématique. Les connexions montrent les liens documentés entre l'affaire Deborsu et les sujets transversaux. <span style="color:var(--amber)">Cliquez sur un nœud</span> pour voir les détails.</p>
-    <div id="graph-canvas"></div>
-    <div id="graph-detail" style="margin-top:12px"></div>
-  </div>
+<div class="separator"></div>
 
-  <!-- ═══ CORPUS ═══ -->
-  <div class="panel" id="panel-corpus">
-    <div class="sec">Corpus documentaire — 19 documents</div>
-    <div class="search-box">
-      <input class="search-input" id="corpus-search" placeholder="Rechercher dans le corpus..." oninput="filterCorpus()">
-      <button class="filter-btn" data-filter="all" onclick="setFilter(this)">Tous</button>
-      <button class="filter-btn" data-filter="analyse" onclick="setFilter(this)">Analyses</button>
-      <button class="filter-btn" data-filter="dossier" onclick="setFilter(this)">Dossiers</button>
-      <button class="filter-btn" data-filter="plaidoyer" onclick="setFilter(this)">Plaidoyers</button>
-      <button class="filter-btn" data-filter="essai" onclick="setFilter(this)">Essais</button>
-    </div>
-    <div class="card-grid" id="corpus-grid"></div>
-  </div>
+<!-- SECTION 5: COMPARATIF -->
+<section class="section fade-in" id="comparatif">
+  <div class="section-label">Section 05 — Benchmark international</div>
+  <h2>Intelligence économique : la Belgique décrochée</h2>
 
-  <!-- ═══ GLOSSAIRE ═══ -->
-  <div class="panel" id="panel-glossaire">
-    <div class="sec">Glossaire — Lexique citoyen</div>
-    <div class="search-box">
-      <input class="search-input" id="gloss-search" placeholder="Rechercher un terme..." oninput="filterGlossaire()">
-    </div>
-    <table class="data-table" id="table-glossaire">
-      <thead><tr><th style="width:180px">Terme</th><th>Définition</th></tr></thead>
-      <tbody id="tbody-glossaire"></tbody>
+  <div class="data-block" data-label="Comparatif Belgique / France / Allemagne">
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Aspect</th>
+          <th>Belgique</th>
+          <th>France</th>
+          <th>Allemagne</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="country-name">Coordination centrale</td>
+          <td>Fragmenté <span class="tag-fail">FAIL</span><br><small style="color:var(--text-muted)">VSSE, SPF Éco, Régions</small></td>
+          <td>Centralisé <span class="tag-ok">OK</span><br><small style="color:var(--text-muted)">SISSE (DGE) + réseau DISSE</small></td>
+          <td>Fédéral <span class="tag-warn">PARTIEL</span><br><small style="color:var(--text-muted)">État/Länder, pas de SISSE</small></td>
+        </tr>
+        <tr>
+          <td class="country-name">Législation clef</td>
+          <td>Loi « secrets d'affaires » 2018 uniquement</td>
+          <td>Lois renseignement 2017, blocage 1968, IE 2022</td>
+          <td>Loi GeschGehG 2019 (directive UE)</td>
+        </tr>
+        <tr>
+          <td class="country-name">Screening invest. étrangers</td>
+          <td>Depuis 2023 seulement <span class="tag-warn">RÉCENT</span></td>
+          <td>Établi depuis des décennies <span class="tag-ok">OK</span></td>
+          <td>Renforcé post-2017 <span class="tag-ok">OK</span></td>
+        </tr>
+        <tr>
+          <td class="country-name">Soutien aux PME</td>
+          <td>Initiatives fragmentées (clusters, VLAIO, ASE)</td>
+          <td>DISSE locaux, guides pratiques, 28 fiches</td>
+          <td>Subventions R&D (ZIM), formation duale</td>
+        </tr>
+        <tr>
+          <td class="country-name">Formation IE</td>
+          <td>Quasi-inexistante <span class="tag-fail">FAIL</span></td>
+          <td>Intégrée aux cursus, obligatoire en IE 2022</td>
+          <td>Intégrée à la formation duale</td>
+        </tr>
+      </tbody>
     </table>
   </div>
+</section>
 
-  <!-- ═══ EXPORT ═══ -->
-  <div class="panel" id="panel-export">
-    <div class="sec green">Export & Interopérabilité</div>
-    <p style="font-size:11px;color:var(--gray);margin:12px 0;line-height:1.8">Le dataset v4.0 est conçu pour être importé dans n'importe quel outil. Tout est structuré en JSON consommable directement par JavaScript, Python, D3.js, Chart.js, Hugo, Jekyll, Appsmith, Google Sheets ou Obsidian.</p>
-    <div class="export-bar">
-      <button class="btn btn-red" onclick="exportJSON()">⬇ TÉLÉCHARGER JSON v4</button>
-      <button class="btn btn-green" onclick="exportCSV()">⬇ EXPORT CSV CHIFFRES</button>
-      <button class="btn btn-blue" onclick="copyJSON()">📋 COPIER JSON</button>
-    </div>
-    <div class="sec amber" style="margin-top:20px">Comment utiliser ce dataset</div>
-    <div class="card-grid">
-      <div class="card"><div class="card-title">JavaScript / React</div><div class="card-body"><code style="color:var(--green)">const data = JSON.parse(fichier);</code><br>Accès direct : <code style="color:var(--green)">data.affaire_deborsu.audience.telespectateurs</code></div></div>
-      <div class="card"><div class="card-title">Python / Pandas</div><div class="card-body"><code style="color:var(--green)">import json; data = json.load(open('dataset_v4.json'))</code><br><code style="color:var(--green)">df = pd.DataFrame(data['budget_arizona']['projections'])</code></div></div>
-      <div class="card"><div class="card-title">Hugo / Jekyll</div><div class="card-body">Placer dans <code style="color:var(--green)">_data/</code> ou <code style="color:var(--green)">data/</code> — accessible via templates Liquid/Go.</div></div>
-      <div class="card"><div class="card-title">Obsidian</div><div class="card-body">Importer comme note JSON ou utiliser le plugin Dataview pour requêter les données.</div></div>
-    </div>
+<div class="separator"></div>
 
-    <div class="sec" style="margin-top:20px">Écosystème plateformes</div>
-    <table class="data-table">
-      <thead><tr><th>ID</th><th>Nom</th><th>Rôle</th><th>Tech</th><th>URL</th></tr></thead>
-      <tbody id="tbody-plateformes"></tbody>
-    </table>
+<!-- SECTION 6: OUAISFIEU -->
+<section class="section fade-in" id="ouaisfieu">
+  <div class="section-label">Section 06 — Initiative civile stratégique</div>
+  <h2>Ouaisfieu : contre-institution numérique de veille citoyenne</h2>
+  <p class="section-intro">
+    Face à l'effondrement structurel documenté ci-dessus, une initiative citoyenne bruxelloise propose un dispositif opérationnel de résilience informationnelle. Non pas en opposition à l'État, mais comme complément civil aux carences identifiées.
+  </p>
+
+  <div class="solution-banner">
+    <div>
+      <h3>Architecture du dispositif</h3>
+      <p>Ouaisfieu est un écosystème de veille citoyenne artisanale mais structurée, déployé sur une infrastructure technique souveraine (sites statiques, GitHub Pages, zéro traçage, open source). Il combine documentation politique approfondie, formation OSINT éthique, et méthodologie DIKW (Données → Information → Connaissance → Sagesse).</p>
+      <p>Le collectif CCPLC (Collectif Citoyen pour la Participation Libre & Consciente) porte le volet organisationnel avec six axes : Observer, Documenter, Outiller, Former, Connecter, Évaluer.</p>
+    </div>
+    <div class="solution-specs">
+      <div class="spec-row">
+        <span class="spec-label">Statut</span>
+        <span class="spec-value">Actif — Phase de structuration</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-label">Budget opérationnel</span>
+        <span class="spec-value">0 € (bénévolat, logiciels libres)</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-label">Budget projet ECP</span>
+        <span class="spec-value">24 000 €</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-label">Échéance</span>
+        <span class="spec-value">31 mars 2026 — Éducation Permanente FWB</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-label">Objectif</span>
+        <span class="spec-value">100 citoyens formés d'ici 2026</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-label">Licence</span>
+        <span class="spec-value">CC BY-NC 4.0</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-label">Infrastructure</span>
+        <span class="spec-value">Jamstack · GitHub Pages · Grav CMS</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-label">Forkabilité</span>
+        <span class="spec-value">Tout citoyen peut cloner le projet</span>
+      </div>
+    </div>
   </div>
 
-  <footer>
-    <span>ouaisfi.eu · <a href="https://github.com/ouaisfieu" target="_blank">github.com/ouaisfieu</a> · <a href="https://bsky.app/profile/ouaisfi.eu" target="_blank">@ouaisfi.eu</a></span>
-    <span>Souveraineté numérique · Zéro dépendance · CC BY-NC 4.0</span>
-  </footer>
-</div>
-
-<!-- DETAIL OVERLAY -->
-<div class="detail-overlay" id="detail-overlay" onclick="if(event.target===this)closeDetail()">
-  <div class="detail-box">
-    <button class="detail-close" onclick="closeDetail()">✕</button>
-    <div class="detail-title" id="detail-title"></div>
-    <div class="detail-body" id="detail-body"></div>
+  <div class="framework-grid">
+    <div class="framework-cell">
+      <div class="icon">🧠</div>
+      <h4>La Tête — Analyse politique</h4>
+      <p>Décrypter la particratie, la pilarisation, la lasagne institutionnelle. Satellite : DOCTech (~30 fiches de documentation citoyenne)</p>
+    </div>
+    <div class="framework-cell">
+      <div class="icon">🔒</div>
+      <h4>Le Corps — Transparence numérique</h4>
+      <p>Incarner le refus du capitalisme de surveillance. Low-tech, open source, zéro traçage. Infrastructure souveraine.</p>
+    </div>
+    <div class="framework-cell">
+      <div class="icon">🦵</div>
+      <h4>Les Jambes — Éducation permanente</h4>
+      <p>Fournir les méthodes pour passer de l'observation à l'action. CCPLC, ateliers-débats, OSINT éthique, formation DIKW.</p>
+    </div>
   </div>
-</div>
+
+  <div class="data-block" data-label="Proposition ECP — Économie Contributive Provisionnée">
+    <p style="color:var(--text-secondary);line-height:1.8;">Le projet propose de <strong style="color:var(--text-primary)">transformer 21-24 milliards de dépenses passives en investissement actif</strong> via un mécanisme innovant : permettre aux personnes en inactivité contrainte de contribuer (veille citoyenne, science participative, aide communautaire) <strong style="color:var(--text-primary)">sans perdre leurs droits sociaux</strong>, en utilisant le ruling fiscal du SDA et le cadre de la loi volontariat 2005. Coût du dispositif pilote : <strong style="color:var(--accent-cyan)">24 000 €</strong>.</p>
+  </div>
+</section>
+
+<div class="separator"></div>
+
+<!-- SECTION 7: RECOMMANDATIONS -->
+<section class="section fade-in" id="recommandations">
+  <div class="section-label">Section 07 — Recommandations opérationnelles</div>
+  <h2>Sept leviers pour les décideurs</h2>
+
+  <div class="reco-grid" style="counter-reset: reco;">
+    <div class="reco-card">
+      <h4>Créer un centre national d'IE</h4>
+      <p>Instituer un Centre de Sécurité Économique agrégeant les alertes de la VSSE, du CCB et des agences régionales. Diffuser des conseils aux entreprises et instituer une conférence annuelle IE réunissant État, Régions et acteurs privés.</p>
+    </div>
+    <div class="reco-card">
+      <h4>Sensibiliser massivement</h4>
+      <p>Diffuser aux PME un kit de sécurité économique (inspiré des 28 fiches françaises). Intégrer la sensibilisation à l'IE dans les cursus techniques, écoles d'ingénieurs et business schools.</p>
+    </div>
+    <div class="reco-card">
+      <h4>Renforcer la protection juridique</h4>
+      <p>Compléter la loi secrets d'affaires par des mesures préventives dans les marchés publics. Généraliser le screening des investissements étrangers aux PME innovantes. Clarifier les responsabilités en cybersécurité.</p>
+    </div>
+    <div class="reco-card">
+      <h4>Déployer des « délégués IE » régionaux</h4>
+      <p>Créer dans chaque Région des experts en informations stratégiques (comme les DISSE français). Encourager les clusters technologiques à intégrer des modules de veille stratégique.</p>
+    </div>
+    <div class="reco-card">
+      <h4>Reconnaître l'intelligence civile</h4>
+      <p>Soutenir les initiatives de veille citoyenne comme Ouaisfieu via l'Éducation Permanente. L'intelligence civile (veille + protection éthique + influence d'intérêt général) est un levier stratégique sous-utilisé.</p>
+    </div>
+    <div class="reco-card">
+      <h4>Piloter l'Économie Contributive</h4>
+      <p>Expérimenter le modèle ECP sur 100 personnes : contribution citoyenne structurée sans perte de droits sociaux. Évaluer l'impact sur la réduction du coût de l'inactivité et la création de valeur non-marchande.</p>
+    </div>
+    <div class="reco-card">
+      <h4>Intensifier la coopération UE/OTAN</h4>
+      <p>Participer activement aux réseaux européens de sécurité économique. Promouvoir le rôle de la Belgique comme hub logistique et cyber. Réclamer des alertes précoces pour protéger les savoir-faire critiques.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-col">
+      <h5>Source</h5>
+      <p>Cellule Analyse — Ouaisfi.eu<br>Projet de veille citoyenne</p>
+      <p style="margin-top:0.5rem;"><a href="https://ouaisfi.eu">ouaisfi.eu</a></p>
+      <p><a href="https://github.com/ouaisfieu">github.com/ouaisfieu</a></p>
+    </div>
+    <div class="footer-col">
+      <h5>Méthodologie</h5>
+      <p>Sources ouvertes (OSINT)<br>Bureau fédéral du Plan, BNB, CEV<br>Commission européenne, S&P, Fitch<br>CRISP, Comité de monitoring<br>Analyses Ouaisfieu consolidées</p>
+    </div>
+    <div class="footer-col">
+      <h5>Contact</h5>
+      <p>souad.effek@ouaisfi.eu<br>Bluesky : @ouaisfi.eu</p>
+      <p style="margin-top:0.5rem;font-size:0.6rem;color:var(--text-muted);">
+        Licence CC BY-NC 4.0<br>
+        Document généré le <span id="gen-date"></span>
+      </p>
+    </div>
+    <div class="footer-col">
+      <h5>Clause</h5>
+      <p style="font-size:0.65rem;color:var(--text-muted);max-width:280px;">Ce document est produit par une initiative citoyenne indépendante à des fins d'éducation permanente et de veille stratégique. Il ne représente aucune position gouvernementale. Les données sont vérifiables via les sources citées.</p>
+    </div>
+  </div>
+</footer>
 
 <script>
-// ══════════════════════════════════════════════════════════════
-// EMBEDDED DATASET (subset for UI — full JSON exported separately)
-// ══════════════════════════════════════════════════════════════
-
-const DS = {
-  chiffres: [
-    {label:"Personnes en inactivité contrainte",val:"978 000",ctx:"21-24 Mrd€/an = 1M€/heure",trend:"up"},
-    {label:"Déficit sécurité sociale 2024",val:"18,2 Mrd€",ctx:"Budget structurellement déficitaire",trend:"up"},
-    {label:"Ajustement Arizona 2025-2029",val:"9,2 Mrd€",ctx:"60% économies, 40% recettes",trend:"stable"},
-    {label:"Déficit prévu 2030",val:"6,5% PIB",ctx:"≈ 40 milliards € — Bureau du Plan",trend:"up"},
-    {label:"Dette publique 2025",val:"104% PIB",ctx:"Vers 119% en 2030, 155% en 2042",trend:"up"},
-    {label:"Population BIM",val:"2,4M",ctx:"21% population belge, +400K depuis 2020",trend:"up"},
-    {label:"Malades longue durée",val:"550 000",ctx:"Plus que le nombre total de chômeurs",trend:"up"},
-    {label:"Belges en risque AROPE",val:"2,1M",ctx:"18,3% de la population",trend:"up"}
-  ],
-  boucles: [
-    {id:1,nom:"Transfert comptable fantôme",txt:"Exclusion chômage fédéral → basculement RIS communal → économie fédérale = surcoût communal → bilan consolidé nul ou négatif"},
-    {id:2,nom:"Piège du taux marginal",txt:"Taux marginal >100% pour précaires → activation coercitive vers emplois précaires → appauvrissement paradoxal"},
-    {id:3,nom:"Spirale austéritaire (piège grec)",txt:"Économies → déficit structurel 11 Mrd 2029 → nouvelles économies → contraction économie → creusement déficit"},
-    {id:4,nom:"Fragmentation régionale",txt:"Mesures calibrées Flandre (plein emploi) → appliquées BXL/Wallonie (chômage structurel) → misère, pas emplois"},
-    {id:5,nom:"Dégradation capital humain",txt:"Gel 5 ans + renoncement soins + précarisation → dégradation employabilité → inverse de l'objectif"}
-  ],
-  mesures_arizona: [
-    {m:"Limitation chômage 24 mois",mt:"902M → 2 Mrd",h:"2026-2029",i:"30 122 exclusions vague 1 + 90 000 d'ici 2027"},
-    {m:"Réinsertion MLD",mt:"1,9 Mrd",h:"2026-2029",i:"218 000 dossiers réexaminés, objectif 100K retours"},
-    {m:"Gel enveloppe bien-être (5 ans)",mt:"2,8 Mrd",h:"2025-2029",i:"Érosion pouvoir d'achat allocataires"},
-    {m:"Indexation plafonnée",mt:"883M/an",h:"2026+2028",i:"Saut d'index déguisé — perte pouvoir d'achat généralisée"},
-    {m:"Norme santé réduite à 2%",mt:"2 Mrd cumulés",h:"2026-2027",i:"Trou budget santé vs besoin 3,2%"},
-    {m:"Sanctions maladie ×4",mt:"non chiffré",h:"2026",i:"2,5% → 10% indemnité"},
-    {m:"Épaules larges (plus-values)",mt:"~1 Mrd",h:"2026-2029",i:"Pour 1€ capital, 5-6€ coupés dans le social"}
-  ],
-  projections: [
-    {a:2024,d:4.4,det:104,int:10},
-    {a:2029,d:5.7,det:119,int:19},
-    {a:2035,d:6.5,det:135,int:27},
-    {a:2042,d:7.5,det:155,int:40}
-  ],
-  timeline: [
-    {d:"2021",e:"Vague 1 ReAT — Création coordinateurs retour au travail",t:"reforme"},
-    {d:"01/2023",e:"Vague 2 — Contacts obligatoires, sanction 2,5%",t:"reforme"},
-    {d:"31/01/2025",e:"Accord coalition Arizona signé",t:"politique"},
-    {d:"04/2025",e:"S&P révise perspective Belgique → négative",t:"financier"},
-    {d:"06/2025",e:"Fitch dégrade la Belgique à A+",t:"financier"},
-    {d:"06/2025",e:"Bureau du Plan : déficit 6,5% en 2030",t:"analyse"},
-    {d:"07/11/2025",e:"Diffusion 'Tous Fraudeurs' — RTL-TVI — 410 860 téléspectateurs",t:"impact"},
-    {d:"29/10/2025",e:"Recours constitutionnel Article 23 — limitation chômage",t:"juridique"},
-    {d:"15/12/2025",e:"Grève front commun syndical",t:"mobilisation"},
-    {d:"01/01/2026",e:"Vague 3 Arizona — Sanctions 10%, certificats 3 mois max",t:"impact"},
-    {d:"01/2026",e:"30 122 premières exclusions du chômage",t:"impact"},
-    {d:"03/2026",e:"Vague 2 exclusions : 8-20 ans de chômage cumulé",t:"impact"},
-    {d:"31/03/2026",e:"Échéance dépôt dossier EP ouaisfieu",t:"projet"},
-    {d:"2026-2027",e:"Arrêt Cour Constitutionnelle attendu",t:"juridique"},
-    {d:"2030",e:"Déficit prévu 6,5% PIB / Dette 120% PIB",t:"projection"},
-    {d:"2042",e:"Convergence crises : climat + vieillissement + dette",t:"projection"}
-  ],
-  vagues: [
-    {v:1,d:"2021",m:"Création coordinateurs ReAT (40→100)",s:"modérée",c:"green"},
-    {v:2,d:"01/2023",m:"Contacts obligatoires 4e/7e/11e mois, sanction 2,5%",s:"moyenne",c:"amber"},
-    {v:3,d:"01/01/2026",m:"Certificats 3 mois max, sanction 10%, suspension totale si absence",s:"haute",c:"red"},
-    {v:4,d:"2027+",m:"Certificat initial 3 semaines, renouvellement annuel, 218 000 réexamens",s:"critique",c:"red"}
-  ],
-  graphe_noeuds: [
-    {id:"N01",l:"AFFAIRE DEBORSU",t:"dossier_central",x:50,y:45},
-    {id:"N02",l:"Poverty Porn",t:"concept",x:25,y:20},
-    {id:"N03",l:"Malades L.D.",t:"thematique",x:78,y:25},
-    {id:"N04",l:"Budget Arizona",t:"thematique",x:80,y:55},
-    {id:"N05",l:"Particratie",t:"thematique",x:20,y:70},
-    {id:"N06",l:"Surveillance",t:"thematique",x:10,y:40},
-    {id:"N07",l:"Propagande",t:"concept",x:35,y:12},
-    {id:"N08",l:"Art. 23 Standstill",t:"juridique",x:65,y:80},
-    {id:"N09",l:"Dystopie",t:"concept",x:12,y:15},
-    {id:"N10",l:"Intelligence Citoyenne",t:"outil",x:55,y:85},
-    {id:"N11",l:"ECP",t:"alternative",x:82,y:80},
-    {id:"N12",l:"CSA / CDJ",t:"recours",x:42,y:25},
-    {id:"N13",l:"Mythe Fraude",t:"concept",x:68,y:15},
-    {id:"N14",l:"Non-recours",t:"impact",x:88,y:40},
-    {id:"N15",l:"État Voyou",t:"concept",x:30,y:85},
-    {id:"N16",l:"Division Classes",t:"concept",x:55,y:15}
-  ],
-  graphe_aretes: [
-    {s:"N01",c:"N02"},{s:"N01",c:"N07"},{s:"N01",c:"N12"},{s:"N01",c:"N13"},
-    {s:"N01",c:"N14"},{s:"N01",c:"N16"},{s:"N02",c:"N09"},{s:"N03",c:"N04"},
-    {s:"N03",c:"N01"},{s:"N04",c:"N05"},{s:"N04",c:"N08"},{s:"N04",c:"N11"},
-    {s:"N05",c:"N15"},{s:"N06",c:"N09"},{s:"N07",c:"N02"},{s:"N10",c:"N01"},
-    {s:"N10",c:"N04"},{s:"N10",c:"N11"},{s:"N13",c:"N16"},{s:"N14",c:"N03"}
-  ],
-  corpus: [
-    {id:"DOC01",t:"L'affaire Tous Fraudeurs : anatomie d'un documentaire controversé",tp:"analyse",th:["Deborsu","Poverty Porn","Recours","Non-recours"],w:5500},
-    {id:"DOC02",t:"La fabrique de l'ennemi intérieur : du reportage à la dystopie",tp:"analyse_theorique",th:["Deborsu","Propagande","Dystopie","Division"],w:8000},
-    {id:"DOC03",t:"Malades de longue durée en Belgique : politique de pression croissante",tp:"dossier",th:["MLD","Arizona","Art. 23"],w:6000},
-    {id:"DOC04",t:"Budget Arizona : désastre social programmé — Projections 2042",tp:"dossier",th:["Arizona","Art. 23","ECP"],w:12000},
-    {id:"DOC05",t:"Belgique : Particratie, Citoyenneté et Totalitarisme",tp:"essai",th:["Particratie","État Voyou","Art. 23"],w:15000},
-    {id:"DOC06",t:"Veille citoyenne et intelligence non marchande — panorama mondial",tp:"dossier",th:["Intelligence Citoyenne"],w:10000},
-    {id:"DOC07",t:"L'Intelligence Citoyenne : levier stratégique",tp:"dossier",th:["Intelligence Citoyenne","ECP"],w:8000},
-    {id:"DOC08",t:"Cahier des Charges Contre-Institution Numérique",tp:"cahier_des_charges",th:["Intelligence Citoyenne","ECP"],w:5000},
-    {id:"DOC09",t:"Plaidoyer ECP — Économie Contributive Provisionnée",tp:"plaidoyer",th:["ECP","Arizona"],w:3000},
-    {id:"DOC10",t:"Plaidoyer STOP Arizona — Défense du Modèle Social",tp:"plaidoyer",th:["Arizona","Art. 23"],w:3000},
-    {id:"DOC11",t:"Scandale Démocratique Belge : Le Citoyen Pigeon",tp:"essai",th:["Particratie","État Voyou"],w:4000},
-    {id:"DOC12",t:"Parlementaires Belges : Constitution, Partis, Réalité",tp:"analyse",th:["Particratie"],w:6000},
-    {id:"DOC13",t:"Éducation Permanente en FWB : moratoire 2026-2028",tp:"analyse",th:["Intelligence Citoyenne"],w:3000},
-    {id:"DOC14",t:"Guide complet financements civic tech belge",tp:"guide",th:["Intelligence Citoyenne","ECP"],w:4000},
-    {id:"DOC15",t:"Formation intelligence citoyenne : deux lieux bruxellois",tp:"analyse",th:["Intelligence Citoyenne"],w:3000},
-    {id:"DOC16",t:"Trois guerres civiques",tp:"essai",th:["Particratie","Division"],w:5000},
-    {id:"DOC17",t:"Dossier candidature Éducation Permanente",tp:"administratif",th:["Intelligence Citoyenne"],w:8000},
-    {id:"DOC18",t:"Ouaisfieu : Décryptage initiative citoyenne",tp:"analyse",th:["Intelligence Citoyenne","ECP"],w:3000},
-    {id:"DOC19",t:"Module Tests de Recrutement",tp:"cahier_des_charges",th:["Intelligence Citoyenne"],w:4000}
-  ],
-  glossaire: [
-    {t:"Particratie",d:"Régime où le pouvoir réel est détenu par les états-majors des partis, pas par le Parlement"},
-    {t:"Pilarisation",d:"Organisation de la société belge en 'piliers' (catholique, socialiste, libéral)"},
-    {t:"DIKW",d:"Données → Information → Connaissance → Sagesse — pyramide méthodologique"},
-    {t:"ECP",d:"Économie Contributive Provisionnée — contribution sans perte de droits sociaux"},
-    {t:"Intelligence Civile",d:"Transposition de l'intelligence économique au service de la société civile"},
-    {t:"BIM",d:"Bénéficiaire de l'Intervention Majorée — accès aux tarifs sociaux"},
-    {t:"AROPE",d:"At Risk Of Poverty or social Exclusion — indicateur européen"},
-    {t:"OSINT",d:"Open Source Intelligence — renseignement à partir de sources ouvertes"},
-    {t:"Standstill",d:"Principe constitutionnel interdisant la régression significative des droits sociaux (Art. 23)"},
-    {t:"Poverty Porn",d:"Spectacularisation médiatique de la pauvreté à des fins d'audience"},
-    {t:"Pauvretisme",d:"Discrimination envers les pauvres — concept d'Olivier De Schutter (ONU, 2022)"},
-    {t:"État Voyou",d:"État qui refuse systémiquement d'appliquer les décisions de justice"},
-    {t:"Propagande sociologique",d:"Propagande invisible opérant via le climat général des idées (Ellul, 1962)"},
-    {t:"Forkability",d:"Capacité d'un projet à être cloné et adapté localement par n'importe quel citoyen"},
-    {t:"RIS",d:"Revenu d'Intégration Sociale — aide de dernier recours gérée par les CPAS"},
-    {t:"ReAT",d:"Return to Action Teams — dispositif de réinsertion malades longue durée"},
-    {t:"SDA",d:"Service des Décisions Anticipées — organe fiscal belge pour les rulings"},
-    {t:"CCPLC",d:"Collectif Citoyen pour la Participation Libre & Consciente"}
-  ],
-  plateformes: [
-    {id:"P01",n:"ouaisfi.eu",r:"Hub Central",t:"Grav CMS",u:"https://ouaisfi.eu"},
-    {id:"P02",n:"DOCTech",r:"Documentation (~30 fiches)",t:"Jekyll",u:"https://ouaisfieu.github.io/tech/"},
-    {id:"P03",n:"BXL2030",r:"Prospective Bruxelloise",t:"Jekyll",u:"https://ouaisfieu.github.io/bxl2030/"},
-    {id:"P05",n:"Dossiers",r:"Analyses de Fond",t:"Jekyll",u:"https://ouaisfieu.github.io/dossiers/"},
-    {id:"P06",n:"11·60 bis",r:"Éditorial Local",t:"Hugo",u:"https://dl.ouaisfi.eu/1160/"},
-    {id:"P08",n:"EARL",r:"Intelligence Citoyenne",t:"Hugo",u:"https://dl.ouaisfi.eu/earl/"},
-    {id:"P09",n:"GPTPardi",r:"IA Citoyenne",t:"Jekyll",u:"https://ouaisfieu.github.io/GPTPardi/"},
-    {id:"P10",n:"Appsmith",r:"Back-Office",t:"Appsmith",u:"https://ouaisfieu.appsmith.com"},
-    {id:"P11",n:"SECU",r:"Dossier MLD / SEO",t:"HTML/CSS/JS",u:"https://ouaisfieu.github.io/1160/secu/"}
-  ]
-};
-
-// ══════════════════════════════════════════════════════════════
-// BOOT SEQUENCE
-// ══════════════════════════════════════════════════════════════
-const BOOT = [
-  {text:"OUAISFIEU MONITORING CITOYEN v4.0",cls:"title"},
-  {text:"Initialisation noyau citoyen..."},
-  {text:`Chargement dataset enrichi: ${DS.corpus.length} documents, ${DS.chiffres.length} indicateurs, ${DS.glossaire.length} termes`},
-  {text:"Module AFFAIRE DEBORSU: +100 plaintes CSA, 7 voies de recours cartographiées"},
-  {text:`Module ARIZONA: ${DS.mesures_arizona.length} mesures, ${DS.projections.length} jalons de projection 2024-2042`},
-  {text:`Module MLD: 4 vagues ReAT, 549 996 personnes en invalidité`},
-  {text:`Graphe relations: ${DS.graphe_noeuds.length} nœuds × ${DS.graphe_aretes.length} connexions transversales`},
-  {text:`Cadre théorique: Schmitt, Girard, Bauman, Wacquant, Chomsky, Ellul — 8 convergences dystopiques`},
-  {text:"Export: JSON v4.0 + CSV chiffres clés — prêt"},
-  {text:">>> SYSTÈME OPÉRATIONNEL — BIENVENUE, FIEU <<<",cls:"ok"}
-];
-
-function runBoot(){
-  const log=document.getElementById('boot-log');
-  BOOT.forEach((l,i)=>{
-    setTimeout(()=>{
-      const div=document.createElement('div');
-      div.className='line '+(l.cls||'');
-      div.innerHTML=`<span class="idx">[${String(i).padStart(2,'0')}]</span>${l.text}`;
-      log.appendChild(div);
-      if(i===BOOT.length-1){
-        setTimeout(()=>{
-          document.getElementById('boot').classList.add('done');
-          document.getElementById('app').classList.add('active');
-          initApp();
-        },900);
-      }
-    },i*200);
-  });
+// Clock
+function updateTime() {
+  const now = new Date();
+  const opts = { weekday:'short', year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false };
+  const el = document.getElementById('datetime');
+  if(el) el.textContent = now.toLocaleDateString('fr-BE', opts);
 }
+setInterval(updateTime, 1000);
+updateTime();
 
-// ══════════════════════════════════════════════════════════════
-// APP INIT
-// ══════════════════════════════════════════════════════════════
-function initApp(){
-  initClock();
-  initTabs();
-  buildSitrep();
-  buildArizona();
-  buildVagues();
-  buildGraph();
-  buildCorpus();
-  buildGlossaire();
-  buildPlateformes();
-}
+// Gen date
+const gd = document.getElementById('gen-date');
+if(gd) gd.textContent = new Date().toLocaleDateString('fr-BE', {year:'numeric',month:'long',day:'numeric'});
 
-function initClock(){
-  const el=document.getElementById('clock');
-  const tick=()=>{el.textContent=new Date().toLocaleString('fr-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit'})};
-  tick();setInterval(tick,1000);
-}
-
-function initTabs(){
-  document.querySelectorAll('.nav-tab').forEach(tab=>{
-    tab.addEventListener('click',()=>{
-      document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-      document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById('panel-'+tab.dataset.panel).classList.add('active');
-    });
-  });
-}
-
-// ══════════════════════════════════════════════════════════════
-// BUILD PANELS
-// ══════════════════════════════════════════════════════════════
-function buildSitrep(){
-  const g=document.getElementById('kpi-sitrep');
-  DS.chiffres.forEach(c=>{
-    const cls=c.trend==='up'?'':'amber';
-    g.innerHTML+=`<div class="kpi ${cls}"><div class="trend ${c.trend}">${c.trend==='up'?'▲':'●'}</div><div class="kpi-val">${c.val}</div><div class="kpi-label">${c.label}</div><div class="kpi-ctx">${c.ctx}</div></div>`;
-  });
-  const bg=document.getElementById('boucles-grid');
-  DS.boucles.forEach(b=>{
-    bg.innerHTML+=`<div class="card"><div class="card-title" style="color:var(--amber)">#${b.id} — ${b.nom}</div><div class="card-body">${b.txt}</div></div>`;
-  });
-}
-
-function buildArizona(){
-  const kpi=document.getElementById('kpi-arizona');
-  kpi.innerHTML=`
-    <div class="kpi"><div class="kpi-val">9,2 Mrd€</div><div class="kpi-label">Ajustement 2025-2029</div><div class="kpi-ctx">60% économies, 40% recettes</div></div>
-    <div class="kpi"><div class="kpi-val">30 122</div><div class="kpi-label">Exclusions vague 1</div><div class="kpi-ctx">Basculement RIS/CPAS — jan. 2026</div></div>
-    <div class="kpi amber"><div class="kpi-val">6,5%</div><div class="kpi-label">Déficit 2030</div><div class="kpi-ctx">≈ 40 Mrd€ — Bureau du Plan</div></div>
-    <div class="kpi"><div class="kpi-val">155%</div><div class="kpi-label">Dette 2042</div><div class="kpi-ctx">Convergence crises en vue</div></div>
-  `;
-  const tb=document.getElementById('tbody-mesures');
-  DS.mesures_arizona.forEach(m=>{
-    tb.innerHTML+=`<tr><td><strong>${m.m}</strong></td><td style="color:var(--amber)">${m.mt}</td><td>${m.h}</td><td>${m.i}</td></tr>`;
-  });
-  const pg=document.getElementById('projections-grid');
-  DS.projections.forEach(p=>{
-    pg.innerHTML+=`<div class="card"><div class="card-title" style="color:var(--blue-bright)">${p.a}</div><div class="card-body">Déficit: <strong>${p.d}% PIB</strong> · Dette: <strong>${p.det}% PIB</strong> · Charge intérêts: <strong>${p.int} Mrd€/an</strong></div></div>`;
-  });
-  const tl=document.getElementById('timeline-arizona');
-  DS.timeline.forEach(t=>{
-    tl.innerHTML+=`<div class="tl-item ${t.t}"><div class="tl-date">${t.d}</div><div class="tl-text">${t.e}</div><div class="tl-type">${t.t}</div></div>`;
-  });
-}
-
-function buildVagues(){
-  const g=document.getElementById('vagues-grid');
-  DS.vagues.forEach(v=>{
-    g.innerHTML+=`<div class="card" style="border-left:3px solid var(--${v.c})"><div class="card-title">Vague ${v.v} — ${v.d}</div><div class="card-body">${v.m}</div><div class="card-tags"><span class="tag tag-${v.c==='red'?'red':v.c==='amber'?'amber':'green'}">Sévérité: ${v.s}</span></div></div>`;
-  });
-}
-
-// ══════════════════════════════════════════════════════════════
-// GRAPH
-// ══════════════════════════════════════════════════════════════
-function buildGraph(){
-  const canvas=document.getElementById('graph-canvas');
-  const W=canvas.offsetWidth, H=canvas.offsetHeight||500;
-  
-  // SVG for lines
-  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
-  svg.style.cssText="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none";
-  canvas.appendChild(svg);
-
-  // Draw edges
-  DS.graphe_aretes.forEach(a=>{
-    const s=DS.graphe_noeuds.find(n=>n.id===a.s);
-    const c=DS.graphe_noeuds.find(n=>n.id===a.c);
-    if(s&&c){
-      const line=document.createElementNS("http://www.w3.org/2000/svg","line");
-      line.setAttribute("x1",s.x+"%"); line.setAttribute("y1",s.y+"%");
-      line.setAttribute("x2",c.x+"%"); line.setAttribute("y2",c.y+"%");
-      line.setAttribute("stroke","#333"); line.setAttribute("stroke-width","1");
-      line.setAttribute("opacity","0.5");
-      svg.appendChild(line);
+// Fade in on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting) {
+      entry.target.classList.add('visible');
     }
   });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
 
-  // Draw nodes
-  DS.graphe_noeuds.forEach(n=>{
-    const div=document.createElement('div');
-    div.className=`graph-node ${n.t}`;
-    div.style.left=`calc(${n.x}% - 50px)`;
-    div.style.top=`calc(${n.y}% - 14px)`;
-    div.textContent=n.l;
-    div.onclick=()=>showNodeDetail(n);
-    canvas.appendChild(div);
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// Smooth nav highlighting
+document.querySelectorAll('.nav-inner a').forEach(link => {
+  link.addEventListener('click', function(e) {
+    document.querySelectorAll('.nav-inner a').forEach(a => a.style.borderBottomColor = 'transparent');
+    this.style.borderBottomColor = '#d32f2f';
   });
-}
-
-function showNodeDetail(n){
-  const det=document.getElementById('graph-detail');
-  const conns=DS.graphe_aretes.filter(a=>a.s===n.id||a.c===n.id);
-  const linked=conns.map(a=>{
-    const otherId=a.s===n.id?a.c:a.s;
-    return DS.graphe_noeuds.find(x=>x.id===otherId)?.l||otherId;
-  });
-  det.innerHTML=`<div class="card" style="border-color:var(--red)"><div class="card-title">${n.l}</div><div class="card-body">Type: <strong>${n.t}</strong><br>Connexions (${linked.length}): ${linked.map(l=>`<span class="tag tag-blue">${l}</span>`).join(' ')}</div></div>`;
-}
-
-// ══════════════════════════════════════════════════════════════
-// CORPUS
-// ══════════════════════════════════════════════════════════════
-let currentFilter='all';
-function buildCorpus(){renderCorpus(DS.corpus)}
-function renderCorpus(docs){
-  const g=document.getElementById('corpus-grid');
-  g.innerHTML='';
-  docs.forEach(d=>{
-    const tagColors={analyse:'red',analyse_theorique:'red',dossier:'blue',plaidoyer:'amber',essai:'green',guide:'green',cahier_des_charges:'blue',administratif:'amber'};
-    g.innerHTML+=`<div class="card" onclick="showDocDetail('${d.id}')"><div class="card-title">${d.t}</div><div class="card-body">${d.w.toLocaleString()} mots</div><div class="card-tags"><span class="tag tag-${tagColors[d.tp]||'blue'}">${d.tp}</span>${d.th.map(t=>`<span class="tag tag-amber">${t}</span>`).join('')}</div></div>`;
-  });
-}
-function filterCorpus(){
-  const q=document.getElementById('corpus-search').value.toLowerCase();
-  let docs=DS.corpus;
-  if(currentFilter!=='all') docs=docs.filter(d=>d.tp.includes(currentFilter));
-  if(q) docs=docs.filter(d=>d.t.toLowerCase().includes(q)||d.th.some(t=>t.toLowerCase().includes(q)));
-  renderCorpus(docs);
-}
-function setFilter(btn){
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  currentFilter=btn.dataset.filter;
-  filterCorpus();
-}
-function showDocDetail(id){
-  const d=DS.corpus.find(x=>x.id===id);
-  if(!d)return;
-  document.getElementById('detail-title').textContent=d.t;
-  document.getElementById('detail-body').innerHTML=`
-    <strong>ID:</strong> ${d.id}<br>
-    <strong>Type:</strong> ${d.tp}<br>
-    <strong>Taille:</strong> ${d.w.toLocaleString()} mots<br>
-    <strong>Thèmes:</strong> ${d.th.join(', ')}<br><br>
-    <em>Ce document fait partie du corpus ouaisfieu. Consultez la version complète sur les plateformes du projet.</em>
-  `;
-  document.getElementById('detail-overlay').classList.add('open');
-}
-function closeDetail(){document.getElementById('detail-overlay').classList.remove('open')}
-
-// ══════════════════════════════════════════════════════════════
-// GLOSSAIRE
-// ══════════════════════════════════════════════════════════════
-function buildGlossaire(){renderGlossaire(DS.glossaire)}
-function renderGlossaire(items){
-  const tb=document.getElementById('tbody-glossaire');
-  tb.innerHTML='';
-  items.forEach(g=>{
-    tb.innerHTML+=`<tr><td><strong style="color:var(--amber)">${g.t}</strong></td><td>${g.d}</td></tr>`;
-  });
-}
-function filterGlossaire(){
-  const q=document.getElementById('gloss-search').value.toLowerCase();
-  renderGlossaire(DS.glossaire.filter(g=>g.t.toLowerCase().includes(q)||g.d.toLowerCase().includes(q)));
-}
-
-// ══════════════════════════════════════════════════════════════
-// PLATEFORMES
-// ══════════════════════════════════════════════════════════════
-function buildPlateformes(){
-  const tb=document.getElementById('tbody-plateformes');
-  DS.plateformes.forEach(p=>{
-    tb.innerHTML+=`<tr><td style="color:var(--amber)">${p.id}</td><td><strong>${p.n}</strong></td><td>${p.r}</td><td>${p.t}</td><td><a href="${p.u}" target="_blank" style="color:var(--blue-bright)">${p.u.replace('https://','')}</a></td></tr>`;
-  });
-}
-
-// ══════════════════════════════════════════════════════════════
-// EXPORT
-// ══════════════════════════════════════════════════════════════
-function exportJSON(){
-  const blob=new Blob([JSON.stringify(DS,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ouaisfieu_dataset_v4.json';a.click();
-}
-function exportCSV(){
-  let csv='Label,Valeur,Contexte,Tendance\n';
-  DS.chiffres.forEach(c=>csv+=`"${c.label}","${c.val}","${c.ctx}","${c.trend}"\n`);
-  const blob=new Blob([csv],{type:'text/csv'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ouaisfieu_chiffres_v4.csv';a.click();
-}
-function copyJSON(){
-  navigator.clipboard.writeText(JSON.stringify(DS,null,2)).then(()=>alert('Dataset copié dans le presse-papier !'));
-}
-
-// ══════════════════════════════════════════════════════════════
-// START
-// ══════════════════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded',runBoot);
+});
 </script>
 </body>
 </html>
