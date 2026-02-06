@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Dorking — Le Guide Ultime de la Recherche Avancée</title>
+<meta name="description" content="Tutoriel interactif complet sur le Google Dorking : opérateurs de recherche avancée, audit SEO, sécurité, veille citoyenne.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,900&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   CSS CUSTOM PROPERTIES
+   ═══════════════════════════════════════════ */
+:root {
+  --bg-deep: #0a0a0f;
+  --bg-surface: #12121a;
+  --bg-elevated: #1a1a26;
+  --bg-card: #1e1e2e;
+  --bg-hover: #252538;
+  --border: #2a2a3e;
+  --border-glow: #3a3a5e;
+
+  --text-primary: #e8e6f0;
+  --text-secondary: #9896a8;
+  --text-muted: #6b6980;
+
+  --accent-green: #22d67a;
+  --accent-green-dim: #1aaa60;
+  --accent-green-glow: rgba(34,214,122,.15);
+  --accent-blue: #5ba4f5;
+  --accent-blue-glow: rgba(91,164,245,.12);
+  --accent-yellow: #f5c542;
+  --accent-yellow-glow: rgba(245,197,66,.1);
+  --accent-red: #f55b6a;
+  --accent-purple: #b48ef5;
+  --accent-orange: #f5964b;
+
+  --font-body: 'Outfit', system-ui, sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  --ease-out: cubic-bezier(.16,1,.3,1);
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
+}
+
+/* ═══════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;scroll-padding-top:80px}
+body{
+  font-family:var(--font-body);
+  background:var(--bg-deep);
+  color:var(--text-primary);
+  line-height:1.7;
+  font-size:17px;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent-green);color:var(--bg-deep)}
+a{color:var(--accent-blue);text-decoration:none;transition:color .2s}
+a:hover{color:var(--accent-green)}
+img{max-width:100%;display:block}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-track{background:var(--bg-deep)}
+::-webkit-scrollbar-thumb{background:var(--border-glow);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-green-dim)}
+
+/* Skip link */
+.skip-link{
+  position:absolute;top:-100px;left:16px;
+  background:var(--accent-green);color:var(--bg-deep);
+  padding:8px 16px;border-radius:var(--radius-sm);
+  font-weight:600;z-index:9999;
+  transition:top .3s var(--ease-out);
+}
+.skip-link:focus{top:16px}
+
+/* ═══════════════════════════════════════════
+   BACKGROUND GRID & PARTICLES
+   ═══════════════════════════════════════════ */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(34,214,122,.06), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(91,164,245,.04), transparent);
+}
+.grid-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.035;
+  background-image:
+    linear-gradient(var(--accent-green) 1px, transparent 1px),
+    linear-gradient(90deg, var(--accent-green) 1px, transparent 1px);
+  background-size:60px 60px;
+}
+
+/* ═══════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════ */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(10,10,15,.85);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border-bottom:1px solid var(--border);
+  transition:transform .4s var(--ease-out), box-shadow .4s;
+}
+.nav.scrolled{box-shadow:0 4px 30px rgba(0,0,0,.4)}
+.nav-inner{
+  max-width:1200px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:64px;
+}
+.nav-brand{
+  font-family:var(--font-mono);font-weight:700;font-size:15px;
+  color:var(--accent-green);letter-spacing:-.5px;
+  display:flex;align-items:center;gap:8px;
+}
+.nav-brand .g{color:var(--accent-blue)}
+.nav-brand .cursor{
+  display:inline-block;width:2px;height:18px;
+  background:var(--accent-green);
+  animation:blink 1s step-end infinite;
+}
+@keyframes blink{50%{opacity:0}}
+
+.nav-links{display:flex;gap:4px;list-style:none}
+.nav-links a{
+  display:block;padding:6px 14px;
+  font-size:13px;font-weight:500;
+  color:var(--text-secondary);
+  border-radius:var(--radius-sm);
+  transition:all .2s;
+}
+.nav-links a:hover,.nav-links a.active{
+  color:var(--accent-green);background:var(--accent-green-glow);
+}
+.nav-toggle{
+  display:none;background:none;border:none;color:var(--text-primary);
+  cursor:pointer;padding:8px;font-size:22px;
+}
+
+/* Mobile Nav */
+@media(max-width:900px){
+  .nav-links{
+    position:fixed;top:64px;left:0;right:0;bottom:0;
+    background:rgba(10,10,15,.97);
+    backdrop-filter:blur(20px);
+    flex-direction:column;padding:24px;gap:2px;
+    transform:translateX(100%);transition:transform .4s var(--ease-out);
+  }
+  .nav-links.open{transform:translateX(0)}
+  .nav-links a{font-size:16px;padding:12px 16px}
+  .nav-toggle{display:block}
+}
+
+/* ═══════════════════════════════════════════
+   HERO SECTION
+   ═══════════════════════════════════════════ */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;padding:120px 24px 80px;
+  position:relative;z-index:1;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 16px 6px 8px;
+  border:1px solid var(--border-glow);
+  border-radius:999px;font-size:13px;
+  color:var(--text-secondary);
+  background:var(--bg-elevated);
+  margin-bottom:32px;
+  animation:fadeUp .8s var(--ease-out) both;
+}
+.hero-badge .dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--accent-green);
+  box-shadow:0 0 8px var(--accent-green);
+  animation:pulse-dot 2s ease infinite;
+}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+
+.hero h1{
+  font-family:var(--font-display);
+  font-size:clamp(2.8rem,7vw,5.5rem);
+  font-weight:900;line-height:1.05;
+  letter-spacing:-.03em;
+  margin-bottom:24px;
+  animation:fadeUp .8s var(--ease-out) .1s both;
+}
+.hero h1 .highlight{
+  background:linear-gradient(135deg,var(--accent-green),var(--accent-blue));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.hero-sub{
+  font-size:clamp(1.05rem,2.5vw,1.3rem);
+  color:var(--text-secondary);max-width:640px;
+  line-height:1.6;margin-bottom:40px;
+  animation:fadeUp .8s var(--ease-out) .2s both;
+}
+.hero-actions{
+  display:flex;gap:12px;flex-wrap:wrap;justify-content:center;
+  animation:fadeUp .8s var(--ease-out) .3s both;
+}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:14px 28px;border-radius:var(--radius-md);
+  font-family:var(--font-body);font-size:15px;font-weight:600;
+  border:none;cursor:pointer;transition:all .25s var(--ease-out);
+}
+.btn-primary{
+  background:var(--accent-green);color:var(--bg-deep);
+  box-shadow:0 0 20px rgba(34,214,122,.25);
+}
+.btn-primary:hover{
+  transform:translateY(-2px);
+  box-shadow:0 4px 30px rgba(34,214,122,.4);
+}
+.btn-ghost{
+  background:transparent;color:var(--text-primary);
+  border:1px solid var(--border-glow);
+}
+.btn-ghost:hover{
+  border-color:var(--accent-green);color:var(--accent-green);
+  background:var(--accent-green-glow);
+}
+
+/* Scroll indicator */
+.scroll-hint{
+  position:absolute;bottom:32px;
+  animation:fadeUp .8s var(--ease-out) .5s both, float 3s ease-in-out infinite;
+}
+.scroll-hint svg{width:24px;height:24px;color:var(--text-muted)}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════════════════════════════════════════
+   STATS BAR
+   ═══════════════════════════════════════════ */
+.stats{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:1px;background:var(--border);
+  border:1px solid var(--border);border-radius:var(--radius-lg);
+  overflow:hidden;max-width:900px;margin:-40px auto 0;
+  position:relative;z-index:2;
+}
+.stat{
+  background:var(--bg-surface);padding:28px 24px;text-align:center;
+}
+.stat-value{
+  font-family:var(--font-mono);font-size:28px;font-weight:700;
+  color:var(--accent-green);
+}
+.stat-label{font-size:13px;color:var(--text-muted);margin-top:4px}
+
+/* ═══════════════════════════════════════════
+   SECTIONS
+   ═══════════════════════════════════════════ */
+.section{
+  max-width:900px;margin:0 auto;
+  padding:100px 24px 0;position:relative;z-index:1;
+}
+.section-label{
+  font-family:var(--font-mono);font-size:12px;font-weight:600;
+  text-transform:uppercase;letter-spacing:2px;
+  color:var(--accent-green);margin-bottom:12px;
+  display:flex;align-items:center;gap:10px;
+}
+.section-label::before{
+  content:'';width:20px;height:1px;background:var(--accent-green);
+}
+.section h2{
+  font-family:var(--font-display);
+  font-size:clamp(1.8rem,4vw,2.6rem);
+  font-weight:800;line-height:1.15;
+  letter-spacing:-.02em;margin-bottom:20px;
+}
+.section .lead{
+  font-size:1.1rem;color:var(--text-secondary);
+  max-width:680px;margin-bottom:40px;
+}
+
+/* Reveal on scroll */
+.reveal{
+  opacity:0;transform:translateY(30px);
+  transition:opacity .7s var(--ease-out), transform .7s var(--ease-out);
+}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* ═══════════════════════════════════════════
+   INFO CARD / CALLOUT
+   ═══════════════════════════════════════════ */
+.callout{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent-blue);
+  border-radius:var(--radius-md);
+  padding:24px 28px;margin:28px 0;
+}
+.callout.warning{border-left-color:var(--accent-yellow)}
+.callout.danger{border-left-color:var(--accent-red)}
+.callout.success{border-left-color:var(--accent-green)}
+.callout-title{
+  font-weight:700;font-size:15px;margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;
+}
+
+/* ═══════════════════════════════════════════
+   OPERATOR CARDS
+   ═══════════════════════════════════════════ */
+.op-grid{
+  display:grid;gap:16px;
+  grid-template-columns:repeat(auto-fill,minmax(min(100%,380px),1fr));
+}
+.op-card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:28px;
+  transition:all .3s var(--ease-out);
+  position:relative;overflow:hidden;
+}
+.op-card:hover{
+  border-color:var(--border-glow);
+  transform:translateY(-3px);
+  box-shadow:0 8px 30px rgba(0,0,0,.3);
+}
+.op-card::after{
+  content:'';position:absolute;top:0;right:0;
+  width:120px;height:120px;
+  background:radial-gradient(circle,var(--accent-green-glow),transparent 70%);
+  opacity:0;transition:opacity .3s;
+}
+.op-card:hover::after{opacity:1}
+
+.op-header{display:flex;align-items:start;justify-content:space-between;gap:12px;margin-bottom:16px}
+.op-name{
+  font-family:var(--font-mono);font-size:20px;font-weight:700;
+  color:var(--accent-green);
+}
+.op-tag{
+  font-size:11px;font-weight:600;text-transform:uppercase;
+  letter-spacing:1px;padding:4px 10px;
+  border-radius:999px;white-space:nowrap;
+  background:var(--accent-green-glow);color:var(--accent-green);
+}
+.op-tag.advanced{background:var(--accent-blue-glow);color:var(--accent-blue)}
+.op-tag.pro{background:var(--accent-yellow-glow);color:var(--accent-yellow)}
+.op-desc{color:var(--text-secondary);font-size:15px;margin-bottom:16px}
+
+/* Code blocks */
+.dork{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg-deep);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:10px 14px;margin:8px 0;
+  font-family:var(--font-mono);font-size:13.5px;
+  color:var(--accent-green);
+  position:relative;cursor:pointer;
+  transition:border-color .2s, background .2s;
+  word-break:break-all;
+}
+.dork:hover{
+  border-color:var(--accent-green-dim);
+  background:rgba(34,214,122,.04);
+}
+.dork .kw{color:var(--accent-blue)}
+.dork .str{color:var(--accent-yellow)}
+.dork .op{color:var(--accent-purple)}
+.dork .neg{color:var(--accent-red)}
+.dork-text{flex:1;line-height:1.5}
+
+.copy-btn{
+  flex-shrink:0;background:var(--bg-elevated);border:1px solid var(--border);
+  color:var(--text-muted);border-radius:var(--radius-sm);
+  padding:4px 10px;font-size:11px;font-family:var(--font-mono);
+  cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.copy-btn:hover{color:var(--accent-green);border-color:var(--accent-green-dim)}
+.copy-btn.copied{color:var(--accent-green);border-color:var(--accent-green)}
+
+.dork-note{
+  font-size:13px;color:var(--text-muted);
+  padding-left:4px;margin-top:4px;font-style:italic;
+}
+
+/* ═══════════════════════════════════════════
+   INTERACTIVE DORK BUILDER
+   ═══════════════════════════════════════════ */
+.builder{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius-xl);
+  padding:40px;margin:40px 0;
+  position:relative;overflow:hidden;
+}
+.builder::before{
+  content:'';position:absolute;top:-50%;right:-30%;
+  width:400px;height:400px;
+  background:radial-gradient(circle,var(--accent-green-glow),transparent 60%);
+  pointer-events:none;
+}
+.builder h3{
+  font-family:var(--font-display);font-size:1.6rem;font-weight:800;
+  margin-bottom:8px;position:relative;
+}
+.builder .subtitle{color:var(--text-secondary);margin-bottom:28px;position:relative}
+
+.builder-row{
+  display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px;
+  position:relative;
+}
+.builder-row label{
+  font-size:13px;font-weight:600;color:var(--text-secondary);
+  width:100%;margin-bottom:-4px;
+}
+.builder-input{
+  flex:1;min-width:200px;
+  background:var(--bg-deep);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:12px 16px;
+  font-family:var(--font-mono);font-size:14px;
+  color:var(--text-primary);
+  transition:border-color .2s;
+}
+.builder-input:focus{outline:none;border-color:var(--accent-green)}
+.builder-input::placeholder{color:var(--text-muted)}
+
+select.builder-input{
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6980' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 14px center;
+  padding-right:36px;cursor:pointer;
+}
+
+.builder-output{
+  margin-top:20px;padding:20px;
+  background:var(--bg-deep);
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+  position:relative;
+}
+.builder-output-label{
+  font-size:11px;font-weight:600;text-transform:uppercase;
+  letter-spacing:1.5px;color:var(--text-muted);margin-bottom:10px;
+}
+.builder-output-query{
+  font-family:var(--font-mono);font-size:16px;font-weight:600;
+  color:var(--accent-green);word-break:break-all;min-height:24px;
+  line-height:1.6;
+}
+.builder-output-query .kw{color:var(--accent-blue)}
+.builder-output-query .str{color:var(--accent-yellow)}
+.builder-output-query .neg{color:var(--accent-red)}
+
+.builder-actions{
+  display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;
+}
+
+/* ═══════════════════════════════════════════
+   TERMINAL DEMO
+   ═══════════════════════════════════════════ */
+.terminal{
+  background:var(--bg-deep);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  overflow:hidden;margin:32px 0;
+}
+.terminal-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:12px 18px;
+  background:var(--bg-elevated);
+  border-bottom:1px solid var(--border);
+}
+.terminal-dot{width:12px;height:12px;border-radius:50%}
+.terminal-dot.r{background:#f55b6a}
+.terminal-dot.y{background:#f5c542}
+.terminal-dot.g{background:#22d67a}
+.terminal-title{
+  flex:1;text-align:center;font-size:12px;
+  color:var(--text-muted);font-family:var(--font-mono);
+}
+.terminal-body{
+  padding:24px;font-family:var(--font-mono);
+  font-size:13.5px;line-height:2;
+  min-height:180px;
+}
+.terminal-line{opacity:0;transform:translateX(-10px)}
+.terminal-line.typed{
+  opacity:1;transform:translateX(0);
+  transition:all .3s var(--ease-out);
+}
+.terminal-prompt{color:var(--accent-green)}
+.terminal-cmd{color:var(--text-primary)}
+.terminal-result{color:var(--text-muted);padding-left:20px;font-size:12.5px}
+
+/* ═══════════════════════════════════════════
+   TABLE — CHEAT SHEET
+   ═══════════════════════════════════════════ */
+.table-wrap{
+  overflow-x:auto;margin:28px 0;
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+}
+table{
+  width:100%;border-collapse:collapse;
+  font-size:14px;
+}
+thead{background:var(--bg-elevated)}
+th{
+  text-align:left;padding:14px 18px;
+  font-size:12px;font-weight:700;
+  text-transform:uppercase;letter-spacing:1px;
+  color:var(--text-muted);
+  border-bottom:1px solid var(--border);
+}
+td{
+  padding:14px 18px;
+  border-bottom:1px solid var(--border);
+  vertical-align:top;
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg-hover)}
+td code{
+  font-family:var(--font-mono);
+  background:var(--bg-deep);
+  padding:2px 8px;border-radius:4px;
+  color:var(--accent-green);font-size:13px;
+  white-space:nowrap;
+}
+
+/* ═══════════════════════════════════════════
+   METHODOLOGY STEPS
+   ═══════════════════════════════════════════ */
+.steps{
+  display:grid;gap:20px;
+  counter-reset:step;
+  margin:32px 0;
+}
+.step{
+  display:grid;grid-template-columns:56px 1fr;gap:20px;
+  align-items:start;
+  counter-increment:step;
+}
+.step-num{
+  width:56px;height:56px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:18px;font-weight:700;
+  color:var(--accent-green);
+  border:2px solid var(--border);
+  border-radius:var(--radius-md);
+  background:var(--bg-card);
+  position:relative;
+}
+.step-num::after{
+  content:'';position:absolute;top:100%;left:50%;
+  width:2px;height:20px;background:var(--border);
+  transform:translateX(-50%);
+}
+.step:last-child .step-num::after{display:none}
+.step-content h4{font-size:16px;font-weight:700;margin-bottom:4px}
+.step-content p{color:var(--text-secondary);font-size:15px}
+
+/* ═══════════════════════════════════════════
+   RECIPE CARDS (for dork collections)
+   ═══════════════════════════════════════════ */
+.recipe{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:32px;margin:20px 0;
+  transition:border-color .3s;
+}
+.recipe:hover{border-color:var(--border-glow)}
+.recipe-title{
+  font-family:var(--font-display);font-size:1.25rem;font-weight:700;
+  margin-bottom:6px;display:flex;align-items:center;gap:10px;
+}
+.recipe-title .emoji{font-size:1.3rem}
+.recipe-desc{color:var(--text-secondary);font-size:14px;margin-bottom:18px}
+
+/* ═══════════════════════════════════════════
+   ACCORDION
+   ═══════════════════════════════════════════ */
+.accordion{margin:24px 0}
+.acc-item{
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+  margin-bottom:8px;overflow:hidden;
+  transition:border-color .2s;
+}
+.acc-item:hover{border-color:var(--border-glow)}
+.acc-trigger{
+  width:100%;display:flex;align-items:center;justify-content:space-between;
+  padding:18px 22px;background:var(--bg-card);
+  border:none;color:var(--text-primary);
+  font-family:var(--font-body);font-size:15px;font-weight:600;
+  cursor:pointer;transition:background .2s;
+  text-align:left;
+}
+.acc-trigger:hover{background:var(--bg-hover)}
+.acc-trigger .icon{
+  font-size:18px;transition:transform .3s var(--ease-out);
+  color:var(--text-muted);flex-shrink:0;
+}
+.acc-item.open .acc-trigger .icon{transform:rotate(45deg);color:var(--accent-green)}
+.acc-body{
+  max-height:0;overflow:hidden;
+  transition:max-height .4s var(--ease-out);
+}
+.acc-body-inner{padding:0 22px 22px}
+
+/* ═══════════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════════ */
+footer{
+  margin-top:120px;padding:48px 24px;
+  border-top:1px solid var(--border);
+  text-align:center;color:var(--text-muted);
+  font-size:14px;position:relative;z-index:1;
+}
+footer .heart{color:var(--accent-red)}
+
+/* ═══════════════════════════════════════════
+   PROGRESS BAR
+   ═══════════════════════════════════════════ */
+.progress-bar{
+  position:fixed;top:64px;left:0;right:0;height:2px;z-index:99;
+  background:var(--bg-deep);
+}
+.progress-bar-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--accent-green),var(--accent-blue));
+  transition:width .15s;
+}
+
+/* ═══════════════════════════════════════════
+   UTILITIES
+   ═══════════════════════════════════════════ */
+.mt-1{margin-top:8px}.mt-2{margin-top:16px}.mt-3{margin-top:24px}.mt-4{margin-top:32px}
+.mb-2{margin-bottom:16px}.mb-3{margin-bottom:24px}
+.text-green{color:var(--accent-green)}
+.text-blue{color:var(--accent-blue)}
+.text-yellow{color:var(--accent-yellow)}
+.text-red{color:var(--accent-red)}
+.text-muted{color:var(--text-muted)}
+.mono{font-family:var(--font-mono)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+
+/* Toast notification */
+.toast{
+  position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--accent-green);color:var(--bg-deep);
+  font-family:var(--font-mono);font-size:13px;font-weight:600;
+  padding:10px 22px;border-radius:999px;
+  z-index:999;pointer-events:none;
+  opacity:0;transition:all .4s var(--ease-spring);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Back to top */
+.back-top{
+  position:fixed;bottom:32px;right:32px;z-index:98;
+  width:44px;height:44px;border-radius:50%;
+  background:var(--bg-elevated);border:1px solid var(--border);
+  color:var(--text-secondary);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;opacity:0;pointer-events:none;
+  transition:all .3s var(--ease-out);
+  font-size:18px;
+}
+.back-top.visible{opacity:1;pointer-events:auto}
+.back-top:hover{
+  color:var(--accent-green);border-color:var(--accent-green);
+  transform:translateY(-3px);
+}
+
+/* Responsive fixes */
+@media(max-width:600px){
+  .section{padding:64px 16px 0}
+  .builder{padding:24px 18px}
+  .op-card{padding:22px}
+  .stats{margin-top:-20px}
+  .step{grid-template-columns:44px 1fr;gap:14px}
+  .step-num{width:44px;height:44px;font-size:15px}
+}
+
+/* Print styles */
+@media print{
+  .nav,.grid-bg,.progress-bar,.back-top,.scroll-hint,.toast,.hero-actions{display:none!important}
+  body{background:#fff;color:#000}
+  .section{padding:20px 0}
+}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">Aller au contenu principal</a>
+<div class="grid-bg" aria-hidden="true"></div>
+
+<!-- PROGRESS BAR -->
+<div class="progress-bar" role="progressbar" aria-label="Progression de lecture"><div class="progress-bar-fill" id="progressFill"></div></div>
+
+<!-- NAVIGATION -->
+<nav class="nav" role="navigation" aria-label="Navigation principale">
+  <div class="nav-inner">
+    <div class="nav-brand" aria-label="Google Dorking"><span class="g">G</span>DORK<span class="cursor" aria-hidden="true"></span></div>
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false" onclick="toggleNav()">☰</button>
+    <ul class="nav-links" id="navLinks" role="list">
+      <li><a href="#intro">Intro</a></li>
+      <li><a href="#operateurs">Opérateurs</a></li>
+      <li><a href="#builder">Builder</a></li>
+      <li><a href="#combos">Combos</a></li>
+      <li><a href="#seo">SEO</a></li>
+      <li><a href="#securite">Sécurité</a></li>
+      <li><a href="#veille">Veille</a></li>
+      <li><a href="#methodo">Méthodo</a></li>
+      <li><a href="#cheatsheet">Cheat Sheet</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero" id="top">
+  <div class="hero-badge"><span class="dot" aria-hidden="true"></span> Guide interactif — Février 2026</div>
+  <h1>Maîtrisez la<br><span class="highlight">Recherche Avancée</span><br>sur Google</h1>
+  <p class="hero-sub">Le tutoriel ultime du Google Dorking : opérateurs, combinaisons stratégiques, audit SEO, sécurité et veille citoyenne — le tout en un guide interactif accessible à&nbsp;tous.</p>
+  <div class="hero-actions">
+    <a href="#builder" class="btn btn-primary">⚡ Construire un Dork</a>
+    <a href="#cheatsheet" class="btn btn-ghost">📋 Cheat Sheet</a>
+  </div>
+  <div class="scroll-hint" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </div>
+</header>
+
+<!-- STATS -->
+<div class="stats reveal" role="list" aria-label="Statistiques clés">
+  <div class="stat" role="listitem"><div class="stat-value">15+</div><div class="stat-label">Opérateurs couverts</div></div>
+  <div class="stat" role="listitem"><div class="stat-value">50+</div><div class="stat-label">Dorks prêts à l'emploi</div></div>
+  <div class="stat" role="listitem"><div class="stat-value">∞</div><div class="stat-label">Combinaisons possibles</div></div>
+</div>
+
+<main id="main">
+
+<!-- ════════════════ INTRO ════════════════ -->
+<section class="section reveal" id="intro">
+  <div class="section-label">01 — Introduction</div>
+  <h2>Qu'est-ce que le Google&nbsp;Dorking&nbsp;?</h2>
+  <p class="lead">Le Google Dorking (ou Google Hacking) désigne l'utilisation d'opérateurs de recherche avancés pour extraire des informations précises, souvent invisibles via une recherche classique. <strong>Ce n'est pas du piratage</strong>&nbsp;: toute l'information retournée est publiquement accessible et indexée par Google.</p>
+
+  <div class="callout success">
+    <div class="callout-title">💡 Pourquoi maîtriser ces techniques&nbsp;?</div>
+    <p>La majorité des internautes n'exploitent que 5 à 10% des capacités de Google. Le dorking vous permet d'<strong>auditer la visibilité de vos sites</strong>, de <strong>détecter des fuites d'informations</strong>, d'effectuer une <strong>veille stratégique</strong>, d'améliorer votre <strong>SEO</strong>, et de nourrir une démarche de <strong>veille citoyenne</strong>.</p>
+  </div>
+
+  <div class="callout warning">
+    <div class="callout-title">⚠️ Cadre légal</div>
+    <p>Les techniques d'audit de sécurité ne doivent être utilisées que sur des domaines dont vous êtes propriétaire ou avec autorisation explicite. Respectez le RGPD, la Directive NIS2 et le cadre pénal applicable.</p>
+  </div>
+
+  <!-- Terminal demo -->
+  <div class="terminal" role="img" aria-label="Démonstration d'une recherche Google Dorking dans un terminal">
+    <div class="terminal-bar">
+      <span class="terminal-dot r" aria-hidden="true"></span>
+      <span class="terminal-dot y" aria-hidden="true"></span>
+      <span class="terminal-dot g" aria-hidden="true"></span>
+      <span class="terminal-title">google-dork-demo</span>
+    </div>
+    <div class="terminal-body" id="terminalDemo">
+      <div class="terminal-line"><span class="terminal-prompt">❯ </span><span class="terminal-cmd">site:example.com filetype:pdf</span></div>
+      <div class="terminal-line terminal-result">→ 42 résultats — tous les PDFs indexés du domaine</div>
+      <div class="terminal-line"><span class="terminal-prompt">❯ </span><span class="terminal-cmd">intitle:"index of" site:example.com</span></div>
+      <div class="terminal-line terminal-result">→ 3 résultats — répertoires ouverts détectés !</div>
+      <div class="terminal-line"><span class="terminal-prompt">❯ </span><span class="terminal-cmd">"example.com" -site:example.com</span></div>
+      <div class="terminal-line terminal-result">→ 128 résultats — mentions externes trouvées</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ OPÉRATEURS DE BASE ════════════════ -->
+<section class="section reveal" id="operateurs">
+  <div class="section-label">02 — Opérateurs</div>
+  <h2>La boîte à outils essentielle</h2>
+  <p class="lead">Maîtrisez ces opérateurs et vous ne rechercherez plus jamais de la même façon. Chaque carte est cliquable pour copier le dork directement.</p>
+
+  <div class="op-grid">
+
+    <!-- site: -->
+    <div class="op-card reveal">
+      <div class="op-header">
+        <div class="op-name">site:</div>
+        <span class="op-tag">Essentiel</span>
+      </div>
+      <div class="op-desc">Restreint la recherche à un domaine ou sous-domaine spécifique. L'opérateur le plus utilisé en dorking.</div>
+      <div class="dork" onclick="copyDork(this)" role="button" tabindex="0" aria-label="Copier: site:example.com">
+        <span class="dork-text"><span class="kw">site:</span>example.com</span>
+        <button class="copy-btn" aria-label="Copier">copier</button>
+      </div>
+      <div class="dork-note">→ Toutes les pages indexées du domaine</div>
+      <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+        <span class="dork-text"><span class="kw">site:</span>example.com <span class="str">éducation</span></span>
+        <button class="copy-btn" aria-label="Copier">copier</button>
+      </div>
+      <div class="dork-note">→ Pages mentionnant « éducation » sur ce domaine</div>
+    </div>
+
+    <!-- intitle: -->
+    <div class="op-card reveal">
+      <div class="op-header">
+        <div class="op-name">intitle:</div>
+        <span class="op-tag">Essentiel</span>
+      </div>
+      <div class="op-desc">Recherche dans le titre HTML des pages. Idéal pour trouver des pages dont le sujet principal correspond à votre requête.</div>
+      <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+        <span class="dork-text"><span class="kw">intitle:</span><span class="str">"veille citoyenne"</span></span>
+        <button class="copy-btn" aria-label="Copier">copier</button>
+      </div>
+      <div class="dork-note">→ Pages dont le titre contient cette expression exacte</div>
+      <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+        <span class="dork-text"><span class="kw">allintitle:</span>culture action citoyenne</span>
+        <button class="copy-btn" aria-label="Copier">copier</button>
+      </div>
+      <div class="dork-note">→ Le titre contient TOUS ces mots</div>
+    </div>
+
+    <!-- inurl: -->
+    <div class="op-card reveal">
+      <div class="op-header">
+        <div class="op-name">inurl:</div>
+        <span class="op-tag">Essentiel</span>
+      </div>
+      <div class="op-desc">Recherche dans l'URL des pages. Parfait pour trouver des répertoires, catégories ou chemins spécifiques.</div>
+      <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+        <span class="dork-text"><span class="kw">inurl:</span>agenda <span class="kw">site:</span>example.com</span>
+        <button class="copy-btn" aria-label="Copier">copier</button>
+      </div>
+      <div class="dork-note">→ Pages dont l'URL contient « agenda »</div>
+    </div>
+
+    <!-- intext: -->
+    <div class="op-card reveal">
+      <div class="op-header">
+        <div class="op-name">intext:</div>
+        <span class="op-tag">Essentiel</span>
+      </div>
+      <div class="op-desc">Recherche dans le corps de la page uniquement (exclut titre et URL). Idéal pour les mentions spécifiques.</div>
+      <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+        <span class="dork-text"><span class="kw">intext:</span><span class="str">"démocratie participative"</span></span>
+        <button class="copy-btn" aria-label="Copier">copier</button>
+      </div>
+      <div class="dork-note">→ Expression exacte dans le contenu des pages</div>
+    </div>
+
+    <!-- filetype: -->
+    <div class="op-card reveal">
+      <div class="op-header">
+        <div class="op-name">filetype:</div>
+        <span class="op-tag advanced">Puissant</span>
+      </div>
+      <div class="op-desc">Filtre par type de fichier. Extrêmement utile pour trouver des documents téléchargeables&nbsp;: PDF, XLSX, DOCX, PPTX…</div>
+      <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+        <span class="dork-text"><span class="kw">filetype:</span>pdf <span class="kw">site:</span>example.com</span>
+        <button class="copy-btn" aria-label="Copier">copier</button>
+      </div>
+      <div class="dork-note">→ Tous les fichiers PDF du domaine</div>
+      <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+        <span class="dork-text"><span class="kw">filetype:</span>xlsx <span class="str">"budget"</span> <span class="kw">site:</span>belgium.be</span>
+        <button class="copy-btn" aria-label="Copier">copier</button>
+      </div>
+      <div class="dork-note">→ Tableurs de budgets sur les sites officiels belges</div>
+    </div>
+
+    <!-- Guillemets -->
+    <div class="op-card reveal">
+      <div class="op-header">
+        <div class="op-name">" "</div>
+        <span class="op-tag">Base</span>
+      </div>
+      <div class="op-desc">Les guillemets forcent une recherche exacte, sans synonymes ni réorganisation des mots.</div>
+      <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+        <span class="dork-text"><span class="str">"particratie belge"</span></span>
+        <button class="copy-btn" aria-label="Copier">copier</button>
+      </div>
+      <div class="dork-note">→ Expression exacte uniquement</div>
+    </div>
+
+    <!-- OR -->
+    <div class="op-card reveal">
+      <div class="op-header">
+        <div class="op-name">OR ( | )</div>
+        <span class="op-tag">Base</span>
+      </div>
+      <div class="op-desc">Élargit la recherche à plusieurs termes alternatifs. Utile quand un même concept a plusieurs appellations.</div>
+      <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+        <span class="dork-text"><span class="str">"veille citoyenne"</span> <span class="op">OR</span> <span class="str">"intelligence civile"</span></span>
+        <button class="copy-btn" aria-label="Copier">copier</button>
+      </div>
+    </div>
+
+    <!-- Moins -->
+    <div class="op-card reveal">
+      <div class="op-header">
+        <div class="op-name">- (exclusion)</div>
+        <span class="op-tag">Base</span>
+      </div>
+      <div class="op-desc">Exclut un terme des résultats. Indispensable pour filtrer le bruit et les résultats parasites.</div>
+      <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+        <span class="dork-text">particratie <span class="neg">-wikipedia</span></span>
+        <button class="copy-btn" aria-label="Copier">copier</button>
+      </div>
+      <div class="dork-note">→ Exclut Wikipedia des résultats</div>
+    </div>
+
+    <!-- Wildcard -->
+    <div class="op-card reveal">
+      <div class="op-header">
+        <div class="op-name">* (wildcard)</div>
+        <span class="op-tag advanced">Avancé</span>
+      </div>
+      <div class="op-desc">L'astérisque remplace un ou plusieurs mots dans une expression. Permet de découvrir des formulations inattendues.</div>
+      <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+        <span class="dork-text"><span class="str">"la * belge est en *"</span></span>
+        <button class="copy-btn" aria-label="Copier">copier</button>
+      </div>
+    </div>
+
+    <!-- after/before -->
+    <div class="op-card reveal">
+      <div class="op-header">
+        <div class="op-name">after: / before:</div>
+        <span class="op-tag advanced">Avancé</span>
+      </div>
+      <div class="op-desc">Filtre temporel pour cibler des contenus récents ou dans une période donnée.</div>
+      <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+        <span class="dork-text"><span class="kw">site:</span>example.com <span class="kw">after:</span>2025-01-01</span>
+        <button class="copy-btn" aria-label="Copier">copier</button>
+      </div>
+      <div class="dork-note">→ Contenus postérieurs au 1er janvier 2025</div>
+    </div>
+
+    <!-- cache: -->
+    <div class="op-card reveal">
+      <div class="op-header">
+        <div class="op-name">cache:</div>
+        <span class="op-tag pro">Pro</span>
+      </div>
+      <div class="op-desc">Affiche la version en cache de Google d'une page. Utile pour les pages modifiées ou supprimées.</div>
+      <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+        <span class="dork-text"><span class="kw">cache:</span>example.com/page</span>
+        <button class="copy-btn" aria-label="Copier">copier</button>
+      </div>
+    </div>
+
+    <!-- related: -->
+    <div class="op-card reveal">
+      <div class="op-header">
+        <div class="op-name">related:</div>
+        <span class="op-tag pro">Pro</span>
+      </div>
+      <div class="op-desc">Trouve des sites similaires à un domaine donné. Idéal pour la veille concurrentielle.</div>
+      <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+        <span class="dork-text"><span class="kw">related:</span>lemonde.fr</span>
+        <button class="copy-btn" aria-label="Copier">copier</button>
+      </div>
+    </div>
+
+    <!-- range (..) -->
+    <div class="op-card reveal">
+      <div class="op-header">
+        <div class="op-name">.. (plage)</div>
+        <span class="op-tag pro">Pro</span>
+      </div>
+      <div class="op-desc">Recherche dans une plage numérique. Parfait pour les années, prix ou tout intervalle.</div>
+      <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+        <span class="dork-text"><span class="str">"rapport annuel"</span> <span class="op">2022..2026</span></span>
+        <button class="copy-btn" aria-label="Copier">copier</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════ DORK BUILDER ════════════════ -->
+<section class="section reveal" id="builder">
+  <div class="section-label">03 — Outil interactif</div>
+  <h2>Construisez votre Dork</h2>
+  <p class="lead">Combinez les opérateurs visuellement et obtenez votre requête prête à coller dans Google.</p>
+
+  <div class="builder">
+    <h3>🔧 Dork Builder</h3>
+    <p class="subtitle">Remplissez les champs souhaités — la requête se construit en temps réel.</p>
+
+    <div class="builder-row">
+      <label for="b-site">Domaine cible (site:)</label>
+      <input class="builder-input" id="b-site" type="text" placeholder="example.com" oninput="buildQuery()" autocomplete="off">
+    </div>
+
+    <div class="builder-row">
+      <label for="b-filetype">Type de fichier</label>
+      <select class="builder-input" id="b-filetype" onchange="buildQuery()">
+        <option value="">— Tous —</option>
+        <option value="pdf">PDF</option>
+        <option value="doc">DOC / DOCX</option>
+        <option value="xls">XLS / XLSX</option>
+        <option value="ppt">PPT / PPTX</option>
+        <option value="csv">CSV</option>
+        <option value="json">JSON</option>
+        <option value="xml">XML</option>
+        <option value="txt">TXT</option>
+      </select>
+    </div>
+
+    <div class="builder-row">
+      <label for="b-intitle">Mots dans le titre (intitle:)</label>
+      <input class="builder-input" id="b-intitle" type="text" placeholder="rapport annuel" oninput="buildQuery()" autocomplete="off">
+    </div>
+
+    <div class="builder-row">
+      <label for="b-intext">Mots dans le contenu (intext:)</label>
+      <input class="builder-input" id="b-intext" type="text" placeholder="budget 2025" oninput="buildQuery()" autocomplete="off">
+    </div>
+
+    <div class="builder-row">
+      <label for="b-inurl">Mots dans l'URL (inurl:)</label>
+      <input class="builder-input" id="b-inurl" type="text" placeholder="admin" oninput="buildQuery()" autocomplete="off">
+    </div>
+
+    <div class="builder-row">
+      <label for="b-exclude">Exclure (mots ou sites)</label>
+      <input class="builder-input" id="b-exclude" type="text" placeholder="wikipedia, facebook.com" oninput="buildQuery()" autocomplete="off">
+    </div>
+
+    <div class="builder-row">
+      <label for="b-after">Après la date</label>
+      <input class="builder-input" id="b-after" type="date" onchange="buildQuery()">
+    </div>
+
+    <div class="builder-output">
+      <div class="builder-output-label">Requête générée</div>
+      <div class="builder-output-query" id="builderResult" aria-live="polite">
+        <span class="text-muted">Remplissez les champs ci-dessus…</span>
+      </div>
+    </div>
+
+    <div class="builder-actions">
+      <button class="btn btn-primary" onclick="copyBuilderQuery()" id="builderCopyBtn">📋 Copier la requête</button>
+      <button class="btn btn-ghost" onclick="openInGoogle()">🔍 Ouvrir dans Google</button>
+      <button class="btn btn-ghost" onclick="resetBuilder()">↺ Réinitialiser</button>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ COMBINAISONS ════════════════ -->
+<section class="section reveal" id="combos">
+  <div class="section-label">04 — Combinaisons</div>
+  <h2>La vraie puissance du Dorking</h2>
+  <p class="lead">C'est dans la combinaison créative d'opérateurs que réside la magie. Voici des recettes éprouvées, prêtes à l'emploi.</p>
+
+  <div class="recipe reveal">
+    <div class="recipe-title"><span class="emoji">🗺️</span> Cartographie complète d'un domaine</div>
+    <div class="recipe-desc">Obtenez une vue exhaustive de tout ce que Google sait d'un site.</div>
+    <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+      <span class="dork-text"><span class="kw">site:</span>example.com</span>
+      <button class="copy-btn">copier</button>
+    </div>
+    <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+      <span class="dork-text"><span class="kw">site:</span>example.com <span class="kw">filetype:</span>pdf</span>
+      <button class="copy-btn">copier</button>
+    </div>
+    <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+      <span class="dork-text"><span class="kw">site:</span>example.com (<span class="kw">filetype:</span>pdf <span class="op">OR</span> <span class="kw">filetype:</span>doc <span class="op">OR</span> <span class="kw">filetype:</span>ppt)</span>
+      <button class="copy-btn">copier</button>
+    </div>
+  </div>
+
+  <div class="recipe reveal">
+    <div class="recipe-title"><span class="emoji">👁️</span> Surveillance de réputation</div>
+    <div class="recipe-desc">Découvrez qui parle de vous (ou de votre organisation) en dehors de votre site.</div>
+    <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+      <span class="dork-text"><span class="str">"example.com"</span> <span class="neg">-site:example.com</span></span>
+      <button class="copy-btn">copier</button>
+    </div>
+    <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+      <span class="dork-text"><span class="str">"Mon Organisation"</span> <span class="neg">-site:example.com</span> <span class="neg">-site:facebook.com</span></span>
+      <button class="copy-btn">copier</button>
+    </div>
+  </div>
+
+  <div class="recipe reveal">
+    <div class="recipe-title"><span class="emoji">🕵️</span> Veille thématique officielle</div>
+    <div class="recipe-desc">Surveillez un sujet à travers les sources officielles et institutionnelles.</div>
+    <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+      <span class="dork-text"><span class="kw">filetype:</span>pdf <span class="str">"conseil communal"</span> <span class="kw">after:</span>2025-01-01</span>
+      <button class="copy-btn">copier</button>
+    </div>
+    <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+      <span class="dork-text">(<span class="kw">site:</span>lesoir.be <span class="op">OR</span> <span class="kw">site:</span>rtbf.be) <span class="str">"éducation permanente"</span></span>
+      <button class="copy-btn">copier</button>
+    </div>
+  </div>
+
+  <div class="recipe reveal">
+    <div class="recipe-title"><span class="emoji">🔒</span> Détection de répertoires ouverts</div>
+    <div class="recipe-desc">Identifiez les répertoires non protégés — critique pour l'audit sécurité de vos propres sites.</div>
+    <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+      <span class="dork-text"><span class="kw">intitle:</span><span class="str">"index of"</span> <span class="kw">site:</span>example.com</span>
+      <button class="copy-btn">copier</button>
+    </div>
+  </div>
+
+  <div class="recipe reveal">
+    <div class="recipe-title"><span class="emoji">📊</span> Données ouvertes</div>
+    <div class="recipe-desc">Trouvez des jeux de données ouverts dans des formats exploitables.</div>
+    <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+      <span class="dork-text"><span class="kw">filetype:</span>csv <span class="op">OR</span> <span class="kw">filetype:</span>json <span class="kw">site:</span>data.gov.be</span>
+      <button class="copy-btn">copier</button>
+    </div>
+    <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+      <span class="dork-text"><span class="kw">filetype:</span>xlsx <span class="str">"commune"</span> <span class="kw">site:</span>ibz.fgov.be</span>
+      <button class="copy-btn">copier</button>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ SEO ════════════════ -->
+<section class="section reveal" id="seo">
+  <div class="section-label">05 — Audit SEO</div>
+  <h2>Auditez votre référencement sans&nbsp;outils&nbsp;payants</h2>
+  <p class="lead">Le dorking est un allié précieux pour vérifier l'indexation, détecter le contenu dupliqué et repérer les erreurs de vos sites.</p>
+
+  <div class="accordion" id="seoAccordion">
+
+    <div class="acc-item">
+      <button class="acc-trigger" aria-expanded="false" onclick="toggleAcc(this)">
+        <span>📊 Vérifier l'indexation d'un site</span>
+        <span class="icon" aria-hidden="true">+</span>
+      </button>
+      <div class="acc-body"><div class="acc-body-inner">
+        <p>Combien de pages Google a-t-il indexées&nbsp;?</p>
+        <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+          <span class="dork-text"><span class="kw">site:</span>votresite.com</span>
+          <button class="copy-btn">copier</button>
+        </div>
+        <div class="dork-note">Le nombre de résultats affichés ≈ pages indexées. Faites-en un suivi mensuel dans un tableur.</div>
+      </div></div>
+    </div>
+
+    <div class="acc-item">
+      <button class="acc-trigger" aria-expanded="false" onclick="toggleAcc(this)">
+        <span>🔄 Détecter le contenu dupliqué</span>
+        <span class="icon" aria-hidden="true">+</span>
+      </button>
+      <div class="acc-body"><div class="acc-body-inner">
+        <p>Qui reprend votre contenu mot pour mot&nbsp;?</p>
+        <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+          <span class="dork-text"><span class="str">"Votre phrase unique"</span> <span class="neg">-site:votresite.com</span></span>
+          <button class="copy-btn">copier</button>
+        </div>
+        <div class="dork-note">Remplacez par une phrase distinctive de votre site pour détecter les copies.</div>
+      </div></div>
+    </div>
+
+    <div class="acc-item">
+      <button class="acc-trigger" aria-expanded="false" onclick="toggleAcc(this)">
+        <span>👻 Trouver les pages orphelines et erreurs</span>
+        <span class="icon" aria-hidden="true">+</span>
+      </button>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+          <span class="dork-text"><span class="kw">site:</span>votresite.com <span class="kw">intitle:</span><span class="str">"404"</span> <span class="op">OR</span> <span class="kw">intitle:</span><span class="str">"page introuvable"</span></span>
+          <button class="copy-btn">copier</button>
+        </div>
+        <div class="dork-note">Pages d'erreur 404 indexées par Google — à corriger !</div>
+        <div class="dork mt-2" onclick="copyDork(this)" role="button" tabindex="0">
+          <span class="dork-text"><span class="kw">site:</span>votresite.com <span class="kw">intitle:</span><span class="str">"sans titre"</span> <span class="op">OR</span> <span class="kw">intitle:</span><span class="str">"untitled"</span></span>
+          <button class="copy-btn">copier</button>
+        </div>
+        <div class="dork-note">Pages dont la balise &lt;title&gt; n'a pas été configurée.</div>
+      </div></div>
+    </div>
+
+    <div class="acc-item">
+      <button class="acc-trigger" aria-expanded="false" onclick="toggleAcc(this)">
+        <span>🔗 Trouver les mentions externes (backlinks)</span>
+        <span class="icon" aria-hidden="true">+</span>
+      </button>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+          <span class="dork-text"><span class="str">"votresite.com"</span> <span class="neg">-site:votresite.com</span> <span class="neg">-site:facebook.com</span></span>
+          <button class="copy-btn">copier</button>
+        </div>
+        <div class="dork-note">Citations et liens vers votre site en excluant les réseaux sociaux.</div>
+      </div></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════ SÉCURITÉ ════════════════ -->
+<section class="section reveal" id="securite">
+  <div class="section-label">06 — Sécurité</div>
+  <h2>Auditez votre surface d'exposition</h2>
+  <p class="lead">Utilisez ces dorks <strong>uniquement sur vos propres domaines</strong>. Vérifiez régulièrement qu'aucune donnée sensible n'est exposée publiquement.</p>
+
+  <div class="callout danger">
+    <div class="callout-title">🛑 Avertissement important</div>
+    <p>Ces requêtes ne doivent être exécutées que sur des sites dont vous êtes le propriétaire ou l'administrateur autorisé. Exploiter des vulnérabilités découvertes sur des systèmes tiers est illégal.</p>
+  </div>
+
+  <div class="accordion" id="secAccordion">
+    <div class="acc-item">
+      <button class="acc-trigger" aria-expanded="false" onclick="toggleAcc(this)">
+        <span>📁 Répertoires ouverts (directory listing)</span>
+        <span class="icon" aria-hidden="true">+</span>
+      </button>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+          <span class="dork-text"><span class="kw">intitle:</span><span class="str">"index of"</span> <span class="kw">site:</span>votresite.com</span>
+          <button class="copy-btn">copier</button>
+        </div>
+        <div class="dork-note">Détecte les répertoires dont le contenu est listé publiquement.</div>
+      </div></div>
+    </div>
+
+    <div class="acc-item">
+      <button class="acc-trigger" aria-expanded="false" onclick="toggleAcc(this)">
+        <span>⚙️ Fichiers de configuration exposés</span>
+        <span class="icon" aria-hidden="true">+</span>
+      </button>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+          <span class="dork-text"><span class="kw">site:</span>votresite.com <span class="kw">filetype:</span>env <span class="op">OR</span> <span class="kw">filetype:</span>yml <span class="op">OR</span> <span class="kw">filetype:</span>ini</span>
+          <button class="copy-btn">copier</button>
+        </div>
+        <div class="dork-note">Fichiers .env, .yml, .ini — souvent contiennent des mots de passe !</div>
+        <div class="dork mt-2" onclick="copyDork(this)" role="button" tabindex="0">
+          <span class="dork-text"><span class="kw">site:</span>votresite.com <span class="kw">filetype:</span>log</span>
+          <button class="copy-btn">copier</button>
+        </div>
+        <div class="dork-note">Fichiers de logs exposés sur votre domaine.</div>
+      </div></div>
+    </div>
+
+    <div class="acc-item">
+      <button class="acc-trigger" aria-expanded="false" onclick="toggleAcc(this)">
+        <span>🔑 Pages d'administration exposées</span>
+        <span class="icon" aria-hidden="true">+</span>
+      </button>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+          <span class="dork-text"><span class="kw">site:</span>votresite.com <span class="kw">inurl:</span>admin <span class="op">OR</span> <span class="kw">inurl:</span>login <span class="op">OR</span> <span class="kw">inurl:</span>wp-admin</span>
+          <button class="copy-btn">copier</button>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc-item">
+      <button class="acc-trigger" aria-expanded="false" onclick="toggleAcc(this)">
+        <span>🤖 Vérifier le fichier robots.txt</span>
+        <span class="icon" aria-hidden="true">+</span>
+      </button>
+      <div class="acc-body"><div class="acc-body-inner">
+        <p>Accédez directement à <code>votresite.com/robots.txt</code> dans votre navigateur. Ce fichier indique à Google quelles pages ne pas indexer — mais il révèle aussi l'existence de répertoires aux curieux.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ VEILLE CITOYENNE ════════════════ -->
+<section class="section reveal" id="veille">
+  <div class="section-label">07 — Veille citoyenne</div>
+  <h2>Surveillez l'action publique</h2>
+  <p class="lead">Le dorking est l'allié des citoyens, journalistes et acteurs associatifs pour accéder aux documents officiels et surveiller la transparence des institutions.</p>
+
+  <div class="recipe reveal">
+    <div class="recipe-title"><span class="emoji">🏛️</span> Documents institutionnels</div>
+    <div class="recipe-desc">Trouvez délibérations communales, budgets et décrets.</div>
+    <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+      <span class="dork-text"><span class="kw">filetype:</span>pdf <span class="str">"conseil communal"</span> <span class="str">"Auderghem"</span> <span class="kw">after:</span>2025-01-01</span>
+      <button class="copy-btn">copier</button>
+    </div>
+    <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+      <span class="dork-text"><span class="kw">filetype:</span>pdf <span class="op">OR</span> <span class="kw">filetype:</span>xlsx <span class="str">"budget"</span> <span class="kw">site:</span>auderghem.be</span>
+      <button class="copy-btn">copier</button>
+    </div>
+  </div>
+
+  <div class="recipe reveal">
+    <div class="recipe-title"><span class="emoji">📰</span> Couverture médiatique</div>
+    <div class="recipe-desc">Suivez la couverture d'un sujet dans les médias francophones belges.</div>
+    <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+      <span class="dork-text">(<span class="kw">site:</span>lesoir.be <span class="op">OR</span> <span class="kw">site:</span>lalibre.be <span class="op">OR</span> <span class="kw">site:</span>rtbf.be) <span class="str">"éducation permanente"</span></span>
+      <button class="copy-btn">copier</button>
+    </div>
+  </div>
+
+  <div class="recipe reveal">
+    <div class="recipe-title"><span class="emoji">📜</span> Publications officielles</div>
+    <div class="recipe-desc">Retrouvez les publications au Moniteur Belge et documents de subventions.</div>
+    <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+      <span class="dork-text"><span class="kw">site:</span>moniteur.be <span class="kw">filetype:</span>pdf <span class="str">"subvention"</span> <span class="str">"éducation permanente"</span></span>
+      <button class="copy-btn">copier</button>
+    </div>
+    <div class="dork" onclick="copyDork(this)" role="button" tabindex="0">
+      <span class="dork-text"><span class="kw">site:</span>courdescomptes.be <span class="kw">filetype:</span>pdf <span class="op">2024..2026</span></span>
+      <button class="copy-btn">copier</button>
+    </div>
+  </div>
+
+  <div class="callout success mt-4">
+    <div class="callout-title">🔔 Automatiser avec Google Alerts</div>
+    <p>Rendez-vous sur <strong>google.com/alerts</strong>, entrez votre requête de dorking, réglez la fréquence et les sources, et recevez automatiquement les nouveaux résultats par e-mail ou flux RSS. Transformez vos dorks récurrents en alertes&nbsp;!</p>
+  </div>
+</section>
+
+<!-- ════════════════ MÉTHODOLOGIE ════════════════ -->
+<section class="section reveal" id="methodo">
+  <div class="section-label">08 — Méthodologie</div>
+  <h2>Les 5 étapes d'une recherche&nbsp;efficace</h2>
+  <p class="lead">Transformez le dorking en pratique professionnelle avec une démarche structurée.</p>
+
+  <div class="steps">
+    <div class="step reveal">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Définir l'objectif</h4>
+        <p>Que cherchez-vous exactement&nbsp;? Audit SEO, fuite sécuritaire, veille médiatique, documents officiels&nbsp;?</p>
+      </div>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Choisir les opérateurs</h4>
+        <p>Sélectionnez 2–3 opérateurs pertinents pour votre objectif. Commencez simple.</p>
+      </div>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Construire la requête</h4>
+        <p>Combinez les opérateurs. Utilisez le <a href="#builder">Dork Builder</a> pour tester visuellement.</p>
+      </div>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Analyser les résultats</h4>
+        <p>Documentez vos trouvailles. Sauvegardez les URLs pertinentes dans un tableur.</p>
+      </div>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>Itérer et automatiser</h4>
+        <p>Affinez progressivement. Transformez les dorks récurrents en Google Alerts. Croisez avec d'autres sources.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout mt-4">
+    <div class="callout-title">🛠️ Bonnes pratiques</div>
+    <p>Documentez vos requêtes dans un tableur — Utilisez le mode navigation privée pour des résultats non personnalisés — Espacez vos requêtes pour éviter les blocages temporaires de Google — Croisez toujours vos trouvailles avec d'autres sources — Privilégiez Startpage ou Brave Search pour réduire votre empreinte de données.</p>
+  </div>
+</section>
+
+<!-- ════════════════ CHEAT SHEET ════════════════ -->
+<section class="section reveal" id="cheatsheet">
+  <div class="section-label">09 — Référence</div>
+  <h2>Cheat Sheet complète</h2>
+  <p class="lead">Le tableau synthétique de tous les opérateurs. À garder sous la main lors de vos sessions de recherche.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Opérateur</th><th>Fonction</th><th>Exemple</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>" "</code></td><td>Recherche exacte</td><td><code>"veille citoyenne"</code></td></tr>
+        <tr><td><code>OR</code></td><td>Alternative (l'un ou l'autre)</td><td><code>culture OR éducation</code></td></tr>
+        <tr><td><code>-</code></td><td>Exclusion</td><td><code>dorking -wikipedia</code></td></tr>
+        <tr><td><code>*</code></td><td>Wildcard (joker)</td><td><code>"la * belge"</code></td></tr>
+        <tr><td><code>site:</code></td><td>Restreindre au domaine</td><td><code>site:example.com</code></td></tr>
+        <tr><td><code>intitle:</code></td><td>Mot dans le titre</td><td><code>intitle:"rapport"</code></td></tr>
+        <tr><td><code>allintitle:</code></td><td>Tous les mots dans le titre</td><td><code>allintitle:budget 2025</code></td></tr>
+        <tr><td><code>inurl:</code></td><td>Mot dans l'URL</td><td><code>inurl:admin</code></td></tr>
+        <tr><td><code>allinurl:</code></td><td>Tous les mots dans l'URL</td><td><code>allinurl:docs pdf</code></td></tr>
+        <tr><td><code>intext:</code></td><td>Mot dans le contenu</td><td><code>intext:"open data"</code></td></tr>
+        <tr><td><code>filetype:</code></td><td>Type de fichier</td><td><code>filetype:pdf</code></td></tr>
+        <tr><td><code>after:</code></td><td>Après une date</td><td><code>after:2025-01-01</code></td></tr>
+        <tr><td><code>before:</code></td><td>Avant une date</td><td><code>before:2024-12-31</code></td></tr>
+        <tr><td><code>..</code></td><td>Plage numérique</td><td><code>2022..2026</code></td></tr>
+        <tr><td><code>cache:</code></td><td>Version en cache</td><td><code>cache:example.com</code></td></tr>
+        <tr><td><code>related:</code></td><td>Sites similaires</td><td><code>related:lemonde.fr</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout success mt-4">
+    <div class="callout-title">📚 Ressources complémentaires</div>
+    <p>
+      <strong>Google Hacking Database (GHDB)</strong> — exploit-db.com/google-hacking-database<br>
+      <strong>Google Search Console</strong> — search.google.com/search-console<br>
+      <strong>Google Advanced Search</strong> — google.com/advanced_search<br>
+      <strong>DorkSearch.com</strong> — Générateur visuel de dorks<br>
+      <strong>Wayback Machine</strong> — archive.org pour les versions historiques
+    </p>
+  </div>
+</section>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <p>Guide Google Dorking — Février 2026</p>
+  <p class="mt-1">Créé avec <span class="heart">♥</span> pour la veille citoyenne et l'éducation numérique</p>
+  <p class="mt-1 text-muted">Toute l'information retournée par ces techniques est publiquement accessible et indexée par Google.</p>
+</footer>
+
+<!-- TOAST -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- BACK TO TOP -->
+<button class="back-top" id="backTop" onclick="window.scrollTo({top:0})" aria-label="Retour en haut">↑</button>
+
+<script>
+/* ═══════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════ */
+function toggleNav(){
+  const links=document.getElementById('navLinks');
+  const toggle=document.querySelector('.nav-toggle');
+  const open=links.classList.toggle('open');
+  toggle.setAttribute('aria-expanded',open);
+  toggle.textContent=open?'✕':'☰';
+}
+// Close mobile nav on link click
+document.querySelectorAll('.nav-links a').forEach(a=>{
+  a.addEventListener('click',()=>{
+    document.getElementById('navLinks').classList.remove('open');
+    document.querySelector('.nav-toggle').textContent='☰';
+  });
+});
+
+/* ═══════════════════════════════════════════
+   SCROLL EFFECTS
+   ═══════════════════════════════════════════ */
+const nav=document.querySelector('.nav');
+const progressFill=document.getElementById('progressFill');
+const backTop=document.getElementById('backTop');
+
+function onScroll(){
+  // Nav shadow
+  nav.classList.toggle('scrolled',window.scrollY>20);
+  // Progress
+  const h=document.documentElement.scrollHeight-window.innerHeight;
+  progressFill.style.width=(window.scrollY/h*100)+'%';
+  // Back to top
+  backTop.classList.toggle('visible',window.scrollY>600);
+  // Active nav
+  updateActiveNav();
+}
+window.addEventListener('scroll',onScroll,{passive:true});
+
+function updateActiveNav(){
+  const sections=document.querySelectorAll('.section');
+  const links=document.querySelectorAll('.nav-links a');
+  let current='';
+  sections.forEach(s=>{
+    if(window.scrollY>=s.offsetTop-120) current=s.id;
+  });
+  links.forEach(l=>{
+    l.classList.toggle('active',l.getAttribute('href')==='#'+current);
+  });
+}
+
+/* ═══════════════════════════════════════════
+   REVEAL ON SCROLL (Intersection Observer)
+   ═══════════════════════════════════════════ */
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add('visible');
+      // Stagger children
+      e.target.querySelectorAll('.op-card,.step,.recipe').forEach((c,i)=>{
+        c.style.transitionDelay=i*0.06+'s';
+        c.classList.add('visible');
+      });
+    }
+  });
+},{threshold:0.08,rootMargin:'0px 0px -40px 0px'});
+
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+/* ═══════════════════════════════════════════
+   TERMINAL ANIMATION
+   ═══════════════════════════════════════════ */
+const termObserver=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const lines=e.target.querySelectorAll('.terminal-line');
+      lines.forEach((l,i)=>{
+        setTimeout(()=>l.classList.add('typed'),i*400);
+      });
+      termObserver.unobserve(e.target);
+    }
+  });
+},{threshold:0.3});
+const termEl=document.getElementById('terminalDemo');
+if(termEl) termObserver.observe(termEl);
+
+/* ═══════════════════════════════════════════
+   COPY FUNCTIONALITY
+   ═══════════════════════════════════════════ */
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+function copyDork(el){
+  const textEl=el.querySelector('.dork-text');
+  const text=textEl.textContent.trim();
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=el.querySelector('.copy-btn');
+    btn.textContent='✓ copié';
+    btn.classList.add('copied');
+    showToast('✓ Copié dans le presse-papier');
+    setTimeout(()=>{btn.textContent='copier';btn.classList.remove('copied')},2000);
+  });
+}
+
+// Keyboard support for dork blocks
+document.querySelectorAll('.dork[role="button"]').forEach(d=>{
+  d.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();copyDork(d)}
+  });
+});
+
+/* ═══════════════════════════════════════════
+   ACCORDION
+   ═══════════════════════════════════════════ */
+function toggleAcc(trigger){
+  const item=trigger.parentElement;
+  const body=item.querySelector('.acc-body');
+  const isOpen=item.classList.contains('open');
+
+  // Close siblings
+  item.parentElement.querySelectorAll('.acc-item.open').forEach(i=>{
+    if(i!==item){
+      i.classList.remove('open');
+      i.querySelector('.acc-trigger').setAttribute('aria-expanded','false');
+      i.querySelector('.acc-body').style.maxHeight='0';
+    }
+  });
+
+  if(isOpen){
+    item.classList.remove('open');
+    trigger.setAttribute('aria-expanded','false');
+    body.style.maxHeight='0';
+  }else{
+    item.classList.add('open');
+    trigger.setAttribute('aria-expanded','true');
+    body.style.maxHeight=body.scrollHeight+'px';
+  }
+}
+
+/* ═══════════════════════════════════════════
+   DORK BUILDER
+   ═══════════════════════════════════════════ */
+let currentQuery='';
+
+function buildQuery(){
+  const site=document.getElementById('b-site').value.trim();
+  const filetype=document.getElementById('b-filetype').value;
+  const intitle=document.getElementById('b-intitle').value.trim();
+  const intext=document.getElementById('b-intext').value.trim();
+  const inurl=document.getElementById('b-inurl').value.trim();
+  const exclude=document.getElementById('b-exclude').value.trim();
+  const after=document.getElementById('b-after').value;
+
+  const parts=[];
+  if(site) parts.push(`site:${site}`);
+  if(filetype) parts.push(`filetype:${filetype}`);
+  if(intitle) parts.push(intitle.includes(' ')?`intitle:"${intitle}"`:`intitle:${intitle}`);
+  if(intext) parts.push(intext.includes(' ')?`intext:"${intext}"`:`intext:${intext}`);
+  if(inurl) parts.push(`inurl:${inurl}`);
+  if(exclude){
+    exclude.split(',').map(e=>e.trim()).filter(Boolean).forEach(e=>{
+      parts.push(e.includes('.')?`-site:${e}`:`-${e}`);
+    });
+  }
+  if(after) parts.push(`after:${after}`);
+
+  currentQuery=parts.join(' ');
+  const display=document.getElementById('builderResult');
+
+  if(!currentQuery){
+    display.innerHTML='<span class="text-muted">Remplissez les champs ci-dessus…</span>';
+    return;
+  }
+
+  // Syntax highlight
+  let html=currentQuery
+    .replace(/(site:|filetype:|intitle:|intext:|inurl:|after:|before:)/g,'<span class="kw">$1</span>')
+    .replace(/(".*?")/g,'<span class="str">$1</span>')
+    .replace(/(-(?:site:)?[\w.-]+)/g,'<span class="neg">$1</span>');
+
+  display.innerHTML=html;
+}
+
+function copyBuilderQuery(){
+  if(!currentQuery) return;
+  navigator.clipboard.writeText(currentQuery).then(()=>{
+    const btn=document.getElementById('builderCopyBtn');
+    btn.textContent='✓ Copié !';
+    showToast('✓ Requête copiée');
+    setTimeout(()=>btn.textContent='📋 Copier la requête',2000);
+  });
+}
+
+function openInGoogle(){
+  if(!currentQuery) return;
+  window.open('https://www.google.com/search?q='+encodeURIComponent(currentQuery),'_blank');
+}
+
+function resetBuilder(){
+  ['b-site','b-intitle','b-intext','b-inurl','b-exclude','b-after'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('b-filetype').selectedIndex=0;
+  buildQuery();
+}
+
+/* ═══════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════ */
+onScroll();
+</script>
+
+</body>
+</html>
