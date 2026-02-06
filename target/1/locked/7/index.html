@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSINT — Le Guide Ultime du Renseignement en Sources Ouvertes</title>
+<meta name="description" content="Tutoriel interactif complet sur l'OSINT : disciplines, méthodologie, outils, techniques et éthique du renseignement en sources ouvertes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060a0e;--bg-s:#0b1017;--bg-e:#101820;--bg-c:#141e28;--bg-h:#1a2636;
+  --bdr:#1c2a38;--bdr-g:#28404e;
+  --txt:#dce4ec;--txt-s:#8a9bb0;--txt-m:#566a80;
+  --teal:#18d6c0;--teal-d:#14b0a0;--teal-g:rgba(24,214,192,.1);
+  --electric:#4a8cf5;--electric-g:rgba(74,140,245,.1);
+  --amber:#e8a830;--amber-g:rgba(232,168,48,.08);
+  --red:#e85454;--red-g:rgba(232,84,84,.08);
+  --green:#34c77b;--green-g:rgba(52,199,123,.08);
+  --purple:#a07af5;--purple-g:rgba(160,122,245,.08);
+  --pink:#e868a2;--orange:#f59a4a;
+  --f-body:'Sora',system-ui,sans-serif;
+  --f-disp:'Instrument Serif',Georgia,serif;
+  --f-mono:'Source Code Pro','Consolas',monospace;
+  --r-s:6px;--r-m:12px;--r-l:18px;--r-xl:24px;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{font-family:var(--f-body);background:var(--bg);color:var(--txt);line-height:1.72;font-size:16.5px;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::selection{background:var(--teal);color:var(--bg)}
+a{color:var(--electric);text-decoration:none;transition:color .2s}a:hover{color:var(--teal)}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bdr-g);border-radius:3px}
+.skip{position:absolute;top:-100px;left:16px;background:var(--teal);color:var(--bg);padding:8px 16px;border-radius:var(--r-s);font-weight:700;z-index:9999;transition:top .3s}.skip:focus{top:16px}
+
+/* Atmosphere */
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 45% at 30% 0%,rgba(24,214,192,.04),transparent),radial-gradient(ellipse 50% 40% at 85% 90%,rgba(74,140,245,.03),transparent)}
+.hex-bg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.02;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66zm0 34L0 84V50l28-16 28 16v34L28 100z' fill='none' stroke='%2318d6c0' stroke-width='.5'/%3E%3C/svg%3E")}
+
+/* Nav */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(6,10,14,.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--bdr);transition:box-shadow .4s}
+.nav.scrolled{box-shadow:0 4px 40px rgba(0,0,0,.5)}
+.nav-in{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:62px}
+.nav-brand{font-family:var(--f-mono);font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px}
+.nav-brand svg{width:22px;height:22px;color:var(--teal)}
+.nav-brand span{color:var(--teal)}
+.nav-links{display:flex;gap:2px;list-style:none}
+.nav-links a{display:block;padding:6px 12px;font-size:12px;font-weight:600;color:var(--txt-m);border-radius:var(--r-s);transition:all .2s;text-transform:uppercase;letter-spacing:.5px}
+.nav-links a:hover,.nav-links a.act{color:var(--teal);background:var(--teal-g)}
+.nav-tog{display:none;background:none;border:none;color:var(--txt);cursor:pointer;padding:8px;font-size:22px}
+@media(max-width:1020px){.nav-links{position:fixed;top:62px;left:0;right:0;bottom:0;background:rgba(6,10,14,.97);backdrop-filter:blur(20px);flex-direction:column;padding:20px;gap:2px;transform:translateX(100%);transition:transform .4s var(--ease)}.nav-links.open{transform:translateX(0)}.nav-links a{font-size:15px;padding:14px 16px}.nav-tog{display:block}}
+
+/* Progress */
+.prog{position:fixed;top:62px;left:0;right:0;height:2px;z-index:99;background:var(--bg)}.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--teal),var(--electric));transition:width .1s}
+
+/* Hero */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative;z-index:1}
+.hero-tag{display:inline-flex;align-items:center;gap:10px;padding:6px 18px;border:1px solid var(--bdr-g);border-radius:var(--r-s);font-family:var(--f-mono);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--teal);background:var(--teal-g);margin-bottom:36px;animation:fu .8s var(--ease) both}
+.hero-tag .pulse{width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);animation:pd 2s ease infinite}
+@keyframes pd{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h1{font-family:var(--f-disp);font-size:clamp(2.6rem,7vw,5.4rem);font-weight:400;font-style:italic;line-height:1.08;letter-spacing:-.01em;margin-bottom:24px;animation:fu .8s var(--ease) .1s both}
+.hero h1 b{font-style:normal;background:linear-gradient(135deg,var(--teal),var(--electric));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:400}
+.hero-sub{font-size:clamp(1rem,2.2vw,1.2rem);color:var(--txt-s);max-width:680px;line-height:1.7;margin-bottom:44px;animation:fu .8s var(--ease) .2s both}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;animation:fu .8s var(--ease) .3s both}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:var(--r-m);font-family:var(--f-body);font-size:14px;font-weight:700;border:none;cursor:pointer;transition:all .25s var(--ease)}
+.btn-p{background:var(--teal);color:var(--bg);box-shadow:0 0 24px rgba(24,214,192,.2)}.btn-p:hover{transform:translateY(-2px);box-shadow:0 6px 32px rgba(24,214,192,.35)}
+.btn-g{background:transparent;color:var(--txt);border:1px solid var(--bdr-g)}.btn-g:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-g)}
+@keyframes fu{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+/* Sections */
+.sec{max-width:920px;margin:0 auto;padding:100px 24px 0;position:relative;z-index:1}
+.sec-lb{font-family:var(--f-mono);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:3px;color:var(--teal);margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.sec-lb::before{content:'';width:24px;height:2px;background:var(--teal)}
+.sec h2{font-family:var(--f-disp);font-size:clamp(1.8rem,4vw,2.6rem);font-style:italic;line-height:1.15;margin-bottom:18px}
+.sec .lead{font-size:1.05rem;color:var(--txt-s);max-width:700px;margin-bottom:40px;line-height:1.7}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s var(--ease),transform .7s var(--ease)}.reveal.v{opacity:1;transform:translateY(0)}
+
+/* Callout */
+.co{background:var(--bg-c);border:1px solid var(--bdr);border-left:3px solid var(--teal);border-radius:var(--r-m);padding:24px 28px;margin:28px 0}
+.co.warn{border-left-color:var(--amber)}.co.danger{border-left-color:var(--red)}.co.ok{border-left-color:var(--green)}
+.co-t{font-weight:700;font-size:15px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+
+/* Discipline cards */
+.disc-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))}
+.disc{background:var(--bg-c);border:1px solid var(--bdr);border-radius:var(--r-l);padding:28px;transition:all .3s var(--ease);position:relative;overflow:hidden}
+.disc:hover{border-color:var(--bdr-g);transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.disc-icon{font-size:28px;margin-bottom:12px}
+.disc-name{font-family:var(--f-mono);font-size:16px;font-weight:700;margin-bottom:6px}
+.disc-desc{color:var(--txt-s);font-size:14px;line-height:1.6}
+.disc-color{position:absolute;top:0;right:0;width:100px;height:100px;border-radius:0 0 0 100px;opacity:.06}
+
+/* Query blocks */
+.q{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r-s);padding:10px 14px;margin:6px 0;font-family:var(--f-mono);font-size:13px;color:var(--teal);cursor:pointer;transition:border-color .2s,background .2s;word-break:break-all}
+.q:hover{border-color:var(--teal-d);background:rgba(24,214,192,.03)}
+.q-text{flex:1;line-height:1.5}.q .kw{color:var(--electric)}.q .str{color:var(--green)}.q .url{color:var(--teal)}.q .param{color:var(--pink)}
+.cp{flex-shrink:0;background:var(--bg-e);border:1px solid var(--bdr);color:var(--txt-m);border-radius:var(--r-s);padding:3px 9px;font-size:10px;font-family:var(--f-mono);cursor:pointer;transition:all .2s;white-space:nowrap}
+.cp:hover{color:var(--teal);border-color:var(--teal-d)}.cp.ok{color:var(--green);border-color:var(--green)}
+.q-note{font-size:12.5px;color:var(--txt-m);padding-left:4px;margin-top:2px;margin-bottom:8px}
+
+/* Accordion */
+.ac{border:1px solid var(--bdr);border-radius:var(--r-m);margin-bottom:8px;overflow:hidden;transition:border-color .2s}.ac:hover{border-color:var(--bdr-g)}
+.ac-t{width:100%;display:flex;align-items:center;justify-content:space-between;padding:18px 22px;background:var(--bg-c);border:none;color:var(--txt);font-family:var(--f-body);font-size:15px;font-weight:700;cursor:pointer;transition:background .2s;text-align:left}
+.ac-t:hover{background:var(--bg-h)}.ac-t .i{font-size:18px;transition:transform .3s var(--ease);color:var(--txt-m);flex-shrink:0}
+.ac.open .ac-t .i{transform:rotate(45deg);color:var(--teal)}
+.ac-b{max-height:0;overflow:hidden;transition:max-height .4s var(--ease)}.ac-b-in{padding:0 22px 22px}
+
+/* Tool cards */
+.tg{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr))}
+.tc{background:var(--bg-c);border:1px solid var(--bdr);border-radius:var(--r-l);padding:24px;transition:all .3s var(--ease)}
+.tc:hover{border-color:var(--bdr-g);transform:translateY(-2px)}
+.tc-n{font-family:var(--f-mono);font-size:15px;font-weight:700;color:var(--teal);margin-bottom:5px}
+.tc-d{color:var(--txt-s);font-size:13.5px;margin-bottom:10px}
+.tc-tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:3px 8px;border-radius:999px;background:var(--bg-e);color:var(--txt-m);border:1px solid var(--bdr)}
+
+/* Steps timeline */
+.steps{margin:36px 0;position:relative}.steps::before{content:'';position:absolute;left:27px;top:0;bottom:0;width:2px;background:var(--bdr)}
+.stp{display:grid;grid-template-columns:56px 1fr;gap:20px;margin-bottom:28px;position:relative}
+.stp-n{width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:16px;font-weight:700;color:var(--teal);border:2px solid var(--bdr);border-radius:50%;background:var(--bg-c);z-index:1}
+.stp:hover .stp-n{border-color:var(--teal);box-shadow:0 0 12px var(--teal-g)}
+.stp-c{padding-top:8px}.stp-c h4{font-size:16px;font-weight:700;margin-bottom:4px}.stp-c p{color:var(--txt-s);font-size:15px}
+
+/* Table */
+.tw{overflow-x:auto;margin:28px 0;border:1px solid var(--bdr);border-radius:var(--r-l)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+thead{background:var(--bg-e)}th{text-align:left;padding:14px 18px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--txt-m);border-bottom:1px solid var(--bdr)}
+td{padding:14px 18px;border-bottom:1px solid var(--bdr);vertical-align:top}tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg-h)}
+td code{font-family:var(--f-mono);background:var(--bg);padding:2px 8px;border-radius:4px;color:var(--teal);font-size:12.5px}
+
+/* Recipe */
+.recipe{background:var(--bg-c);border:1px solid var(--bdr);border-radius:var(--r-l);padding:30px;margin:18px 0;transition:border-color .3s}.recipe:hover{border-color:var(--bdr-g)}
+.recipe-t{font-family:var(--f-disp);font-size:1.2rem;font-style:italic;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.recipe-d{color:var(--txt-s);font-size:14px;margin-bottom:16px}
+
+/* Workflow builder */
+.wf{background:var(--bg-c);border:1px solid var(--bdr);border-radius:var(--r-xl);padding:40px;margin:40px 0;position:relative;overflow:hidden}
+.wf::before{content:'';position:absolute;top:-40%;right:-20%;width:350px;height:350px;background:radial-gradient(circle,var(--teal-g),transparent 60%);pointer-events:none}
+.wf h3{font-family:var(--f-disp);font-size:1.5rem;font-style:italic;margin-bottom:6px;position:relative}
+.wf .sub{color:var(--txt-s);margin-bottom:28px;position:relative}
+.wf-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;position:relative}
+.wf-row label{font-size:12px;font-weight:700;color:var(--txt-m);width:100%;text-transform:uppercase;letter-spacing:.5px}
+.wf-in{flex:1;min-width:180px;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r-s);padding:12px 16px;font-family:var(--f-mono);font-size:14px;color:var(--txt);transition:border-color .2s}
+.wf-in:focus{outline:none;border-color:var(--teal)}.wf-in::placeholder{color:var(--txt-m)}
+select.wf-in{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23566a80' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.wf-out{margin-top:20px;padding:20px;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r-m)}
+.wf-out-lb{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--txt-m);margin-bottom:10px}
+.wf-out-q{font-family:var(--f-mono);font-size:15px;font-weight:600;color:var(--teal);word-break:break-all;min-height:24px;line-height:1.6}
+.wf-out-q .kw{color:var(--electric)}.wf-out-q .str{color:var(--green)}
+.wf-acts{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+
+footer{margin-top:120px;padding:48px 24px;border-top:1px solid var(--bdr);text-align:center;color:var(--txt-m);font-size:14px;position:relative;z-index:1}
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--teal);color:var(--bg);font-family:var(--f-mono);font-size:12px;font-weight:700;padding:10px 22px;border-radius:999px;z-index:999;pointer-events:none;opacity:0;transition:all .4s cubic-bezier(.34,1.56,.64,1)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.btt{position:fixed;bottom:32px;right:32px;z-index:98;width:44px;height:44px;border-radius:50%;background:var(--bg-e);border:1px solid var(--bdr);color:var(--txt-m);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;pointer-events:none;transition:all .3s var(--ease);font-size:18px}.btt.v{opacity:1;pointer-events:auto}.btt:hover{color:var(--teal);border-color:var(--teal);transform:translateY(-3px)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+@media(max-width:600px){.sec{padding:64px 16px 0}.wf{padding:24px 18px}.disc{padding:22px}}
+</style>
+</head>
+<body>
+<a href="#main" class="skip">Aller au contenu</a>
+<div class="hex-bg" aria-hidden="true"></div>
+<div class="prog"><div class="prog-fill" id="pf"></div></div>
+
+<nav class="nav">
+<div class="nav-in">
+  <div class="nav-brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <span>OSINT</span> GUIDE
+  </div>
+  <button class="nav-tog" aria-label="Menu" aria-expanded="false" onclick="toggleNav()">☰</button>
+  <ul class="nav-links" id="nL">
+    <li><a href="#intro">Intro</a></li>
+    <li><a href="#disciplines">Disciplines</a></li>
+    <li><a href="#cycle">Cycle</a></li>
+    <li><a href="#techniques">Techniques</a></li>
+    <li><a href="#wfb">Workflow</a></li>
+    <li><a href="#tools">Outils</a></li>
+    <li><a href="#veille">Veille</a></li>
+    <li><a href="#ethique">Éthique</a></li>
+    <li><a href="#cs">Cheat Sheet</a></li>
+  </ul>
+</div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="hero-tag"><span class="pulse"></span> Guide opérationnel — Février 2026</div>
+  <h1>L'Intelligence par les<br><b>Sources Ouvertes</b></h1>
+  <p class="hero-sub">OSINT — Open Source Intelligence. Le guide complet et interactif pour maîtriser l'art de collecter, vérifier et analyser l'information publiquement accessible à travers toutes les sources ouvertes.</p>
+  <div class="hero-btns">
+    <a href="#disciplines" class="btn btn-p">🔍 Les disciplines</a>
+    <a href="#cs" class="btn btn-g">📋 Cheat Sheet</a>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ═══ INTRO ═══ -->
+<section class="sec reveal" id="intro">
+  <div class="sec-lb">01 — Fondamentaux</div>
+  <h2>Qu'est-ce que l'OSINT ?</h2>
+  <p class="lead">L'OSINT (Open Source Intelligence) est la discipline de collecte, d'analyse et d'exploitation d'informations provenant de sources publiquement accessibles. C'est la forme de renseignement la plus démocratique — tout le monde peut la pratiquer avec les bons outils et la bonne méthodologie.</p>
+
+  <div class="co ok">
+    <div class="co-t">💡 L'OSINT en bref</div>
+    <p>L'OSINT puise dans toutes les sources ouvertes : sites web, réseaux sociaux, registres publics, médias, bases de données ouvertes, imagerie satellite, archives, brevets, publications académiques. Ce n'est pas du piratage — c'est l'exploitation méthodique de ce qui est déjà public.</p>
+  </div>
+
+  <div class="co">
+    <div class="co-t">🌐 Qui utilise l'OSINT ?</div>
+    <p><strong>Journalistes</strong> (Bellingcat, NYT Visual Investigations) — <strong>Forces de l'ordre</strong> — <strong>Services de renseignement</strong> — <strong>Entreprises</strong> (due diligence, veille concurrentielle) — <strong>ONG & chercheurs</strong> — <strong>Citoyens</strong> (fact-checking, transparence) — <strong>Professionnels de la cybersécurité</strong> (threat intelligence).</p>
+  </div>
+
+  <div class="co warn">
+    <div class="co-t">⚠️ L'OSINT n'est pas…</div>
+    <p>L'OSINT n'est pas du hacking, du social engineering, ou de l'espionnage. Il n'implique aucun accès non autorisé à des systèmes ni aucune collecte de données privées. L'OSINT exploite <strong>exclusivement l'information publique</strong>.</p>
+  </div>
+</section>
+
+<!-- ═══ DISCIPLINES ═══ -->
+<section class="sec reveal" id="disciplines">
+  <div class="sec-lb">02 — L'écosystème OSINT</div>
+  <h2>Les disciplines du renseignement ouvert</h2>
+  <p class="lead">L'OSINT est un chapeau qui couvre de nombreuses sous-disciplines. Chacune a ses techniques, ses outils et ses spécificités.</p>
+
+  <div class="disc-grid">
+    <div class="disc reveal">
+      <div class="disc-color" style="background:var(--teal)"></div>
+      <div class="disc-icon">🌐</div>
+      <div class="disc-name">WEBINT</div>
+      <div class="disc-desc">Web Intelligence — Recherche avancée sur le web, Google Dorking, exploration du deep web, analyse de sites et domaines, registres WHOIS.</div>
+    </div>
+    <div class="disc reveal">
+      <div class="disc-color" style="background:var(--electric)"></div>
+      <div class="disc-icon">📱</div>
+      <div class="disc-name">SOCMINT</div>
+      <div class="disc-desc">Social Media Intelligence — Investigation sur les réseaux sociaux : X, Facebook, LinkedIn, Instagram, Telegram, TikTok, Reddit.</div>
+    </div>
+    <div class="disc reveal">
+      <div class="disc-color" style="background:var(--green)"></div>
+      <div class="disc-icon">🛰️</div>
+      <div class="disc-name">GEOINT</div>
+      <div class="disc-desc">Geospatial Intelligence — Imagerie satellite, géolocalisation, analyse de cartes, Street View, données topographiques, SunCalc.</div>
+    </div>
+    <div class="disc reveal">
+      <div class="disc-color" style="background:var(--amber)"></div>
+      <div class="disc-icon">🖼️</div>
+      <div class="disc-name">IMINT</div>
+      <div class="disc-desc">Imagery Intelligence — Analyse d'images et vidéos : métadonnées EXIF, recherche inversée, deepfake detection, forensique visuelle.</div>
+    </div>
+    <div class="disc reveal">
+      <div class="disc-color" style="background:var(--purple)"></div>
+      <div class="disc-icon">🔌</div>
+      <div class="disc-name">TECHINT</div>
+      <div class="disc-desc">Technical Intelligence — Analyse d'infrastructure : DNS, certificats SSL, Shodan, fingerprinting technologique, fuites de données.</div>
+    </div>
+    <div class="disc reveal">
+      <div class="disc-color" style="background:var(--red)"></div>
+      <div class="disc-icon">💰</div>
+      <div class="disc-name">FININT</div>
+      <div class="disc-desc">Financial Intelligence — Registres d'entreprises, bénéficiaires effectifs, transactions crypto, sanctions, Panama Papers, lobbying.</div>
+    </div>
+    <div class="disc reveal">
+      <div class="disc-color" style="background:var(--pink)"></div>
+      <div class="disc-icon">🗣️</div>
+      <div class="disc-name">HUMINT</div>
+      <div class="disc-desc">Human Intelligence — Renseignement d'origine humaine : interviews, élicitation, ingénierie sociale éthique, HUMINT tactique.</div>
+    </div>
+    <div class="disc reveal">
+      <div class="disc-color" style="background:var(--orange)"></div>
+      <div class="disc-icon">📻</div>
+      <div class="disc-name">SIGINT</div>
+      <div class="disc-desc">Signals Intelligence — Radio amateur, ADS-B (suivi aérien), AIS (suivi maritime), fréquences ouvertes, communications non chiffrées.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CYCLE ═══ -->
+<section class="sec reveal" id="cycle">
+  <div class="sec-lb">03 — Méthodologie</div>
+  <h2>Le cycle du renseignement OSINT</h2>
+  <p class="lead">Toute investigation OSINT suit un cycle structuré et itératif. La rigueur méthodologique différencie le professionnel de l'amateur.</p>
+
+  <div class="steps">
+    <div class="stp reveal"><div class="stp-n">1</div><div class="stp-c"><h4>Planification & Cadrage</h4><p>Définir les questions clés (PIR — Priority Intelligence Requirements), les limites légales/éthiques, les ressources disponibles et le calendrier. Documenter le cadre <strong>avant</strong> de commencer.</p></div></div>
+    <div class="stp reveal"><div class="stp-n">2</div><div class="stp-c"><h4>Préparation OPSEC</h4><p>VPN, navigateur dédié, comptes sock puppet, VM si nécessaire. Jamais d'investigation depuis un profil personnel. Configurer les outils d'archivage (Hunchly, Wayback Machine).</p></div></div>
+    <div class="stp reveal"><div class="stp-n">3</div><div class="stp-c"><h4>Collecte</h4><p>Utiliser les techniques de chaque discipline (WEBINT, SOCMINT, GEOINT…). Procéder par cercles concentriques : du plus large au plus précis. Capturer et horodater systématiquement chaque trouvaille.</p></div></div>
+    <div class="stp reveal"><div class="stp-n">4</div><div class="stp-c"><h4>Traitement & Organisation</h4><p>Structurer les données collectées : tableurs, bases de données, graphes relationnels (Maltego, Obsidian). Classer par source, fiabilité, pertinence. Éliminer les doublons.</p></div></div>
+    <div class="stp reveal"><div class="stp-n">5</div><div class="stp-c"><h4>Analyse & Corrélation</h4><p>Croiser les sources. Chercher les patterns, anomalies, contradictions. Appliquer la pensée critique : cui bono ? Quels biais ? Chaque fait doit être corroboré par au moins 2 sources indépendantes.</p></div></div>
+    <div class="stp reveal"><div class="stp-n">6</div><div class="stp-c"><h4>Diffusion & Rapport</h4><p>Produire un rapport structuré avec méthodologie transparente, sources citées, captures horodatées, niveaux de confiance pour chaque conclusion. Adapter le format à l'audience.</p></div></div>
+  </div>
+</section>
+
+<!-- ═══ TECHNIQUES ═══ -->
+<section class="sec reveal" id="techniques">
+  <div class="sec-lb">04 — Techniques clés</div>
+  <h2>Arsenal technique par discipline</h2>
+  <p class="lead">Chaque discipline OSINT possède ses propres techniques de collecte. Voici les plus essentielles, avec des requêtes et outils prêts à l'emploi.</p>
+
+  <!-- WEBINT -->
+  <div class="recipe reveal">
+    <div class="recipe-t">🌐 WEBINT — Recherche Web avancée</div>
+    <div class="recipe-d">La base de tout OSINT : Google Dorking, analyse de domaines, exploration du web.</div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="kw">site:</span>cible.com <span class="kw">filetype:</span>pdf</span><button class="cp">copier</button></div>
+    <div class="q-note">→ Tous les PDFs indexés d'un domaine</div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="kw">intitle:</span><span class="str">"index of"</span> <span class="kw">site:</span>cible.com</span><button class="cp">copier</button></div>
+    <div class="q-note">→ Répertoires ouverts</div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">who.is/whois/cible.com</span> — WHOIS lookup</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">dnsdumpster.com</span> — Cartographie DNS complète</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">web.archive.org/web/*/cible.com</span> — Historique complet</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">crt.sh/?q=%25.cible.com</span> — Certificats SSL / sous-domaines</span><button class="cp">copier</button></div>
+  </div>
+
+  <!-- GEOINT -->
+  <div class="recipe reveal">
+    <div class="recipe-t">🛰️ GEOINT — Géolocalisation & imagerie</div>
+    <div class="recipe-d">Localiser, vérifier et analyser des lieux à partir d'indices visuels et de données satellite.</div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">google.com/maps</span> + Street View — Vérification terrain</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">sentinel-hub.com</span> — Imagerie satellite Copernicus (gratuit)</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">suncalc.org</span> — Position du soleil pour dater une photo</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">overpass-turbo.eu</span> — Requêtes OpenStreetMap avancées</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">flightradar24.com</span> — Suivi aérien en temps réel (ADS-B)</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">marinetraffic.com</span> — Suivi maritime en temps réel (AIS)</span><button class="cp">copier</button></div>
+  </div>
+
+  <!-- IMINT -->
+  <div class="recipe reveal">
+    <div class="recipe-t">🖼️ IMINT — Analyse d'images & vidéos</div>
+    <div class="recipe-d">Vérifier l'authenticité, tracer l'origine et extraire les métadonnées des médias visuels.</div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">images.google.com</span> — Recherche d'image inversée</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">tineye.com</span> — Historique de propagation d'une image</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">yandex.com/images</span> — Meilleur pour les visages</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">fotoforensics.com</span> — Analyse ELA (Error Level Analysis)</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">exifdata.com</span> — Extraction de métadonnées EXIF</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text">InVID/WeVerify — Extension navigateur de fact-checking vidéo</span><button class="cp">copier</button></div>
+  </div>
+
+  <!-- TECHINT -->
+  <div class="recipe reveal">
+    <div class="recipe-t">🔌 TECHINT — Infrastructure technique</div>
+    <div class="recipe-d">Analyser l'empreinte technique d'une cible : serveurs, technologies, vulnérabilités exposées.</div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">shodan.io</span> — Moteur de recherche IoT et serveurs</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">censys.io</span> — Scan d'Internet et certificats</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">builtwith.com/cible.com</span> — Technologies utilisées</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">haveibeenpwned.com</span> — Vérifier les fuites de données</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">securitytrails.com</span> — Historique DNS et sous-domaines</span><button class="cp">copier</button></div>
+  </div>
+
+  <!-- FININT -->
+  <div class="recipe reveal">
+    <div class="recipe-t">💰 FININT — Renseignement financier</div>
+    <div class="recipe-d">Tracer les structures d'entreprises, les bénéficiaires effectifs et les flux financiers.</div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">opencorporates.com</span> — Registre mondial d'entreprises</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">kbopub.economie.fgov.be</span> — BCE belge (registre des entreprises)</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">offshoreleaks.icij.org</span> — Panama/Pandora Papers (ICIJ)</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">opensanctions.org</span> — Base de données des sanctions</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">lobbyeu.eu</span> — Registre de transparence UE</span><button class="cp">copier</button></div>
+  </div>
+
+  <!-- SIGINT light -->
+  <div class="recipe reveal">
+    <div class="recipe-t">📻 SIGINT — Signaux ouverts</div>
+    <div class="recipe-d">Suivi des signaux radio ouverts, transpondeurs aériens et maritimes.</div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">flightradar24.com</span> — Suivi aérien ADS-B temps réel</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">adsbexchange.com</span> — ADS-B non filtré (incluant militaire)</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">marinetraffic.com</span> — Suivi maritime AIS</span><button class="cp">copier</button></div>
+    <div class="q" onclick="cq(this)"><span class="q-text"><span class="url">websdr.org</span> — Récepteurs radio en ligne (SDR)</span><button class="cp">copier</button></div>
+  </div>
+</section>
+
+<!-- ═══ WORKFLOW BUILDER ═══ -->
+<section class="sec reveal" id="wfb">
+  <div class="sec-lb">05 — Outil interactif</div>
+  <h2>OSINT Workflow Builder</h2>
+  <p class="lead">Sélectionnez le type d'investigation et obtenez un workflow adapté avec les outils et requêtes recommandés.</p>
+
+  <div class="wf">
+    <h3>🔧 Workflow Builder</h3>
+    <p class="sub">Choisissez votre point de départ et le type de cible.</p>
+    <div class="wf-row">
+      <label for="wb-type">Type d'investigation</label>
+      <select class="wf-in" id="wb-type" onchange="buildWF()">
+        <option value="person">Personne</option>
+        <option value="company">Entreprise / Organisation</option>
+        <option value="domain">Domaine / Site web</option>
+        <option value="image">Image / Vidéo</option>
+        <option value="location">Lieu / Événement</option>
+        <option value="email">Adresse email</option>
+        <option value="username">Nom d'utilisateur</option>
+        <option value="phone">Numéro de téléphone</option>
+      </select>
+    </div>
+    <div class="wf-row">
+      <label for="wb-target">Cible / Identifiant</label>
+      <input class="wf-in" id="wb-target" placeholder="Nom, domaine, email, username…" oninput="buildWF()" autocomplete="off">
+    </div>
+    <div class="wf-out">
+      <div class="wf-out-lb">Workflow recommandé</div>
+      <div id="wbResult" style="font-size:14px;color:var(--txt-s);line-height:1.8"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ OUTILS ═══ -->
+<section class="sec reveal" id="tools">
+  <div class="sec-lb">06 — Boîte à outils</div>
+  <h2>L'arsenal OSINT essentiel</h2>
+  <p class="lead">Une sélection curatée des meilleurs outils, classés par usage.</p>
+
+  <div class="tg">
+    <div class="tc reveal"><div class="tc-n">Maltego CE</div><div class="tc-d">Plateforme de cartographie relationnelle et d'analyse de liens. La référence absolue.</div><div class="tc-tags"><tag class="tag">Graphes</tag><tag class="tag">Gratuit (CE)</tag></div></div>
+    <div class="tc reveal"><div class="tc-n">Sherlock</div><div class="tc-d">Recherche d'un username sur 400+ plateformes simultanément.</div><div class="tc-tags"><tag class="tag">Username</tag><tag class="tag">Open Source</tag></div></div>
+    <div class="tc reveal"><div class="tc-n">Holehe</div><div class="tc-d">Vérifie si un email est enregistré sur des dizaines de services.</div><div class="tc-tags"><tag class="tag">Email</tag><tag class="tag">Open Source</tag></div></div>
+    <div class="tc reveal"><div class="tc-n">SpiderFoot</div><div class="tc-d">Automatisation OSINT — agrège 200+ sources à partir d'un identifiant.</div><div class="tc-tags"><tag class="tag">Automatisation</tag><tag class="tag">Open Source</tag></div></div>
+    <div class="tc reveal"><div class="tc-n">Shodan</div><div class="tc-d">Moteur de recherche pour appareils connectés et serveurs exposés.</div><div class="tc-tags"><tag class="tag">TECHINT</tag><tag class="tag">Freemium</tag></div></div>
+    <div class="tc reveal"><div class="tc-n">Hunchly</div><div class="tc-d">Extension de capture automatique avec horodatage pour documenter les investigations.</div><div class="tc-tags"><tag class="tag">Archivage</tag><tag class="tag">Payant</tag></div></div>
+    <div class="tc reveal"><div class="tc-n">Obsidian + Plugins</div><div class="tc-d">Base de connaissances en graphe pour organiser les investigations complexes.</div><div class="tc-tags"><tag class="tag">Organisation</tag><tag class="tag">Gratuit</tag></div></div>
+    <div class="tc reveal"><div class="tc-n">OSINT Framework</div><div class="tc-d">Annuaire interactif de centaines d'outils classés par catégorie.</div><div class="tc-tags"><tag class="tag">Annuaire</tag><tag class="tag">Gratuit</tag></div></div>
+    <div class="tc reveal"><div class="tc-n">InVID / WeVerify</div><div class="tc-d">Extension de vérification vidéo et image — analyse keyframes et métadonnées.</div><div class="tc-tags"><tag class="tag">Fact-check</tag><tag class="tag">Gratuit</tag></div></div>
+  </div>
+</section>
+
+<!-- ═══ VEILLE ═══ -->
+<section class="sec reveal" id="veille">
+  <div class="sec-lb">07 — Veille continue</div>
+  <h2>Automatiser sa veille OSINT</h2>
+  <p class="lead">L'OSINT ne s'arrête pas à une investigation ponctuelle. La veille continue permet de détecter les changements et les nouvelles informations en temps réel.</p>
+
+  <div class="ac reveal">
+    <button class="ac-t" onclick="ta(this)"><span>🔔 Google Alerts</span><span class="i">+</span></button>
+    <div class="ac-b"><div class="ac-b-in"><p>Configurez des alertes sur <strong>google.com/alerts</strong> avec vos requêtes de dorking. Recevez les nouveaux résultats par email ou flux RSS. Idéal pour la surveillance de réputation et la veille thématique.</p></div></div>
+  </div>
+  <div class="ac reveal">
+    <button class="ac-t" onclick="ta(this)"><span>📡 Flux RSS & Agrégateurs</span><span class="i">+</span></button>
+    <div class="ac-b"><div class="ac-b-in"><p>Utilisez des lecteurs RSS (Feedly, FreshRSS, Inoreader) pour suivre les publications de sites clés. Combinez avec des filtres par mots-clés pour ne garder que le pertinent. Les flux RSS de Google News permettent une veille thématique ciblée.</p></div></div>
+  </div>
+  <div class="ac reveal">
+    <button class="ac-t" onclick="ta(this)"><span>🤖 Monitoring automatisé</span><span class="i">+</span></button>
+    <div class="ac-b"><div class="ac-b-in"><p><strong>ChangeDetection.io</strong> — Surveille les modifications de pages web. <strong>Visualping</strong> — Alertes visuelles sur les changements. <strong>TweetDeck/X Pro</strong> — Monitoring multi-colonnes en temps réel. <strong>Mention.com</strong> — Surveillance de marque multi-sources.</p></div></div>
+  </div>
+  <div class="ac reveal">
+    <button class="ac-t" onclick="ta(this)"><span>📊 Archivage & Traçabilité</span><span class="i">+</span></button>
+    <div class="ac-b"><div class="ac-b-in"><p><strong>Wayback Machine</strong> (archive.org) — Archivez manuellement des pages. <strong>Hunchly</strong> — Capture automatique lors de la navigation. <strong>SingleFile</strong> (extension) — Sauvegarde une page complète en un seul fichier HTML. <strong>ArchiveBox</strong> — Auto-hébergé pour archiver en masse.</p></div></div>
+  </div>
+</section>
+
+<!-- ═══ ÉTHIQUE ═══ -->
+<section class="sec reveal" id="ethique">
+  <div class="sec-lb">08 — Éthique & Droit</div>
+  <h2>Le cadre éthique et juridique</h2>
+  <p class="lead">La puissance de l'OSINT implique une responsabilité proportionnelle. L'éthique n'est pas optionnelle — elle est constitutive de la discipline.</p>
+
+  <div class="co danger">
+    <div class="co-t">🚫 Lignes rouges absolues</div>
+    <p>Accès non autorisé à des systèmes — Exploitation de données privées — Investigation sur des mineurs — Doxxing (publication d'informations privées) — Harcèlement — Création de faux profils pour tromper — Collecte de données médicales, judiciaires ou intimes sans base légale.</p>
+  </div>
+
+  <div class="co ok">
+    <div class="co-t">✅ Principes fondamentaux</div>
+    <p><strong>Légalité</strong> — Respecter le RGPD, le droit national et les CGU des plateformes. <strong>Proportionnalité</strong> — Ne collecter que ce qui est nécessaire à l'objectif. <strong>Minimisation</strong> — Limiter les données personnelles au strict nécessaire. <strong>Documentation</strong> — Traçabilité complète de la méthodologie. <strong>Bien-être du chercheur</strong> — L'exposition à du contenu traumatisant est un risque réel. Prenez soin de votre santé mentale.</p>
+  </div>
+
+  <div class="co warn">
+    <div class="co-t">⚖️ Le test des 4 questions</div>
+    <p>Avant chaque action, posez-vous : <strong>1.</strong> Est-ce légal dans ma juridiction ? <strong>2.</strong> Est-ce proportionné à mon objectif ? <strong>3.</strong> Est-ce que je voudrais que cette technique soit utilisée contre moi ? <strong>4.</strong> Pourrais-je justifier cette action publiquement ?</p>
+  </div>
+</section>
+
+<!-- ═══ CHEAT SHEET ═══ -->
+<section class="sec reveal" id="cs">
+  <div class="sec-lb">09 — Référence</div>
+  <h2>OSINT Cheat Sheet</h2>
+  <p class="lead">La référence rapide par discipline avec outils et ressources clés.</p>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>Discipline</th><th>Technique</th><th>Outil / Ressource</th></tr></thead>
+      <tbody>
+        <tr><td><strong>WEBINT</strong></td><td>Google Dorking</td><td><code>site: intitle: filetype:</code></td></tr>
+        <tr><td><strong>WEBINT</strong></td><td>WHOIS / DNS</td><td><code>who.is, dnsdumpster.com</code></td></tr>
+        <tr><td><strong>WEBINT</strong></td><td>Archive web</td><td><code>web.archive.org</code></td></tr>
+        <tr><td><strong>WEBINT</strong></td><td>Sous-domaines</td><td><code>crt.sh, SecurityTrails</code></td></tr>
+        <tr><td><strong>SOCMINT</strong></td><td>X/Twitter avancé</td><td><code>from: to: since: filter:</code></td></tr>
+        <tr><td><strong>SOCMINT</strong></td><td>LinkedIn X-Ray</td><td><code>site:linkedin.com/in/</code></td></tr>
+        <tr><td><strong>SOCMINT</strong></td><td>Username multi</td><td><code>Sherlock (Python)</code></td></tr>
+        <tr><td><strong>GEOINT</strong></td><td>Imagerie satellite</td><td><code>Sentinel Hub, Google Earth</code></td></tr>
+        <tr><td><strong>GEOINT</strong></td><td>Position solaire</td><td><code>suncalc.org</code></td></tr>
+        <tr><td><strong>GEOINT</strong></td><td>Suivi aérien</td><td><code>flightradar24, adsbexchange</code></td></tr>
+        <tr><td><strong>GEOINT</strong></td><td>Suivi maritime</td><td><code>marinetraffic.com</code></td></tr>
+        <tr><td><strong>IMINT</strong></td><td>Reverse image</td><td><code>TinEye, Yandex, Google Lens</code></td></tr>
+        <tr><td><strong>IMINT</strong></td><td>Métadonnées EXIF</td><td><code>exifdata.com, jimpl.com</code></td></tr>
+        <tr><td><strong>IMINT</strong></td><td>Forensique image</td><td><code>fotoforensics.com (ELA)</code></td></tr>
+        <tr><td><strong>TECHINT</strong></td><td>Scan IoT/serveurs</td><td><code>shodan.io, censys.io</code></td></tr>
+        <tr><td><strong>TECHINT</strong></td><td>Fuites de données</td><td><code>haveibeenpwned.com</code></td></tr>
+        <tr><td><strong>TECHINT</strong></td><td>Technologies web</td><td><code>builtwith.com</code></td></tr>
+        <tr><td><strong>FININT</strong></td><td>Registres entreprises</td><td><code>OpenCorporates, BCE belge</code></td></tr>
+        <tr><td><strong>FININT</strong></td><td>Offshore leaks</td><td><code>offshoreleaks.icij.org</code></td></tr>
+        <tr><td><strong>FININT</strong></td><td>Sanctions</td><td><code>opensanctions.org</code></td></tr>
+        <tr><td><strong>Multi</strong></td><td>Email lookup</td><td><code>Holehe (Python)</code></td></tr>
+        <tr><td><strong>Multi</strong></td><td>Automatisation</td><td><code>SpiderFoot, Maltego CE</code></td></tr>
+        <tr><td><strong>Multi</strong></td><td>Annuaire d'outils</td><td><code>osintframework.com</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="co ok mt-3">
+    <div class="co-t">📚 Ressources pour aller plus loin</div>
+    <p><strong>OSINT Framework</strong> — osintframework.com<br><strong>Bellingcat</strong> — bellingcat.com (investigations et méthodologie)<br><strong>IntelTechniques</strong> — inteltechniques.com (Michael Bazzell)<br><strong>Trace Labs</strong> — tracelabs.org (OSINT humanitaire)<br><strong>SANS FOR498</strong> — Formation OSINT professionnelle<br><strong>Sector035</strong> — sector035.nl (Week in OSINT)</p>
+  </div>
+</section>
+</main>
+
+<footer><p>OSINT — Guide du Renseignement en Sources Ouvertes — Février 2026</p><p style="margin-top:12px">Créé avec <span style="color:var(--red)">♥</span> pour l'investigation éthique et la transparence</p></footer>
+<div class="toast" id="toast"></div>
+<button class="btt" id="btt" onclick="scrollTo({top:0})" aria-label="Haut">↑</button>
+
+<script>
+function toggleNav(){const l=document.getElementById('nL'),t=document.querySelector('.nav-tog');const o=l.classList.toggle('open');t.setAttribute('aria-expanded',o);t.textContent=o?'✕':'☰'}
+document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',()=>{document.getElementById('nL').classList.remove('open');document.querySelector('.nav-tog').textContent='☰'}));
+
+const nav=document.querySelector('.nav'),pf=document.getElementById('pf'),btt=document.getElementById('btt');
+function onS(){nav.classList.toggle('scrolled',scrollY>20);pf.style.width=(scrollY/(document.documentElement.scrollHeight-innerHeight)*100)+'%';btt.classList.toggle('v',scrollY>600);const ss=document.querySelectorAll('.sec');let c='';ss.forEach(s=>{if(scrollY>=s.offsetTop-120)c=s.id});document.querySelectorAll('.nav-links a').forEach(a=>a.classList.toggle('act',a.getAttribute('href')==='#'+c))}
+addEventListener('scroll',onS,{passive:true});
+
+const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('v');e.target.querySelectorAll('.disc,.tc,.stp,.ac,.recipe').forEach((c,i)=>{c.style.transitionDelay=i*.05+'s';c.classList.add('v')})}})},{threshold:.06,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+function st(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+function cq(el){const txt=el.querySelector('.q-text').textContent.trim();navigator.clipboard.writeText(txt).then(()=>{const b=el.querySelector('.cp');b.textContent='✓';b.classList.add('ok');st('✓ Copié');setTimeout(()=>{b.textContent='copier';b.classList.remove('ok')},2000)})}
+document.querySelectorAll('.q[onclick]').forEach(d=>{d.setAttribute('role','button');d.setAttribute('tabindex','0');d.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();cq(d)}})});
+
+function ta(trigger){const it=trigger.parentElement,bd=it.querySelector('.ac-b'),isO=it.classList.contains('open');if(isO){it.classList.remove('open');bd.style.maxHeight='0'}else{it.classList.add('open');bd.style.maxHeight=bd.scrollHeight+'px'}}
+
+/* Workflow Builder */
+const workflows={
+  person:t=>[`1. <span style="color:var(--teal)">Google</span> → "${t}" pour les traces web`,`2. <span style="color:var(--teal)">Sherlock</span> → Recherche username multi-plateforme`,`3. <span style="color:var(--teal)">LinkedIn</span> → site:linkedin.com/in/ "${t}"`,`4. <span style="color:var(--teal)">Réseaux sociaux</span> → site:facebook.com | instagram.com | x.com "${t}"`,`5. <span style="color:var(--teal)">Images</span> → Recherche inversée Google/Yandex/TinEye`,`6. <span style="color:var(--teal)">Registres</span> → OpenCorporates, registres publics`,`7. <span style="color:var(--teal)">Archive</span> → Wayback Machine pour l'historique`],
+  company:t=>[`1. <span style="color:var(--teal)">Registres</span> → OpenCorporates / BCE belge "${t}"`,`2. <span style="color:var(--teal)">Site web</span> → site:${t||'cible.com'} (indexation complète)`,`3. <span style="color:var(--teal)">WHOIS</span> → who.is/whois/${t||'cible.com'}`,`4. <span style="color:var(--teal)">DNS</span> → dnsdumpster.com & crt.sh (sous-domaines)`,`5. <span style="color:var(--teal)">LinkedIn</span> → site:linkedin.com/company/ "${t}"`,`6. <span style="color:var(--teal)">Finances</span> → offshoreleaks.icij.org + opensanctions.org`,`7. <span style="color:var(--teal)">Presse</span> → "${t}" site:lesoir.be | rtbf.be | lalibre.be`],
+  domain:t=>[`1. <span style="color:var(--teal)">Indexation</span> → site:${t||'cible.com'}`,`2. <span style="color:var(--teal)">WHOIS</span> → who.is/whois/${t||'cible.com'}`,`3. <span style="color:var(--teal)">DNS</span> → dnsdumpster.com → cartographie complète`,`4. <span style="color:var(--teal)">SSL</span> → crt.sh/?q=%25.${t||'cible.com'} (sous-domaines)`,`5. <span style="color:var(--teal)">Techno</span> → builtwith.com/${t||'cible.com'}`,`6. <span style="color:var(--teal)">Sécurité</span> → Shodan/Censys pour les ports exposés`,`7. <span style="color:var(--teal)">Archive</span> → web.archive.org/web/*/${t||'cible.com'}`],
+  image:t=>[`1. <span style="color:var(--teal)">EXIF</span> → exifdata.com pour les métadonnées GPS/date`,`2. <span style="color:var(--teal)">Reverse</span> → Google Images + TinEye + Yandex Images`,`3. <span style="color:var(--teal)">Forensique</span> → fotoforensics.com (analyse ELA)`,`4. <span style="color:var(--teal)">Géoloc</span> → Indices visuels + Google Maps Street View`,`5. <span style="color:var(--teal)">Temporel</span> → SunCalc pour estimer l'heure via les ombres`,`6. <span style="color:var(--teal)">Propagation</span> → TinEye pour tracer la 1ère apparition`],
+  location:t=>[`1. <span style="color:var(--teal)">Carte</span> → Google Maps/Earth pour la vue satellite`,`2. <span style="color:var(--teal)">Street View</span> → Vérification visuelle terrain`,`3. <span style="color:var(--teal)">OSM</span> → overpass-turbo.eu pour requêtes avancées`,`4. <span style="color:var(--teal)">Tweets</span> → geocode:lat,lng,rayon sur X`,`5. <span style="color:var(--teal)">Instagram</span> → site:instagram.com/explore/locations/ "${t}"`,`6. <span style="color:var(--teal)">Satellite</span> → Sentinel Hub pour l'imagerie historique`],
+  email:t=>[`1. <span style="color:var(--teal)">Holehe</span> → Services enregistrés avec ${t||'email'}`,`2. <span style="color:var(--teal)">HIBP</span> → haveibeenpwned.com → fuites connues`,`3. <span style="color:var(--teal)">Google</span> → "${t||'email'}" → traces web publiques`,`4. <span style="color:var(--teal)">Gravatar</span> → gravatar.com/avatar/[md5hash]`,`5. <span style="color:var(--teal)">Domaine</span> → WHOIS du domaine de l'email`],
+  username:t=>[`1. <span style="color:var(--teal)">Sherlock</span> → Recherche sur 400+ plateformes`,`2. <span style="color:var(--teal)">Google</span> → "${t||'username'}" → présence web complète`,`3. <span style="color:var(--teal)">Chaque plateforme</span> → Vérification manuelle des profils trouvés`,`4. <span style="color:var(--teal)">Historique</span> → Wayback Machine sur les profils`,`5. <span style="color:var(--teal)">Corrélation</span> → Mêmes photos/bios sur différentes plateformes ?`],
+  phone:t=>[`1. <span style="color:var(--teal)">Google</span> → "${t||'numéro'}" → traces publiques`,`2. <span style="color:var(--teal)">Réseaux</span> → Recherche dans Facebook, Telegram`,`3. <span style="color:var(--teal)">Annuaire</span> → Pages Blanches / 1307.be (Belgique)`,`4. <span style="color:var(--teal)">Format</span> → Indicatif pays → géolocalisation de base`,`5. <span style="color:var(--teal)">Messaging</span> → WhatsApp/Telegram/Signal (photo de profil)`]
+};
+function buildWF(){
+  const type=document.getElementById('wb-type').value;
+  const target=document.getElementById('wb-target').value.trim();
+  const steps=(workflows[type]||workflows.person)(target);
+  document.getElementById('wbResult').innerHTML=steps.map(s=>'<div style="padding:4px 0">'+s+'</div>').join('');
+}
+buildWF();
+onS();
+</script>
+</body>
+</html>
