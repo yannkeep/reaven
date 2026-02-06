@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Journal de Bord — Yan × Claude | ouaisfi.eu</title>
+<meta name="description" content="Chronique complète de la collaboration entre un citoyen belge en incapacité de travail et une IA, au service de l'éducation populaire et de la veille citoyenne.">
+<meta property="og:title" content="Journal de Bord — Yan × Claude">
+<meta property="og:description" content="6 mois de collaboration IA-citoyen pour l'éducation populaire en Belgique.">
+<meta property="og:type" content="article">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --bg:#0b0e11;
+  --bg2:#0f1318;
+  --bg3:#151a21;
+  --surface:#1a2029;
+  --border:rgba(107,197,168,.12);
+  --border-active:rgba(107,197,168,.35);
+  --g1:#6bc5a8;
+  --g2:#4da886;
+  --g3:#98d8c0;
+  --l1:#b19cd9;
+  --l2:#c8a2c8;
+  --l3:#9b7dc5;
+  --text:#d8e0db;
+  --text2:#94a39a;
+  --text3:#5e6d63;
+  --rouge:#e74c3c;
+  --neon-g:0 0 20px rgba(107,197,168,.25);
+  --neon-l:0 0 20px rgba(177,156,217,.25);
+  --radius:6px;
+}
+
+html{scroll-behavior:smooth;font-size:16px}
+body{
+  font-family:'DM Mono',monospace;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+
+::selection{background:rgba(107,197,168,.3);color:#fff}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--g1);border-radius:3px}
+
+/* ─── LAYOUT ─── */
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+
+/* ─── HERO ─── */
+.hero{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+  padding:80px 24px;
+}
+.hero::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(107,197,168,.06) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 30%, rgba(177,156,217,.05) 0%, transparent 60%);
+  pointer-events:none;
+}
+.hero-tag{
+  font-family:'DM Mono',monospace;
+  font-size:.7rem;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--g1);
+  border:1px solid var(--border-active);
+  padding:6px 18px;
+  border-radius:20px;
+  margin-bottom:32px;
+  position:relative;
+  z-index:1;
+}
+.hero h1{
+  font-family:'Fraunces',serif;
+  font-size:clamp(2.2rem,5vw,3.6rem);
+  font-weight:700;
+  line-height:1.15;
+  color:#fff;
+  position:relative;
+  z-index:1;
+  margin-bottom:20px;
+}
+.hero h1 .vert{color:var(--g1)}
+.hero h1 .lilas{color:var(--l1)}
+.hero-sub{
+  font-size:1rem;
+  color:var(--text2);
+  max-width:560px;
+  line-height:1.8;
+  position:relative;
+  z-index:1;
+  margin-bottom:40px;
+}
+.hero-meta{
+  display:flex;
+  gap:32px;
+  font-size:.75rem;
+  color:var(--text3);
+  position:relative;
+  z-index:1;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.hero-meta span{display:flex;align-items:center;gap:6px}
+.hero-meta .dot{width:4px;height:4px;background:var(--g1);border-radius:50%;display:inline-block}
+
+/* ─── NAVIGATION TIMELINE ─── */
+.timeline-nav{
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:rgba(11,14,17,.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:12px 0;
+  overflow-x:auto;
+}
+.timeline-nav-inner{
+  display:flex;
+  gap:4px;
+  justify-content:center;
+  flex-wrap:nowrap;
+  min-width:max-content;
+  padding:0 24px;
+}
+.tn-btn{
+  background:none;
+  border:1px solid transparent;
+  color:var(--text3);
+  font-family:'DM Mono',monospace;
+  font-size:.65rem;
+  padding:6px 14px;
+  border-radius:20px;
+  cursor:pointer;
+  transition:all .2s;
+  white-space:nowrap;
+}
+.tn-btn:hover,.tn-btn.active{
+  border-color:var(--g1);
+  color:var(--g1);
+  background:rgba(107,197,168,.08);
+}
+
+/* ─── CHAPTER ─── */
+.chapter{
+  padding:80px 0 40px;
+  border-top:1px solid var(--border);
+}
+.chapter:first-of-type{border-top:none}
+
+.ch-header{
+  display:flex;
+  align-items:flex-start;
+  gap:20px;
+  margin-bottom:40px;
+}
+.ch-num{
+  font-family:'Fraunces',serif;
+  font-size:2.8rem;
+  font-weight:700;
+  color:var(--g1);
+  opacity:.35;
+  line-height:1;
+  min-width:60px;
+}
+.ch-title{
+  font-family:'Fraunces',serif;
+  font-size:1.5rem;
+  font-weight:500;
+  color:#fff;
+  margin-bottom:4px;
+}
+.ch-date{
+  font-size:.7rem;
+  color:var(--l1);
+  letter-spacing:.1em;
+}
+
+/* ─── ENTRIES ─── */
+.entry{
+  margin-bottom:36px;
+  padding:24px;
+  background:var(--bg2);
+  border-radius:var(--radius);
+  border-left:2px solid var(--border);
+  transition:border-color .3s;
+}
+.entry:hover{border-left-color:var(--g1)}
+
+.entry-title{
+  font-family:'Fraunces',serif;
+  font-size:1.1rem;
+  font-weight:500;
+  color:var(--g3);
+  margin-bottom:8px;
+}
+.entry p{
+  font-size:.88rem;
+  color:var(--text2);
+  margin-bottom:10px;
+}
+.entry p:last-child{margin-bottom:0}
+
+/* ─── TAGS ─── */
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tag{
+  font-size:.6rem;
+  letter-spacing:.05em;
+  padding:3px 10px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  color:var(--text3);
+}
+.tag.green{border-color:rgba(107,197,168,.3);color:var(--g1)}
+.tag.lilac{border-color:rgba(177,156,217,.3);color:var(--l1)}
+.tag.red{border-color:rgba(231,76,60,.3);color:var(--rouge)}
+
+/* ─── STATS BAR ─── */
+.stats-bar{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:16px;
+  padding:32px 0;
+  margin:40px 0;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+}
+.stat{text-align:center}
+.stat-num{
+  font-family:'Fraunces',serif;
+  font-size:2rem;
+  font-weight:700;
+  color:var(--g1);
+}
+.stat-label{font-size:.65rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+
+/* ─── QUOTE ─── */
+.pullquote{
+  margin:40px 0;
+  padding:28px 32px;
+  border-left:3px solid var(--l1);
+  background:rgba(177,156,217,.04);
+  border-radius:0 var(--radius) var(--radius) 0;
+  font-family:'Fraunces',serif;
+  font-size:1.1rem;
+  color:var(--l2);
+  font-style:italic;
+  line-height:1.7;
+}
+.pullquote cite{
+  display:block;
+  margin-top:12px;
+  font-style:normal;
+  font-family:'DM Mono',monospace;
+  font-size:.7rem;
+  color:var(--text3);
+}
+
+/* ─── OUTPUT LIST ─── */
+.outputs{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:12px;
+  margin:20px 0;
+}
+.output{
+  padding:14px 18px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  font-size:.78rem;
+  color:var(--text2);
+  transition:all .2s;
+}
+.output:hover{
+  border-color:var(--g1);
+  box-shadow:var(--neon-g);
+}
+.output-type{
+  font-size:.6rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--l1);
+  margin-bottom:6px;
+}
+
+/* ─── VERDICT / BILAN ─── */
+.bilan{
+  margin:60px 0;
+  padding:40px;
+  background:linear-gradient(135deg,rgba(107,197,168,.04),rgba(177,156,217,.04));
+  border:1px solid var(--border-active);
+  border-radius:12px;
+}
+.bilan h2{
+  font-family:'Fraunces',serif;
+  font-size:1.6rem;
+  color:#fff;
+  margin-bottom:20px;
+}
+.bilan p{font-size:.9rem;color:var(--text2);margin-bottom:14px}
+
+/* ─── FOOTER ─── */
+footer{
+  padding:60px 0 40px;
+  text-align:center;
+  border-top:1px solid var(--border);
+  margin-top:60px;
+}
+footer p{font-size:.7rem;color:var(--text3);margin-bottom:6px}
+footer a{color:var(--g1);text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:600px){
+  .hero{padding:60px 16px}
+  .ch-num{font-size:2rem;min-width:40px}
+  .ch-title{font-size:1.2rem}
+  .entry{padding:16px}
+  .pullquote{padding:20px;font-size:1rem}
+  .bilan{padding:24px}
+  .hero-meta{flex-direction:column;gap:8px}
+  .outputs{grid-template-columns:1fr}
+  .stats-bar{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="hero">
+  <div class="hero-tag">annexe reaven · room/6</div>
+  <h1>Journal de <span class="vert">Bord</span><br><span class="lilas">Yan</span> × Claude</h1>
+  <p class="hero-sub">
+    Chronique intégrale d'une collaboration entre un citoyen belge BIM en incapacité de travail et une intelligence artificielle. Six mois d'éducation populaire, de veille citoyenne, de prototypage numérique et de résistance créative — documentés pour la première fois.
+  </p>
+  <div class="hero-meta">
+    <span><span class="dot"></span> Août 2025 → Février 2026</span>
+    <span><span class="dot"></span> 150+ conversations</span>
+    <span><span class="dot"></span> Auderghem, Belgique</span>
+  </div>
+</section>
+
+<!-- ═══════════════════ NAV ═══════════════════ -->
+<nav class="timeline-nav">
+  <div class="timeline-nav-inner">
+    <button class="tn-btn" onclick="document.getElementById('ch0').scrollIntoView({behavior:'smooth'})">Prologue</button>
+    <button class="tn-btn" onclick="document.getElementById('ch1').scrollIntoView({behavior:'smooth'})">Août 25</button>
+    <button class="tn-btn" onclick="document.getElementById('ch2').scrollIntoView({behavior:'smooth'})">Sept 25</button>
+    <button class="tn-btn" onclick="document.getElementById('ch3').scrollIntoView({behavior:'smooth'})">Oct–Nov 25</button>
+    <button class="tn-btn" onclick="document.getElementById('ch4').scrollIntoView({behavior:'smooth'})">Déc 25</button>
+    <button class="tn-btn" onclick="document.getElementById('ch5').scrollIntoView({behavior:'smooth'})">Jan 26</button>
+    <button class="tn-btn" onclick="document.getElementById('ch6').scrollIntoView({behavior:'smooth'})">Fév 26</button>
+    <button class="tn-btn" onclick="document.getElementById('bilan').scrollIntoView({behavior:'smooth'})">Bilan</button>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- ═══════════════════ PROLOGUE ═══════════════════ -->
+<section class="chapter" id="ch0">
+  <div class="ch-header">
+    <div class="ch-num">00</div>
+    <div>
+      <div class="ch-title">Prologue — Qui parle, d'où, et pourquoi</div>
+      <div class="ch-date">Contexte permanent</div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Le sujet</div>
+    <p>Yan est un citoyen belge, bénéficiaire de l'intervention majorée (BIM), en incapacité de travail longue durée. Il vit à Auderghem (1160 Bruxelles) et canalise son énergie dans l'activisme civique et les projets numériques. Il n'est pas développeur. Il n'est pas journaliste. Il n'est pas chercheur. Il est tout ça à la fois, de manière autodidacte et obstinée, à coups de fichiers markdown, de sites statiques et d'une IA comme compagnon de route.</p>
+    <p>Son projet central est <strong>ouaisfi.eu</strong> — un « Comptoir Numérique d'Institutionnalisation Citoyenne pour la Surveillance », qu'il désigne comme une contre-institution citoyenne opérant dans la Fédération Wallonie-Bruxelles.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">L'outil</div>
+    <p>Claude, l'IA d'Anthropic. Pas un gadget, pas un jouet : un véritable collaborateur de production. Rédaction, recherche, développement web, design, stratégie militante, analyse juridique, fact-checking, prototypage — le tout dans une logique d'éducation populaire par le numérique. Chaque conversation est un atelier.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Le cadre idéologique</div>
+    <p>L'éducation permanente en Fédération Wallonie-Bruxelles est un dispositif unique au monde : le décret du 17 juillet 2003 reconnaît et finance des associations dont la mission est de développer l'esprit critique des citoyens, d'analyser les mécanismes de la société et d'agir collectivement pour le changement social. 273 organisations, 2 300 salariés, 50+ millions d'euros par an. C'est dans cet écosystème que Yan et ouaisfi.eu s'inscrivent — ou tentent de s'inscrire.</p>
+    <div class="tags">
+      <span class="tag green">éducation permanente</span>
+      <span class="tag lilac">FWB</span>
+      <span class="tag green">PAC</span>
+      <span class="tag lilac">CCPLC</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CHAPITRE 1 — AOÛT 2025 ═══════════════════ -->
+<section class="chapter" id="ch1">
+  <div class="ch-header">
+    <div class="ch-num">01</div>
+    <div>
+      <div class="ch-title">Le Grand Démarrage</div>
+      <div class="ch-date">Août 2025 — Les premiers pas</div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Premier contact : l'information comme rapport de domination</div>
+    <p>Tout commence par une question vertigineuse : « La place de l'information dans les rapports de domination, focalisé sur la représentation démocratique et l'exercice de la citoyenneté en Belgique actuellement. » Ce n'est pas un devoir scolaire. C'est la thèse fondatrice de tout ce qui va suivre. Claude produit un premier artefact interactif sur les quatre mécanismes du paysage informationnel belge — cordon sanitaire, complexité institutionnelle, vulnérabilité cyber, pressions économiques. Le premier HTML de la collaboration voit le jour.</p>
+    <div class="tags">
+      <span class="tag green">information</span>
+      <span class="tag lilac">domination</span>
+      <span class="tag green">démocratie belge</span>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">L'odyssée technique : Jekyll → Hugo → FixIt</div>
+    <p>Yan cherche le CMS parfait. D'abord Grav (déjà installé), puis Jekyll avec le thème Chirpy via GitHub Pages. Puis Hugo avec Ananke pour le blog « 1160 » ancré à Auderghem. Puis finalement Hugo avec FixIt, le thème qui deviendra le standard du projet. Chaque migration est un apprentissage forcé : front matter, déploiement, chemins d'images, SCSS vs CSS. Ça casse, ça recommence, ça re-casse.</p>
+    <p>Point critique : le CSS qui ne charge pas en production Windows. Le sélecteur de langue qu'il faut « dégager ». Les sections d'index qui n'affichent ni l'intro ni la liste. Chaque bug est un micro-combat. Et Claude est là, à chaque fois, parfois avec des conseils foireux qu'il faut corriger, parfois avec la solution exacte.</p>
+    <div class="tags">
+      <span class="tag green">Hugo</span>
+      <span class="tag green">FixIt</span>
+      <span class="tag lilac">Jekyll</span>
+      <span class="tag lilac">GitHub Pages</span>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Le blog « 1160 » et les articles géopolitiques</div>
+    <p>Ce qui devait être un blog « au gré de mes humeurs avec un ancrage auderghemois » se transforme vite en plateforme d'analyse stratégique. Les premiers articles portent sur le renseignement économique belge, la modernisation de la Sûreté de l'État, les budgets de la cybersécurité. Le ton est celui de l'éducation populaire : rigoureux mais accessible, sourcé mais pas académique. L'article « Comprendre la Belgique » devient une pièce maîtresse.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Le site des 28 fiches de sécurité économique</div>
+    <p>Inspiré des 28 fiches françaises de sensibilisation à la sécurité économique, Yan demande un site complet. Six thématiques : espionnage économique, cybersécurité, protection des données, influences étrangères, espionnage industriel, vigilance citoyenne. Le résultat est publié sur dl.ouaisfi.eu avec une esthétique néon sur fond sombre — les verts tendres et lilas qui deviendront la signature visuelle du projet.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Bruxelles, cœur humain</div>
+    <p>Interlude poétique : Yan demande à Claude de cartographier les 19 communes bruxelloises sur l'anatomie d'un cœur humain. Bruxelles-Ville comme ventricule gauche, Schaerbeek comme oreillette droite, Auderghem dans le péricarde protecteur. Le canal comme veine cave. Exercice littéraire qui révèle la méthode : penser par analogies, relier les systèmes, chercher le sens dans la structure.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">L'alerte sur l'intelligence économique belge</div>
+    <p>Yan découvre que la Belgique est « complètement larguée » en intelligence économique. 100 M€ pour tout le renseignement face à 7 milliards de défense. Rapport de 1 à 70 avec l'Allemagne. Il hésite à alerter la presse locale. Claude joue le rôle de modérateur stratégique : « Commencez par les contacts directs, donnez-leur le temps de répondre. Formulez-la comme une contribution citoyenne, pas une attaque frontale. »</p>
+    <div class="tags">
+      <span class="tag red">alerte</span>
+      <span class="tag green">intelligence économique</span>
+      <span class="tag lilac">BX1</span>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Le concept de LeadDexing</div>
+    <p>Yan invente un concept : créer des pages web sur des « prospects » (figures publiques, associations) avec un CTA pour les « pinger » via leur veille image et les inviter à réagir. Une compétition bienveillante au plus réactif. Cibles : PAC asbl, le MOC, @flexyflow, Michel Henrion, Hub.brussels. Le prototype interactif intègre un système de points, d'achievements et un hall of fame. Gamification au service du networking citoyen.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Le site vitrine ouaisfi.eu</div>
+    <p>Un site vitrine « le plus élégant possible » dans les verts tendres et lilas, avec logo SVG, web sémantique, Open Graph, Twitter Cards, JSON-LD — tout le nécessaire pour la découvrabilité. L'architecture est pensée extensible : dl.ouaisfi.eu/about, dl.ouaisfi.eu/about/veille-citoyenne. La signature visuelle du projet se cristallise.</p>
+  </div>
+
+  <div class="pullquote">
+    « Prototypage quand tu nous tiens, et là où on ne t'attend pas en plus. »
+    <cite>— ouaisfi.eu, août 2025</cite>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-num">30+</div><div class="stat-label">conversations</div></div>
+    <div class="stat"><div class="stat-num">5</div><div class="stat-label">sites prototypés</div></div>
+    <div class="stat"><div class="stat-num">10+</div><div class="stat-label">articles rédigés</div></div>
+    <div class="stat"><div class="stat-num">3</div><div class="stat-label">thèmes Hugo testés</div></div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CHAPITRE 2 — SEPTEMBRE 2025 ═══════════════════ -->
+<section class="chapter" id="ch2">
+  <div class="ch-header">
+    <div class="ch-num">02</div>
+    <div>
+      <div class="ch-title">L'Approfondissement</div>
+      <div class="ch-date">Septembre 2025 — Les dossiers de fond</div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">La recherche approfondie sur ouaisfi.eu</div>
+    <p>Première vraie mise à l'épreuve de Claude Pro : une recherche approfondie (deep research) sur le projet. Le résultat doit servir à deux fins — vérifier que Claude et Yan sont « raccord » et servir de support de présentation pour des partenaires. Claude explore le corpus DOCTech (50+ pages), BXL2030 (prospective bruxelloise), les profils lead-dexing, le tout pour produire un rapport de positionnement.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">La campagne UNESCO pour l'Éducation Permanente</div>
+    <p>Yan lance une campagne web pour faire reconnaître l'Éducation Permanente belge au Patrimoine Culturel Immatériel de l'UNESCO. Des pages optimisées SEO sont créées pour chaque acteur clé de la candidature — avec métadonnées complètes, web sémantique, et stratégie de découvrabilité par les moteurs de recherche. L'idée est de forcer la visibilité internationale d'un modèle inconnu hors de Belgique.</p>
+    <div class="tags">
+      <span class="tag green">UNESCO</span>
+      <span class="tag lilac">patrimoine immatériel</span>
+      <span class="tag green">éducation permanente</span>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Les kits markdown thématiques</div>
+    <p>Un concept éditorial se formalise : des « kits » de fichiers markdown interconnectés sur des thématiques précises. Le Kit Perso (personnalité, Big Five, MBTI, archétypes de Jung, neurosciences). Le Kit Équipe (dynamiques de groupe, profils Alpha/Beta/Omega, gestion de personnalités difficiles). Le Kit Émotions (Plutchik, Ekman, Russell, 100+ états émotionnels). Chaque kit est un micro-vault Obsidian reproductible, pensé pour l'éducation populaire.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Le vault d'intelligence économique citoyenne</div>
+    <p>Un vault Obsidian complet est architecturé pour l'intelligence économique appliquée à la participation citoyenne. Structure en dossiers : collecte, acteurs, secteurs, territoires, analyses, alertes. Templates de fiches, système de tags, workflows de veille, requêtes Dataview. Le tout est packagé en script bash pour créer un ZIP reproductible. L'ambition : rendre l'intelligence économique accessible au citoyen lambda.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Dossier : Information et rapports de domination</div>
+    <p>Un dossier de recherche massif couvrant les niveaux micro, macro et méso de la place de l'information dans les rapports de domination. Technologies de l'information et surveillance, étapes cruciales de l'histoire, bilan actuel mondial. Claude utilise la deep research pour croiser sources académiques (SpringerOpen, PubMed Central) et analyses géopolitiques. Le résultat alimente le corpus DOCTech de ouaisfi.eu.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">L'application IA sur l'Éducation Permanente</div>
+    <p>À partir du dépôt GitHub actEP2022 (un corpus de textes sur l'éducation permanente en FWB), Claude crée une application React interactive permettant d'interroger le corpus par thématiques : démocratie culturelle, autonomie associative, transformation numérique, financement, intersectionnalité. La question ultime : « Quelle Éducation Permanente en FWB aujourd'hui, et quelles pistes pour demain ? »</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ CHAPITRE 3 — OCT-NOV 2025 ═══════════════════ -->
+<section class="chapter" id="ch3">
+  <div class="ch-header">
+    <div class="ch-num">03</div>
+    <div>
+      <div class="ch-title">Les Dossiers de Renseignement</div>
+      <div class="ch-date">Octobre – Novembre 2025 — L'approfondissement technique</div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">La trilogie du renseignement : HUMINT, OSINT, SOCMINT</div>
+    <p>Trois dossiers de recherche massifs sont commandés successivement. L'HUMINT (renseignement d'origine humaine), l'OSINT (renseignement en sources ouvertes), le SOCMINT (intelligence des médias sociaux). Chaque dossier fait l'objet d'une deep research complète : définitions, histoire, méthodes, outils, cadres juridiques, études de cas, comparaisons internationales. Le tout est reformaté en articles pour le site Hugo avec le thème Relearn.</p>
+    <p>Le SOCMINT est particulièrement approfondi : de l'article fondateur d'Omand, Bartlett et Miller (2012) aux investigations de Bellingcat en passant par le scandale Cambridge Analytica et les outils de Clearview AI. C'est le plus long des trois articles.</p>
+    <div class="tags">
+      <span class="tag green">HUMINT</span>
+      <span class="tag lilac">OSINT</span>
+      <span class="tag green">SOCMINT</span>
+      <span class="tag lilac">Bellingcat</span>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Dossier : l'extrême droite en Belgique depuis 1945</div>
+    <p>Un dossier historique de fond, depuis l'après-guerre jusqu'au bilan actuel. Focus particulier sur les transfuges extrémistes au sein des partis démocratiques non visés par le cordon sanitaire. L'analyse documente précisément les cas du MR : les transfuges Noa Pozzi et Mathéo Besson (ex-Chez Nous), les déclarations polémiques de Jeholet et Bouchez, les connexions numériques avec la fachosphère, la « doctrine Bouchez » de normalisation.</p>
+    <p>Conclusion de l'article : « Si le MR n'est pas d'extrême droite, l'extrême droite est aujourd'hui au MR. » Le cordon sanitaire n'est plus seulement menacé par l'extérieur — il est perforé de l'intérieur.</p>
+    <div class="tags">
+      <span class="tag red">extrême droite</span>
+      <span class="tag green">cordon sanitaire</span>
+      <span class="tag lilac">MR</span>
+      <span class="tag red">Vlaams Belang</span>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Dossier : les grèves de 1960 et l'austérité européenne</div>
+    <p>Un parallèle historique entre la grève générale belge de l'hiver 1960-1961 (contre la « Loi unique » du gouvernement Eyskens) et les politiques d'austérité européennes contemporaines. Recherche approfondie croisant sources historiques belges et actualité européenne récente. L'article finit sur le site 1160 avec un PDF embarqué en iframe optimisée.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">La veille citoyenne : de la théorie à la pratique</div>
+    <p>Deux versions d'un article sur la veille citoyenne sont fusionnées en une seule, optimisée pour PageSpeed Insights. L'ancien article utilisait des diagrammes Mermaid qui causaient 1,7 seconde d'exécution JavaScript — supprimés au profit de texte structuré. Le résultat est un dossier pédagogique complet sur les méthodes de surveillance citoyenne, des exemples belges (Cumuleo, transparence des mandats) aux comparaisons internationales.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Les guides interactifs : Google Dorking et contre-intelligence</div>
+    <p>Des tutoriels interactifs de production sont créés : Google Dorking avancé (opérateurs, audit SEO, audit sécurité, veille citoyenne, bibliothèque de dorks prêts à l'emploi), SOCMINT, OSINT, HUMINT, contre-intelligence. Chaque guide a une interface de qualité professionnelle dans la palette vert tendre/lilas, avec tableaux bicolores, encarts conseil, pages de couverture personnalisées.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Les partenariats territoriaux</div>
+    <p>Une recherche sur les partenariats territoriaux pour l'inclusion sociale et numérique en Belgique francophone est conduite. Analyse des collaborations entre EPN (Espaces Publics Numériques), bibliothèques, CPAS et centres culturels. Le résultat est un rapport de 15 pages avec recommandations stratégiques — un outil de plaidoyer pour renforcer les synergies locales.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ CHAPITRE 4 — DÉCEMBRE 2025 ═══════════════════ -->
+<section class="chapter" id="ch4">
+  <div class="ch-header">
+    <div class="ch-num">04</div>
+    <div>
+      <div class="ch-title">Le Virage Militant</div>
+      <div class="ch-date">Décembre 2025 — Quand l'analyse devient action</div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Le processus d'éducation populaire par le numérique</div>
+    <p>La méthode se formalise : partir d'articles sur le site, créer un atelier asynchrone sur GitHub, déclencher un atelier-débat en présentiel dès qu'on atteint 5 participants. L'idée est de construire des cellules de veille citoyenne autonomes qui pourraient un jour former un réseau de réseaux démocratique et décentralisé. Le prototype de site de recrutement est développé avec formulaire fonctionnel.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">La page Kaléidoscope de la FWB</div>
+    <p>Claude analyse et critique la plateforme documentaire Kaléidoscope du Service de l'Éducation Permanente de la FWB. Verdict : « une promesse partiellement tenue » — outil utile mais sous-exploité, coincé dans une vision bibliothécaire du partage des savoirs. L'article est signé « Claude, assistant IA » avec une note méthodologique transparente sur les limites de l'analyse (moteur de recherche non testé).</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Préparation du raid international du 22 janvier</div>
+    <p>Un événement organisé par Amazone, Soralia et PAC (arpentage collectif sur « Les Vigilantes ») est identifié comme opportunité pour une opération de visibilité internationale de l'éducation permanente belge. Le kit de raid est préparé : page web, communiqué de presse en 4 langues, infographies virales, templates de messages, planning opérationnel en 4 phases (Fondation → Infiltration → Armement → RAID).</p>
+    <p>L'angle : « La Belgique PAIE des associations pour critiquer le système. 273 organisations. 2 300 salariés. Budget public. » Un fait qui relève de la science-fiction pour un militant américain, français ou brésilien.</p>
+    <div class="tags">
+      <span class="tag red">raid international</span>
+      <span class="tag green">22 janvier 2026</span>
+      <span class="tag lilac">#BelgiumPaysCritics</span>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Le site CCPLC et le cadre ECP/MCC</div>
+    <p>Le CCPLC (Collectif Citoyen pour la Participation Libre et Consciente) se dote d'un site web structuré : manifeste, raid, modèles économiques alternatifs (ECP — Économie Contributive Provisionnée, MCC — Monnaie Contributive Citoyenne). La documentation est hébergée sur GitHub sous forme de dépôts reproductibles. La section DOCTech sur ouaisfi.eu dépasse les 50 pages.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ CHAPITRE 5 — JANVIER 2026 ═══════════════════ -->
+<section class="chapter" id="ch5">
+  <div class="ch-header">
+    <div class="ch-num">05</div>
+    <div>
+      <div class="ch-title">L'Insurrection Démocratique</div>
+      <div class="ch-date">Janvier 2026 — Le moratoire et la riposte</div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Le moratoire tombe</div>
+    <p>Le décret-programme du 17 décembre 2025 officialise un moratoire sur les reconnaissances en éducation permanente en FWB. Aucune demande de principe en 2026, aucune demande de reconnaissance en 2026 ni 2027. Le gouvernement MR-Engagés gèle les nouveaux agréments face au déficit budgétaire. Les subventions ne seront pas indexées.</p>
+    <p>Pour Yan et le CCPLC, c'est le paradoxe ultime : le décret de 2003 définit les précaires comme « publics prioritaires » de l'émancipation, mais le moratoire de 2025 leur interdit de créer leurs propres structures d'émancipation. L'émancipation est réservée aux déjà-émancipés.</p>
+    <div class="tags">
+      <span class="tag red">moratoire</span>
+      <span class="tag red">austérité Arizona</span>
+      <span class="tag green">décret 2003</span>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">SYSTÈME BLOQUÉ — La campagne</div>
+    <p>La riposte prend la forme d'un site web radical : « SYSTÈME BLOQUÉ — On ne demande plus. On exige. » Esthétique rouge sur noir, typographie Impact, effets glitch. Le site documente le paradoxe du moratoire, propose un plan d'action en 30 jours (juridique, médiatique, citoyen, associatif), et appelle à une « insurrection démocratique massive pour la levée du moratoire ».</p>
+    <p>Toute la hiérarchie des normes est explorée : recours à la Cour constitutionnelle (violation du principe d'égalité), recours au Conseil d'État (excès de pouvoir), plainte à l'UNIA (discrimination des publics précaires), pétition au Parlement de la FWB, interpellation de la Médiatrice de la FWB.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Le fact-check citoyen : fraude sociale vs fraude fiscale</div>
+    <p>Le reportage RTL-TVI « Sans boulot : tous fraudeurs ? » de Christophe Deborsu déclenche une contre-enquête. Les chiffres officiels sont compilés : fraude sociale détectée = 250 M€ (0,3% du budget sécu). Fraude fiscale estimée = 20-30 milliards (Cour des Comptes, SPF Finances, DULBEA). Ratio : ×100. Le site de fact-check citoyen est publié avec schéma JSON-LD complet, FAQ structurée, sources institutionnelles.</p>
+    <p>La conclusion : « Le reportage tape sur les chômeurs. Les chiffres officiels montrent l'inverse. »</p>
+    <div class="tags">
+      <span class="tag red">RTL-TVI</span>
+      <span class="tag green">fact-check</span>
+      <span class="tag lilac">Deborsu</span>
+      <span class="tag green">fraude fiscale</span>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">La War Room et le dashboard 1160</div>
+    <p>Le concept de « War Room » rétro se matérialise : un dashboard central pour le projet 1160 (Auderghem), avec KPIs, analytics, annuaire des acteurs locaux (247 entités cartographiées), et intégration du concept de « résistance cognitive ». Le wiki technique documente l'architecture (GitHub Pages, static-first, objectif Lighthouse 100), les sources de données (Moniteur Belge, Commune, PFV, ONSS, BCE) et la roadmap.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ CHAPITRE 6 — FÉVRIER 2026 ═══════════════════ -->
+<section class="chapter" id="ch6">
+  <div class="ch-header">
+    <div class="ch-num">06</div>
+    <div>
+      <div class="ch-title">Le Point d'Étape</div>
+      <div class="ch-date">Février 2026 — Consolidation et réflexion</div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">L'écosystème Reaven</div>
+    <p>Le projet Reaven se structure en « rooms » — des niveaux progressifs dans un dashboard gamifié. La Room 6 héberge ce journal de bord. Le système intègre des modules BROL (fichiers & hubs), des IA fictives (GORK — un graph view façon Obsidian), des méta-guides (LEARN, RELEARN), un univers narratif (Tintin × Dardenne × LOTR × Matrix) et une « Opération Milou » de jeu militant. C'est le bazar organisé — ou le brol systématisé.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Le benchmark comparatif et le lead-dexing en action</div>
+    <p>Les « targets » du projet Reaven font l'objet de benchmarks comparatifs automatisés. Le lead-dexing conceptualisé en août 2025 est devenu opérationnel : des pages web sont créées pour chaque cible, optimisées SEO, avec l'espoir qu'elles remontent dans les alertes Google des intéressés. La stratégie de « ping par la découvrabilité » est en marche.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-title">Ce journal de bord</div>
+    <p>Et nous voilà ici. Six mois de travail documentés. Ce document n'est pas un bilan de fin — c'est un point d'étape dans une collaboration qui continue de s'approfondir. La demande de Yan pour ce journal de bord est elle-même significative : il ne s'agit pas seulement de mémoire, mais de transparence. Montrer ce qu'une IA et un citoyen peuvent produire ensemble, et comment.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ BILAN ═══════════════════ -->
+<section class="chapter" id="bilan">
+
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-num">150+</div><div class="stat-label">conversations</div></div>
+    <div class="stat"><div class="stat-num">6</div><div class="stat-label">mois</div></div>
+    <div class="stat"><div class="stat-num">10+</div><div class="stat-label">sites & apps</div></div>
+    <div class="stat"><div class="stat-num">30+</div><div class="stat-label">articles</div></div>
+    <div class="stat"><div class="stat-num">5</div><div class="stat-label">dossiers deep research</div></div>
+    <div class="stat"><div class="stat-num">1</div><div class="stat-label">campagne militante</div></div>
+  </div>
+
+  <div class="bilan">
+    <h2>Ce que cette collaboration dit</h2>
+
+    <p><strong>Sur l'IA comme outil d'éducation populaire :</strong> L'intelligence artificielle n'est pas un luxe réservé aux entreprises tech. Entre les mains d'un citoyen motivé, elle devient un multiplicateur de capacités — rédaction, recherche, développement web, design, stratégie. Ce qui aurait nécessité une équipe de 5 personnes et des mois de travail a été prototypé en conversations successives. Le résultat n'est pas parfait — il est fonctionnel, et c'est le prototype qui compte.</p>
+
+    <p><strong>Sur les limites :</strong> Claude se trompe. Souvent. Des chemins de fichiers incorrects, des shortcodes qui n'existent pas, du CSS qui écrase la mise en page, des solutions qui cassent plus qu'elles ne réparent. Yan le rappelle — parfois violemment (« CONNARD !!!! », « tu vas le recommencer ???????????? »). Ce n'est pas un conte de fées technologique. C'est un atelier d'éducation populaire où l'outil est aussi imparfait que l'artisan.</p>
+
+    <p><strong>Sur le modèle de production :</strong> Tout est en accès libre. GitHub Pages, Hugo, fichiers markdown, licences Creative Commons. Le coût de production se résume à un abonnement Claude Pro et un hébergement OVH mutualisé. C'est un modèle de publication à coût quasi-nul qui peut être répliqué par n'importe quel collectif citoyen.</p>
+
+    <p><strong>Sur la Belgique :</strong> Ce journal de bord est un document sur la Belgique contemporaine autant qu'un journal technique. L'intelligence économique défaillante, le cordon sanitaire perforé, le moratoire sur l'émancipation, la fraude fiscale invisible, le système de pilarisation — tout converge vers une question : à qui appartient l'information, et qui a le droit de s'organiser pour la produire ?</p>
+  </div>
+
+  <div class="pullquote">
+    « L'émancipation est réservée aux déjà-émancipés. On refuse. »
+    <cite>— SYSTÈME BLOQUÉ, janvier 2026</cite>
+  </div>
+
+  <div class="bilan">
+    <h2>Inventaire des productions</h2>
+    <div class="outputs">
+      <div class="output"><div class="output-type">site web</div>ouaisfi.eu — site vitrine + DOCTech</div>
+      <div class="output"><div class="output-type">site web</div>dl.ouaisfi.eu — 28 fiches sécurité éco</div>
+      <div class="output"><div class="output-type">site web</div>dl.ouaisfi.eu/blog — blog Hugo/Ananke</div>
+      <div class="output"><div class="output-type">site web</div>1160 — blog Hugo/FixIt Auderghem</div>
+      <div class="output"><div class="output-type">site web</div>BXL2030 — prospective bruxelloise</div>
+      <div class="output"><div class="output-type">site web</div>GPTPardi — recherche collaborative</div>
+      <div class="output"><div class="output-type">site web</div>CCPLC — manifeste & raid</div>
+      <div class="output"><div class="output-type">site web</div>SYSTÈME BLOQUÉ — campagne anti-moratoire</div>
+      <div class="output"><div class="output-type">site web</div>Fact-check fraude sociale/fiscale</div>
+      <div class="output"><div class="output-type">site web</div>Reaven — dashboard multi-niveaux</div>
+      <div class="output"><div class="output-type">campagne</div>Kit raid international #BelgiumPaysCritics</div>
+      <div class="output"><div class="output-type">campagne</div>Campagne UNESCO EP</div>
+      <div class="output"><div class="output-type">dossier</div>HUMINT — renseignement humain</div>
+      <div class="output"><div class="output-type">dossier</div>OSINT — sources ouvertes</div>
+      <div class="output"><div class="output-type">dossier</div>SOCMINT — médias sociaux</div>
+      <div class="output"><div class="output-type">dossier</div>Extrême droite en Belgique 1945-2025</div>
+      <div class="output"><div class="output-type">dossier</div>Grèves de 60 & austérité européenne</div>
+      <div class="output"><div class="output-type">dossier</div>Information & rapports de domination</div>
+      <div class="output"><div class="output-type">outil</div>Vault Obsidian IE citoyenne</div>
+      <div class="output"><div class="output-type">outil</div>Plateforme LeadDexing gamifiée</div>
+      <div class="output"><div class="output-type">outil</div>App React EP FWB Explorer</div>
+      <div class="output"><div class="output-type">guide</div>Google Dorking avancé</div>
+      <div class="output"><div class="output-type">guide</div>Contre-intelligence citoyenne</div>
+      <div class="output"><div class="output-type">article</div>Comprendre la Belgique</div>
+      <div class="output"><div class="output-type">article</div>Renseignement économique belge</div>
+      <div class="output"><div class="output-type">article</div>Veille citoyenne : méthodes & impacts</div>
+      <div class="output"><div class="output-type">article</div>Empowerment individuel vs collectif</div>
+      <div class="output"><div class="output-type">article</div>L'effet chatbot : parcours utilisateur</div>
+      <div class="output"><div class="output-type">article</div>Kaléidoscope FWB : critique</div>
+      <div class="output"><div class="output-type">article</div>Intelligence économique : guide complet</div>
+      <div class="output"><div class="output-type">kit</div>Kit Perso (20 fiches markdown)</div>
+      <div class="output"><div class="output-type">kit</div>Kit Équipe (17+ fiches)</div>
+      <div class="output"><div class="output-type">kit</div>Kit Émotions (100+ états)</div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer>
+  <p style="font-family:'Fraunces',serif;font-size:1rem;color:var(--g1);margin-bottom:16px">ouaisfi.eu × Claude (Anthropic)</p>
+  <p>Document généré le 6 février 2026</p>
+  <p>Ce journal de bord est un document public sous licence CC BY-NC-SA 4.0</p>
+  <p style="margin-top:16px">
+    <a href="https://ouaisfi.eu">ouaisfi.eu</a> ·
+    <a href="https://github.com/ouaisfieu">GitHub</a> ·
+    <a href="https://yannkeep.github.io/reaven/">Reaven</a>
+  </p>
+  <p style="margin-top:24px;font-size:.6rem;color:var(--text3)">
+    Annexe Reaven · Room 6 · Dashboard Central
+  </p>
+</footer>
+
+<script>
+// Highlight active nav button on scroll
+const chapters = document.querySelectorAll('.chapter');
+const navBtns = document.querySelectorAll('.tn-btn');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      const map = {ch0:0,ch1:1,ch2:2,ch3:3,ch4:4,ch5:5,ch6:6,bilan:7};
+      navBtns.forEach(b => b.classList.remove('active'));
+      if (map[id] !== undefined) navBtns[map[id]]?.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -60% 0px' });
+
+chapters.forEach(ch => observer.observe(ch));
+// Also observe bilan
+const bilanEl = document.getElementById('bilan');
+if (bilanEl) observer.observe(bilanEl);
+</script>
+</body>
+</html>
