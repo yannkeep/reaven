@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOCMINT — Le Guide Ultime du Renseignement sur les Réseaux Sociaux</title>
+<meta name="description" content="Tutoriel interactif complet sur le SOCMINT : techniques d'investigation sur les réseaux sociaux, outils, méthodologie et éthique.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN SYSTEM — "Intelligence Dossier"
+   Deep navy + warm amber, editorial magazine feel
+   ═══════════════════════════════════════════ */
+:root {
+  --bg-deep: #080b12;
+  --bg-surface: #0d1118;
+  --bg-elevated: #131a25;
+  --bg-card: #161e2c;
+  --bg-hover: #1c2637;
+  --border: #1f2a3c;
+  --border-glow: #2a3a52;
+
+  --text-primary: #e4e2ec;
+  --text-secondary: #8d95a8;
+  --text-muted: #576275;
+
+  --accent: #e8a830;
+  --accent-dim: #c48e24;
+  --accent-glow: rgba(232,168,48,.12);
+  --cyan: #3dc9d6;
+  --cyan-glow: rgba(61,201,214,.10);
+  --red: #e85454;
+  --red-glow: rgba(232,84,84,.10);
+  --green: #34c77b;
+  --green-glow: rgba(52,199,123,.10);
+  --purple: #9b7af5;
+  --purple-glow: rgba(155,122,245,.10);
+  --blue: #4a9af5;
+  --blue-glow: rgba(74,154,245,.10);
+  --pink: #e868a2;
+
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', 'Consolas', monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  --ease: cubic-bezier(.16,1,.3,1);
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
+}
+
+/* ═══════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;scroll-padding-top:80px}
+body{
+  font-family:var(--font-body);background:var(--bg-deep);
+  color:var(--text-primary);line-height:1.72;font-size:17px;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent);color:var(--bg-deep)}
+a{color:var(--cyan);text-decoration:none;transition:color .2s}
+a:hover{color:var(--accent)}
+::-webkit-scrollbar{width:7px}
+::-webkit-scrollbar-track{background:var(--bg-deep)}
+::-webkit-scrollbar-thumb{background:var(--border-glow);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-dim)}
+
+.skip-link{
+  position:absolute;top:-100px;left:16px;background:var(--accent);
+  color:var(--bg-deep);padding:8px 16px;border-radius:var(--radius-sm);
+  font-weight:700;z-index:9999;transition:top .3s var(--ease);
+}
+.skip-link:focus{top:16px}
+
+/* ═══════════════════════════════════════════
+   ATMOSPHERIC BACKGROUNDS
+   ═══════════════════════════════════════════ */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 0%,rgba(232,168,48,.04),transparent),
+    radial-gradient(ellipse 50% 40% at 90% 80%,rgba(61,201,214,.03),transparent);
+}
+.scan-lines{
+  position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.018;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.08) 2px,rgba(255,255,255,.08) 4px);
+}
+
+/* ═══════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════ */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(8,11,18,.88);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border-bottom:1px solid var(--border);
+  transition:box-shadow .4s var(--ease);
+}
+.nav.scrolled{box-shadow:0 4px 40px rgba(0,0,0,.5)}
+.nav-inner{
+  max-width:1200px;margin:0 auto;display:flex;
+  align-items:center;justify-content:space-between;
+  padding:0 24px;height:62px;
+}
+.nav-brand{
+  font-family:var(--font-mono);font-weight:700;font-size:14px;
+  letter-spacing:1px;display:flex;align-items:center;gap:10px;
+}
+.nav-brand .icon-eye{
+  width:28px;height:28px;border-radius:50%;
+  border:2px solid var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;color:var(--accent);
+  animation:pulse-ring 3s ease infinite;
+}
+@keyframes pulse-ring{
+  0%,100%{box-shadow:0 0 0 0 rgba(232,168,48,.3)}
+  50%{box-shadow:0 0 0 6px rgba(232,168,48,0)}
+}
+.nav-brand span{color:var(--accent)}
+
+.nav-links{display:flex;gap:2px;list-style:none}
+.nav-links a{
+  display:block;padding:6px 13px;font-size:12.5px;font-weight:600;
+  color:var(--text-muted);border-radius:var(--radius-sm);
+  transition:all .2s;text-transform:uppercase;letter-spacing:.5px;
+}
+.nav-links a:hover,.nav-links a.active{
+  color:var(--accent);background:var(--accent-glow);
+}
+.nav-toggle{
+  display:none;background:none;border:none;color:var(--text-primary);
+  cursor:pointer;padding:8px;font-size:22px;
+}
+@media(max-width:960px){
+  .nav-links{
+    position:fixed;top:62px;left:0;right:0;bottom:0;
+    background:rgba(8,11,18,.97);backdrop-filter:blur(20px);
+    flex-direction:column;padding:20px;gap:2px;
+    transform:translateX(100%);transition:transform .4s var(--ease);
+  }
+  .nav-links.open{transform:translateX(0)}
+  .nav-links a{font-size:15px;padding:14px 16px}
+  .nav-toggle{display:block}
+}
+
+/* ═══════════════════════════════════════════
+   HERO
+   ═══════════════════════════════════════════ */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;padding:120px 24px 80px;
+  position:relative;z-index:1;
+}
+.hero-classified{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:8px 20px;border:1px solid var(--accent-dim);
+  border-radius:2px;font-family:var(--font-mono);
+  font-size:11px;font-weight:700;letter-spacing:3px;
+  text-transform:uppercase;color:var(--accent);
+  background:rgba(232,168,48,.06);
+  margin-bottom:36px;
+  animation:fadeUp .8s var(--ease) both;
+}
+.hero-classified::before{content:'◉';font-size:9px;animation:blink-slow 2s step-end infinite}
+@keyframes blink-slow{0%,100%{opacity:1}50%{opacity:.3}}
+
+.hero h1{
+  font-family:var(--font-display);
+  font-size:clamp(2.6rem,7vw,5.2rem);
+  font-weight:900;line-height:1.08;letter-spacing:-.02em;
+  margin-bottom:24px;
+  animation:fadeUp .8s var(--ease) .1s both;
+}
+.hero h1 .glow{
+  background:linear-gradient(135deg,var(--accent),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.hero-sub{
+  font-size:clamp(1.05rem,2.2vw,1.25rem);
+  color:var(--text-secondary);max-width:660px;
+  line-height:1.65;margin-bottom:44px;
+  animation:fadeUp .8s var(--ease) .2s both;
+}
+.hero-actions{
+  display:flex;gap:12px;flex-wrap:wrap;justify-content:center;
+  animation:fadeUp .8s var(--ease) .3s both;
+}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:14px 28px;border-radius:var(--radius-md);
+  font-family:var(--font-body);font-size:15px;font-weight:700;
+  border:none;cursor:pointer;transition:all .25s var(--ease);
+}
+.btn-primary{
+  background:var(--accent);color:var(--bg-deep);
+  box-shadow:0 0 24px rgba(232,168,48,.2);
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 32px rgba(232,168,48,.35)}
+.btn-ghost{
+  background:transparent;color:var(--text-primary);
+  border:1px solid var(--border-glow);
+}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.btn-sm{padding:10px 18px;font-size:13px;border-radius:var(--radius-sm)}
+
+.scroll-hint{
+  position:absolute;bottom:32px;
+  animation:fadeUp .8s var(--ease) .5s both, float 3s ease-in-out infinite;
+  color:var(--text-muted);
+}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════════════════════════════════════════
+   PROGRESS BAR
+   ═══════════════════════════════════════════ */
+.progress-bar{
+  position:fixed;top:62px;left:0;right:0;height:2px;z-index:99;
+  background:var(--bg-deep);
+}
+.progress-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--accent),var(--cyan));
+  transition:width .1s;
+}
+
+/* ═══════════════════════════════════════════
+   SECTIONS
+   ═══════════════════════════════════════════ */
+.section{
+  max-width:920px;margin:0 auto;
+  padding:100px 24px 0;position:relative;z-index:1;
+}
+.section-label{
+  font-family:var(--font-mono);font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:3px;
+  color:var(--accent);margin-bottom:14px;
+  display:flex;align-items:center;gap:12px;
+}
+.section-label::before{
+  content:'';width:24px;height:2px;background:var(--accent);
+}
+.section h2{
+  font-family:var(--font-display);
+  font-size:clamp(1.8rem,4vw,2.6rem);
+  font-weight:900;line-height:1.15;
+  letter-spacing:-.015em;margin-bottom:18px;
+}
+.section .lead{
+  font-size:1.1rem;color:var(--text-secondary);
+  max-width:700px;margin-bottom:40px;line-height:1.7;
+}
+
+/* Reveal */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.reveal.vis{opacity:1;transform:translateY(0)}
+
+/* ═══════════════════════════════════════════
+   CALLOUT
+   ═══════════════════════════════════════════ */
+.callout{
+  background:var(--bg-card);border:1px solid var(--border);
+  border-left:3px solid var(--cyan);border-radius:var(--radius-md);
+  padding:24px 28px;margin:28px 0;
+}
+.callout.warn{border-left-color:var(--accent)}
+.callout.danger{border-left-color:var(--red)}
+.callout.ok{border-left-color:var(--green)}
+.callout-title{font-weight:700;font-size:15px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+
+/* ═══════════════════════════════════════════
+   PLATFORM EXPLORER — Tab-based
+   ═══════════════════════════════════════════ */
+.platforms{margin:40px 0}
+.platform-tabs{
+  display:flex;gap:6px;flex-wrap:wrap;margin-bottom:0;
+  border-bottom:1px solid var(--border);padding-bottom:0;
+}
+.platform-tab{
+  padding:12px 20px;font-size:14px;font-weight:700;
+  background:none;border:none;border-bottom:2px solid transparent;
+  color:var(--text-muted);cursor:pointer;
+  transition:all .2s;font-family:var(--font-body);
+  display:flex;align-items:center;gap:7px;
+  margin-bottom:-1px;
+}
+.platform-tab:hover{color:var(--text-secondary)}
+.platform-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.platform-tab .p-icon{font-size:16px}
+
+.platform-panel{
+  display:none;padding:32px 0 0;
+  animation:fadeUp .4s var(--ease) both;
+}
+.platform-panel.active{display:block}
+.platform-panel h3{
+  font-family:var(--font-display);font-size:1.4rem;
+  font-weight:700;margin-bottom:12px;
+}
+.platform-panel .desc{color:var(--text-secondary);margin-bottom:20px;font-size:15px}
+
+/* Technique cards */
+.tech-grid{display:grid;gap:14px;grid-template-columns:1fr}
+.tech{
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--radius-md);padding:22px 26px;
+  transition:all .3s var(--ease);
+}
+.tech:hover{border-color:var(--border-glow);transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.3)}
+.tech-title{font-weight:700;font-size:15px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.tech-title .badge{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+  padding:3px 8px;border-radius:999px;
+}
+.badge-url{background:var(--cyan-glow);color:var(--cyan)}
+.badge-tool{background:var(--purple-glow);color:var(--purple)}
+.badge-query{background:var(--accent-glow);color:var(--accent)}
+.badge-tip{background:var(--green-glow);color:var(--green)}
+.tech-desc{color:var(--text-secondary);font-size:14px;margin-bottom:12px}
+
+/* Dork / query blocks */
+.q{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg-deep);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:10px 14px;margin:6px 0;
+  font-family:var(--font-mono);font-size:13px;
+  color:var(--cyan);cursor:pointer;transition:border-color .2s,background .2s;
+  word-break:break-all;
+}
+.q:hover{border-color:var(--accent-dim);background:rgba(232,168,48,.03)}
+.q-text{flex:1;line-height:1.5}
+.q .kw{color:var(--accent)}
+.q .str{color:var(--green)}
+.q .op{color:var(--purple)}
+.q .url{color:var(--cyan);text-decoration:underline;text-decoration-color:rgba(61,201,214,.3)}
+.q .param{color:var(--pink)}
+
+.copy-btn{
+  flex-shrink:0;background:var(--bg-elevated);border:1px solid var(--border);
+  color:var(--text-muted);border-radius:var(--radius-sm);
+  padding:3px 9px;font-size:10px;font-family:var(--font-mono);
+  cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.copy-btn:hover{color:var(--accent);border-color:var(--accent-dim)}
+.copy-btn.copied{color:var(--green);border-color:var(--green)}
+
+.q-note{font-size:12.5px;color:var(--text-muted);padding-left:4px;margin-top:2px;margin-bottom:8px}
+
+/* ═══════════════════════════════════════════
+   TOOL CARDS
+   ═══════════════════════════════════════════ */
+.tool-grid{
+  display:grid;gap:14px;
+  grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));
+}
+.tool-card{
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:26px;
+  transition:all .3s var(--ease);position:relative;overflow:hidden;
+}
+.tool-card:hover{border-color:var(--border-glow);transform:translateY(-2px)}
+.tool-name{
+  font-family:var(--font-mono);font-size:16px;font-weight:700;
+  color:var(--accent);margin-bottom:6px;
+}
+.tool-desc{color:var(--text-secondary);font-size:14px;margin-bottom:12px}
+.tool-tags{display:flex;gap:6px;flex-wrap:wrap}
+.tool-tag{
+  font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.5px;padding:3px 9px;border-radius:999px;
+  background:var(--bg-elevated);color:var(--text-muted);
+  border:1px solid var(--border);
+}
+
+/* ═══════════════════════════════════════════
+   METHODOLOGY TIMELINE
+   ═══════════════════════════════════════════ */
+.timeline{margin:36px 0;position:relative}
+.timeline::before{
+  content:'';position:absolute;left:27px;top:0;bottom:0;
+  width:2px;background:var(--border);
+}
+.tl-item{
+  display:grid;grid-template-columns:56px 1fr;gap:20px;
+  margin-bottom:28px;position:relative;
+}
+.tl-num{
+  width:56px;height:56px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:16px;font-weight:700;
+  color:var(--accent);border:2px solid var(--border);
+  border-radius:50%;background:var(--bg-card);
+  z-index:1;
+}
+.tl-item:hover .tl-num{border-color:var(--accent);box-shadow:0 0 12px var(--accent-glow)}
+.tl-content{padding-top:8px}
+.tl-content h4{font-size:16px;font-weight:700;margin-bottom:4px}
+.tl-content p{color:var(--text-secondary);font-size:15px}
+
+/* ═══════════════════════════════════════════
+   INTERACTIVE QUERY BUILDER
+   ═══════════════════════════════════════════ */
+.builder{
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--radius-xl);padding:40px;margin:40px 0;
+  position:relative;overflow:hidden;
+}
+.builder::before{
+  content:'';position:absolute;top:-40%;right:-20%;
+  width:350px;height:350px;
+  background:radial-gradient(circle,var(--accent-glow),transparent 60%);
+  pointer-events:none;
+}
+.builder h3{font-family:var(--font-display);font-size:1.5rem;font-weight:800;margin-bottom:6px;position:relative}
+.builder .sub{color:var(--text-secondary);margin-bottom:28px;position:relative}
+
+.b-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;position:relative}
+.b-row label{font-size:12px;font-weight:700;color:var(--text-muted);width:100%;text-transform:uppercase;letter-spacing:.5px}
+.b-input{
+  flex:1;min-width:180px;background:var(--bg-deep);
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:12px 16px;font-family:var(--font-mono);font-size:14px;
+  color:var(--text-primary);transition:border-color .2s;
+}
+.b-input:focus{outline:none;border-color:var(--accent)}
+.b-input::placeholder{color:var(--text-muted)}
+select.b-input{
+  appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23576275' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;
+}
+.b-output{
+  margin-top:20px;padding:20px;background:var(--bg-deep);
+  border:1px solid var(--border);border-radius:var(--radius-md);
+}
+.b-output-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--text-muted);margin-bottom:10px}
+.b-output-query{
+  font-family:var(--font-mono);font-size:15px;font-weight:600;
+  color:var(--accent);word-break:break-all;min-height:24px;line-height:1.6;
+}
+.b-output-query .kw{color:var(--cyan)}
+.b-output-query .str{color:var(--green)}
+.b-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+
+/* ═══════════════════════════════════════════
+   OPSEC CHECKLIST
+   ═══════════════════════════════════════════ */
+.checklist{margin:28px 0}
+.check-item{
+  display:flex;align-items:start;gap:14px;
+  padding:16px 20px;background:var(--bg-card);
+  border:1px solid var(--border);border-radius:var(--radius-md);
+  margin-bottom:8px;transition:all .2s;cursor:pointer;
+}
+.check-item:hover{border-color:var(--border-glow)}
+.check-item.checked{border-color:var(--green);background:rgba(52,199,123,.03)}
+.check-box{
+  width:22px;height:22px;border-radius:6px;
+  border:2px solid var(--border-glow);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;
+  transition:all .2s;font-size:12px;color:transparent;
+}
+.check-item.checked .check-box{
+  border-color:var(--green);background:var(--green);color:var(--bg-deep);
+}
+.check-label{font-size:15px;line-height:1.5}
+.check-label strong{color:var(--text-primary)}
+
+/* ═══════════════════════════════════════════
+   TABLE
+   ═══════════════════════════════════════════ */
+.table-wrap{
+  overflow-x:auto;margin:28px 0;
+  border:1px solid var(--border);border-radius:var(--radius-lg);
+}
+table{width:100%;border-collapse:collapse;font-size:14px}
+thead{background:var(--bg-elevated)}
+th{
+  text-align:left;padding:14px 18px;font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted);
+  border-bottom:1px solid var(--border);
+}
+td{padding:14px 18px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg-hover)}
+td code{
+  font-family:var(--font-mono);background:var(--bg-deep);
+  padding:2px 8px;border-radius:4px;color:var(--accent);font-size:12.5px;
+}
+
+/* ═══════════════════════════════════════════
+   ACCORDION
+   ═══════════════════════════════════════════ */
+.acc-item{
+  border:1px solid var(--border);border-radius:var(--radius-md);
+  margin-bottom:8px;overflow:hidden;transition:border-color .2s;
+}
+.acc-item:hover{border-color:var(--border-glow)}
+.acc-trigger{
+  width:100%;display:flex;align-items:center;justify-content:space-between;
+  padding:18px 22px;background:var(--bg-card);border:none;color:var(--text-primary);
+  font-family:var(--font-body);font-size:15px;font-weight:700;
+  cursor:pointer;transition:background .2s;text-align:left;
+}
+.acc-trigger:hover{background:var(--bg-hover)}
+.acc-trigger .ico{font-size:18px;transition:transform .3s var(--ease);color:var(--text-muted);flex-shrink:0}
+.acc-item.open .acc-trigger .ico{transform:rotate(45deg);color:var(--accent)}
+.acc-body{max-height:0;overflow:hidden;transition:max-height .4s var(--ease)}
+.acc-body-inner{padding:0 22px 22px}
+
+/* ═══════════════════════════════════════════
+   NETWORK VISUALIZATION (CSS only)
+   ═══════════════════════════════════════════ */
+.network-viz{
+  position:relative;width:100%;height:340px;
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);margin:32px 0;overflow:hidden;
+}
+.nv-node{
+  position:absolute;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;font-size:11px;font-weight:700;
+  font-family:var(--font-mono);
+  transition:all .4s var(--ease);cursor:default;
+  z-index:2;
+}
+.nv-node:hover{transform:scale(1.15);z-index:3}
+.nv-node.central{
+  width:80px;height:80px;background:var(--accent);color:var(--bg-deep);
+  font-size:13px;top:50%;left:50%;margin:-40px 0 0 -40px;
+  box-shadow:0 0 30px rgba(232,168,48,.3);
+}
+.nv-node.s1{width:52px;height:52px;border:2px solid var(--cyan);color:var(--cyan);background:var(--bg-deep)}
+.nv-node.s2{width:40px;height:40px;border:2px solid var(--purple);color:var(--purple);background:var(--bg-deep);font-size:9px}
+.nv-line{
+  position:absolute;height:1px;background:var(--border-glow);
+  transform-origin:left center;z-index:1;opacity:.5;
+}
+.nv-label{
+  position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
+  font-family:var(--font-mono);font-size:11px;color:var(--text-muted);
+  text-align:center;z-index:2;
+}
+
+/* ═══════════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════════ */
+footer{
+  margin-top:120px;padding:48px 24px;
+  border-top:1px solid var(--border);
+  text-align:center;color:var(--text-muted);
+  font-size:14px;position:relative;z-index:1;
+}
+footer .h{color:var(--red)}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:32px;left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:var(--accent);color:var(--bg-deep);
+  font-family:var(--font-mono);font-size:12px;font-weight:700;
+  padding:10px 22px;border-radius:999px;
+  z-index:999;pointer-events:none;
+  opacity:0;transition:all .4s var(--ease-spring);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Back to top */
+.back-top{
+  position:fixed;bottom:32px;right:32px;z-index:98;
+  width:44px;height:44px;border-radius:50%;
+  background:var(--bg-elevated);border:1px solid var(--border);
+  color:var(--text-muted);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;opacity:0;pointer-events:none;
+  transition:all .3s var(--ease);font-size:18px;
+}
+.back-top.vis{opacity:1;pointer-events:auto}
+.back-top:hover{color:var(--accent);border-color:var(--accent);transform:translateY(-3px)}
+
+/* Utilities */
+.mt-2{margin-top:16px}.mt-3{margin-top:24px}.mt-4{margin-top:32px}
+.mb-2{margin-bottom:16px}.mb-3{margin-bottom:24px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+
+@media(max-width:600px){
+  .section{padding:64px 16px 0}
+  .builder{padding:24px 18px}
+  .platform-tabs{gap:2px}
+  .platform-tab{padding:10px 12px;font-size:12px}
+  .network-viz{height:260px}
+}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">Aller au contenu principal</a>
+<div class="scan-lines" aria-hidden="true"></div>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand"><div class="icon-eye" aria-hidden="true">◉</div> <span>SOCMINT</span> GUIDE</div>
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false" onclick="toggleNav()">☰</button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#intro">Intro</a></li>
+      <li><a href="#platforms">Plateformes</a></li>
+      <li><a href="#builder">Builder</a></li>
+      <li><a href="#geoloc">Géoloc</a></li>
+      <li><a href="#network">Réseau</a></li>
+      <li><a href="#opsec">OPSEC</a></li>
+      <li><a href="#tools">Outils</a></li>
+      <li><a href="#methodo">Méthodo</a></li>
+      <li><a href="#ethique">Éthique</a></li>
+      <li><a href="#cheatsheet">Cheat Sheet</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero" id="top">
+  <div class="hero-classified"><span>Guide opérationnel — Février 2026</span></div>
+  <h1>L'Art du<br><span class="glow">Renseignement Social</span></h1>
+  <p class="hero-sub">SOCMINT — Social Media Intelligence. Le guide interactif complet pour investiguer, vérifier et surveiller les réseaux sociaux de manière méthodique, éthique et efficace.</p>
+  <div class="hero-actions">
+    <a href="#platforms" class="btn btn-primary">🔍 Explorer les plateformes</a>
+    <a href="#cheatsheet" class="btn btn-ghost">📋 Cheat Sheet</a>
+  </div>
+  <div class="scroll-hint" aria-hidden="true">▼</div>
+</header>
+
+<main id="main">
+
+<!-- ════════ INTRO ════════ -->
+<section class="section reveal" id="intro">
+  <div class="section-label">01 — Fondamentaux</div>
+  <h2>Qu'est-ce que le SOCMINT&nbsp;?</h2>
+  <p class="lead">Le SOCMINT (Social Media Intelligence) est la discipline de collecte et d'analyse d'informations provenant des réseaux sociaux. C'est une sous-discipline de l'OSINT (Open Source Intelligence) qui se concentre sur les données publiquement accessibles des plateformes sociales.</p>
+
+  <div class="callout ok">
+    <div class="callout-title">💡 Les piliers du SOCMINT</div>
+    <p><strong>Collecte</strong> — identifier et extraire les données publiques pertinentes.
+    <strong>Vérification</strong> — croiser et valider les informations recueillies.
+    <strong>Analyse</strong> — cartographier les relations, les tendances et les comportements.
+    <strong>Surveillance</strong> — suivre les évolutions dans le temps via des alertes et du monitoring.</p>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-title">⚠️ SOCMINT ≠ Stalking</div>
+    <p>Le SOCMINT s'exerce <strong>exclusivement sur des données publiques</strong>, dans un cadre légal et éthique strict. Il ne s'agit ni de harcèlement, ni d'espionnage, mais d'investigation légitime à des fins journalistiques, de vérification des faits, de veille ou de sécurité. Le cadre RGPD européen s'applique intégralement.</p>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">🎯 Cas d'usage légitimes</div>
+    <p>Fact-checking et lutte contre la désinformation — Journalisme d'investigation — Veille stratégique et concurrentielle — Audit de réputation — Enquêtes de sécurité (due diligence) — Recherche académique — Veille citoyenne et transparence publique — Recherche de personnes disparues.</p>
+  </div>
+</section>
+
+<!-- ════════ PLATEFORMES ════════ -->
+<section class="section reveal" id="platforms">
+  <div class="section-label">02 — Plateformes</div>
+  <h2>Techniques par plateforme</h2>
+  <p class="lead">Chaque réseau social a ses spécificités, ses opérateurs de recherche et ses failles d'exposition. Explorez chaque plateforme en détail.</p>
+
+  <div class="platforms">
+    <div class="platform-tabs" role="tablist">
+      <button class="platform-tab active" role="tab" data-panel="p-x" aria-selected="true" onclick="switchTab(this)"><span class="p-icon">𝕏</span> X / Twitter</button>
+      <button class="platform-tab" role="tab" data-panel="p-fb" onclick="switchTab(this)"><span class="p-icon">f</span> Facebook</button>
+      <button class="platform-tab" role="tab" data-panel="p-li" onclick="switchTab(this)"><span class="p-icon">in</span> LinkedIn</button>
+      <button class="platform-tab" role="tab" data-panel="p-ig" onclick="switchTab(this)"><span class="p-icon">📷</span> Instagram</button>
+      <button class="platform-tab" role="tab" data-panel="p-tg" onclick="switchTab(this)"><span class="p-icon">✈</span> Telegram</button>
+      <button class="platform-tab" role="tab" data-panel="p-rd" onclick="switchTab(this)"><span class="p-icon">⬡</span> Reddit</button>
+      <button class="platform-tab" role="tab" data-panel="p-tk" onclick="switchTab(this)"><span class="p-icon">♪</span> TikTok</button>
+    </div>
+
+    <!-- ─── X / TWITTER ─── -->
+    <div class="platform-panel active" id="p-x" role="tabpanel">
+      <h3>X (Twitter) — La mine d'or du SOCMINT</h3>
+      <p class="desc">La recherche avancée de X est l'outil le plus puissant de tout le SOCMINT. Chaque opérateur peut être combiné pour des requêtes chirurgicales. Utilisez <strong>x.com/search</strong> ou l'URL directe de recherche avancée.</p>
+
+      <div class="tech-grid">
+        <div class="tech">
+          <div class="tech-title">Recherche avancée native <span class="badge badge-url">URL</span></div>
+          <div class="tech-desc">X dispose d'un formulaire de recherche avancée caché mais extrêmement puissant.</div>
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">x.com/search-advanced</span></span><button class="copy-btn">copier</button></div>
+        </div>
+
+        <div class="tech">
+          <div class="tech-title">Opérateurs de recherche <span class="badge badge-query">Requêtes</span></div>
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">from:</span>username</span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Tous les tweets d'un utilisateur précis</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">to:</span>username</span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Tweets adressés à un utilisateur</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">from:</span>user1 <span class="kw">to:</span>user2</span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Conversations entre deux personnes</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="str">"expression exacte"</span> <span class="kw">since:</span>2025-01-01 <span class="kw">until:</span>2025-12-31</span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Expression exacte dans une période donnée</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">from:</span>username <span class="kw">filter:</span>media</span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Uniquement les tweets contenant des images/vidéos</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">from:</span>username <span class="kw">filter:</span>links</span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Tweets contenant des liens partagés</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">geocode:</span><span class="param">50.8466,4.3528,10km</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Tweets géolocalisés autour de Bruxelles (rayon 10 km)</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">min_retweets:</span>100 <span class="kw">min_faves:</span>500 <span class="str">"sujet"</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Tweets viraux sur un sujet (seuils d'engagement)</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">from:</span>username <span class="kw">-filter:</span>replies</span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Tweets originaux uniquement (sans réponses)</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">list:</span><span class="param">listID</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Recherche dans les membres d'une liste X</div>
+        </div>
+
+        <div class="tech">
+          <div class="tech-title">Astuce Google Dorking + X <span class="badge badge-tip">Tip</span></div>
+          <div class="tech-desc">Parfois Google indexe mieux X que X lui-même. Combinez les deux.</div>
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">site:</span>x.com/username <span class="str">"mot clé"</span></span><button class="copy-btn">copier</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── FACEBOOK ─── -->
+    <div class="platform-panel" id="p-fb" role="tabpanel">
+      <h3>Facebook — Le géant aux données structurées</h3>
+      <p class="desc">Malgré les restrictions croissantes, Facebook reste une source massive d'informations publiques. Les Graph Search URLs et le Google Dorking sont vos meilleurs alliés.</p>
+
+      <div class="tech-grid">
+        <div class="tech">
+          <div class="tech-title">Google Dorking sur Facebook <span class="badge badge-query">Requêtes</span></div>
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">site:</span>facebook.com <span class="str">"nom de la personne"</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Profils et mentions d'une personne</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">site:</span>facebook.com/groups <span class="str">"sujet"</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Groupes publics sur un sujet</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">site:</span>facebook.com/events <span class="str">"ville"</span> <span class="str">"2025"</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Événements publics dans une ville</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">site:</span>facebook.com <span class="kw">inurl:</span>posts <span class="str">"mot clé"</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Publications publiques contenant un mot clé</div>
+        </div>
+
+        <div class="tech">
+          <div class="tech-title">Identifiant numérique Facebook <span class="badge badge-tip">Tip</span></div>
+          <div class="tech-desc">Chaque profil, page et groupe a un ID numérique unique. Récupérez-le via le code source de la page ou des outils comme <strong>lookup-id.com</strong>. Cet ID permet des recherches même si l'URL change.</div>
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">facebook.com/profile.php?id=</span><span class="param">NUMERIC_ID</span></span><button class="copy-btn">copier</button></div>
+        </div>
+
+        <div class="tech">
+          <div class="tech-title">Who Posted What? <span class="badge badge-tool">Outil</span></div>
+          <div class="tech-desc">L'outil de recherche Facebook le plus puissant. Permet de chercher les publications d'un utilisateur par date, lieu et mots-clés.</div>
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">whopostedwhat.com</span></span><button class="copy-btn">copier</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── LINKEDIN ─── -->
+    <div class="platform-panel" id="p-li" role="tabpanel">
+      <h3>LinkedIn — Le réseau professionnel ouvert</h3>
+      <p class="desc">LinkedIn expose énormément de données professionnelles. Les opérateurs Google sont ici redoutablement efficaces car LinkedIn est très bien indexé.</p>
+
+      <div class="tech-grid">
+        <div class="tech">
+          <div class="tech-title">X-Ray Search (Google Dorking) <span class="badge badge-query">Requêtes</span></div>
+          <div class="tech-desc">La technique « X-Ray » consiste à utiliser Google pour fouiller LinkedIn sans les restrictions de la plateforme.</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">site:</span>linkedin.com/in/ <span class="str">"directeur"</span> <span class="str">"Bruxelles"</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Profils de directeurs basés à Bruxelles</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">site:</span>linkedin.com/in/ <span class="str">"entreprise XYZ"</span> <span class="str">"cybersécurité"</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Employés en cybersécurité d'une entreprise</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">site:</span>linkedin.com/company/ <span class="str">"intelligence artificielle"</span> <span class="str">"Belgique"</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Entreprises IA en Belgique</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">site:</span>linkedin.com/posts/ <span class="str">"sujet"</span> <span class="kw">after:</span>2025-01-01</span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Publications LinkedIn récentes sur un sujet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── INSTAGRAM ─── -->
+    <div class="platform-panel" id="p-ig" role="tabpanel">
+      <h3>Instagram — L'image comme source d'information</h3>
+      <p class="desc">Instagram est un trésor de géolocalisation, de métadonnées visuelles et de connexions sociales. La recherche native est limitée — les outils externes sont essentiels.</p>
+
+      <div class="tech-grid">
+        <div class="tech">
+          <div class="tech-title">Google Dorking sur Instagram <span class="badge badge-query">Requêtes</span></div>
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">site:</span>instagram.com <span class="str">"nom d'utilisateur"</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Profil et mentions indexées</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">site:</span>instagram.com/explore/locations/ <span class="str">"ville"</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Publications géolocalisées dans une ville</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">site:</span>instagram.com/explore/tags/ <span class="str">"hashtag"</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Explorer les publications par hashtag</div>
+        </div>
+
+        <div class="tech">
+          <div class="tech-title">Outils clés <span class="badge badge-tool">Outils</span></div>
+          <div class="tech-desc"><strong>Dumpor.com</strong> — Viewer anonyme de profils publics. <strong>ImgInn.com</strong> — Téléchargement de stories/posts pour analyse. <strong>Picuki.com</strong> — Navigation et recherche sans compte.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── TELEGRAM ─── -->
+    <div class="platform-panel" id="p-tg" role="tabpanel">
+      <h3>Telegram — Les canaux publics sous surveillance</h3>
+      <p class="desc">Telegram est devenu un espace majeur de communication pour les mouvements politiques, les fuites de données et la désinformation. Les canaux publics sont entièrement consultables.</p>
+
+      <div class="tech-grid">
+        <div class="tech">
+          <div class="tech-title">Moteurs de recherche Telegram <span class="badge badge-tool">Outils</span></div>
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">tgstat.com</span> — Statistiques et recherche de canaux</span><button class="copy-btn">copier</button></div>
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">t.me/s/</span><span class="param">nomducanal</span> — Preview web sans compte</span><button class="copy-btn">copier</button></div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">site:</span>t.me <span class="str">"mot clé"</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Google Dorking sur les canaux Telegram publics</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── REDDIT ─── -->
+    <div class="platform-panel" id="p-rd" role="tabpanel">
+      <h3>Reddit — Les discussions profondes</h3>
+      <p class="desc">Reddit est un immense réservoir de discussions publiques indexées et archivées. Les historiques d'utilisateurs révèlent beaucoup.</p>
+
+      <div class="tech-grid">
+        <div class="tech">
+          <div class="tech-title">Recherche avancée <span class="badge badge-query">Requêtes</span></div>
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">site:</span>reddit.com/r/ <span class="str">"sujet"</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Discussions Reddit sur un sujet via Google</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">site:</span>reddit.com/user/<span class="param">username</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Historique public d'un utilisateur</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">camas.unddit.com</span> — Recherche avancée dans les archives</span><button class="copy-btn">copier</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── TIKTOK ─── -->
+    <div class="platform-panel" id="p-tk" role="tabpanel">
+      <h3>TikTok — La vidéo comme renseignement</h3>
+      <p class="desc">TikTok est de plus en plus utilisé pour la désinformation et la propagande. Ses vidéos contiennent des indices visuels, sonores et géographiques exploitables.</p>
+
+      <div class="tech-grid">
+        <div class="tech">
+          <div class="tech-title">Techniques d'investigation <span class="badge badge-query">Requêtes</span></div>
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">site:</span>tiktok.com <span class="str">"mot clé"</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Vidéos indexées par Google</div>
+
+          <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">site:</span>tiktok.com/@<span class="param">username</span></span><button class="copy-btn">copier</button></div>
+          <div class="q-note">→ Contenu d'un utilisateur spécifique</div>
+        </div>
+
+        <div class="tech">
+          <div class="tech-title">Astuces visuelles <span class="badge badge-tip">Tip</span></div>
+          <div class="tech-desc">Analysez les arrière-plans des vidéos pour la géolocalisation (enseignes, plaques, paysages). Vérifiez la cohérence de la lumière et des ombres pour estimer l'heure. Les métadonnées audio peuvent révéler des langues ou accents spécifiques.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ BUILDER ════════ -->
+<section class="section reveal" id="builder">
+  <div class="section-label">03 — Outil interactif</div>
+  <h2>SOCMINT Query Builder</h2>
+  <p class="lead">Construisez vos requêtes d'investigation en combinant plateforme, opérateurs et filtres.</p>
+
+  <div class="builder">
+    <h3>🔧 Query Builder</h3>
+    <p class="sub">Sélectionnez la plateforme et remplissez les champs — la requête se construit en temps réel.</p>
+
+    <div class="b-row">
+      <label for="qb-platform">Plateforme</label>
+      <select class="b-input" id="qb-platform" onchange="buildSocQuery()">
+        <option value="x">X / Twitter</option>
+        <option value="fb">Facebook (Google Dorking)</option>
+        <option value="li">LinkedIn (X-Ray)</option>
+        <option value="ig">Instagram</option>
+        <option value="rd">Reddit</option>
+        <option value="tg">Telegram</option>
+        <option value="tk">TikTok</option>
+      </select>
+    </div>
+
+    <div class="b-row">
+      <label for="qb-user">Utilisateur / Profil</label>
+      <input class="b-input" id="qb-user" placeholder="@username ou nom" oninput="buildSocQuery()" autocomplete="off">
+    </div>
+
+    <div class="b-row">
+      <label for="qb-keywords">Mots-clés</label>
+      <input class="b-input" id="qb-keywords" placeholder="expression exacte ou mots clés" oninput="buildSocQuery()" autocomplete="off">
+    </div>
+
+    <div class="b-row">
+      <label for="qb-location">Lieu (si applicable)</label>
+      <input class="b-input" id="qb-location" placeholder="Bruxelles, Paris…" oninput="buildSocQuery()" autocomplete="off">
+    </div>
+
+    <div class="b-row">
+      <label for="qb-since">Depuis (date)</label>
+      <input class="b-input" id="qb-since" type="date" onchange="buildSocQuery()">
+    </div>
+
+    <div class="b-row">
+      <label for="qb-filter">Filtre spécial</label>
+      <select class="b-input" id="qb-filter" onchange="buildSocQuery()">
+        <option value="">— Aucun —</option>
+        <option value="media">Médias (images/vidéos)</option>
+        <option value="links">Liens partagés</option>
+        <option value="noreply">Sans réponses (originaux)</option>
+      </select>
+    </div>
+
+    <div class="b-output">
+      <div class="b-output-label">Requête générée</div>
+      <div class="b-output-query" id="qbResult" aria-live="polite">
+        <span style="color:var(--text-muted)">Remplissez les champs…</span>
+      </div>
+    </div>
+
+    <div class="b-actions">
+      <button class="btn btn-primary" onclick="copySocQuery()" id="qbCopyBtn">📋 Copier</button>
+      <button class="btn btn-ghost" onclick="openSocQuery()">🔍 Rechercher</button>
+      <button class="btn btn-ghost" onclick="resetSocBuilder()">↺ Reset</button>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ GÉOLOCALISATION ════════ -->
+<section class="section reveal" id="geoloc">
+  <div class="section-label">04 — Géolocalisation</div>
+  <h2>Localiser à partir des réseaux&nbsp;sociaux</h2>
+  <p class="lead">Les publications sur les réseaux sociaux regorgent d'indices géographiques — métadonnées EXIF, arrière-plans, tweets géolocalisés, check-ins.</p>
+
+  <div class="acc-item reveal">
+    <button class="acc-trigger" onclick="toggleAcc(this)"><span>📍 Métadonnées EXIF des images</span><span class="ico">+</span></button>
+    <div class="acc-body"><div class="acc-body-inner">
+      <p>Certaines plateformes conservent les données EXIF (GPS, appareil, date) des photos uploadées. Analysez-les avec :</p>
+      <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">jimpl.com</span> — Analyse EXIF en ligne</span><button class="copy-btn">copier</button></div>
+      <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">exifdata.com</span> — Extracteur de métadonnées</span><button class="copy-btn">copier</button></div>
+      <div class="q-note">Facebook et Twitter suppriment les EXIF, mais Flickr, certains forums et les fichiers partagés via Telegram ne le font pas toujours.</div>
+    </div></div>
+  </div>
+
+  <div class="acc-item reveal">
+    <button class="acc-trigger" onclick="toggleAcc(this)"><span>🗺️ Géolocalisation visuelle (GEOINT)</span><span class="ico">+</span></button>
+    <div class="acc-body"><div class="acc-body-inner">
+      <p>Même sans métadonnées, les images contiennent des indices : enseignes, langues, architecture, végétation, plaques d'immatriculation, position du soleil.</p>
+      <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">google.com/maps</span> — Street View pour vérification</span><button class="copy-btn">copier</button></div>
+      <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">overpass-turbo.eu</span> — Requêtes OpenStreetMap avancées</span><button class="copy-btn">copier</button></div>
+      <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">suncalc.org</span> — Position du soleil par date/heure</span><button class="copy-btn">copier</button></div>
+    </div></div>
+  </div>
+
+  <div class="acc-item reveal">
+    <button class="acc-trigger" onclick="toggleAcc(this)"><span>🐦 Tweets géolocalisés</span><span class="ico">+</span></button>
+    <div class="acc-body"><div class="acc-body-inner">
+      <p>Même si peu d'utilisateurs activent la géolocalisation, les tweets géolocalisés restent une source précieuse.</p>
+      <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="kw">geocode:</span><span class="param">48.8566,2.3522,5km</span> <span class="str">"mot clé"</span></span><button class="copy-btn">copier</button></div>
+      <div class="q-note">→ Tweets dans un rayon de 5 km autour de Paris</div>
+      <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">onemilliontweetmap.com</span> — Carte temps réel des tweets</span><button class="copy-btn">copier</button></div>
+    </div></div>
+  </div>
+
+  <div class="acc-item reveal">
+    <button class="acc-trigger" onclick="toggleAcc(this)"><span>🔍 Recherche d'image inversée</span><span class="ico">+</span></button>
+    <div class="acc-body"><div class="acc-body-inner">
+      <p>Vérifiez l'origine et la propagation d'une image à travers les réseaux.</p>
+      <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">images.google.com</span> — Google Reverse Image</span><button class="copy-btn">copier</button></div>
+      <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">tineye.com</span> — Historique de propagation</span><button class="copy-btn">copier</button></div>
+      <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">yandex.com/images</span> — Souvent meilleur pour les visages</span><button class="copy-btn">copier</button></div>
+      <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">lens.google.com</span> — Google Lens</span><button class="copy-btn">copier</button></div>
+    </div></div>
+  </div>
+</section>
+
+<!-- ════════ ANALYSE DE RÉSEAU ════════ -->
+<section class="section reveal" id="network">
+  <div class="section-label">05 — Analyse de réseau</div>
+  <h2>Cartographier les connexions</h2>
+  <p class="lead">L'analyse de réseau permet de visualiser les relations entre comptes, les communautés et les flux d'influence. C'est le cœur de l'analyse SOCMINT avancée.</p>
+
+  <!-- CSS-only network visualization -->
+  <div class="network-viz" role="img" aria-label="Visualisation schématique d'un réseau social avec un nœud central connecté à des nœuds secondaires">
+    <div class="nv-node central">CIBLE</div>
+    <div class="nv-node s1" style="top:18%;left:22%">Abonnés</div>
+    <div class="nv-node s1" style="top:15%;left:68%">Mentions</div>
+    <div class="nv-node s1" style="top:65%;left:16%">Groupes</div>
+    <div class="nv-node s1" style="top:68%;left:74%">Likes</div>
+    <div class="nv-node s2" style="top:8%;left:42%">@user1</div>
+    <div class="nv-node s2" style="top:38%;left:10%">@user2</div>
+    <div class="nv-node s2" style="top:82%;left:44%">@user3</div>
+    <div class="nv-node s2" style="top:38%;left:84%">@user4</div>
+    <div class="nv-node s2" style="top:78%;left:88%">@user5</div>
+    <div class="nv-node s2" style="top:5%;left:82%">@user6</div>
+    <div class="nv-label">Cartographie relationnelle — Nœuds = comptes, Liens = interactions</div>
+  </div>
+
+  <div class="tech-grid reveal">
+    <div class="tech">
+      <div class="tech-title">Méthodes d'analyse <span class="badge badge-tip">Méthode</span></div>
+      <div class="tech-desc">
+        <strong>Followers/Following overlap</strong> — Identifiez les comptes suivis en commun entre des suspects.<br>
+        <strong>Analyse temporelle</strong> — Heures de publication révèlent les fuseaux horaires.<br>
+        <strong>Analyse linguistique</strong> — Style d'écriture, fautes récurrentes, langues utilisées.<br>
+        <strong>Propagation de contenu</strong> — Qui partage quoi en premier ? Identifiez les sources originales.
+      </div>
+    </div>
+    <div class="tech">
+      <div class="tech-title">Outils de visualisation <span class="badge badge-tool">Outils</span></div>
+      <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">gephi.org</span> — Visualisation de graphes (open source)</span><button class="copy-btn">copier</button></div>
+      <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">maltego.com</span> — Plateforme d'investigation OSINT</span><button class="copy-btn">copier</button></div>
+      <div class="q" onclick="copyQ(this)"><span class="q-text"><span class="url">osintcombine.com</span> — Suite d'outils OSINT combinés</span><button class="copy-btn">copier</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ OPSEC ════════ -->
+<section class="section reveal" id="opsec">
+  <div class="section-label">06 — OPSEC</div>
+  <h2>Sécurité opérationnelle de l'investigateur</h2>
+  <p class="lead">Avant d'investiguer, protégez-vous. Votre empreinte numérique peut vous trahir et compromettre votre enquête. L'OPSEC n'est pas optionnelle.</p>
+
+  <div class="callout danger">
+    <div class="callout-title">🛡️ Règle d'or</div>
+    <p>Ne jamais investiguer depuis un compte personnel. Ne jamais interagir (liker, commenter, suivre) avec les cibles. Chaque clic laisse une trace.</p>
+  </div>
+
+  <div class="checklist" id="opsecChecklist">
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box" aria-hidden="true">✓</div>
+      <div class="check-label"><strong>VPN activé</strong> — Masquez votre IP réelle. Utilisez un VPN réputé (Mullvad, ProtonVPN). Évitez les VPN gratuits.</div>
+    </div>
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box" aria-hidden="true">✓</div>
+      <div class="check-label"><strong>Navigateur dédié</strong> — Utilisez un navigateur séparé (Firefox profil dédié ou Tor Browser) sans cookies ni historique.</div>
+    </div>
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box" aria-hidden="true">✓</div>
+      <div class="check-label"><strong>Sock puppet accounts</strong> — Créez des comptes d'investigation dédiés avec identité fictive crédible, photo générée par IA, historique construit dans le temps.</div>
+    </div>
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box" aria-hidden="true">✓</div>
+      <div class="check-label"><strong>Email jetable</strong> — Utilisez des services comme ProtonMail ou SimpleLogin pour les comptes de recherche.</div>
+    </div>
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box" aria-hidden="true">✓</div>
+      <div class="check-label"><strong>Pas d'interaction</strong> — Ne jamais liker, commenter, suivre ou envoyer de message à la cible. Consultation passive uniquement.</div>
+    </div>
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box" aria-hidden="true">✓</div>
+      <div class="check-label"><strong>Screenshots horodatés</strong> — Documentez tout avec captures d'écran datées. Les contenus peuvent être supprimés à tout moment.</div>
+    </div>
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box" aria-hidden="true">✓</div>
+      <div class="check-label"><strong>Machine virtuelle</strong> — Pour les investigations sensibles, travaillez dans une VM (VirtualBox, Tails OS) pour isoler complètement votre environnement.</div>
+    </div>
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box" aria-hidden="true">✓</div>
+      <div class="check-label"><strong>Archivage des preuves</strong> — Utilisez archive.org/web ou Hunchly pour archiver les pages web avec preuve d'horodatage.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ OUTILS ════════ -->
+<section class="section reveal" id="tools">
+  <div class="section-label">07 — Boîte à outils</div>
+  <h2>L'arsenal du SOCMINT</h2>
+  <p class="lead">Une sélection d'outils gratuits ou freemium, classés par usage, pour chaque étape de votre investigation.</p>
+
+  <div class="tool-grid">
+    <div class="tool-card reveal">
+      <div class="tool-name">Maltego CE</div>
+      <div class="tool-desc">Plateforme de visualisation de données et de cartographie relationnelle. La référence OSINT pour l'analyse de liens.</div>
+      <div class="tool-tags"><span class="tool-tag">Analyse réseau</span><span class="tool-tag">Gratuit (CE)</span></div>
+    </div>
+    <div class="tool-card reveal">
+      <div class="tool-name">Sherlock</div>
+      <div class="tool-desc">Script Python qui recherche un nom d'utilisateur sur 400+ plateformes sociales simultanément.</div>
+      <div class="tool-tags"><span class="tool-tag">Username</span><span class="tool-tag">Open Source</span><span class="tool-tag">CLI</span></div>
+    </div>
+    <div class="tool-card reveal">
+      <div class="tool-name">Holehe</div>
+      <div class="tool-desc">Vérifie si une adresse email est enregistrée sur des dizaines de services (sans alerte au propriétaire).</div>
+      <div class="tool-tags"><span class="tool-tag">Email</span><span class="tool-tag">Open Source</span></div>
+    </div>
+    <div class="tool-card reveal">
+      <div class="tool-name">Wayback Machine</div>
+      <div class="tool-desc">Consultez les versions archivées de n'importe quelle page web ou profil social. Indispensable pour les contenus supprimés.</div>
+      <div class="tool-tags"><span class="tool-tag">Archive</span><span class="tool-tag">Gratuit</span></div>
+    </div>
+    <div class="tool-card reveal">
+      <div class="tool-name">TweetDeck / X Pro</div>
+      <div class="tool-desc">Interface multi-colonnes pour surveiller plusieurs recherches X en temps réel simultanément.</div>
+      <div class="tool-tags"><span class="tool-tag">Monitoring</span><span class="tool-tag">X/Twitter</span></div>
+    </div>
+    <div class="tool-card reveal">
+      <div class="tool-name">InVID / WeVerify</div>
+      <div class="tool-desc">Extension navigateur de vérification de vidéos et d'images. Analyse les keyframes, métadonnées et recherche inversée.</div>
+      <div class="tool-tags"><span class="tool-tag">Fact-check</span><span class="tool-tag">Gratuit</span></div>
+    </div>
+    <div class="tool-card reveal">
+      <div class="tool-name">Gephi</div>
+      <div class="tool-desc">Logiciel open source de visualisation et d'analyse de graphes. Idéal pour cartographier les réseaux de followers.</div>
+      <div class="tool-tags"><span class="tool-tag">Graphes</span><span class="tool-tag">Open Source</span></div>
+    </div>
+    <div class="tool-card reveal">
+      <div class="tool-name">SpiderFoot</div>
+      <div class="tool-desc">Outil d'automatisation OSINT qui agrège des données de 200+ sources à partir d'un simple identifiant.</div>
+      <div class="tool-tags"><span class="tool-tag">Automatisation</span><span class="tool-tag">Open Source</span></div>
+    </div>
+    <div class="tool-card reveal">
+      <div class="tool-name">OSINT Framework</div>
+      <div class="tool-desc">Annuaire interactif de centaines d'outils OSINT classés par catégorie. Le point de départ de toute investigation.</div>
+      <div class="tool-tags"><span class="tool-tag">Annuaire</span><span class="tool-tag">Gratuit</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ MÉTHODOLOGIE ════════ -->
+<section class="section reveal" id="methodo">
+  <div class="section-label">08 — Méthodologie</div>
+  <h2>Le cycle d'investigation SOCMINT</h2>
+  <p class="lead">Une investigation structurée suit un processus itératif. Voici les 6 étapes du cycle SOCMINT.</p>
+
+  <div class="timeline">
+    <div class="tl-item reveal">
+      <div class="tl-num">1</div>
+      <div class="tl-content">
+        <h4>Définir l'objectif & les limites</h4>
+        <p>Que cherchez-vous ? Quelles sont les limites légales et éthiques ? Documentez le cadre de l'investigation avant de commencer.</p>
+      </div>
+    </div>
+    <div class="tl-item reveal">
+      <div class="tl-num">2</div>
+      <div class="tl-content">
+        <h4>Préparer l'environnement (OPSEC)</h4>
+        <p>VPN, navigateur dédié, comptes sock puppet, VM si nécessaire. Ne commencez jamais sans protection opérationnelle.</p>
+      </div>
+    </div>
+    <div class="tl-item reveal">
+      <div class="tl-num">3</div>
+      <div class="tl-content">
+        <h4>Collecte passive</h4>
+        <p>Utilisez les opérateurs de recherche, le Google Dorking et les outils spécialisés. Ne laissez aucune trace. Capturez et archivez tout.</p>
+      </div>
+    </div>
+    <div class="tl-item reveal">
+      <div class="tl-num">4</div>
+      <div class="tl-content">
+        <h4>Analyse & corrélation</h4>
+        <p>Croisez les sources. Cartographiez les relations. Vérifiez chaque information via au moins 2 sources indépendantes. Identifiez les biais.</p>
+      </div>
+    </div>
+    <div class="tl-item reveal">
+      <div class="tl-num">5</div>
+      <div class="tl-content">
+        <h4>Vérification (fact-checking)</h4>
+        <p>Recherche d'image inversée, analyse de métadonnées, chronologie des événements, cohérence du profil. Éliminez les faux positifs.</p>
+      </div>
+    </div>
+    <div class="tl-item reveal">
+      <div class="tl-num">6</div>
+      <div class="tl-content">
+        <h4>Documentation & rapport</h4>
+        <p>Compilez vos trouvailles dans un rapport structuré avec captures horodatées, URLs archivées, méthodologie transparente et conclusions prudentes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ ÉTHIQUE ════════ -->
+<section class="section reveal" id="ethique">
+  <div class="section-label">09 — Éthique & Droit</div>
+  <h2>Cadre légal et responsabilité</h2>
+  <p class="lead">Le SOCMINT est un outil puissant qui s'accompagne de responsabilités proportionnelles. Le respect du droit et de l'éthique n'est pas négociable.</p>
+
+  <div class="callout danger">
+    <div class="callout-title">🚫 Ce qui est interdit</div>
+    <p>Accéder à des comptes privés sans autorisation — Créer de faux profils pour tromper des personnes (social engineering malveillant) — Harceler ou stalker — Collecter des données sur des mineurs — Exploiter des vulnérabilités techniques — Publier des informations privées (doxxing).</p>
+  </div>
+
+  <div class="callout ok">
+    <div class="callout-title">✅ Ce qui est légitime</div>
+    <p>Consulter des publications publiques — Utiliser des moteurs de recherche — Analyser des données accessibles sans authentification — Archiver des contenus publics à des fins journalistiques ou de recherche — Auditer ses propres comptes et ceux de son organisation.</p>
+  </div>
+
+  <div class="callout warn mt-3">
+    <div class="callout-title">⚖️ Cadre juridique européen</div>
+    <p><strong>RGPD</strong> — Toute collecte de données personnelles doit avoir une base légale (intérêt légitime, mission d'intérêt public). Le principe de minimisation s'applique.<br>
+    <strong>Directive NIS2</strong> — Renforce les obligations de cybersécurité.<br>
+    <strong>Code pénal belge (art. 550bis)</strong> — L'accès non autorisé à un système informatique est un délit.<br>
+    <strong>Principes proportionnalité</strong> — Ne collectez que ce qui est nécessaire à votre objectif documenté.</p>
+  </div>
+</section>
+
+<!-- ════════ CHEAT SHEET ════════ -->
+<section class="section reveal" id="cheatsheet">
+  <div class="section-label">10 — Référence</div>
+  <h2>SOCMINT Cheat Sheet</h2>
+  <p class="lead">Tableau de référence rapide de toutes les techniques par plateforme.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Plateforme</th><th>Technique</th><th>Requête / Outil</th></tr></thead>
+      <tbody>
+        <tr><td><strong>X/Twitter</strong></td><td>Tweets d'un utilisateur</td><td><code>from:username</code></td></tr>
+        <tr><td><strong>X/Twitter</strong></td><td>Conversation entre 2 users</td><td><code>from:user1 to:user2</code></td></tr>
+        <tr><td><strong>X/Twitter</strong></td><td>Tweets géolocalisés</td><td><code>geocode:lat,lng,rayon</code></td></tr>
+        <tr><td><strong>X/Twitter</strong></td><td>Tweets viraux</td><td><code>min_retweets:100 "sujet"</code></td></tr>
+        <tr><td><strong>X/Twitter</strong></td><td>Période précise</td><td><code>since:YYYY-MM-DD until:YYYY-MM-DD</code></td></tr>
+        <tr><td><strong>X/Twitter</strong></td><td>Médias uniquement</td><td><code>from:user filter:media</code></td></tr>
+        <tr><td><strong>Facebook</strong></td><td>Profils via Google</td><td><code>site:facebook.com "nom"</code></td></tr>
+        <tr><td><strong>Facebook</strong></td><td>Groupes publics</td><td><code>site:facebook.com/groups "sujet"</code></td></tr>
+        <tr><td><strong>Facebook</strong></td><td>Outil de recherche</td><td><code>whopostedwhat.com</code></td></tr>
+        <tr><td><strong>LinkedIn</strong></td><td>X-Ray profils</td><td><code>site:linkedin.com/in/ "poste" "lieu"</code></td></tr>
+        <tr><td><strong>LinkedIn</strong></td><td>Entreprises</td><td><code>site:linkedin.com/company/ "secteur"</code></td></tr>
+        <tr><td><strong>Instagram</strong></td><td>Profils indexés</td><td><code>site:instagram.com "user"</code></td></tr>
+        <tr><td><strong>Instagram</strong></td><td>Lieux</td><td><code>site:instagram.com/explore/locations/</code></td></tr>
+        <tr><td><strong>Telegram</strong></td><td>Canaux publics</td><td><code>site:t.me "mot clé"</code></td></tr>
+        <tr><td><strong>Reddit</strong></td><td>Discussions</td><td><code>site:reddit.com/r/ "sujet"</code></td></tr>
+        <tr><td><strong>Reddit</strong></td><td>Historique user</td><td><code>site:reddit.com/user/username</code></td></tr>
+        <tr><td><strong>TikTok</strong></td><td>Vidéos indexées</td><td><code>site:tiktok.com "mot clé"</code></td></tr>
+        <tr><td><strong>Multi</strong></td><td>Username multi-plateforme</td><td><code>Sherlock (Python CLI)</code></td></tr>
+        <tr><td><strong>Multi</strong></td><td>Image inversée</td><td><code>TinEye, Yandex Images, Google Lens</code></td></tr>
+        <tr><td><strong>Multi</strong></td><td>Email lookup</td><td><code>Holehe (Python CLI)</code></td></tr>
+        <tr><td><strong>Multi</strong></td><td>Archivage</td><td><code>archive.org/web</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout ok mt-4">
+    <div class="callout-title">📚 Ressources pour aller plus loin</div>
+    <p>
+      <strong>OSINT Framework</strong> — osintframework.com — Annuaire d'outils classés<br>
+      <strong>Bellingcat Online Investigation Toolkit</strong> — Kit d'investigation en ligne<br>
+      <strong>IntelTechniques</strong> — inteltechniques.com — Référence de Michael Bazzell<br>
+      <strong>Trace Labs</strong> — tracelabs.org — OSINT pour retrouver des personnes disparues<br>
+      <strong>OSINT Curious</strong> — osintcurio.us — Communauté et ressources
+    </p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>SOCMINT — Guide du Renseignement Social — Février 2026</p>
+  <p class="mt-2">Créé avec <span class="h">♥</span> pour l'investigation éthique et la veille citoyenne</p>
+  <p class="mt-2" style="color:var(--text-muted)">Toutes les techniques décrites ne portent que sur des données publiquement accessibles.</p>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<button class="back-top" id="backTop" onclick="window.scrollTo({top:0})" aria-label="Retour en haut">↑</button>
+
+<script>
+/* ═══════════════════════════════════════════
+   NAV
+   ═══════════════════════════════════════════ */
+function toggleNav(){
+  const l=document.getElementById('navLinks'),t=document.querySelector('.nav-toggle');
+  const o=l.classList.toggle('open');
+  t.setAttribute('aria-expanded',o);t.textContent=o?'✕':'☰';
+}
+document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',()=>{
+  document.getElementById('navLinks').classList.remove('open');
+  document.querySelector('.nav-toggle').textContent='☰';
+}));
+
+/* ═══════════════════════════════════════════
+   SCROLL EFFECTS
+   ═══════════════════════════════════════════ */
+const nav=document.querySelector('.nav'),pf=document.getElementById('progressFill'),bt=document.getElementById('backTop');
+function onScroll(){
+  nav.classList.toggle('scrolled',scrollY>20);
+  const h=document.documentElement.scrollHeight-innerHeight;
+  pf.style.width=(scrollY/h*100)+'%';
+  bt.classList.toggle('vis',scrollY>600);
+  // Active nav
+  const secs=document.querySelectorAll('.section');
+  let cur='';secs.forEach(s=>{if(scrollY>=s.offsetTop-120)cur=s.id});
+  document.querySelectorAll('.nav-links a').forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur));
+}
+addEventListener('scroll',onScroll,{passive:true});
+
+/* ═══════════════════════════════════════════
+   REVEAL
+   ═══════════════════════════════════════════ */
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add('vis');
+      e.target.querySelectorAll('.tech,.tool-card,.tl-item,.check-item,.acc-item').forEach((c,i)=>{
+        c.style.transitionDelay=i*.05+'s';c.classList.add('vis');
+      });
+    }
+  });
+},{threshold:.06,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+/* ═══════════════════════════════════════════
+   TABS
+   ═══════════════════════════════════════════ */
+function switchTab(btn){
+  document.querySelectorAll('.platform-tab').forEach(t=>{t.classList.remove('active');t.setAttribute('aria-selected','false')});
+  document.querySelectorAll('.platform-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');btn.setAttribute('aria-selected','true');
+  document.getElementById(btn.dataset.panel).classList.add('active');
+}
+
+/* ═══════════════════════════════════════════
+   COPY
+   ═══════════════════════════════════════════ */
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+function copyQ(el){
+  const txt=el.querySelector('.q-text').textContent.trim();
+  navigator.clipboard.writeText(txt).then(()=>{
+    const b=el.querySelector('.copy-btn');b.textContent='✓';b.classList.add('copied');
+    showToast('✓ Copié');setTimeout(()=>{b.textContent='copier';b.classList.remove('copied')},2000);
+  });
+}
+document.querySelectorAll('.q[onclick]').forEach(d=>{
+  d.setAttribute('role','button');d.setAttribute('tabindex','0');
+  d.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();copyQ(d)}});
+});
+
+/* ═══════════════════════════════════════════
+   ACCORDION
+   ═══════════════════════════════════════════ */
+function toggleAcc(trigger){
+  const item=trigger.parentElement,body=item.querySelector('.acc-body'),isO=item.classList.contains('open');
+  if(isO){item.classList.remove('open');trigger.setAttribute('aria-expanded','false');body.style.maxHeight='0'}
+  else{item.classList.add('open');trigger.setAttribute('aria-expanded','true');body.style.maxHeight=body.scrollHeight+'px'}
+}
+
+/* ═══════════════════════════════════════════
+   CHECKLIST
+   ═══════════════════════════════════════════ */
+function toggleCheck(el){el.classList.toggle('checked')}
+
+/* ═══════════════════════════════════════════
+   SOCMINT QUERY BUILDER
+   ═══════════════════════════════════════════ */
+let socQuery='';
+function buildSocQuery(){
+  const platform=document.getElementById('qb-platform').value;
+  const user=document.getElementById('qb-user').value.trim().replace(/^@/,'');
+  const kw=document.getElementById('qb-keywords').value.trim();
+  const loc=document.getElementById('qb-location').value.trim();
+  const since=document.getElementById('qb-since').value;
+  const filter=document.getElementById('qb-filter').value;
+
+  let q='';
+  const configs={
+    x:()=>{
+      const p=[];
+      if(user)p.push('from:'+user);
+      if(kw)p.push(kw.includes(' ')?'"'+kw+'"':kw);
+      if(loc)p.push('near:"'+loc+'"');
+      if(since)p.push('since:'+since);
+      if(filter==='media')p.push('filter:media');
+      if(filter==='links')p.push('filter:links');
+      if(filter==='noreply')p.push('-filter:replies');
+      return p.join(' ');
+    },
+    fb:()=>{
+      const p=['site:facebook.com'];
+      if(user)p.push('"'+user+'"');
+      if(kw)p.push('"'+kw+'"');
+      if(loc)p.push('"'+loc+'"');
+      return p.join(' ');
+    },
+    li:()=>{
+      const p=['site:linkedin.com/in/'];
+      if(user)p.push('"'+user+'"');
+      if(kw)p.push('"'+kw+'"');
+      if(loc)p.push('"'+loc+'"');
+      return p.join(' ');
+    },
+    ig:()=>{
+      const p=['site:instagram.com'];
+      if(user)p.push('"'+user+'"');
+      if(kw)p.push('"'+kw+'"');
+      return p.join(' ');
+    },
+    rd:()=>{
+      const p=['site:reddit.com'];
+      if(user)p.push('user/'+user);
+      else p.push('/r/');
+      if(kw)p.push('"'+kw+'"');
+      return p.join(' ');
+    },
+    tg:()=>{
+      const p=['site:t.me'];
+      if(user)p.push(user);
+      if(kw)p.push('"'+kw+'"');
+      return p.join(' ');
+    },
+    tk:()=>{
+      const p=['site:tiktok.com'];
+      if(user)p.push('@'+user);
+      if(kw)p.push('"'+kw+'"');
+      return p.join(' ');
+    }
+  };
+
+  q=(configs[platform]||configs.x)();
+  socQuery=q;
+
+  const disp=document.getElementById('qbResult');
+  if(!q.trim()||q==='site:facebook.com'||q==='site:linkedin.com/in/'||q==='site:instagram.com'||q==='site:reddit.com /r/'||q==='site:t.me'||q==='site:tiktok.com'){
+    disp.innerHTML='<span style="color:var(--text-muted)">Remplissez les champs…</span>';socQuery='';return;
+  }
+  let html=q
+    .replace(/(site:|from:|to:|near:|since:|until:|filter:|geocode:|min_retweets:|min_faves:)/g,'<span class="kw">$1</span>')
+    .replace(/(".*?")/g,'<span class="str">$1</span>');
+  disp.innerHTML=html;
+}
+function copySocQuery(){
+  if(!socQuery)return;
+  navigator.clipboard.writeText(socQuery).then(()=>{
+    document.getElementById('qbCopyBtn').textContent='✓ Copié !';
+    showToast('✓ Requête copiée');
+    setTimeout(()=>document.getElementById('qbCopyBtn').textContent='📋 Copier',2000);
+  });
+}
+function openSocQuery(){
+  if(!socQuery)return;
+  const p=document.getElementById('qb-platform').value;
+  if(p==='x') window.open('https://x.com/search?q='+encodeURIComponent(socQuery),'_blank');
+  else window.open('https://www.google.com/search?q='+encodeURIComponent(socQuery),'_blank');
+}
+function resetSocBuilder(){
+  ['qb-user','qb-keywords','qb-location','qb-since'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('qb-filter').selectedIndex=0;
+  document.getElementById('qb-platform').selectedIndex=0;
+  buildSocQuery();
+}
+
+/* INIT */
+onScroll();
+</script>
+</body>
+</html>
