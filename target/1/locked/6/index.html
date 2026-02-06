@@ -1,0 +1,326 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TERMINAL OSINT // NEXUS OUAISFIEU</title>
+    <style>
+        :root {
+            --bg-color: #f3e8ff; /* Lilas très clair */
+            --terminal-bg: #1e1e1e;
+            --accent-green: #86efac; /* Vert tendre néon */
+            --accent-purple: #a855f7; /* Lilas fort */
+            --text-main: #374151;
+            --panel-white: #ffffff;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        /* SIDEBAR - CIBLE */
+        .sidebar {
+            background: var(--panel-white);
+            padding: 20px;
+            border-radius: 4px;
+            border-left: 5px solid var(--accent-purple);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar h2 {
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-purple);
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+
+        input[type="text"] {
+            width: 90%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 2px solid var(--accent-green);
+            background: #f0fdf4;
+            color: #166534;
+            font-family: inherit;
+            font-weight: bold;
+        }
+
+        .target-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .target-list li {
+            padding: 8px;
+            cursor: pointer;
+            border-bottom: 1px dashed #e5e7eb;
+            transition: 0.2s;
+        }
+
+        .target-list li:hover {
+            background-color: var(--accent-green);
+            color: #064e3b;
+        }
+
+        /* MAIN PANEL - OPS */
+        .main-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .module {
+            background: var(--panel-white);
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .module-header {
+            background: var(--terminal-bg);
+            color: var(--accent-green);
+            padding: 10px 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .module-body {
+            padding: 20px;
+        }
+
+        .dork-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 10px;
+        }
+
+        .dork-code {
+            flex-grow: 1;
+            font-family: 'Consolas', monospace;
+            color: #dc2626; /* Rouge code */
+            word-break: break-all;
+        }
+
+        .btn {
+            background-color: var(--accent-purple);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            margin-left: 10px;
+            transition: background 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background-color: #7e22ce;
+        }
+
+        .tag {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .terminal-output {
+            background: var(--terminal-bg);
+            color: var(--accent-green);
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            margin-top: 20px;
+            border-left: 5px solid var(--accent-green);
+        }
+
+        .blink {
+            animation: blinker 1s linear infinite;
+        }
+
+        @keyframes blinker {
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <aside class="sidebar">
+        <h2>1. Cible (Scope)</h2>
+        <p>Définir le vecteur d'attaque (Domaine ou Entité).</p>
+        <input type="text" id="targetInput" value="ouaisfi.eu" onkeyup="updateDorks()">
+        
+        <h2>Cibles détectées</h2>
+        <ul class="target-list">
+            <li onclick="setTarget('ouaisfi.eu')">ouaisfi.eu (Nexus)</li>
+            <li onclick="setTarget('nyxo.brussels')">nyxo.brussels (Santé/ECP)</li>
+            <li onclick="setTarget('auderghem.be')">auderghem.be (Institution)</li>
+            <li onclick="setTarget('rtl.be')">rtl.be (Adversaire Média)</li>
+            <li onclick="setTarget('Christophe Deborsu')">Christophe Deborsu (Entité)</li>
+        </ul>
+
+        <div class="terminal-output">
+            > SYSTEM READY<br>
+            > LISTENING...<br>
+            > <span class="blink">_</span>
+        </div>
+    </aside>
+
+    <main class="main-panel">
+
+        <div class="module">
+            <div class="module-header">
+                <span>[OPS_01] EXFILTRATION DOCUMENTAIRE</span>
+                <span>STATUS: ACTIVE</span>
+            </div>
+            <div class="module-body">
+                <p>Récupération de documents oubliés, budgets non indexés ou mémos internes. C'est la base de l'audit forensique mentionné dans "11·60 bis".</p>
+                
+                <div class="dork-row">
+                    <span class="tag">BUDGET & XLS</span>
+                    <div class="dork-code" id="dork1">site:ouaisfi.eu filetype:xlsx OR filetype:csv "budget"</div>
+                    <a href="#" target="_blank" id="btn1" class="btn">Lancer</a>
+                </div>
+
+                <div class="dork-row">
+                    <span class="tag">STRATÉGIE PDF</span>
+                    <div class="dork-code" id="dork2">site:ouaisfi.eu filetype:pdf "confidentiel" OR "interne" OR "draft"</div>
+                    <a href="#" target="_blank" id="btn2" class="btn">Lancer</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="module">
+            <div class="module-header">
+                <span>[OPS_02] LEAD-DEXING / REPUTATION</span>
+                <span>STATUS: ACTIVE</span>
+            </div>
+            <div class="module-body">
+                <p>Application de la doctrine "Lead-dexing". Voir ce que les autres disent de la cible, en excluant sa propre communication.</p>
+                
+                <div class="dork-row">
+                    <span class="tag">CROSS-CHECK</span>
+                    <div class="dork-code" id="dork3">"ouaisfi.eu" -site:ouaisfi.eu -site:github.com</div>
+                    <a href="#" target="_blank" id="btn3" class="btn">Lancer</a>
+                </div>
+                <small>Permet de voir qui a "forké" ou cité le projet sans permission.</small>
+            </div>
+        </div>
+
+        <div class="module">
+            <div class="module-header">
+                <span>[OPS_03] STRUCTURE & BACKDOORS</span>
+                <span>STATUS: ACTIVE</span>
+            </div>
+            <div class="module-body">
+                <p>Analyse de l'architecture technique (GitHub Pages, fichiers de config, répertoires ouverts).</p>
+                
+                <div class="dork-row">
+                    <span class="tag">INDEX OF</span>
+                    <div class="dork-code" id="dork4">site:ouaisfi.eu intitle:"index of"</div>
+                    <a href="#" target="_blank" id="btn4" class="btn">Lancer</a>
+                </div>
+
+                <div class="dork-row">
+                    <span class="tag">CONFIG FILES</span>
+                    <div class="dork-code" id="dork5">site:ouaisfi.eu ext:json OR ext:xml OR ext:yml</div>
+                    <a href="#" target="_blank" id="btn5" class="btn">Lancer</a>
+                </div>
+                <small>Cible les fichiers `manifest.json`, `config.yml` ou les sitemaps cachés.</small>
+            </div>
+        </div>
+
+        <div class="module">
+            <div class="module-header">
+                <span>[OPS_04] ENTITY POISONING CHECK</span>
+                <span>STATUS: ACTIVE</span>
+            </div>
+            <div class="module-body">
+                <p>Vérifier si les "triplets sémantiques" (Sujet + Verbe + Attribut Toxique) sont indexés par Google.</p>
+                
+                <div class="dork-row">
+                    <span class="tag">ASSOCIATION</span>
+                    <div class="dork-code" id="dork6">"Christophe Deborsu" AND "fiction" AND "fraude"</div>
+                    <a href="#" target="_blank" id="btn6" class="btn">Lancer</a>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    function setTarget(domain) {
+        document.getElementById('targetInput').value = domain;
+        updateDorks();
+    }
+
+    function updateDorks() {
+        const target = document.getElementById('targetInput').value;
+        const googleBase = "https://www.google.com/search?q=";
+
+        // Dork 1: Files
+        const q1 = `site:${target} filetype:xlsx OR filetype:csv "budget"`;
+        document.getElementById('dork1').textContent = q1;
+        document.getElementById('btn1').href = googleBase + encodeURIComponent(q1);
+
+        // Dork 2: Confidential
+        const q2 = `site:${target} filetype:pdf "confidentiel" OR "interne" OR "draft"`;
+        document.getElementById('dork2').textContent = q2;
+        document.getElementById('btn2').href = googleBase + encodeURIComponent(q2);
+
+        // Dork 3: Mentions (Exclusion)
+        const q3 = `"${target}" -site:${target} -site:facebook.com`;
+        document.getElementById('dork3').textContent = q3;
+        document.getElementById('btn3').href = googleBase + encodeURIComponent(q3);
+
+        // Dork 4: Index Of
+        const q4 = `site:${target} intitle:"index of"`;
+        document.getElementById('dork4').textContent = q4;
+        document.getElementById('btn4').href = googleBase + encodeURIComponent(q4);
+
+        // Dork 5: Config
+        const q5 = `site:${target} ext:json OR ext:xml OR ext:yml`;
+        document.getElementById('dork5').textContent = q5;
+        document.getElementById('btn5').href = googleBase + encodeURIComponent(q5);
+
+        // Dork 6: Semantic (Si target est une personne)
+        const q6 = `"${target}" AND "fiction" OR "fake" OR "mensonge"`;
+        document.getElementById('dork6').textContent = q6;
+        document.getElementById('btn6').href = googleBase + encodeURIComponent(q6);
+    }
+
+    // Init
+    updateDorks();
+</script>
+
+</body>
+</html>
