@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ouaisfieu :: ATELIER-DÉBAT INDUSTRIEL v2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --mint: #48bb78;
+  --mint-dim: #48bb7833;
+  --mint-glow: #48bb78aa;
+  --lilac: #9f7aea;
+  --lilac-dim: #9f7aea33;
+  --lilac-glow: #9f7aeaaa;
+  --bg: #0a0e14;
+  --bg-panel: #0d1117;
+  --bg-modal: #111820;
+  --text: #c9d1d9;
+  --text-dim: #6e7681;
+  --border: #21262d;
+  --danger: #f85149;
+  --warning: #d29922;
+  --success: #3fb950;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+/* === SCANLINES === */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* === CRT FLICKER === */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%);
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* === MATRIX RAIN CANVAS === */
+#matrix-rain {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  opacity: 0.06;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* === TOP BAR === */
+#topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 42px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  z-index: 10000;
+  gap: 12px;
+}
+
+.topbar-dots {
+  display: flex;
+  gap: 6px;
+}
+.topbar-dots span {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  display: block;
+}
+.dot-r { background: var(--danger); }
+.dot-y { background: var(--warning); }
+.dot-g { background: var(--success); }
+
+.topbar-title {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  flex: 1;
+  text-align: center;
+}
+
+.topbar-title .blink {
+  animation: blink 1.2s infinite;
+  color: var(--mint);
+}
+
+.topbar-stats {
+  font-size: 10px;
+  color: var(--text-dim);
+  display: flex;
+  gap: 14px;
+}
+.topbar-stats .val { color: var(--mint); font-weight: 600; }
+.topbar-stats .val-lilac { color: var(--lilac); font-weight: 600; }
+
+@keyframes blink { 0%,50% { opacity: 1; } 51%,100% { opacity: 0; } }
+
+/* === SIDE PANEL === */
+#sidepanel {
+  position: fixed;
+  top: 42px;
+  left: 0;
+  width: 320px;
+  bottom: 36px;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  z-index: 10050;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--mint-dim) transparent;
+  transition: transform 0.3s ease;
+}
+
+#sidepanel.collapsed { transform: translateX(-280px); }
+
+#sidepanel::-webkit-scrollbar { width: 4px; }
+#sidepanel::-webkit-scrollbar-thumb { background: var(--mint-dim); border-radius: 2px; }
+
+.panel-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--lilac);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 10px;
+  padding: 2px 8px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+.toggle-btn:hover { border-color: var(--mint); color: var(--mint); }
+
+.ascii-box {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 8px;
+  line-height: 1.2;
+  color: var(--mint);
+  white-space: pre;
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+
+.node-list {
+  padding: 8px 0;
+}
+
+.node-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  transition: all 0.15s;
+  border-left: 2px solid transparent;
+}
+
+.node-item:hover {
+  background: var(--mint-dim);
+  border-left-color: var(--mint);
+}
+
+.node-item.active {
+  background: var(--lilac-dim);
+  border-left-color: var(--lilac);
+}
+
+.node-item .node-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.node-item .node-label { flex: 1; }
+.node-item .node-count {
+  font-size: 9px;
+  color: var(--text-dim);
+  background: var(--border);
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
+/* legend */
+.legend {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+.legend-title {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* === GRAPH AREA === */
+#graph-container {
+  position: fixed;
+  top: 42px;
+  left: 320px;
+  right: 0;
+  bottom: 36px;
+  z-index: 10;
+  overflow: hidden;
+  transition: left 0.3s ease;
+}
+
+#graph-container.expanded { left: 40px; }
+
+#graph-container svg {
+  width: 100%;
+  height: 100%;
+}
+
+.graph-link {
+  stroke: var(--border);
+  stroke-width: 1;
+  opacity: 0.4;
+  transition: all 0.3s;
+}
+.graph-link.highlighted {
+  stroke: var(--mint);
+  stroke-width: 2;
+  opacity: 0.8;
+}
+.graph-link.highlighted-lilac {
+  stroke: var(--lilac);
+  stroke-width: 2;
+  opacity: 0.8;
+}
+
+.graph-node {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.graph-node:hover .node-circle {
+  filter: drop-shadow(0 0 12px currentColor);
+}
+
+.node-circle {
+  transition: all 0.3s;
+}
+
+.node-label-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  fill: var(--text);
+  text-anchor: middle;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.node-pulse {
+  animation: pulse-ring 2.5s ease-out infinite;
+}
+@keyframes pulse-ring {
+  0% { r: 0; opacity: 0.6; }
+  100% { r: 30; opacity: 0; }
+}
+
+/* === BOTTOM BAR === */
+#bottombar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 36px;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  z-index: 10000;
+  font-size: 10px;
+  color: var(--text-dim);
+  gap: 20px;
+}
+
+.status-indicator {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: status-pulse 2s infinite;
+  display: inline-block;
+  margin-right: 6px;
+}
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.cmd-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--mint);
+  font-family: inherit;
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 3px;
+  outline: none;
+  max-width: 400px;
+  position: relative;
+  z-index: 10001;
+  cursor: text;
+}
+.cmd-input:focus { border-color: var(--mint); box-shadow: 0 0 8px var(--mint-dim); }
+.cmd-input::placeholder { color: var(--text-dim); }
+
+/* === MODAL === */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  z-index: 10500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+.modal-overlay.active { display: flex; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal-container {
+  width: min(800px, 90vw);
+  max-height: 80vh;
+  background: var(--bg-modal);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  animation: modalSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow:
+    0 0 0 1px var(--border),
+    0 0 40px rgba(72, 187, 120, 0.08),
+    0 0 80px rgba(159, 122, 234, 0.05);
+}
+
+@keyframes modalSlide {
+  from { transform: translateY(20px) scale(0.97); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.modal-title-area { flex: 1; }
+.modal-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.modal-subtitle {
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.modal-close {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+.modal-close:hover { border-color: var(--danger); color: var(--danger); }
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(80vh - 120px);
+  font-size: 12px;
+  line-height: 1.7;
+  scrollbar-width: thin;
+  scrollbar-color: var(--mint-dim) transparent;
+}
+
+.modal-body h3 {
+  color: var(--mint);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin: 20px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-body h3:first-child { margin-top: 0; }
+
+.modal-body p { margin-bottom: 10px; color: var(--text); }
+
+.modal-body .highlight {
+  color: var(--mint);
+  font-weight: 600;
+}
+.modal-body .highlight-lilac {
+  color: var(--lilac);
+  font-weight: 600;
+}
+
+.modal-body code {
+  background: #161b22;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  color: var(--lilac);
+}
+
+.modal-body .data-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.data-cell {
+  background: #161b22;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 12px;
+}
+.data-cell .data-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.data-cell .data-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--mint);
+}
+.data-cell .data-value.lilac { color: var(--lilac); }
+
+.modal-body .tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+.tag {
+  font-size: 9px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+}
+.tag-mint { background: var(--mint-dim); color: var(--mint); border: 1px solid var(--mint-dim); }
+.tag-lilac { background: var(--lilac-dim); color: var(--lilac); border: 1px solid var(--lilac-dim); }
+.tag-danger { background: rgba(248,81,73,0.15); color: var(--danger); border: 1px solid rgba(248,81,73,0.15); }
+
+.modal-body .terminal-block {
+  background: #0a0e14;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px;
+  margin: 10px 0;
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: var(--mint);
+  position: relative;
+}
+.terminal-block::before {
+  content: '$ ';
+  color: var(--lilac);
+}
+
+.modal-body .progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  margin: 6px 0;
+  overflow: hidden;
+}
+.progress-bar .progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s ease;
+}
+
+.modal-links {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.modal-link {
+  font-size: 10px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-dim);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.modal-link:hover { border-color: var(--lilac); color: var(--lilac); }
+
+/* === NOTIFICATION TOAST === */
+.toast {
+  position: fixed;
+  top: 56px;
+  right: 16px;
+  background: var(--bg-modal);
+  border: 1px solid var(--mint);
+  border-radius: 4px;
+  padding: 10px 16px;
+  font-size: 11px;
+  color: var(--mint);
+  z-index: 10600;
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 3s forwards;
+  box-shadow: 0 0 20px var(--mint-dim);
+}
+@keyframes toastIn { from { transform: translateX(100px); opacity: 0; } }
+@keyframes toastOut { to { transform: translateX(100px); opacity: 0; } }
+
+/* === GLITCH EFFECT === */
+.glitch {
+  position: relative;
+}
+.glitch::before, .glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+}
+.glitch::before {
+  animation: glitch-1 3s infinite linear alternate-reverse;
+  clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+  color: var(--mint);
+  left: 2px;
+}
+.glitch::after {
+  animation: glitch-2 3s infinite linear alternate-reverse;
+  clip-path: polygon(0 60%, 100% 60%, 100% 100%, 0 100%);
+  color: var(--lilac);
+  left: -2px;
+}
+@keyframes glitch-1 {
+  0%, 92% { transform: none; } 93% { transform: translate(3px, 0); }
+  94% { transform: translate(-3px, 0); } 95% { transform: none; }
+}
+@keyframes glitch-2 {
+  0%, 95% { transform: none; } 96% { transform: translate(-3px, 0); }
+  97% { transform: translate(3px, 0); } 98% { transform: none; }
+}
+
+/* === TYPING EFFECT === */
+.typing {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid var(--mint);
+  animation: typing 2s steps(40) 1s both, blinkCaret 0.75s step-end infinite;
+  width: 0;
+}
+@keyframes typing { from { width: 0; } to { width: 100%; } }
+@keyframes blinkCaret { from, to { border-color: transparent; } 50% { border-color: var(--mint); } }
+
+/* === TOOLTIP === */
+.graph-tooltip {
+  position: fixed;
+  background: var(--bg-modal);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 10px;
+  color: var(--text);
+  pointer-events: none;
+  z-index: 10100;
+  display: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.graph-tooltip.visible { display: block; }
+.graph-tooltip .tt-label { color: var(--mint); font-weight: 600; }
+.graph-tooltip .tt-sub { color: var(--text-dim); margin-top: 2px; }
+
+/* responsive */
+@media (max-width: 768px) {
+  #sidepanel { width: 260px; }
+  #graph-container { left: 0; }
+  #sidepanel { transform: translateX(-260px); }
+  #sidepanel.visible { transform: translateX(0); }
+}
+</style>
+</head>
+<body>
+
+<canvas id="matrix-rain" width="1600" height="832"></canvas>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="topbar-dots">
+    <span class="dot-r"></span>
+    <span class="dot-y"></span>
+    <span class="dot-g"></span>
+  </div>
+  <div class="topbar-title">
+    ouaisfieu@citizen-intel:~$ <span class="blink">█</span> ATELIER-DÉBAT INDUSTRIEL — GRAPH VIEW — <span id="clock">08:57:56</span>
+  </div>
+  <div class="topbar-stats">
+    <span>NODES <span class="val" id="stat-nodes">20</span></span>
+    <span>LINKS <span class="val-lilac" id="stat-links">44</span></span>
+    <span>BUDGET <span class="val">29€</span>/mois</span>
+  </div>
+</div>
+
+<!-- SIDE PANEL -->
+<div id="sidepanel">
+  <div class="panel-header">
+    <span>⚡ EXPLORATEUR DE NŒUDS</span>
+    <button class="toggle-btn" id="collapse-btn" onclick="togglePanel()">◀</button>
+  </div>
+  <div class="ascii-box">
+ ╔═══════════════════════════════╗
+ ║  ___  _   _  ___  ___ ___    ║
+ ║ / _ \| | | |/ _ \|_ _/ __|   ║
+ ║| (_) | |_| | (_) || |\__ \   ║
+ ║ \___/ \___/ \___/|___|___/   ║
+ ║  ___ ___ ___ _   _           ║
+ ║ | __/ _ \ __| | | |          ║
+ ║ | _| (_) | _|| |_| |         ║
+ ║ |_| \___/___|\___/           ║
+ ║                               ║
+ ║ INTELLIGENCE CITOYENNE v2.0   ║
+ ║ « fork · hack · spread »     ║
+ ╚═══════════════════════════════╝</div>
+  <div class="node-list" id="node-list"><div class="node-item" data-id="youtube">
+      <span class="node-dot" style="background:#48bb78"></span>
+      <span class="node-label">YouTube + Commentaires</span>
+      <span class="node-count">7</span>
+    </div><div class="node-item" data-id="peertube">
+      <span class="node-dot" style="background:#48bb78"></span>
+      <span class="node-label">PeerTube Fediverse</span>
+      <span class="node-count">4</span>
+    </div><div class="node-item" data-id="mastodon-bluesky">
+      <span class="node-dot" style="background:#48bb78"></span>
+      <span class="node-label">Mastodon Bluesky</span>
+      <span class="node-count">3</span>
+    </div><div class="node-item" data-id="pol-is">
+      <span class="node-dot" style="background:#9f7aea"></span>
+      <span class="node-label">Pol.is</span>
+      <span class="node-count">5</span>
+    </div><div class="node-item" data-id="consider-it">
+      <span class="node-dot" style="background:#9f7aea"></span>
+      <span class="node-label">Consider.it</span>
+      <span class="node-count">3</span>
+    </div><div class="node-item" data-id="your-priorities">
+      <span class="node-dot" style="background:#9f7aea"></span>
+      <span class="node-label">Your Priorities</span>
+      <span class="node-count">3</span>
+    </div><div class="node-item" data-id="agorakit">
+      <span class="node-dot" style="background:#9f7aea"></span>
+      <span class="node-label">Agorakit 🇧🇪</span>
+      <span class="node-count">3</span>
+    </div><div class="node-item" data-id="anti-trolling">
+      <span class="node-dot" style="background:#63b3ed"></span>
+      <span class="node-label">Anti-Trolling by Design</span>
+      <span class="node-count">3</span>
+    </div><div class="node-item" data-id="batch-production">
+      <span class="node-dot" style="background:#f6ad55"></span>
+      <span class="node-label">Batch Processing</span>
+      <span class="node-count">5</span>
+    </div><div class="node-item" data-id="atelier-kit">
+      <span class="node-dot" style="background:#f6ad55"></span>
+      <span class="node-label">Atelier en Kit</span>
+      <span class="node-count">4</span>
+    </div><div class="node-item" data-id="voir-penser-agir">
+      <span class="node-dot" style="background:#63b3ed"></span>
+      <span class="node-label">Voir Penser Agir</span>
+      <span class="node-count">6</span>
+    </div><div class="node-item" data-id="budget">
+      <span class="node-dot" style="background:#f6ad55"></span>
+      <span class="node-label">Budget 29€/mois</span>
+      <span class="node-count">3</span>
+    </div><div class="node-item" data-id="h5p">
+      <span class="node-dot" style="background:#f6ad55"></span>
+      <span class="node-label">H5P Interactif</span>
+      <span class="node-count">3</span>
+    </div><div class="node-item" data-id="whisper">
+      <span class="node-dot" style="background:#f6ad55"></span>
+      <span class="node-label">Whisper AI Sous-titrage</span>
+      <span class="node-count">4</span>
+    </div><div class="node-item" data-id="bascule-presentiel">
+      <span class="node-dot" style="background:#fc8181"></span>
+      <span class="node-label">Bascule Présentiel</span>
+      <span class="node-count">4</span>
+    </div><div class="node-item" data-id="infrastructure-belge">
+      <span class="node-dot" style="background:#fc8181"></span>
+      <span class="node-label">Infra Belge</span>
+      <span class="node-count">3</span>
+    </div><div class="node-item" data-id="mobilizon">
+      <span class="node-dot" style="background:#fc8181"></span>
+      <span class="node-label">Mobilizon Événements</span>
+      <span class="node-count">4</span>
+    </div><div class="node-item" data-id="cc-by-sa">
+      <span class="node-dot" style="background:#fbd38d"></span>
+      <span class="node-label">CC-BY-SA 4.0</span>
+      <span class="node-count">3</span>
+    </div><div class="node-item" data-id="framasoft">
+      <span class="node-dot" style="background:#63b3ed"></span>
+      <span class="node-label">Modèle Framasoft</span>
+      <span class="node-count">4</span>
+    </div><div class="node-item" data-id="commentaire-épinglé">
+      <span class="node-dot" style="background:#48bb78"></span>
+      <span class="node-label">Commentaire Épinglé</span>
+      <span class="node-count">2</span>
+    </div></div>
+  <div class="legend">
+    <div class="legend-title">Catégories</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#48bb78"></span> Diffusion</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#9f7aea"></span> Délibération</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#f6ad55"></span> Production</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#fc8181"></span> Infrastructure</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#63b3ed"></span> Méthodologie</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#fbd38d"></span> Juridique</div>
+  </div>
+</div>
+
+<!-- GRAPH -->
+<div id="graph-container">
+  <svg id="graph-svg"></svg>
+</div>
+
+<!-- BOTTOM BAR -->
+<div id="bottombar">
+  <span><span class="status-indicator"></span>SYSTÈME OPÉRATIONNEL</span>
+  <span>🇧🇪 FWB · EP · DÉCRET 2003</span>
+  <input type="text" class="cmd-input" id="cmd-input" tabindex="1" placeholder="Tapez un nœud ou &#39;help&#39; pour les commandes..." onkeydown="handleCmd(event)" style="pointer-events:auto !important;">
+  <span>CC-BY-SA 4.0</span>
+  <span>~100 ateliers/an</span>
+</div>
+
+<!-- TOOLTIP -->
+<div class="graph-tooltip" id="tooltip" style="left: 741px; top: 97px;">
+  <div class="tt-label" id="tt-label">Your Priorities</div>
+  <div class="tt-sub" id="tt-sub">CITIZENS FOUNDATION · #1 MONDIAL</div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-container" id="modal-container">
+    <div class="modal-header" id="modal-header"></div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-links" id="modal-links"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+// ====================================================
+// DATA MODEL
+// ====================================================
+const CATEGORIES = {
+  diffusion: { color: '#48bb78', icon: '📡' },
+  deliberation: { color: '#9f7aea', icon: '🗳️' },
+  production: { color: '#f6ad55', icon: '🏭' },
+  infrastructure: { color: '#fc8181', icon: '🏛️' },
+  methodology: { color: '#63b3ed', icon: '🧭' },
+  legal: { color: '#fbd38d', icon: '⚖️' }
+};
+
+const nodes = [
+  {
+    id: 'youtube', label: 'YouTube\n+ Commentaires', category: 'diffusion', size: 28,
+    subtitle: 'CANAL DE DIFFUSION PRINCIPAL',
+    content: `<h3>Format Vidéo "3-Act Debate" (6-9 min)</h3>
+<p>Les vidéos de <span class="highlight">moins de 6 minutes</span> maintiennent ~100% d'engagement. Le format optimal :</p>
+<div class="data-grid">
+  <div class="data-cell"><div class="data-label">Accroche + Thèse</div><div class="data-value">0:00–1:30</div></div>
+  <div class="data-cell"><div class="data-label">Contexte / Preuves</div><div class="data-value">1:30–4:00</div></div>
+  <div class="data-cell"><div class="data-label">Approfondissement</div><div class="data-value">4:30–7:00</div></div>
+  <div class="data-cell"><div class="data-label">Synthèse + CTA</div><div class="data-value">7:30–9:00</div></div>
+</div>
+<h3>Le commentaire épinglé est l'arme secrète</h3>
+<p>Un commentaire épinglé bien conçu <span class="highlight">augmente les réponses de 30%</span>. Formules :</p>
+<div class="tag-list">
+  <span class="tag tag-mint">Q&A Hook</span>
+  <span class="tag tag-lilac">Micro-sondage emoji</span>
+  <span class="tag tag-mint">Prompt timestamp</span>
+  <span class="tag tag-danger">⊘ "Qu'en pensez-vous ?"</span>
+</div>
+<p>Répondre dans les <span class="highlight">premières 24-72h</span> est crucial pour le boost algorithmique.</p>
+<h3>Modèles inspirants</h3>
+<p><span class="highlight-lilac">Osons Causer</span> : 5-6 min, 15,5M+ vues, éducation populaire. <span class="highlight-lilac">Data Gueule</span> : data-journalisme, 425K abonnés. Fait clé : les <span class="highlight">petites chaînes spécialisées</span> produisent un débat de meilleure qualité que les grandes chaînes généralistes (étude : 2,2M commentaires, 57 chaînes).</p>`,
+    links: ['pol-is', 'commentaire-épinglé', 'consider-it', 'peertube', 'h5p', 'voir-penser-agir', 'whisper']
+  },
+  {
+    id: 'peertube', label: 'PeerTube\nFediverse', category: 'diffusion', size: 22,
+    subtitle: 'VIDÉO FÉDÉRÉE · SOUVERAINE',
+    content: `<h3>Architecture ActivityPub</h3>
+<p>PeerTube communique avec <span class="highlight">Mastodon, Mobilizon, Castopod</span> via le protocole ActivityPub. Un commentaire PeerTube apparaît sur Mastodon. Un événement Mobilizon est visible partout.</p>
+<div class="data-grid">
+  <div class="data-cell"><div class="data-label">Protocole</div><div class="data-value">ActivityPub</div></div>
+  <div class="data-cell"><div class="data-label">Licence</div><div class="data-value">AGPL v3</div></div>
+  <div class="data-cell"><div class="data-label">Coût VPS</div><div class="data-value lilac">~5-7€/m</div></div>
+  <div class="data-cell"><div class="data-label">P2P Streaming</div><div class="data-value">WebTorrent</div></div>
+</div>
+<h3>Avantages sur YouTube</h3>
+<p>Pas de tracking, pas d'algorithme de radicalisation, pas de pub. Les vidéos peuvent être <span class="highlight">fédérées entre instances</span> — votre contenu reste accessible même si votre serveur tombe. Intègre nativement les plugins pour le sous-titrage et les chapitres.</p>
+<div class="terminal-block">apt install peertube  # sur VPS OVH à 5€/mois</div>`,
+    links: ['youtube', 'budget', 'mastodon-bluesky', 'mobilizon']
+  },
+  {
+    id: 'mastodon-bluesky', label: 'Mastodon\nBluesky', category: 'diffusion', size: 18,
+    subtitle: 'RÉSEAUX SOCIAUX OUVERTS',
+    content: `<h3>Double stratégie de diffusion</h3>
+<p><span class="highlight">Mastodon</span> (Fediverse, auto-hébergeable) + <span class="highlight-lilac">Bluesky</span> (AT Protocol, croissance rapide) pour maximiser la portée sans dépendance à une plateforme unique.</p>
+<p>Chaque atelier-débat est annoncé avec un thread structuré : question d'accroche → lien vidéo → questions de débat → lien vers la synthèse collaborative.</p>
+<div class="tag-list">
+  <span class="tag tag-mint">Mastodon</span>
+  <span class="tag tag-lilac">Bluesky</span>
+  <span class="tag tag-mint">Telegram</span>
+  <span class="tag tag-lilac">Reddit</span>
+  <span class="tag tag-mint">Facebook Groups</span>
+</div>`,
+    links: ['peertube', 'youtube', 'mobilizon']
+  },
+  {
+    id: 'pol-is', label: 'Pol.is', category: 'deliberation', size: 26,
+    subtitle: 'DÉLIBÉRATION ANTI-TROLLING · ML CONSENSUS',
+    content: `<h3>L'arme secrète de la démocratie taïwanaise</h3>
+<p>Open source (MIT), utilisé par <span class="highlight">vTaiwan</span> pour légiférer. Résultat : <span class="highlight">80% des délibérations</span> ont mené à une action gouvernementale.</p>
+<div class="data-grid">
+  <div class="data-cell"><div class="data-label">Cas Uber Taiwan</div><div class="data-value">31 115</div><div class="data-label" style="margin-top:2px">votes</div></div>
+  <div class="data-cell"><div class="data-label">Participants</div><div class="data-value lilac">925</div></div>
+  <div class="data-cell"><div class="data-label">Licence</div><div class="data-value">MIT</div></div>
+  <div class="data-cell"><div class="data-label">Tracking</div><div class="data-value" style="color:var(--success)">AUCUN</div></div>
+</div>
+<h3>Anti-trolling by design</h3>
+<p>Les utilisateurs soumettent des <span class="highlight-lilac">déclarations courtes</span>, les autres votent "d'accord/pas d'accord/passe". <span class="highlight">Aucune réponse directe n'est possible.</span> Le ML regroupe les opinions par patterns et fait émerger les déclarations consensus.</p>
+<div class="terminal-block">git clone https://github.com/compdemocracy/polis</div>`,
+    links: ['youtube', 'consider-it', 'your-priorities', 'anti-trolling', 'voir-penser-agir']
+  },
+  {
+    id: 'consider-it', label: 'Consider.it', category: 'deliberation', size: 18,
+    subtitle: 'SLIDER D\'OPINION · VISUALISATION',
+    content: `<h3>Délibération par positionnement visuel</h3>
+<p>Chaque proposition génère un <span class="highlight">slider</span> (désaccord ↔ accord) + une liste personnelle pour/contre. Un <span class="highlight-lilac">histogramme pictural</span> visualise la distribution des positions de la communauté.</p>
+<div class="data-grid">
+  <div class="data-cell"><div class="data-label">Licence</div><div class="data-value">AGPL v3</div></div>
+  <div class="data-cell"><div class="data-label">Stack</div><div class="data-value lilac">Ruby + React</div></div>
+</div>
+<p>La recherche démontre que cet outil <span class="highlight">modifie significativement les positions</span> des utilisateurs et leur perception des connaissances.</p>`,
+    links: ['pol-is', 'your-priorities', 'agorakit']
+  },
+  {
+    id: 'your-priorities', label: 'Your\nPriorities', category: 'deliberation', size: 20,
+    subtitle: 'CITIZENS FOUNDATION · #1 MONDIAL',
+    content: `<h3>Plateforme #1 mondiale de participation citoyenne</h3>
+<p>Classé <span class="highlight">#1 par PeoplePowered en 2025</span>. Utilisé dans 45 pays par 2+ millions de personnes.</p>
+<div class="data-grid">
+  <div class="data-cell"><div class="data-label">Better Reykjavik</div><div class="data-value">70 000</div><div class="data-label" style="margin-top:2px">citoyens engagés</div></div>
+  <div class="data-cell"><div class="data-label">Idées générées</div><div class="data-value lilac">10 000+</div></div>
+</div>
+<p>Design similaire à Pol.is : <span class="highlight-lilac">interdit les réponses directes</span>. Les utilisateurs doivent écrire des contre-points indépendants.</p>`,
+    links: ['pol-is', 'consider-it', 'anti-trolling']
+  },
+  {
+    id: 'agorakit', label: 'Agorakit\n🇧🇪', category: 'deliberation', size: 16,
+    subtitle: 'PLATEFORME BELGE · CITOYENNE',
+    content: `<h3>Le groupware citoyen belge</h3>
+<p>Créé en Belgique, <span class="highlight">AGPL, Laravel/PHP</span>. Utilisé par "Tout Autre Chose" et "Hart boven Hard".</p>
+<div class="tag-list">
+  <span class="tag tag-mint">Forum</span>
+  <span class="tag tag-lilac">Calendrier</span>
+  <span class="tag tag-mint">Fichiers</span>
+  <span class="tag tag-lilac">Cartographie</span>
+</div>
+<p>Instance gratuite sur <code>app.agorakit.org</code>. Philosophie horizontale, pas de hiérarchie.</p>
+<div class="terminal-block">git clone https://codeberg.org/agorakit/agorakit</div>`,
+    links: ['consider-it', 'mobilizon', 'bascule-presentiel']
+  },
+  {
+    id: 'anti-trolling', label: 'Anti-Trolling\nby Design', category: 'methodology', size: 20,
+    subtitle: 'DÉCOUVERTE CLÉ DE LA RECHERCHE',
+    content: `<h3>Interdire les réponses directes = meilleur débat</h3>
+<p>La découverte la plus contre-intuitive : les plateformes les plus efficaces pour le débat citoyen (<span class="highlight">Pol.is, Your Priorities, Consider.it</span>) <span class="highlight-lilac">interdisent les réponses directes</span> entre participants.</p>
+<p>Ce choix, validé à l'échelle nationale à <span class="highlight">Taiwan et en Islande</span>, élimine les attaques personnelles et force la contribution constructive.</p>
+<h3>Mécanismes</h3>
+<div class="tag-list">
+  <span class="tag tag-mint">Pas de reply direct</span>
+  <span class="tag tag-lilac">Vote silencieux</span>
+  <span class="tag tag-mint">ML clustering</span>
+  <span class="tag tag-lilac">Consensus émergent</span>
+  <span class="tag tag-danger">⊘ Fils de discussion</span>
+</div>`,
+    links: ['pol-is', 'your-priorities', 'voir-penser-agir']
+  },
+  {
+    id: 'batch-production', label: 'Batch\nProcessing', category: 'production', size: 24,
+    subtitle: '~100 ATELIERS/AN · 8-11H/SEMAINE',
+    content: `<h3>Production industrielle en solo</h3>
+<p>Le batch processing réduit le temps de production de <span class="highlight">20+ heures pour 10 contenus à 9 heures</span>.</p>
+<h3>Cycle hebdomadaire (2 ateliers/semaine)</h3>
+<div class="data-grid">
+  <div class="data-cell"><div class="data-label">Lundi</div><div class="data-value">2-3h</div><div class="data-label" style="margin-top:2px">Sources + Questions</div></div>
+  <div class="data-cell"><div class="data-label">Mardi</div><div class="data-value lilac">1-2h</div><div class="data-label" style="margin-top:2px">Scripts + Enregistrement</div></div>
+  <div class="data-cell"><div class="data-label">Mercredi</div><div class="data-value">2-3h</div><div class="data-label" style="margin-top:2px">Montage + Sous-titres</div></div>
+  <div class="data-cell"><div class="data-label">Jeudi→Ven</div><div class="data-value lilac">2-3h</div><div class="data-label" style="margin-top:2px">Assemblage + Diffusion</div></div>
+</div>
+<h3>Charge estimée</h3>
+<div class="progress-bar"><div class="progress-fill" style="width:60%;background:var(--mint)"></div></div>
+<p style="font-size:10px;color:var(--text-dim)">~8-11h/semaine sur une capacité estimée de 20h → 60% d'utilisation</p>`,
+    links: ['atelier-kit', 'h5p', 'whisper', 'youtube', 'peertube']
+  },
+  {
+    id: 'atelier-kit', label: 'Atelier\nen Kit', category: 'production', size: 22,
+    subtitle: 'TEMPLATE GITHUB FORKABLE',
+    content: `<h3>Un dépôt GitHub par atelier, forkable à l'infini</h3>
+<div class="terminal-block">/atelier-nom-du-sujet/
+├── README.md          # vue d'ensemble
+├── hook-video.mp4     # lien YouTube/PeerTube
+├── document-ref.md    # matériel source
+├── questions-debat.md # 3 niveaux Bloom
+├── synthese.md        # template Framapad
+├── visuels/           # réseaux sociaux
+├── LICENSE            # CC-BY-SA 4.0
+└── GUIDE-ANIMATEUR.md # présentiel</div>
+<h3>4 phases pédagogiques</h3>
+<p><span class="highlight">1.</span> Vidéo d'accroche (2-3 min) → <span class="highlight">2.</span> Document de référence (800-1200 mots) → <span class="highlight">3.</span> Questions à 3 niveaux (compréhension, opinion, proposition) → <span class="highlight">4.</span> Synthèse collaborative Framapad.</p>`,
+    links: ['batch-production', 'cc-by-sa', 'voir-penser-agir', 'bascule-presentiel']
+  },
+  {
+    id: 'voir-penser-agir', label: 'Voir\nPenser\nAgir', category: 'methodology', size: 26,
+    subtitle: 'MÉTHODOLOGIE CPCP · ÉDUCATION PERMANENTE',
+    content: `<h3>Le cadre pédagogique de référence en FWB</h3>
+<p>Méthodologie du <span class="highlight-lilac">CPCP</span> (35-43 collaborateurs, 4 antennes) — directement transposable en asynchrone.</p>
+<h3>Transposition asynchrone</h3>
+<p><span class="highlight">VOIR</span> = Consommation de contenu (vidéo + document) avec prompts de réflexion personnelle.</p>
+<p><span class="highlight-lilac">PENSER</span> = Délibération structurée via Pol.is / Consider.it / commentaires guidés. World Café virtuel : threads séquentiels à durée limitée (48h).</p>
+<p><span class="highlight">AGIR</span> = Co-rédaction collaborative (CryptPad/Framapad) de propositions, pétitions, projets locaux → <span class="highlight-lilac">bascule présentiel</span>.</p>
+<h3>Validation à grande échelle</h3>
+<p>MOOC Colibris "(R)évolutions Locales" : éducation populaire numérique. MOOC "Concevoir une Oasis" : <span class="highlight">30 000+ participants</span>.</p>`,
+    links: ['pol-is', 'atelier-kit', 'bascule-presentiel', 'anti-trolling', 'youtube', 'infrastructure-belge']
+  },
+  {
+    id: 'budget', label: 'Budget\n29€/mois', category: 'production', size: 20,
+    subtitle: 'INFRASTRUCTURE COMPLÈTE',
+    content: `<h3>Ventilation budgétaire</h3>
+<div class="data-grid">
+  <div class="data-cell"><div class="data-label">YouTube</div><div class="data-value" style="color:var(--success)">0€</div></div>
+  <div class="data-cell"><div class="data-label">PeerTube VPS</div><div class="data-value lilac">~6€</div></div>
+  <div class="data-cell"><div class="data-label">Mastodon</div><div class="data-value" style="color:var(--success)">0€</div></div>
+  <div class="data-cell"><div class="data-label">CryptPad</div><div class="data-value" style="color:var(--success)">0€</div></div>
+  <div class="data-cell"><div class="data-label">Framapad</div><div class="data-value" style="color:var(--success)">0€</div></div>
+  <div class="data-cell"><div class="data-label">Mobilizon</div><div class="data-value" style="color:var(--success)">0€</div></div>
+  <div class="data-cell"><div class="data-label">GitHub Pages</div><div class="data-value" style="color:var(--success)">0€</div></div>
+  <div class="data-cell"><div class="data-label">Domaine .be</div><div class="data-value">~1€</div></div>
+</div>
+<h3>Total</h3>
+<div class="data-grid">
+  <div class="data-cell"><div class="data-label">Infrastructure</div><div class="data-value">~7€</div></div>
+  <div class="data-cell"><div class="data-label">Marge restante</div><div class="data-value lilac">~22€</div></div>
+</div>
+<p>La marge finance un micro, une instance Loomio Community (10$/mois), ou un hébergement CryptPad dédié.</p>`,
+    links: ['peertube', 'batch-production', 'infrastructure-belge']
+  },
+  {
+    id: 'h5p', label: 'H5P\nInteractif', category: 'production', size: 16,
+    subtitle: 'VIDÉO INTERACTIVE OPEN SOURCE',
+    content: `<h3>Transformer toute vidéo en atelier interactif</h3>
+<p>Open source (MIT). Transforme n'importe quelle vidéo YouTube en vidéo interactive : <span class="highlight">QCM, textes pop-up, liens</span> intégrés à des timestamps précis. La vidéo se met en <span class="highlight-lilac">pause automatiquement</span>.</p>
+<div class="tag-list">
+  <span class="tag tag-mint">WordPress</span>
+  <span class="tag tag-lilac">Drupal</span>
+  <span class="tag tag-mint">Moodle</span>
+  <span class="tag tag-lilac">iframe GitHub Pages</span>
+</div>
+<p><span class="highlight">Lumi Education</span> : app desktop pour créer/éditer des H5P hors ligne.</p>`,
+    links: ['youtube', 'batch-production', 'whisper']
+  },
+  {
+    id: 'whisper', label: 'Whisper AI\nSous-titrage', category: 'production', size: 14,
+    subtitle: 'SOUS-TITRAGE AUTOMATIQUE · BATCH',
+    content: `<h3>Faster-Whisper : 4-8x plus rapide</h3>
+<p>Variante optimisée d'OpenAI Whisper. <span class="highlight">Traite un dossier entier de vidéos en batch</span> via le script whisper-video.</p>
+<p>Triple fonction : <span class="highlight-lilac">accessibilité</span> + <span class="highlight">SEO</span> (+20% de vues) + <span class="highlight-lilac">transcriptions textuelles</span> pour le site web.</p>
+<div class="terminal-block">pip install faster-whisper
+python -m whisper_video --model large-v3 ./videos/</div>`,
+    links: ['batch-production', 'youtube', 'h5p', 'cc-by-sa']
+  },
+  {
+    id: 'bascule-presentiel', label: 'Bascule\nPrésentiel', category: 'infrastructure', size: 22,
+    subtitle: 'SEUIL DE 5 · CODE POSTAL VOLONTAIRE',
+    content: `<h3>Mécanisme RGPD-by-design</h3>
+<p>Code postal belge volontaire (4 chiffres). Regroupement par les <span class="highlight">deux premiers chiffres</span> :</p>
+<div class="tag-list">
+  <span class="tag tag-mint">10xx = Bruxelles</span>
+  <span class="tag tag-lilac">40xx = Liège</span>
+  <span class="tag tag-mint">50xx = Namur</span>
+  <span class="tag tag-lilac">70xx = Mons</span>
+</div>
+<p>Quand <span class="highlight">5+ utilisateurs</span> partagent la même zone → email automatique + lien <span class="highlight-lilac">Framadate</span>.</p>
+<p><span class="highlight">Aucun GPS, aucune géolocalisation IP.</span></p>
+<h3>Modèle Shifters</h3>
+<p>25 000+ personnes, 75+ groupes locaux. Réunions mensuelles, chaque groupe a un "pilote" volontaire. Quand 3+ rencontres → formaliser en "groupe local" avec kit de démarrage.</p>`,
+    links: ['infrastructure-belge', 'mobilizon', 'voir-penser-agir', 'agorakit']
+  },
+  {
+    id: 'infrastructure-belge', label: 'Infra\nBelge', category: 'infrastructure', size: 28,
+    subtitle: '~280 ASBL · CENTAINES DE LIEUX GRATUITS',
+    content: `<h3>Un maillage territorial sans équivalent en Europe</h3>
+<div class="data-grid">
+  <div class="data-cell"><div class="data-label">ASBL Éducation Permanente</div><div class="data-value">~280</div></div>
+  <div class="data-cell"><div class="data-label">ETP employés</div><div class="data-value lilac">~2 300</div></div>
+  <div class="data-cell"><div class="data-label">EPN Wallonie</div><div class="data-value">200+</div></div>
+  <div class="data-cell"><div class="data-label">Centres Culturels</div><div class="data-value lilac">122</div></div>
+</div>
+<h3>Lieux gratuits par type</h3>
+<p><span class="highlight">Bibliothèques publiques</span> : salles d'animation, déjà dans l'animation citoyenne. Ex: Nivelles accueille des "soirées citoyennes" avec le CIEP.</p>
+<p><span class="highlight-lilac">EPN</span> : 200+ en Wallonie, 30+ à Bruxelles (CABAN). Accompagnement numérique inclus.</p>
+<p><span class="highlight">Espaces Wallonie</span> : salles gratuites à Liège, Mons, Nivelles, Verviers, Tournai (9h-16h30, café fourni ☕).</p>
+<p><span class="highlight-lilac">Maisons de Quartier</span> : 18-19 à Bruxelles, mission de débat citoyen.</p>
+<h3>Partenaires naturels</h3>
+<div class="tag-list">
+  <span class="tag tag-mint">CPCP</span>
+  <span class="tag tag-lilac">PAC (~200 sections)</span>
+  <span class="tag tag-mint">Centre Action Laïque</span>
+  <span class="tag tag-lilac">CEPAG/FGTB</span>
+  <span class="tag tag-mint">COCOF</span>
+</div>`,
+    links: ['bascule-presentiel', 'voir-penser-agir', 'budget']
+  },
+  {
+    id: 'mobilizon', label: 'Mobilizon\nÉvénements', category: 'infrastructure', size: 16,
+    subtitle: 'ALTERNATIVE FÉDÉRÉE À MEETUP/FACEBOOK',
+    content: `<h3>Événements sans Facebook</h3>
+<p>Développé par <span class="highlight">Framasoft</span>, fédéré via ActivityPub. Création d'événements, groupes, ressources — le tout interconnecté avec Mastodon et PeerTube.</p>
+<p>Parfait pour organiser les <span class="highlight-lilac">bascules présentiel</span> quand le seuil de 5 est atteint. Instances gratuites disponibles.</p>`,
+    links: ['peertube', 'bascule-presentiel', 'agorakit', 'mastodon-bluesky']
+  },
+  {
+    id: 'cc-by-sa', label: 'CC-BY-SA\n4.0', category: 'legal', size: 18,
+    subtitle: 'LICENCE · VIRALITÉ DE L\'OUVERTURE',
+    content: `<h3>Le fork comme stratégie de diffusion</h3>
+<p><span class="highlight">Attribution</span> = reconnaissance de ouaisfieu dans chaque fork.</p>
+<p><span class="highlight-lilac">ShareAlike</span> = toutes les adaptations restent ouvertes → viralité de l'ouverture.</p>
+<h3>Pourquoi PAS NC ni ND</h3>
+<div class="tag-list">
+  <span class="tag tag-danger">⊘ NonCommercial</span>
+  <span class="tag tag-danger">⊘ NoDerivatives</span>
+</div>
+<p>NC empêcherait les associations d'utiliser les ateliers dans des formations payantes. ND empêcherait le fork même. Les deux sont <span class="highlight">incompatibles avec la logique d'essaimage</span>.</p>`,
+    links: ['atelier-kit', 'whisper', 'batch-production']
+  },
+  {
+    id: 'framasoft', label: 'Modèle\nFramasoft', category: 'methodology', size: 18,
+    subtitle: '35 MEMBRES · IMPACT MASSIF',
+    content: `<h3>"Les clous, les planches et les marteaux"</h3>
+<p><span class="highlight">35 membres, 10 salariés</span> produisant un impact massif grâce à trois principes :</p>
+<p>1. <span class="highlight-lilac">Tout ouvrir</span> sous licences libres (fork communautaire)</p>
+<p>2. <span class="highlight">Utiliser ses propres outils</span> (Framapad, PeerTube, Framablog)</p>
+<p>3. <span class="highlight-lilac">Archipéliser</span> — connecter des communautés alliées qui redistribuent et adaptent le contenu.</p>
+<p>Devise : <em>"Framasoft fournit les clous, les planches et les marteaux. À vous d'inventer et construire les projets."</em></p>`,
+    links: ['peertube', 'mobilizon', 'cc-by-sa', 'voir-penser-agir']
+  },
+  {
+    id: 'commentaire-épinglé', label: 'Commentaire\nÉpinglé', category: 'diffusion', size: 14,
+    subtitle: 'TECHNIQUE D\'ENGAGEMENT +30%',
+    content: `<h3>L'outil d'animation asynchrone #1</h3>
+<p>Le commentaire épinglé structure le débat. Trois formules testées :</p>
+<p><span class="highlight">"Q&A Hook"</span> : "J'ai partagé mon analyse de ___. Et vous, quelle est votre expérience ?"</p>
+<p><span class="highlight-lilac">"Micro-sondage"</span> : "Votez : 🟢 pour, 🔴 contre, 🟡 nuancé — et expliquez en reply !"</p>
+<p><span class="highlight">"Prompt timestamp"</span> : "À 4:23 je dis que ___. Êtes-vous d'accord ? Répondez avec votre argument."</p>`,
+    links: ['youtube', 'anti-trolling']
+  }
+];
+
+// Build links from node data
+const links = [];
+const linkSet = new Set();
+nodes.forEach(n => {
+  (n.links || []).forEach(targetId => {
+    const key = [n.id, targetId].sort().join('--');
+    if (!linkSet.has(key) && nodes.find(x => x.id === targetId)) {
+      linkSet.add(key);
+      links.push({ source: n.id, target: targetId });
+    }
+  });
+});
+
+// ====================================================
+// MATRIX RAIN
+// ====================================================
+const matrixCanvas = document.getElementById('matrix-rain');
+const matrixCtx = matrixCanvas.getContext('2d');
+matrixCanvas.width = window.innerWidth;
+matrixCanvas.height = window.innerHeight;
+
+const chars = 'ouaisfieu01フォークハックスプレッド民主主義αβγδ∑∫≈≠∞'.split('');
+const fontSize = 12;
+const columns = Math.floor(matrixCanvas.width / fontSize);
+const drops = Array(columns).fill(1);
+
+function drawMatrix() {
+  matrixCtx.fillStyle = 'rgba(10, 14, 20, 0.05)';
+  matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+  matrixCtx.fillStyle = '#48bb78';
+  matrixCtx.font = fontSize + 'px JetBrains Mono';
+  for (let i = 0; i < drops.length; i++) {
+    const text = chars[Math.floor(Math.random() * chars.length)];
+    matrixCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+    if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) drops[i] = 0;
+    drops[i]++;
+  }
+}
+setInterval(drawMatrix, 50);
+
+// ====================================================
+// CLOCK
+// ====================================================
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('fr-BE', { hour12: false });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ====================================================
+// SIDE PANEL
+// ====================================================
+function buildNodeList() {
+  const list = document.getElementById('node-list');
+  list.innerHTML = '';
+  nodes.forEach(n => {
+    const cat = CATEGORIES[n.category];
+    const item = document.createElement('div');
+    item.className = 'node-item';
+    item.dataset.id = n.id;
+    item.innerHTML = `
+      <span class="node-dot" style="background:${cat.color}"></span>
+      <span class="node-label">${n.label.replace(/\n/g, ' ')}</span>
+      <span class="node-count">${(n.links||[]).length}</span>
+    `;
+    item.addEventListener('click', () => openModal(n.id));
+    item.addEventListener('mouseenter', () => highlightNode(n.id));
+    item.addEventListener('mouseleave', () => unhighlightAll());
+    list.appendChild(item);
+  });
+}
+buildNodeList();
+
+document.getElementById('stat-nodes').textContent = nodes.length;
+document.getElementById('stat-links').textContent = links.length;
+
+let panelCollapsed = false;
+function togglePanel() {
+  panelCollapsed = !panelCollapsed;
+  document.getElementById('sidepanel').classList.toggle('collapsed', panelCollapsed);
+  document.getElementById('graph-container').classList.toggle('expanded', panelCollapsed);
+  document.getElementById('collapse-btn').textContent = panelCollapsed ? '▶' : '◀';
+  if (simulation) simulation.alpha(0.3).restart();
+}
+
+// ====================================================
+// FORCE GRAPH (D3)
+// ====================================================
+let svg, g, zoom, linkElements, nodeElements, simulation;
+const container = document.getElementById('graph-container');
+let width = container.clientWidth;
+let height = container.clientHeight;
+
+function ticked() {
+  if (!linkElements || !nodeElements) return;
+  linkElements
+    .attr('x1', d => d.source.x)
+    .attr('y1', d => d.source.y)
+    .attr('x2', d => d.target.x)
+    .attr('y2', d => d.target.y);
+  nodeElements.attr('transform', d => `translate(${d.x},${d.y})`);
+}
+function dragStarted(event) {
+  if (!event.active && simulation) simulation.alphaTarget(0.3).restart();
+  event.subject.fx = event.subject.x;
+  event.subject.fy = event.subject.y;
+}
+function dragged(event) {
+  event.subject.fx = event.x;
+  event.subject.fy = event.y;
+}
+function dragEnded(event) {
+  if (!event.active && simulation) simulation.alphaTarget(0);
+  event.subject.fx = null;
+  event.subject.fy = null;
+}
+
+try {
+svg = d3.select('#graph-svg');
+g = svg.append('g');
+
+// Zoom
+zoom = d3.zoom()
+  .scaleExtent([0.3, 4])
+  .on('zoom', (event) => g.attr('transform', event.transform));
+svg.call(zoom);
+
+// Defs for glow
+const defs = svg.append('defs');
+['mint', 'lilac'].forEach(name => {
+  const color = name === 'mint' ? '#48bb78' : '#9f7aea';
+  const filter = defs.append('filter').attr('id', `glow-${name}`);
+  filter.append('feGaussianBlur').attr('stdDeviation', '4').attr('result', 'coloredBlur');
+  const merge = filter.append('feMerge');
+  merge.append('feMergeNode').attr('in', 'coloredBlur');
+  merge.append('feMergeNode').attr('in', 'SourceGraphic');
+});
+
+// Links
+linkElements = g.append('g')
+  .selectAll('line')
+  .data(links)
+  .join('line')
+  .attr('class', 'graph-link')
+  .attr('data-source', d => d.source)
+  .attr('data-target', d => d.target);
+
+// Nodes
+nodeElements = g.append('g')
+  .selectAll('g')
+  .data(nodes)
+  .join('g')
+  .attr('class', 'graph-node')
+  .call(d3.drag()
+    .on('start', dragStarted)
+    .on('drag', dragged)
+    .on('end', dragEnded));
+
+// Pulse ring
+nodeElements.append('circle')
+  .attr('class', 'node-pulse')
+  .attr('r', 0)
+  .attr('fill', 'none')
+  .attr('stroke', d => CATEGORIES[d.category].color)
+  .attr('stroke-width', 1)
+  .style('animation-delay', d => `${Math.random() * 2.5}s`);
+
+// Main circle
+nodeElements.append('circle')
+  .attr('class', 'node-circle')
+  .attr('r', d => d.size / 2)
+  .attr('fill', d => CATEGORIES[d.category].color + '25')
+  .attr('stroke', d => CATEGORIES[d.category].color)
+  .attr('stroke-width', 1.5)
+  .style('color', d => CATEGORIES[d.category].color);
+
+// Inner dot
+nodeElements.append('circle')
+  .attr('r', 3)
+  .attr('fill', d => CATEGORIES[d.category].color);
+
+// Labels
+nodeElements.each(function(d) {
+  const lines = d.label.split('\n');
+  const el = d3.select(this);
+  lines.forEach((line, i) => {
+    el.append('text')
+      .attr('class', 'node-label-text')
+      .attr('dy', d.size / 2 + 12 + i * 12)
+      .text(line);
+  });
+});
+
+// Events
+nodeElements
+  .on('click', (event, d) => { event.stopPropagation(); openModal(d.id); })
+  .on('mouseenter', (event, d) => {
+    highlightNode(d.id);
+    const tt = document.getElementById('tooltip');
+    document.getElementById('tt-label').textContent = d.label.replace(/\n/g, ' ');
+    document.getElementById('tt-sub').textContent = d.subtitle;
+    tt.classList.add('visible');
+    tt.style.left = (event.clientX + 14) + 'px';
+    tt.style.top = (event.clientY - 10) + 'px';
+  })
+  .on('mousemove', (event) => {
+    const tt = document.getElementById('tooltip');
+    tt.style.left = (event.clientX + 14) + 'px';
+    tt.style.top = (event.clientY - 10) + 'px';
+  })
+  .on('mouseleave', () => {
+    unhighlightAll();
+    document.getElementById('tooltip').classList.remove('visible');
+  });
+
+// Simulation
+simulation = d3.forceSimulation(nodes)
+  .force('link', d3.forceLink(links).id(d => d.id).distance(120).strength(0.4))
+  .force('charge', d3.forceManyBody().strength(-400))
+  .force('center', d3.forceCenter(width / 2, height / 2))
+  .force('collision', d3.forceCollide().radius(d => d.size + 10))
+  .on('tick', ticked);
+
+// Resize
+window.addEventListener('resize', () => {
+  width = container.clientWidth;
+  height = container.clientHeight;
+  if (simulation) {
+    simulation.force('center', d3.forceCenter(width / 2, height / 2));
+    simulation.alpha(0.3).restart();
+  }
+  matrixCanvas.width = window.innerWidth;
+  matrixCanvas.height = window.innerHeight;
+});
+} catch(e) { console.warn('D3 graph init failed:', e); }
+
+// ====================================================
+// HIGHLIGHT
+// ====================================================
+function highlightNode(nodeId) {
+  if (!nodeElements) return;
+  const node = nodes.find(n => n.id === nodeId);
+  if (!node) return;
+  const connectedIds = new Set(node.links || []);
+  connectedIds.add(nodeId);
+
+  nodeElements.select('.node-circle')
+    .attr('opacity', d => connectedIds.has(d.id) ? 1 : 0.15)
+    .attr('stroke-width', d => d.id === nodeId ? 3 : connectedIds.has(d.id) ? 2 : 1);
+
+  nodeElements.selectAll('.node-label-text')
+    .attr('opacity', d => connectedIds.has(d.id) ? 1 : 0.1);
+
+  linkElements
+    .attr('class', d => {
+      const sid = typeof d.source === 'object' ? d.source.id : d.source;
+      const tid = typeof d.target === 'object' ? d.target.id : d.target;
+      if ((sid === nodeId && connectedIds.has(tid)) || (tid === nodeId && connectedIds.has(sid))) {
+        return 'graph-link highlighted';
+      }
+      return 'graph-link';
+    })
+    .attr('opacity', d => {
+      const sid = typeof d.source === 'object' ? d.source.id : d.source;
+      const tid = typeof d.target === 'object' ? d.target.id : d.target;
+      return (sid === nodeId || tid === nodeId) ? 0.8 : 0.08;
+    });
+
+  document.querySelectorAll('.node-item').forEach(el => {
+    el.classList.toggle('active', connectedIds.has(el.dataset.id));
+  });
+}
+
+function unhighlightAll() {
+  if (!nodeElements) return;
+  nodeElements.select('.node-circle').attr('opacity', 1).attr('stroke-width', 1.5);
+  nodeElements.selectAll('.node-label-text').attr('opacity', 0.8);
+  linkElements.attr('class', 'graph-link').attr('opacity', 0.4);
+  document.querySelectorAll('.node-item').forEach(el => el.classList.remove('active'));
+}
+
+// ====================================================
+// MODAL
+// ====================================================
+function openModal(nodeId) {
+  const node = nodes.find(n => n.id === nodeId);
+  if (!node) return;
+  const cat = CATEGORIES[node.category];
+
+  document.getElementById('modal-header').innerHTML = `
+    <div class="modal-icon" style="background:${cat.color}22;color:${cat.color};border:1px solid ${cat.color}44">${cat.icon}</div>
+    <div class="modal-title-area">
+      <div class="modal-title">${node.label.replace(/\n/g, ' ')}</div>
+      <div class="modal-subtitle">${node.subtitle}</div>
+    </div>
+    <button class="modal-close" onclick="closeModal()">ESC</button>
+  `;
+  document.getElementById('modal-body').innerHTML = node.content;
+
+  const linksEl = document.getElementById('modal-links');
+  linksEl.innerHTML = '<span style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;padding:4px 0">Connexions :</span>';
+  (node.links || []).forEach(lid => {
+    const linked = nodes.find(n => n.id === lid);
+    if (linked) {
+      const a = document.createElement('a');
+      a.className = 'modal-link';
+      a.textContent = linked.label.replace(/\n/g, ' ');
+      a.onclick = () => openModal(lid);
+      linksEl.appendChild(a);
+    }
+  });
+
+  document.getElementById('modal-overlay').classList.add('active');
+  highlightNode(nodeId);
+}
+
+function closeModal(event) {
+  if (event && event.target !== event.currentTarget && !event.target.classList.contains('modal-close')) return;
+  document.getElementById('modal-overlay').classList.remove('active');
+  unhighlightAll();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ====================================================
+// COMMAND INPUT
+// ====================================================
+const cmdEl = document.getElementById('cmd-input');
+cmdEl.addEventListener('keydown', function(e) { e.stopPropagation(); });
+cmdEl.addEventListener('keyup', function(e) { e.stopPropagation(); });
+cmdEl.addEventListener('keypress', function(e) { e.stopPropagation(); });
+cmdEl.addEventListener('click', function(e) { e.stopPropagation(); this.focus(); });
+cmdEl.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+
+function handleCmd(e) {
+  if (e.key !== 'Enter') return;
+  const input = document.getElementById('cmd-input');
+  const cmd = input.value.trim().toLowerCase();
+  input.value = '';
+
+  if (cmd === 'help') {
+    showToast('Commandes : help | list | budget | fork | about | [nom de nœud]');
+    return;
+  }
+  if (cmd === 'list') {
+    showToast(nodes.map(n => n.id).join(', '));
+    return;
+  }
+  if (cmd === 'budget') {
+    openModal('budget');
+    return;
+  }
+  if (cmd === 'fork') {
+    showToast('🍴 Fork the system: github.com/ouaisfieu/ateliers-debat — CC-BY-SA 4.0');
+    return;
+  }
+  if (cmd === 'about') {
+    showToast('ouaisfieu :: Intelligence citoyenne belge · 29€/mois · ~100 ateliers/an · 0 tracking');
+    return;
+  }
+  if (cmd === 'korben') {
+    showToast('🤖 Salut Korben ! Oui c\'est du HTML pur avec D3.js, pas de React, pas de framework. Low-tech militant FTW.');
+    return;
+  }
+  if (cmd === 'nsa') {
+    showToast('🕵️ Nice try. Aucun cookie, aucun tracker, aucun analytics. RGPD by design. On vous voit venir.');
+    return;
+  }
+  if (cmd === 'nasa') {
+    showToast('🚀 Houston, we have a citizen. Le dashboard de contrôle mission pour la démocratie délibérative.');
+    return;
+  }
+  if (cmd === '42') {
+    showToast('🌌 La réponse à la démocratie, l\'univers et le reste. Mais la question c\'était quoi déjà ?');
+    return;
+  }
+
+  const found = nodes.find(n => n.id === cmd || n.label.replace(/\n/g, ' ').toLowerCase().includes(cmd));
+  if (found) {
+    openModal(found.id);
+  } else {
+    showToast(`⚠ Nœud "${cmd}" non trouvé. Tapez "list" ou "help".`);
+  }
+}
+
+function showToast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+
+// Initial toast
+setTimeout(() => showToast('⚡ Système initialisé — Cliquez un nœud ou tapez "help"'), 1500);
+
+// Center graph nicely after stabilization
+setTimeout(() => {
+  if (!g || !svg || !zoom) return;
+  try {
+    const bounds = g.node().getBBox();
+    const fullWidth = container.clientWidth;
+    const fullHeight = container.clientHeight;
+    const midX = bounds.x + bounds.width / 2;
+    const midY = bounds.y + bounds.height / 2;
+    const scale = Math.min(fullWidth / (bounds.width + 100), fullHeight / (bounds.height + 100), 1.2);
+    const tx = fullWidth / 2 - midX * scale;
+    const ty = fullHeight / 2 - midY * scale;
+    svg.transition().duration(1000).call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+  } catch(e) {}
+}, 3000);
+</script>
+
+</body></html>
