@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LA FORGE — ouaisfieu · ateliers-débats citoyens</title>
+<meta name="description" content="15 formats d'ateliers-débats citoyens gratuits, testés, forkables. Intelligence citoyenne belge.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f172a;--bg2:#1e293b;--bg3:#334155;--tx:#e2e8f0;--tx2:#94a3b8;--tx3:#64748b;--mint:#34d399;--lila:#8b5cf6;--ora:#f97316;--blu:#3b82f6;--pink:#ec4899;--yel:#eab308;--r:10px}
+html{font-size:15px;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+a{color:var(--lila);text-decoration:none}a:hover{text-decoration:underline}
+button{font-family:inherit;cursor:pointer}
+
+/* HEADER */
+.hdr{background:var(--bg2);border-bottom:2px solid var(--bg3);padding:14px 20px;position:sticky;top:0;z-index:50}
+.hdr-in{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-i{font-size:28px}.logo-t{font-size:18px;font-weight:800;color:var(--mint)}
+.logo-s{font-size:11px;color:var(--tx3);letter-spacing:1px}
+.tabs{display:flex;gap:2px;flex-wrap:wrap}
+.tab{padding:8px 16px;border-radius:8px;border:none;font-size:13px;font-weight:600;background:transparent;color:var(--tx2);transition:all .15s}
+.tab:hover{color:var(--tx)}.tab.on{background:#34d39920;color:var(--mint)}
+
+/* VIEWS */
+.view{display:none;max-width:1200px;margin:0 auto;padding:20px}.view.on{display:block}
+#v-liens.on,#v-graph.on{display:block;max-width:none;padding:0}
+h1{font-size:22px;font-weight:800;color:var(--mint);text-align:center;margin-bottom:4px}
+h2{font-size:18px;font-weight:800;color:var(--mint);margin-bottom:4px}
+h3{font-size:14px;font-weight:700;color:var(--lila);margin:16px 0 8px}
+.sub{color:var(--tx2);font-size:13px;text-align:center;margin-bottom:16px}
+
+/* FILTERS */
+.filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.search{flex:1 1 180px;background:var(--bg2);border:1px solid var(--bg3);color:var(--tx);padding:8px 14px;border-radius:8px;font-size:13px;outline:none;min-width:150px}
+.search:focus{border-color:var(--mint)}
+.pill{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;border:1px solid var(--bg3);background:transparent;color:var(--tx3);transition:all .15s}
+.pill:hover{border-color:var(--tx2);color:var(--tx2)}.pill.on{border-color:var(--mint);background:#34d39920;color:var(--mint)}
+
+/* CARDS */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
+.card{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .2s;border-left:3px solid var(--bg3)}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 24px #0004}
+.card-top{display:flex;align-items:start;gap:12px;margin-bottom:10px}
+.card-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.card-nm{font-size:14px;font-weight:700}.card-tl{font-size:12px;color:var(--tx2);line-height:1.4}
+.card-meta{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:10px;padding:3px 8px;border-radius:4px}
+.card-diff{text-align:right;flex-shrink:0;font-size:10px;color:var(--yel);letter-spacing:1px}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:#000a;backdrop-filter:blur(6px);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-bg.on{display:flex}
+.modal{width:min(820px,100%);max-height:90vh;background:var(--bg);border:1px solid var(--bg3);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;animation:mup .25s ease}
+@keyframes mup{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.m-head{padding:16px 20px;border-bottom:1px solid var(--bg2);display:flex;align-items:center;gap:14px}
+.m-icon{width:50px;height:50px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.m-nm{font-size:18px;font-weight:800}.m-tl{font-size:11px;color:var(--tx3)}
+.m-close{background:var(--bg2);border:1px solid var(--bg3);color:var(--tx2);padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;flex-shrink:0}
+.m-close:hover{border-color:var(--mint);color:var(--mint)}
+.m-stats{display:flex;border-bottom:1px solid var(--bg2);background:var(--bg2)}
+.m-stat{flex:1;text-align:center;padding:12px 8px;border-right:1px solid var(--bg3)}
+.m-stat:last-child{border-right:none}
+.m-stat-i{font-size:16px}.m-stat-v{font-size:13px;font-weight:700}.m-stat-l{font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:1px}
+.m-body{flex:1;overflow-y:auto}
+.m-sec{padding:16px 20px;border-bottom:1px solid var(--bg2)}
+.m-sec-t{font-size:12px;font-weight:700;color:var(--lila);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.m-sec-t::after{content:'';flex:1;height:1px;background:var(--bg2)}
+.mat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.mat-item{background:var(--bg2);border:1px solid var(--bg3);border-radius:6px;padding:8px 10px;font-size:12px;display:flex;align-items:center;gap:4px}
+.mat-free{font-size:9px;color:var(--mint);font-weight:700;margin-left:auto}
+.step{display:flex;gap:12px;margin-bottom:16px;align-items:flex-start}
+.step-n{width:32px;height:32px;border-radius:50%;background:var(--bg);border:2px solid var(--mint);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--mint);flex-shrink:0}
+.step-t{font-size:14px;font-weight:700;margin-bottom:2px}.step-d{font-size:12px;color:var(--tx2);line-height:1.7}
+.step-u{display:inline-block;margin-top:4px;font-size:10px;padding:2px 8px;border-radius:4px;background:#34d39915;color:var(--mint);font-weight:600}
+.hybrid{background:linear-gradient(135deg,#34d39910,#8b5cf610);border:1px solid var(--bg3);border-radius:8px;padding:16px}
+.hybrid-l{font-size:10px;color:var(--lila);font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
+.hybrid p{font-size:13px;line-height:1.7;margin:0}
+.fork-box{border:2px dashed var(--mint);border-radius:10px;padding:20px;text-align:center}
+.fork-box h4{font-size:16px;font-weight:800;color:var(--mint);margin-bottom:6px}
+.fork-box p{font-size:13px;color:var(--tx2);line-height:1.6;max-width:500px;margin:0 auto}
+.conn-btn{font-size:12px;padding:8px 14px;border:1px solid var(--bg3);border-radius:8px;background:transparent;color:var(--tx2);transition:all .15s}
+.conn-btn:hover{border-color:var(--lila);color:var(--lila)}
+
+/* GRAPH */
+#v-graph{height:calc(100vh - 64px);position:relative}
+#graph-svg{width:100%;height:100%;background:var(--bg)}
+.gn{cursor:pointer}
+.g-legend{position:absolute;bottom:12px;left:12px;display:flex;gap:6px;flex-wrap:wrap}
+.g-legend span{font-size:10px;padding:3px 8px;border-radius:4px}
+.g-info{position:absolute;top:12px;left:12px;background:var(--bg);border:1px solid var(--bg3);border-radius:8px;padding:10px 14px;max-width:260px;pointer-events:none}
+.g-zoom{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:4px}
+.g-zoom button{width:34px;height:34px;border-radius:8px;background:var(--bg2);border:1px solid var(--bg3);color:var(--tx);font-size:16px;display:flex;align-items:center;justify-content:center}
+
+/* LIEUX */
+.venue-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:24px}
+.venue{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--r);padding:16px;border-left:3px solid var(--mint);transition:all .15s}
+.venue:hover{border-color:var(--mint)}
+.venue-t{font-size:15px;font-weight:700;margin-bottom:4px}
+.venue-n{font-size:12px;color:var(--mint);font-weight:600;margin-bottom:4px}
+.venue-d{font-size:12px;color:var(--tx2);line-height:1.5}
+.map-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.map-btn{padding:8px 16px;border-radius:8px;background:var(--bg2);border:1px solid var(--bg3);color:var(--tx2);font-size:12px;font-weight:600;transition:all .15s}
+.map-btn:hover{border-color:var(--mint);color:var(--mint)}
+#map-frame{border-radius:var(--r);overflow:hidden;border:1px solid var(--bg3);height:420px;margin-bottom:12px}
+#map-frame iframe{width:100%;height:100%;border:0}
+.map-links{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--tx3);margin-bottom:20px}
+
+/* GO */
+.go-step{display:flex;gap:16px;margin-bottom:24px;align-items:flex-start}
+.go-n{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;flex-shrink:0}
+.go-t{font-size:16px;font-weight:700;margin-bottom:4px}
+.go-d{font-size:13px;color:var(--tx2);line-height:1.7}
+.cta-box{background:var(--bg2);border:2px dashed var(--mint);border-radius:12px;padding:24px;text-align:center;margin-top:8px}
+.cta-box h3{font-size:18px;font-weight:800;color:var(--mint);margin-bottom:8px}
+.cta-box p{font-size:13px;color:var(--tx2);line-height:1.7;max-width:500px;margin:0 auto 16px}
+.btn{padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;border:none;transition:all .15s}
+.btn-mint{background:var(--mint);color:var(--bg)}.btn-lila{background:transparent;color:var(--lila);border:1px solid var(--lila)}
+
+/* FOOTER */
+.ftr{border-top:1px solid var(--bg2);padding:12px 20px;text-align:center;font-size:11px;color:var(--tx3)}
+
+@media(max-width:700px){
+  .grid{grid-template-columns:1fr}.m-stats{flex-wrap:wrap}.m-stat{flex:1 1 45%}
+  .tab{padding:6px 10px;font-size:12px}#v-graph{height:calc(100vh - 60px)}
+  #map-frame{height:300px}.venue-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr"><div class="hdr-in">
+  <div class="logo"><span class="logo-i">🍴</span><div><div class="logo-t">LA FORGE</div><div class="logo-s">ouaisfieu · ateliers-débats citoyens</div></div></div>
+  <div class="tabs" id="tabs">
+    <button class="tab on" data-t="formats">📋 15 Formats</button>
+    <button class="tab" data-t="graph">🔗 Connexions</button>
+    <button class="tab" data-t="lieux">📍 Trouver un lieu</button>
+    <button class="tab" data-t="go">🚀 Lancez-vous</button>
+  </div>
+</div></div>
+
+<!-- FORMATS -->
+<div class="view on" id="v-formats">
+  <h1>15 formats d'ateliers-débats citoyens</h1>
+  <p class="sub">Testés, documentés, gratuits. Cliquez sur un format pour le guide complet.</p>
+  <div class="filters">
+    <input class="search" id="search" placeholder="🔍 Chercher un format...">
+    <div id="cat-pills"></div>
+  </div>
+  <div class="grid" id="card-grid"></div>
+</div>
+
+<!-- GRAPH -->
+<div class="view" id="v-graph">
+  <svg id="graph-svg"></svg>
+  <div class="g-legend" id="g-legend"></div>
+  <div class="g-info" id="g-info" style="display:none"></div>
+  <div class="g-zoom">
+    <button id="zin">＋</button>
+    <button id="zout">－</button>
+    <button id="zreset">⟲</button>
+  </div>
+</div>
+
+<!-- LIEUX -->
+<div class="view" id="v-lieux">
+  <h2>📍 Où organiser votre atelier ?</h2>
+  <p style="color:var(--tx2);font-size:13px;margin-bottom:16px">Des centaines de salles gratuites en Belgique francophone. Cliquez pour accéder aux annuaires.</p>
+  <div class="venue-grid" id="venue-grid"></div>
+  <h3>🗺️ Carte — cherchez près de chez vous</h3>
+  <div class="map-btns" id="map-btns"></div>
+  <div id="map-frame"></div>
+  <div class="map-links">
+    <span>🗺️ © OpenStreetMap</span>
+    <a href="https://www.google.com/maps/search/centre+culturel+belgique" target="_blank">→ Google Maps</a>
+    <a href="https://www.openstreetmap.org/#map=8/50.5/4.5" target="_blank">→ OpenStreetMap</a>
+    <a href="https://macartonum.be" target="_blank">→ Carte des EPN</a>
+    <a href="https://centres-culturels.be" target="_blank">→ Centres Culturels</a>
+  </div>
+</div>
+
+<!-- LANCEZ-VOUS -->
+<div class="view" id="v-go">
+  <div style="max-width:700px;margin:0 auto">
+    <h1 style="margin-bottom:4px">🚀 Créez votre atelier en 4 étapes</h1>
+    <p class="sub">Pas besoin de formation. Pas besoin de budget. Juste curieux et motivé.</p>
+    <div id="go-steps"></div>
+    <div class="cta-box">
+      <h3>🍴 Le principe du fork</h3>
+      <p>Tous les formats sont en licence CC-BY-SA 4.0. Prenez-les, modifiez-les, partagez-les. La seule condition : citez la source et gardez la licence ouverte. L'éducation populaire appartient au peuple, pas aux diplômés.</p>
+      <button class="btn btn-mint" onclick="switchTab('formats')">📋 Explorer les formats</button>
+      <button class="btn btn-lila" style="margin-left:8px" onclick="openRandom()">🎲 Format au hasard</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg"><div class="modal" id="modal">
+  <div class="m-head" id="m-head"></div>
+  <div class="m-stats" id="m-stats"></div>
+  <div class="m-body" id="m-body"></div>
+</div></div>
+
+<!-- FOOTER -->
+<div class="ftr">ouaisfieu · intelligence citoyenne belge · <span style="color:var(--mint);font-weight:700">CC-BY-SA 4.0</span> · fork · hack · spread · 🇧🇪</div>
+
+<script>
+// ═══════════════ DATA ═══════════════
+const CT={oral:{c:'#34d399',l:'Parole',i:'🗣️'},visuel:{c:'#8b5cf6',l:'Visuel',i:'👁️'},corps:{c:'#f97316',l:'Corps',i:'🏃'},ecriture:{c:'#3b82f6',l:'Écriture',i:'✍️'},methode:{c:'#ec4899',l:'Méthode',i:'🧭'},terrain:{c:'#eab308',l:'Terrain',i:'🌍'}};
+const DL=['Universel','Facile','Intermédiaire','Avancé'];
+const stars=d=>'★'.repeat(Math.max(d,1))+'☆'.repeat(3-Math.max(d,1));
+
+const WS=[
+{id:'cafe',n:'Café-Débat',i:'☕',cat:'oral',sz:26,tag:'Le classique. Un café, un sujet, on cause.',df:1,pp:'5–25',tm:'1h30–2h',pl:'Partout',bd:['Débutant','Gratuit'],mt:['☕ Café / thé','📄 Fiche-sujet (1 page)','🔊 Votre voix','📱 Téléphone'],st:[{t:'Installer le décor',d:'Tables en cercle ou en U. Pas d\'estrade. Tout le monde au même niveau.',u:'10 min'},{t:'Distribuer la fiche-sujet',d:'Un A4 recto : le thème, 3 faits-clés sourcés, 2-3 questions.',u:'2 min'},{t:'Vidéo d\'accroche (optionnel)',d:'3-6 minutes qui posent le sujet. Sinon, lisez l\'accroche à voix haute.',u:'6 min'},{t:'Tour de table',d:'Chaque personne dit en 1 minute ce qui l\'a frappée. Pas de débat encore — juste écouter.',u:'15-20 min'},{t:'Débat ouvert',d:'L\'animateur relance avec les questions. Règle d\'or : on ne coupe pas la parole.',u:'40-50 min'},{t:'Synthèse à chaud',d:'Chacun dit en une phrase ce qu\'il retient. L\'animateur note.',u:'10 min'},{t:'Photo + partage',d:'Si le groupe accepte : photo et post. Le Framapad est partagé pour continuer.',u:'5 min'}],hy:'Le sujet est lancé en ligne avant (vidéo + commentaire épinglé). Les contributions alimentent le présentiel. Après : synthèse publiée, débat continu.',fk:'Téléchargez la fiche-sujet, changez le thème, imprimez, invitez 5 personnes. C\'est tout.',lk:['world','cercle','cine','mouvant','vpa']},
+{id:'cine',n:'Ciné-Débat',i:'🎬',cat:'visuel',sz:24,tag:'Un film, un choc, un échange.',df:1,pp:'5–50',tm:'2h30–3h',pl:'Salle, salon, en ligne',bd:['Débutant','Émotion'],mt:['📺 Écran / projecteur','🎬 Film ou docu','📄 Fiche de discussion','☕ De quoi boire'],st:[{t:'Choisir le film',d:'Un documentaire de 30-90 min ou un extrait de 15-20 min.',u:'Avant'},{t:'Préparer 3 questions',d:'"Qu\'est-ce qui vous a surpris ?", "Ça vous rappelle votre vécu ?"',u:'Avant'},{t:'Accueil + contexte',d:'"J\'ai vu ça, ça m\'a interpellé." 2 phrases suffisent.',u:'5 min'},{t:'Projection',d:'Regardez ensemble. L\'émotion collective est plus forte que seul.',u:'30-90 min'},{t:'Silence',d:'2 minutes de silence après le film. Essentiel.',u:'2 min'},{t:'Tour d\'impressions',d:'Chacun partage une émotion, pas une analyse.',u:'15 min'},{t:'Débat guidé',d:'Alternez fait / opinion / action.',u:'30-40 min'},{t:'Engagement',d:'"Qui veut faire quelque chose ?" Même petit.',u:'10 min'}],hy:'Le film est publié en ligne avec page de discussion. Ceux qui n\'ont pas pu venir regardent chez eux et contribuent.',fk:'Choisissez un documentaire. Écrivez 3 questions. Invitez des gens. Play.',lk:['cafe','photo','tribunal','lecture','vpa']},
+{id:'porteur',n:'Porteur de Paroles',i:'📢',cat:'terrain',sz:24,tag:'Une question géante dans la rue. Les passants répondent.',df:1,pp:'2–5 anim.',tm:'2–3h',pl:'Rue, marché, place',bd:['Impact','Viral'],mt:['🎨 Grand panneau / drap blanc','🖊️ Marqueurs épais','📱 Téléphone','📋 Post-it'],st:[{t:'Écrire LA question',d:'En très gros. Une seule, percutante : "C\'est quoi bien vivre ici ?"',u:'30 min'},{t:'Choisir le lieu',d:'Sortie de marché, place, gare. Pas besoin d\'autorisation sur le trottoir.',u:'Avant'},{t:'S\'installer',d:'Plantez le panneau. Souriants, disponibles.',u:'10 min'},{t:'Recueillir les paroles',d:'Notez sur post-it, collez sur le panneau. Ou filmez 30 sec.',u:'2h'},{t:'Donner la suite',d:'QR code vers la page ouaisfieu du sujet.',u:'Continu'},{t:'Documenter',d:'Photos du panneau rempli, vidéos des témoignages.',u:'Continu'}],hy:'Les paroles de la rue deviennent le matériau d\'un atelier en ligne. La rue alimente le numérique, le numérique amplifie la rue.',fk:'Un drap, une question, sortez dehors. Le format le moins cher et le plus puissant.',lk:['mouvant','marche','cafe','fresque','vpa']},
+{id:'mouvant',n:'Débat Mouvant',i:'🏃',cat:'corps',sz:22,tag:'Pour ? À gauche. Contre ? À droite. Change d\'avis en direct.',df:1,pp:'8–40',tm:'30–60 min',pl:'Grande salle ou dehors',bd:['Énergique','Zéro matos'],mt:['📏 Espace de 6m','🗣️ Votre voix','📄 5-8 affirmations'],st:[{t:'Préparer les affirmations',d:'Clivantes : "Les manifs ne servent à rien." Ni vrai ni faux.',u:'Avant'},{t:'Tracer la ligne',d:'D\'ACCORD ← → PAS D\'ACCORD.',u:'2 min'},{t:'Lancer l\'affirmation',d:'Les gens se déplacent physiquement.',u:'1 min'},{t:'Argumenter',d:'Chaque camp envoie un porte-parole. On peut changer de côté !',u:'5-8 min'},{t:'Observer',d:'Ceux qui changent de côté = le plus intéressant.',u:'Continu'},{t:'Débriefer',d:'"Qu\'est-ce qui vous a fait changer d\'avis ?"',u:'10 min'}],hy:'Sondage en ligne avant avec les mêmes affirmations. On compare.',fk:'5 phrases provocantes, un couloir. Zéro matériel, zéro budget.',lk:['cafe','porteur','theatre','jeu','vpa']},
+{id:'photo',n:'Photo-Langage',i:'🖼️',cat:'visuel',sz:20,tag:'Choisir une image pour dire ce qu\'on ne sait pas formuler.',df:1,pp:'5–20',tm:'1h–1h30',pl:'Table + chaises',bd:['Accessible','Inclusion'],mt:['🖼️ 20-30 images variées','🖨️ Imprimées ou tablette','📄 Une question ouverte'],st:[{t:'Préparer les images',d:'20-30 photos différentes. Pas de texte dessus.',u:'15 min'},{t:'Poser LA question',d:'Ouverte : "Pour vous, la démocratie ça ressemble à quoi ?"',u:'2 min'},{t:'Choisir en silence',d:'Chacun choisit UNE image. Le silence est important.',u:'5-7 min'},{t:'Tour de parole',d:'Chacun montre et explique. On ne juge pas.',u:'30-40 min'},{t:'Échanges croisés',d:'"Y a-t-il des images qui se répondent ?"',u:'15-20 min'},{t:'Garder une trace',d:'Photo des images choisies + mots-clés = portrait collectif.',u:'5 min'}],hy:'Images publiées en ligne avec la question. Chaque internaute choisit et explique.',fk:'20 images, une question sincère, une table. Le plus puissant pour ceux qui n\'aiment pas "débattre".',lk:['cercle','cafe','cine','fresque','ecriture']},
+{id:'world',n:'World Café',i:'🌍',cat:'oral',sz:22,tag:'3 tables, 3 questions, on tourne. Intelligence collective.',df:2,pp:'12–50',tm:'1h30–2h',pl:'Salle avec tables',bd:['Collectif','Structuré'],mt:['🪑 3-5 tables + chaises','📝 Nappes papier','🖊️ Marqueurs couleur','⏱️ Minuteur'],st:[{t:'Installer les tables',d:'3-5 tables. Nappes papier + marqueurs. Un "hôte" reste, les autres tournent.',u:'15 min'},{t:'Les 3 questions',d:'Progressives : "Que constatez-vous ?" → "Pourquoi ?" → "Que faire ?"',u:'5 min'},{t:'Premier tour',d:'Discutez et gribouilllez sur la nappe.',u:'20 min'},{t:'Rotation',d:'Tout le monde change. L\'hôte résume en 2 min.',u:'2 min'},{t:'Tours 2 et 3',d:'Les idées s\'enrichissent à chaque passage.',u:'20 min × 2'},{t:'Moisson',d:'Chaque hôte : 3 idées-forces. Vote par gommettes.',u:'20 min'}],hy:'En ligne : 3 Framapads, 24h par "table". World Café asynchrone de 3 jours.',fk:'3 tables, 3 questions, des nappes en papier. Vous organisez des dîners ? Vous savez faire.',lk:['cafe','cercle','fresque','vpa','porteur']},
+{id:'cercle',n:'Cercle de Parole',i:'⭕',cat:'oral',sz:20,tag:'Un objet circule. Celui qui l\'a parle. Les autres écoutent.',df:1,pp:'5–15',tm:'1h–1h30',pl:'En cercle, n\'importe où',bd:['Intime','Écoute'],mt:['🪨 Objet de parole (caillou...)','🪑 Chaises en cercle'],st:[{t:'Le cercle',d:'Chaises en cercle, pas de table. Nous sommes égaux.',u:'5 min'},{t:'Les 3 règles',d:'(1) Objet = parole. (2) Pas d\'objet = écoute. (3) Pas de jugement.',u:'3 min'},{t:'Question d\'ouverture',d:'"Avec quoi vous arrivez ce soir ?"',u:'15 min'},{t:'Question de fond',d:'"Racontez un moment où vous avez senti que ça n\'allait pas."',u:'30-40 min'},{t:'Deuxième tour',d:'"Quelque chose a bougé ?"',u:'20 min'},{t:'Clôture',d:'Un mot chacun. Le nuage de mots du groupe.',u:'5 min'}],hy:'En ligne : messages vocaux asynchrones (Telegram, Signal). La voix garde l\'intimité.',fk:'Un caillou, des chaises en rond, une question sincère. La plus vieille technologie d\'intelligence collective.',lk:['cafe','photo','world','ecriture','vpa']},
+{id:'theatre',n:'Théâtre-Forum',i:'🎭',cat:'corps',sz:22,tag:'Une injustice jouée. Le public intervient et change l\'histoire.',df:3,pp:'8–30',tm:'2h–2h30',pl:'Salle dégagée',bd:['Puissant','Avancé'],mt:['🎭 Espace de jeu 4×4m','📝 Scénario court','👤 3-5 comédien·nes amateurs'],st:[{t:'Écrire la scène',d:'Situation d\'injustice. 3-5 min. Elle doit mal finir.',u:'1h avant'},{t:'Répéter',d:'2-3 fois. Crédible, pas parfait.',u:'30 min'},{t:'Première lecture',d:'Jouez. Laissez le malaise.',u:'5 min'},{t:'Le Joker',d:'"Quand vous pouvez changer la situation, criez STOP."',u:'3 min'},{t:'Interventions',d:'Le public remplace les personnages et tente d\'autres stratégies.',u:'40-60 min'},{t:'Débrief',d:'"Qu\'est-ce qui a marché ? C\'est réaliste ?"',u:'20 min'}],hy:'Scène filmée et publiée. Les internautes proposent des interventions. Les meilleures sont jouées ensuite.',fk:'Une situation injuste, 10 lignes, 3 potes. Vous avez un théâtre-forum.',lk:['mouvant','jeu','cine','porteur','vpa']},
+{id:'fresque',n:'Fresque Citoyenne',i:'🧩',cat:'ecriture',sz:24,tag:'Comme la Fresque du Climat, pour la démocratie.',df:2,pp:'6–20',tm:'2h–3h',pl:'Grande table ou mur',bd:['Collaboratif','Systémique'],mt:['📰 30-40 cartes-concepts','📏 Grande surface','🖊️ Marqueurs + ficelle','📎 Post-it'],st:[{t:'Préparer les cartes',d:'Un concept par carte : CPAS, Constitution, Lobbying, Médias...',u:'Avant'},{t:'Distribution',d:'8-10 cartes par sous-groupe. Discussion interne.',u:'15 min'},{t:'Construction',d:'Placez et reliez : cause → conséquence. Le moment eureka.',u:'40 min'},{t:'Confrontation',d:'Les groupes expliquent. Débat.',u:'20 min'},{t:'Les trous',d:'Cartes vierges pour ce qui manque.',u:'15 min'},{t:'Prioriser',d:'Gommettes sur les nœuds critiques. Engagement.',u:'15 min'}],hy:'Les cartes deviennent un jeu interactif en ligne. Chaque atelier enrichit la fresque.',fk:'Imprimez les cartes ou utilisez 30 post-it. Un mur. Ça surprend toujours.',lk:['world','photo','ecriture','lecture','vpa']},
+{id:'jeu',n:'Jeu de Rôle Citoyen',i:'🎲',cat:'corps',sz:18,tag:'Vous êtes le bourgmestre. Que faites-vous ?',df:2,pp:'6–15',tm:'1h30–2h',pl:'Salle, salon',bd:['Fun','Empathie'],mt:['📇 Fiches personnages','📋 Scénario de départ','⏱️ Minuteur'],st:[{t:'Scénario',d:'"Le conseil communal décide sur les caméras de surveillance."',u:'Avant'},{t:'Distribution',d:'Bourgmestre, commerçant, jeune, militant, policier...',u:'7 min'},{t:'Conseil fictif',d:'2 min par personnage, puis débat libre.',u:'30-40 min'},{t:'Vote',d:'Comme dans la vraie vie : frustrant.',u:'5 min'},{t:'Sortie de rôle',d:'"Je ne suis plus le policier." Qu\'est-ce que ça a changé ?',u:'15 min'},{t:'Connexion au réel',d:'Comment ça se passe dans votre commune ?',u:'15 min'}],hy:'Fiches publiées en ligne. Jeu de rôle asynchrone en forum.',fk:'Un sujet communal, 5 personnages. Plus efficace que 10 cours de sciences po.',lk:['theatre','mouvant','tribunal','cafe','fresque']},
+{id:'tribunal',n:'Tribunal Citoyen',i:'⚖️',cat:'oral',sz:20,tag:'Procès fictif d\'une politique, d\'une loi, d\'un système.',df:2,pp:'10–30',tm:'2h–2h30',pl:'Salle en U',bd:['Théâtral','Marquant'],mt:['⚖️ Mise en scène','📁 Dossier accusation + défense','📋 Bulletin verdict'],st:[{t:'Choisir l\'accusé',d:'Pas une personne — une politique. "Le gouvernement est accusé de..."',u:'Avant'},{t:'Les rôles',d:'Procureur, avocat, témoins, juge (animateur), jury (public).',u:'10 min'},{t:'Réquisitoire',d:'Faits, chiffres, témoignages à charge.',u:'10 min'},{t:'Plaidoirie défense',d:'Défendre ce qu\'on combattrait. L\'exercice le plus formateur.',u:'10 min'},{t:'Témoignages',d:'Dépositions et contre-interrogatoires.',u:'30 min'},{t:'Verdict',d:'Le jury-public vote. Lecture solennelle.',u:'15 min'},{t:'Débrief',d:'"Le verdict était-il juste ?"',u:'15 min'}],hy:'Dossier publié en ligne une semaine avant. Contributions en ligne. Verdicts comparés.',fk:'Un acte d\'accusation en une page. Préparez aussi la défense.',lk:['jeu','cine','theatre','lecture','cafe']},
+{id:'lecture',n:'Lecture Collective',i:'📖',cat:'ecriture',sz:18,tag:'Lire ensemble. S\'arrêter. Réagir.',df:1,pp:'4–12',tm:'1h–1h30',pl:'Table, canapés',bd:['Calme','Accessible'],mt:['📄 Texte imprimé pour chacun','🖊️ Surligneurs','☕ Thé / café'],st:[{t:'Choisir le texte',d:'1-3 pages. Article, témoignage, texte de loi.',u:'Avant'},{t:'Lecture silencieuse',d:'Surligner ce qui frappe. Le silence collectif concentre.',u:'10-15 min'},{t:'Tour de surlignage',d:'Chacun lit SON passage et explique pourquoi.',u:'20 min'},{t:'Discussion',d:'Les passages surlignés = points d\'entrée du débat.',u:'30 min'},{t:'Réaction écrite',d:'"Ce que je retiens / conteste / veux creuser."',u:'5 min'}],hy:'Texte sur plateforme d\'annotation (Hypothesis.is). Annotation collaborative en ligne.',fk:'Un article marquant, 4 personnes, des surligneurs. Lisez. Parlez.',lk:['cafe','cercle','photo','ecriture','cine']},
+{id:'ecriture',n:'Écriture Collective',i:'✍️',cat:'ecriture',sz:18,tag:'Écrire ensemble : lettre ouverte, manifeste, témoignage.',df:2,pp:'4–15',tm:'1h30–2h',pl:'Table + écran partagé',bd:['Créatif','Concret'],mt:['💻 1 ordi + vidéoproj','📝 Papier par personne'],st:[{t:'Définir l\'objet',d:'Lettre ouverte ? Manifeste ? Témoignage ?',u:'10 min'},{t:'Écriture flash',d:'5 min sans s\'arrêter. Pas de censure.',u:'5 min'},{t:'Partage',d:'Chacun lit. Repérer les pépites.',u:'20 min'},{t:'Écriture collective',d:'Sur Framapad projeté. Chaotique et normal.',u:'30-40 min'},{t:'Relecture',d:'Chaque phrase validée collectivement.',u:'10 min'},{t:'Publication',d:'Signé collectivement, publié, envoyé.',u:'5 min'}],hy:'Le Framapad reste ouvert. D\'autres villes contribuent au même texte.',fk:'Ouvrez un Framapad, partagez le lien, écrivez ensemble.',lk:['lecture','fresque','cercle','photo','cafe']},
+{id:'marche',n:'Marche Exploratoire',i:'🚶',cat:'terrain',sz:18,tag:'Marcher, observer, discuter de ce qu\'on voit.',df:1,pp:'5–15',tm:'1h30–2h',pl:'Dehors !',bd:['Terrain','Local'],mt:['👟 Chaussures confortables','📱 Téléphone','📋 Grille d\'observation'],st:[{t:'Parcours + thème',d:'1-2 km. "L\'espace public est-il accueillant pour tous ?"',u:'Avant'},{t:'Grille d\'observation',d:'Accessibilité, verdure, sécurité, propreté, services.',u:'5 min'},{t:'Marcher',d:'Lentement. S\'arrêter, photographier, discuter.',u:'45-60 min'},{t:'Arrêts-débat',d:'3-4 points stratégiques.',u:'Inclus'},{t:'Synthèse',d:'Au café : partager grilles et photos.',u:'20 min'},{t:'Lettre au bourgmestre',d:'Courrier collectif avec observations.',u:'15 min'}],hy:'Photos sur carte collaborative (uMap). D\'autres quartiers comparent.',fk:'Imprimez la grille, marchez. Vous redécouvrirez ce que vous croyiez connaître.',lk:['porteur','fresque','photo','cafe','ecriture']},
+{id:'vpa',n:'Voir · Penser · Agir',i:'🧭',cat:'methode',sz:28,tag:'La boussole. Tous les ateliers suivent ce fil rouge.',df:0,pp:'Tous',tm:'Toujours',pl:'Partout',bd:['Méthode','Universel'],mt:['🧠 Curiosité','❤️ Écoute','✊ Envie d\'agir'],st:[{t:'VOIR — Observer',d:'Découvrir le sujet. Vidéo, témoignage, données. Ne pas analyser encore.',u:'Phase 1'},{t:'PENSER — Comprendre',d:'Croiser les regards, confronter les idées, chercher les causes.',u:'Phase 2'},{t:'AGIR — Décider',d:'Transformer en action concrète. Même petite.',u:'Phase 3'}],hy:'En ligne : VOIR = vidéo. PENSER = débat sur Pol.is. AGIR = co-rédaction.',fk:'3 questions : "Que voit-on ?" → "Qu\'en pense-t-on ?" → "Que fait-on ?" La méthode.',lk:['cafe','cine','world','fresque','porteur','theatre','mouvant']}
+];
+
+const VENUES=[
+  {t:'📚 Bibliothèques publiques',n:'20+ à Bruxelles',d:'Salles d\'animation, animations citoyennes existantes.',u:'https://www.bibliotheques.be'},
+  {t:'💻 EPN (Espaces Publics Numériques)',n:'200+ en Wallonie, 30+ à Bruxelles',d:'Aide numérique incluse. Gratuit.',u:'https://macartonum.be'},
+  {t:'🎭 Centres Culturels',n:'122 reconnus en FWB',d:'Mandatés pour la démocratie culturelle et la participation.',u:'https://centres-culturels.be'},
+  {t:'🏘️ Maisons de Quartier',n:'18-19 à Bruxelles',d:'Gérés par les CPAS. Mission : débat citoyen.',u:'https://lesmaisonsdequartier.brussels'},
+  {t:'🏛️ Espaces Wallonie',n:'Liège, Mons, Nivelles, Verviers, Tournai',d:'Salles gratuites + café fourni. Lun-Ven 9h-16h30.',u:'https://wallonie.be/fr/demarches/espaces-wallonie'},
+  {t:'🏠 Votre salon',n:'Partout',d:'5 chaises, une table, du café. C\'est suffisant.',u:null}
+];
+
+const MAPS=[
+  {l:'🏙️ Bruxelles',bb:'4.25,50.79,4.45,50.89',mk:'50.85,4.35'},
+  {l:'🏭 Liège',bb:'5.50,50.60,5.65,50.66',mk:'50.63,5.57'},
+  {l:'🏛️ Namur',bb:'4.80,50.43,4.95,50.50',mk:'50.46,4.87'},
+  {l:'⛏️ Mons',bb:'3.88,50.42,4.02,50.47',mk:'50.45,3.95'},
+  {l:'🇧🇪 Belgique',bb:'2.5,49.5,6.5,51.5',mk:'50.5,4.5'}
+];
+
+const STEPS=[
+  {n:'1',t:'Choisissez un format',c:'#34d399',d:'Allez dans l\'onglet "15 Formats". Pour commencer : <b>Café-Débat ☕</b> (le plus simple), <b>Cercle de Parole ⭕</b> (le plus intime), ou <b>Débat Mouvant 🏃</b> (zéro matériel).'},
+  {n:'2',t:'Trouvez un sujet',c:'#8b5cf6',d:'Qu\'est-ce qui vous révolte ? Interroge ? Touche ? C\'est votre sujet. Les fiches ouaisfieu fournissent des faits sourcés et des questions prêtes.'},
+  {n:'3',t:'Invitez 5 personnes',c:'#f97316',d:'Famille, voisins, collègues, inconnus. 5 suffit. Un SMS : <em>"Mardi soir chez moi, on discute de [sujet]. Tu viens ?"</em> C\'est tout.'},
+  {n:'4',t:'Suivez le guide',c:'#3b82f6',d:'Ouvrez la fiche du format sur votre téléphone pendant l\'atelier. Chaque étape est minutée. C\'est votre pense-bête.'}
+];
+
+// ═══════════════ TABS ═══════════════
+let curTab='formats';
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.t)));
+function switchTab(t){
+  curTab=t;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+t));
+  if(t==='graph'&&!graphReady)initGraph();
+  if(t==='lieux'&&!mapReady)initMap();
+}
+
+// ═══════════════ CATALOGUE ═══════════════
+let curCat='all';
+function buildPills(){
+  const el=document.getElementById('cat-pills');
+  el.innerHTML='<button class="pill on" data-c="all">Tous</button>'+
+    Object.entries(CT).map(([k,v])=>`<button class="pill" data-c="${k}">${v.i} ${v.l}</button>`).join('');
+  el.querySelectorAll('.pill').forEach(b=>b.addEventListener('click',()=>{
+    curCat=b.dataset.c;el.querySelectorAll('.pill').forEach(p=>p.classList.toggle('on',p.dataset.c===curCat));renderCards();
+  }));
+}
+function renderCards(){
+  const q=document.getElementById('search').value.toLowerCase();
+  let items=WS;
+  if(curCat!=='all')items=items.filter(w=>w.cat===curCat);
+  if(q)items=items.filter(w=>(w.n+w.tag+w.bd.join(' ')).toLowerCase().includes(q));
+  const g=document.getElementById('card-grid');
+  g.innerHTML=items.map(w=>{
+    const c=CT[w.cat];
+    return`<div class="card" style="border-left-color:${c.c}" data-id="${w.id}">
+      <div class="card-top">
+        <div class="card-icon" style="background:${c.c}18">${w.i}</div>
+        <div style="flex:1;min-width:0"><div class="card-nm">${w.n}</div><div class="card-tl">${w.tag}</div></div>
+        <div class="card-diff">${stars(w.df)}</div>
+      </div>
+      <div class="card-meta">
+        <span class="chip" style="background:var(--bg);color:var(--tx2)">👥 ${w.pp}</span>
+        <span class="chip" style="background:var(--bg);color:var(--tx2)">⏱ ${w.tm}</span>
+        ${w.bd.slice(0,2).map(b=>`<span class="chip" style="background:${c.c}15;color:${c.c}">${b}</span>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+  if(!items.length)g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--tx3)">Aucun résultat.</div>';
+  g.querySelectorAll('.card').forEach(c=>c.addEventListener('click',()=>openModal(c.dataset.id)));
+}
+buildPills();renderCards();
+document.getElementById('search').addEventListener('input',renderCards);
+
+// ═══════════════ MODAL ═══════════════
+function openModal(id){
+  const w=WS.find(x=>x.id===id);if(!w)return;const c=CT[w.cat];
+  document.getElementById('m-head').innerHTML=`
+    <div class="m-icon" style="background:${c.c}18;border:1px solid ${c.c}44">${w.i}</div>
+    <div style="flex:1"><div class="m-nm">${w.n}</div><div class="m-tl">${w.tag}</div></div>
+    <button class="m-close" onclick="closeModal()">✕ Fermer</button>`;
+  document.getElementById('m-stats').innerHTML=[
+    {i:'👥',v:w.pp,l:'Personnes'},{i:'⏱️',v:w.tm,l:'Durée'},{i:'📍',v:w.pl,l:'Lieu'},{i:'★',v:DL[w.df],l:'Difficulté'}
+  ].map((s,i)=>`<div class="m-stat"><div class="m-stat-i">${s.i}</div><div class="m-stat-v" style="color:${i%2===0?'var(--mint)':'var(--lila)'}">${s.v}</div><div class="m-stat-l">${s.l}</div></div>`).join('');
+  let h='';
+  h+=`<div class="m-sec"><div class="m-sec-t">🎒 Ce qu'il vous faut</div><div class="mat-grid">${w.mt.map(m=>`<div class="mat-item">${m}<span class="mat-free">GRATUIT</span></div>`).join('')}</div></div>`;
+  h+=`<div class="m-sec"><div class="m-sec-t">📋 Pas à pas — suivez le guide</div>${w.st.map((s,i)=>`<div class="step"><div class="step-n">${i+1}</div><div style="flex:1"><div class="step-t">${s.t}</div><div class="step-d">${s.d}</div>${s.u?`<span class="step-u">⏱ ${s.u}</span>`:''}</div></div>`).join('')}</div>`;
+  h+=`<div class="m-sec"><div class="m-sec-t">🔗 Le pont numérique</div><div class="hybrid"><div class="hybrid-l">⚡ Hybridation en ligne / présentiel</div><p>${w.hy}</p></div></div>`;
+  h+=`<div class="m-sec"><div class="m-sec-t">🍴 Forkez-le</div><div class="fork-box"><h4>C'est à vous.</h4><p>${w.fk}</p></div></div>`;
+  h+=`<div class="m-sec"><div class="m-sec-t">🔀 Ateliers connexes</div><div style="display:flex;gap:6px;flex-wrap:wrap">${(w.lk||[]).map(lid=>{const lw=WS.find(x=>x.id===lid);return lw?`<button class="conn-btn" onclick="openModal('${lid}')">${lw.i} ${lw.n}</button>`:''}).join('')}</div></div>`;
+  document.getElementById('m-body').innerHTML=h;
+  document.getElementById('modal-bg').classList.add('on');
+}
+function closeModal(){document.getElementById('modal-bg').classList.remove('on')}
+document.getElementById('modal-bg').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+function openRandom(){openModal(WS[Math.floor(Math.random()*WS.length)].id)}
+
+// ═══════════════ GRAPH ═══════════════
+let graphReady=false;
+function initGraph(){
+  graphReady=true;
+  const svg=document.getElementById('graph-svg');
+  const ct=svg.parentElement;
+  let W=ct.clientWidth,H=ct.clientHeight;
+  svg.setAttribute('width',W);svg.setAttribute('height',H);
+  // Positions
+  const cx=W/2,cy=H/2,R=Math.min(cx,cy)*0.65;
+  const pos={};const vi=WS.findIndex(w=>w.id==='vpa');
+  WS.forEach((w,i)=>{
+    if(w.id==='vpa'){pos[w.id]={x:cx,y:cy};}
+    else{const idx=i>vi?i-1:i;const tot=WS.length-1;const a=(idx/tot)*Math.PI*2-Math.PI/2;pos[w.id]={x:cx+Math.cos(a)*R,y:cy+Math.sin(a)*R};}
+  });
+  // Links
+  const lkSet=new Set(),links=[];
+  WS.forEach(w=>(w.lk||[]).forEach(t=>{const k=[w.id,t].sort().join('|');if(!lkSet.has(k)&&WS.find(x=>x.id===t)){lkSet.add(k);links.push({s:w.id,t});}}));
+  // Transform
+  let ox=0,oy=0,sc=1;
+  function tx(){return`translate(${ox},${oy}) scale(${sc})`}
+  const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('transform',tx());svg.appendChild(g);
+  // Draw links
+  const lineEls=links.map(l=>{
+    const p1=pos[l.s],p2=pos[l.t];
+    const el=document.createElementNS('http://www.w3.org/2000/svg','line');
+    el.setAttribute('x1',p1.x);el.setAttribute('y1',p1.y);el.setAttribute('x2',p2.x);el.setAttribute('y2',p2.y);
+    el.setAttribute('stroke','#334155');el.setAttribute('stroke-width','1');el.setAttribute('opacity','0.2');
+    el._s=l.s;el._t=l.t;g.appendChild(el);return el;
+  });
+  // Draw nodes
+  const nodeEls=WS.map(w=>{
+    const p=pos[w.id],c=CT[w.cat],r=w.sz/2;
+    const ng=document.createElementNS('http://www.w3.org/2000/svg','g');
+    ng.setAttribute('class','gn');ng.setAttribute('transform',`translate(${p.x},${p.y})`);
+    ng.innerHTML=`<circle r="${r+6}" fill="transparent"/><circle r="${r}" fill="${c.c}22" stroke="${c.c}" stroke-width="1.5" class="gc"/><text text-anchor="middle" dominant-baseline="central" font-size="${r*0.85}" style="pointer-events:none">${w.i}</text><text text-anchor="middle" y="${r+14}" fill="#e2e8f0" font-size="10" font-weight="600" style="pointer-events:none;font-family:system-ui" class="gl">${w.n}</text>`;
+    ng._id=w.id;ng._lk=new Set(w.lk||[]);
+    ng.addEventListener('click',()=>openModal(w.id));
+    ng.addEventListener('mouseenter',()=>highlightNode(w.id,ng._lk));
+    ng.addEventListener('mouseleave',()=>clearHighlight());
+    g.appendChild(ng);return ng;
+  });
+  function highlightNode(id,conns){
+    lineEls.forEach(el=>{
+      const lit=(el._s===id&&conns.has(el._t))||(el._t===id&&conns.has(el._s));
+      el.setAttribute('stroke',lit?'#34d399':'#334155');
+      el.setAttribute('stroke-width',lit?'2.5':'1');
+      el.setAttribute('opacity',lit?'0.8':'0.04');
+    });
+    nodeEls.forEach(ng=>{
+      const isMe=ng._id===id,isCon=conns.has(ng._id),isDim=!isMe&&!isCon;
+      ng.querySelector('.gc').setAttribute('opacity',isDim?'0.1':'1');
+      ng.querySelector('.gc').setAttribute('stroke-width',isMe?'3':isCon?'2':'1.5');
+      ng.querySelector('.gl').setAttribute('opacity',isDim?'0.06':'0.9');
+      if(isMe)ng.querySelector('.gc').style.filter=`drop-shadow(0 0 12px ${CT[WS.find(w=>w.id===id).cat].c})`;
+    });
+    const w=WS.find(x=>x.id===id);
+    const info=document.getElementById('g-info');
+    info.style.display='block';
+    info.innerHTML=`<div style="font-size:13px;font-weight:700;color:#34d399">${w.i} ${w.n}</div><div style="font-size:11px;color:#94a3b8;margin-top:3px">${w.tag}</div><div style="font-size:11px;color:#64748b;margin-top:4px">👥 ${w.pp} · ⏱ ${w.tm} · ${DL[w.df]}</div><div style="font-size:10px;color:#64748b;margin-top:6px">Cliquez pour le guide complet →</div>`;
+  }
+  function clearHighlight(){
+    lineEls.forEach(el=>{el.setAttribute('stroke','#334155');el.setAttribute('stroke-width','1');el.setAttribute('opacity','0.2');});
+    nodeEls.forEach(ng=>{ng.querySelector('.gc').setAttribute('opacity','1');ng.querySelector('.gc').setAttribute('stroke-width','1.5');ng.querySelector('.gc').style.filter='';ng.querySelector('.gl').setAttribute('opacity','0.9');});
+    document.getElementById('g-info').style.display='none';
+  }
+  // Zoom/Pan
+  let dragging=false,ds={x:0,y:0};
+  svg.addEventListener('wheel',e=>{e.preventDefault();sc=Math.max(0.3,Math.min(3,sc*(e.deltaY>0?0.92:1.08)));g.setAttribute('transform',tx());},{passive:false});
+  svg.addEventListener('mousedown',e=>{if(e.target.closest('.gn'))return;dragging=true;ds={x:e.clientX-ox,y:e.clientY-oy};});
+  svg.addEventListener('mousemove',e=>{if(!dragging)return;ox=e.clientX-ds.x;oy=e.clientY-ds.y;g.setAttribute('transform',tx());});
+  svg.addEventListener('mouseup',()=>dragging=false);
+  svg.addEventListener('mouseleave',()=>dragging=false);
+  document.getElementById('zin').addEventListener('click',()=>{sc=Math.min(3,sc*1.25);g.setAttribute('transform',tx());});
+  document.getElementById('zout').addEventListener('click',()=>{sc=Math.max(0.3,sc*0.8);g.setAttribute('transform',tx());});
+  document.getElementById('zreset').addEventListener('click',()=>{sc=1;ox=0;oy=0;g.setAttribute('transform',tx());});
+  // Legend
+  document.getElementById('g-legend').innerHTML=Object.entries(CT).map(([k,v])=>`<span style="background:${v.c}22;color:${v.c};border:1px solid ${v.c}44">${v.i} ${v.l}</span>`).join('');
+  // Resize
+  window.addEventListener('resize',()=>{W=ct.clientWidth;H=ct.clientHeight;svg.setAttribute('width',W);svg.setAttribute('height',H);});
+}
+
+// ═══════════════ MAP ═══════════════
+let mapReady=false;
+function initMap(){
+  mapReady=true;
+  document.getElementById('venue-grid').innerHTML=VENUES.map(v=>
+    `<${v.u?`a href="${v.u}" target="_blank" rel="noopener"`:'div'} class="venue" style="text-decoration:none;color:inherit">
+      <div class="venue-t">${v.t}</div><div class="venue-n">${v.n}</div><div class="venue-d">${v.d}</div>
+      ${v.u?`<div style="font-size:10px;color:var(--lila);margin-top:6px">→ ${v.u.replace('https://','').replace('www.','')}</div>`:''}
+    </${v.u?'a':'div'}>`).join('');
+  document.getElementById('map-btns').innerHTML=MAPS.map((m,i)=>
+    `<button class="map-btn${i===0?' on':''}" data-i="${i}">${m.l}</button>`).join('');
+  setMap(0);
+  document.querySelectorAll('#map-btns .map-btn').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#map-btns .map-btn').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');setMap(+b.dataset.i);
+  }));
+}
+function setMap(i){
+  const m=MAPS[i];
+  document.getElementById('map-frame').innerHTML=`<iframe title="Carte" src="https://www.openstreetmap.org/export/embed.html?bbox=${m.bb}&layer=mapnik&marker=${m.mk}"></iframe>`;
+}
+
+// ═══════════════ GO STEPS ═══════════════
+document.getElementById('go-steps').innerHTML=STEPS.map(s=>
+  `<div class="go-step"><div class="go-n" style="background:${s.c}15;border:2px solid ${s.c};color:${s.c}">${s.n}</div><div style="flex:1"><div class="go-t">${s.t}</div><div class="go-d">${s.d}</div></div></div>`).join('');
+</script>
+</body>
+</html>
