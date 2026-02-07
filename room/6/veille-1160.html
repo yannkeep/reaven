@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ouaisfieu · ATELIER-DÉBAT INDUSTRIEL v2.0</title>
+<meta name="description" content="Architecture technique pour industrialiser les ateliers-débat citoyens avec 29€/mois. Infrastructure Fediverse, méthodologie Voir·Penser·Agir.">
+<meta name="author" content="ouaisfieu — Intelligence citoyenne belge">
+<meta property="og:title" content="ATELIER-DÉBAT INDUSTRIEL v2.0">
+<meta property="og:description" content="Scaler l'éducation populaire avec 29€/mois. Infrastructure libre, méthodo VPA.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   VARIABLES & RESET
+   ═══════════════════════════════════════ */
+:root{
+  --bg:#0a0e14;--bg2:#131920;--bg3:#1a2130;
+  --border:#252d3a;--border-hi:#48bb7844;
+  --text:#d4dce8;--dim:#5c6a7e;
+  --mint:#48bb78;--mint-lo:#48bb7820;--mint-mid:#48bb7850;
+  --lilac:#9f7aea;--lilac-lo:#9f7aea20;
+  --orange:#f6ad55;--yellow:#fbd38d;
+  --blue:#63b3ed;--rose:#ed64a6;--red:#fc8181;
+  --font:'JetBrains Mono','Fira Code',monospace;
+  --panel-w:260px;--topbar-h:40px;--bottom-h:0px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:12px;line-height:1.5}
+::selection{background:var(--lilac);color:var(--bg)}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ═══════════════════════════════════════
+   CRT OVERLAY
+   ═══════════════════════════════════════ */
+body::before{content:'';position:fixed;inset:0;z-index:99999;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.025) 2px,rgba(0,0,0,0.025) 4px)}
+body::after{content:'';position:fixed;inset:0;z-index:99998;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.5) 100%)}
+
+/* ═══════════════════════════════════════
+   MATRIX RAIN CANVAS
+   ═══════════════════════════════════════ */
+#matrix{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.06}
+
+/* ═══════════════════════════════════════
+   TOPBAR
+   ═══════════════════════════════════════ */
+#topbar{
+  position:fixed;top:0;left:0;right:0;height:var(--topbar-h);
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 14px;z-index:1000;gap:12px;
+}
+.dots{display:flex;gap:5px}
+.dots span{width:10px;height:10px;border-radius:50%;display:block}
+.d-r{background:#ff5f57}.d-y{background:#febc2e}.d-g{background:#28c840}
+.top-title{font-size:11px;color:var(--dim);white-space:nowrap}
+.top-title b{color:var(--lilac);font-weight:700}
+.top-sep{width:1px;height:18px;background:var(--border)}
+.top-status{display:flex;align-items:center;gap:6px;font-size:9px;color:var(--mint)}
+.top-dot{width:6px;height:6px;border-radius:50%;background:var(--mint);animation:blink 2s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.top-cmd-wrap{
+  flex:1;display:flex;align-items:center;gap:6px;
+  background:var(--bg);border:1px solid var(--border);border-radius:3px;
+  padding:0 10px;height:26px;max-width:420px;margin-left:auto;
+}
+.top-cmd-wrap:focus-within{border-color:var(--mint);box-shadow:0 0 8px var(--mint-lo)}
+.top-cmd-p{color:var(--mint);font-size:10px;white-space:nowrap}
+#cmd{
+  flex:1;background:transparent;border:none;color:var(--mint);
+  font-family:var(--font);font-size:10px;outline:none;caret-color:var(--mint);
+}
+#cmd::placeholder{color:var(--dim)}
+.top-ver{color:var(--dim);font-size:8px;white-space:nowrap}
+
+/* ═══════════════════════════════════════
+   SIDE PANEL
+   ═══════════════════════════════════════ */
+#panel{
+  position:fixed;top:var(--topbar-h);left:0;width:var(--panel-w);bottom:0;
+  background:var(--bg2);border-right:1px solid var(--border);z-index:500;
+  display:flex;flex-direction:column;transition:transform .3s ease;
+}
+#panel.collapsed{transform:translateX(calc(-1 * var(--panel-w) + 32px))}
+.pn-head{
+  padding:8px 10px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:6px;
+}
+.pn-head-title{flex:1;font-size:9px;color:var(--lilac);text-transform:uppercase;letter-spacing:1px}
+.pn-toggle{
+  background:none;border:1px solid var(--border);color:var(--dim);cursor:pointer;
+  font-family:var(--font);font-size:10px;padding:3px 6px;border-radius:3px;
+}
+.pn-toggle:hover{border-color:var(--lilac);color:var(--lilac)}
+.pn-list{flex:1;overflow-y:auto;padding:4px 0}
+.nd-card{
+  padding:6px 10px;cursor:pointer;border-left:2px solid transparent;
+  transition:all .15s;display:flex;align-items:center;gap:7px;
+}
+.nd-card:hover{background:var(--bg);border-left-color:var(--lilac)}
+.nd-card.active{background:var(--bg);border-left-color:var(--mint)}
+.nd-ico{font-size:12px;width:18px;text-align:center;flex-shrink:0}
+.nd-name{font-size:9px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nd-cat{font-size:7px;padding:1px 4px;border-radius:2px;flex-shrink:0}
+
+/* ═══════════════════════════════════════
+   GRAPH AREA
+   ═══════════════════════════════════════ */
+#graph-area{
+  position:fixed;top:var(--topbar-h);left:var(--panel-w);right:0;bottom:0;
+  z-index:10;overflow:hidden;transition:left .3s ease;
+}
+#panel.collapsed~#graph-area{left:32px}
+#graph-svg{width:100%;height:100%;display:block}
+.g-link{stroke:var(--border);stroke-width:.8}
+.g-link.lit{stroke:var(--lilac);stroke-width:2}
+.n-label{font-family:var(--font);font-size:8px;fill:var(--text);text-anchor:middle;pointer-events:none;opacity:.75}
+
+/* ═══════════════════════════════════════
+   TOOLTIP
+   ═══════════════════════════════════════ */
+#tip{
+  position:fixed;background:var(--bg2);border:1px solid var(--lilac);
+  padding:8px 12px;border-radius:4px;font-size:10px;pointer-events:none;
+  z-index:2000;max-width:260px;display:none;box-shadow:0 4px 24px rgba(0,0,0,.7);
+}
+#tip .tn{color:var(--lilac);font-weight:700;margin-bottom:2px}
+#tip .td{color:var(--dim);font-size:9px}
+
+/* ═══════════════════════════════════════
+   MODAL
+   ═══════════════════════════════════════ */
+#modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);
+  z-index:5000;display:none;align-items:center;justify-content:center;
+}
+#modal-bg.open{display:flex}
+#modal{
+  background:var(--bg2);border:1px solid var(--border);border-radius:6px;
+  width:92%;max-width:660px;max-height:82vh;overflow-y:auto;
+  box-shadow:0 12px 56px rgba(0,0,0,.8);
+}
+.m-head{
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;background:var(--bg2);z-index:1;
+}
+.m-head .m-ico{font-size:20px}
+.m-head .m-title{font-size:13px;font-weight:700;color:var(--lilac);flex:1}
+.m-head .m-cat{font-size:8px;padding:2px 6px;border-radius:3px}
+.m-head .m-close{background:none;border:none;color:var(--dim);cursor:pointer;font-size:18px;font-family:var(--font);padding:4px 8px}
+.m-head .m-close:hover{color:var(--red)}
+.m-body{padding:18px}
+.m-body h3{color:var(--mint);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin:14px 0 6px}
+.m-body h3:first-child{margin-top:0}
+.m-body p,.m-body li{color:var(--text);font-size:11px;line-height:1.65}
+.m-body ul{padding-left:14px}
+.m-body li{margin-bottom:3px}
+.m-body code{background:var(--bg);padding:1px 4px;border-radius:2px;color:var(--mint);font-size:10px}
+.m-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.m-meta-i{background:var(--bg);padding:8px 10px;border-radius:4px;border-left:2px solid var(--lilac)}
+.m-meta-l{color:var(--dim);font-size:8px;text-transform:uppercase;letter-spacing:.5px}
+.m-meta-v{color:var(--text);font-size:11px;font-weight:500;margin-top:1px}
+.m-links{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px}
+.m-link-btn{
+  background:var(--lilac-lo);border:1px solid var(--lilac)44;
+  color:var(--lilac);font-family:var(--font);font-size:9px;
+  padding:3px 8px;border-radius:3px;cursor:pointer;
+}
+.m-link-btn:hover{background:var(--lilac);color:var(--bg)}
+
+/* ═══════════════════════════════════════
+   TOAST
+   ═══════════════════════════════════════ */
+.toast{
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+  background:var(--bg2);border:1px solid var(--lilac);color:var(--text);
+  padding:8px 16px;border-radius:4px;font-size:10px;z-index:6000;
+  max-width:92vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  animation:toast-in .3s ease;box-shadow:0 4px 24px rgba(0,0,0,.7);
+}
+@keyframes toast-in{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════ */
+@media(max-width:700px){
+  #panel{transform:translateX(-100%)}
+  #panel.mobile-open{transform:translateX(0)}
+  #graph-area{left:0!important}
+  .top-cmd-wrap{max-width:180px}
+  .top-ver{display:none}
+}
+</style>
+</head>
+<body>
+
+<canvas id="matrix"></canvas>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="dots"><span class="d-r"></span><span class="d-y"></span><span class="d-g"></span></div>
+  <div class="top-title"><b>ATELIER-DÉBAT INDUSTRIEL</b> v2.0</div>
+  <div class="top-sep"></div>
+  <div class="top-status"><span class="top-dot"></span>LIVE · 29€/mois</div>
+  <div class="top-cmd-wrap">
+    <span class="top-cmd-p">adi:~$</span>
+    <input type="text" id="cmd" placeholder="help · list · budget · fork · [nom]" autocomplete="off" spellcheck="false" />
+  </div>
+  <div class="top-ver">ouaisfieu · CC BY-SA 4.0</div>
+</div>
+
+<!-- SIDE PANEL -->
+<div id="panel">
+  <div class="pn-head">
+    <span class="pn-head-title">Nœuds du réseau</span>
+    <button class="pn-toggle" id="pn-toggle" title="Réduire">◀</button>
+  </div>
+  <div class="pn-list" id="pn-list"></div>
+</div>
+
+<!-- GRAPH -->
+<div id="graph-area"><svg id="graph-svg"></svg></div>
+
+<!-- TOOLTIP -->
+<div id="tip"><div class="tn"></div><div class="td"></div></div>
+
+<!-- MODAL -->
+<div id="modal-bg">
+  <div id="modal">
+    <div class="m-head">
+      <span class="m-ico" id="m-ico"></span>
+      <span class="m-title" id="m-title"></span>
+      <span class="m-cat" id="m-cat"></span>
+      <button class="m-close" id="m-close">&times;</button>
+    </div>
+    <div class="m-body" id="m-body"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     JAVASCRIPT — Console first (D3-independent), graph second
+     ═══════════════════════════════════════════════════ -->
+<script>
+// ──────────────────────────────────
+// DATA — 20 nodes
+// ──────────────────────────────────
+const CATS={
+  diffusion:{color:'#48bb78',label:'DIFFUSION'},
+  deliberation:{color:'#9f7aea',label:'DÉLIBÉRATION'},
+  methodo:{color:'#63b3ed',label:'MÉTHODO'},
+  production:{color:'#f6ad55',label:'PRODUCTION'},
+  terrain:{color:'#fc8181',label:'TERRAIN'},
+  licence:{color:'#fbd38d',label:'LICENCE'}
+};
+
+const ND=[
+{id:'youtube',icon:'▶️',name:'YouTube + Commentaires',cat:'diffusion',r:12,
+desc:'Diffusion de capsules vidéo avec commentaires épinglés comme levier de débat structuré.',
+detail:'<h3>Rôle dans l\'écosystème</h3><p>YouTube sert de porte d\'entrée grand public. Les vidéos sont des déclencheurs de débat, pas une fin en soi. Le vrai travail se fait dans les commentaires structurés.</p><h3>Stratégie</h3><ul><li>Vidéos courtes (5–15 min) sur un enjeu citoyen</li><li>Commentaire épinglé avec question structurante VPA</li><li>Renvoi vers les outils de délibération</li><li>Sous-titres via Whisper AI pour l\'accessibilité</li></ul><h3>Coût</h3><p><code>0€</code> — Plateforme gratuite.</p>',
+meta:{cout:'0€',type:'Plateforme',acces:'Gratuit'},
+links:['peertube','commentaire-epingle','whisper-ai','voir-penser-agir']},
+
+{id:'peertube',icon:'📺',name:'PeerTube Fediverse',cat:'diffusion',r:11,
+desc:'Alternative fédérée à YouTube. Hébergement souverain via le réseau PeerTube.',
+detail:'<h3>Rôle dans l\'écosystème</h3><p>Mirror fédéré des contenus YouTube. Assure la souveraineté des contenus et évite la dépendance à une plateforme commerciale unique.</p><h3>Avantages</h3><ul><li>Fédéré : pas de censure centralisée</li><li>Pas de tracking publicitaire</li><li>Interopérable avec le Fediverse (Mastodon, etc.)</li><li>Instances belges disponibles</li></ul><h3>Coût</h3><p><code>0€</code> — Instances gratuites disponibles, ou auto-hébergement.</p>',
+meta:{cout:'0€',type:'Plateforme fédérée',acces:'Libre'},
+links:['youtube','mastodon-bluesky','modele-framasoft']},
+
+{id:'mastodon-bluesky',icon:'🌐',name:'Mastodon / Bluesky',cat:'diffusion',r:10,
+desc:'Réseaux sociaux décentralisés pour la diffusion virale et l\'animation de communauté.',
+detail:'<h3>Rôle dans l\'écosystème</h3><p>Canaux de diffusion primaires. Mastodon pour le Fediverse militant, Bluesky pour une audience plus large. Les deux sont décentralisés.</p><h3>Usage</h3><ul><li>Annonce des ateliers et nouvelles vidéos</li><li>Microdébats en fil de discussion</li><li>Veille citoyenne participative</li><li>Relais vers les outils de délibération</li></ul><h3>Coût</h3><p><code>0€</code> — Gratuit sur les deux plateformes.</p>',
+meta:{cout:'0€',type:'Réseaux sociaux',acces:'Libre'},
+links:['youtube','peertube','mobilizon']},
+
+{id:'commentaire-epingle',icon:'📌',name:'Commentaire Épinglé',cat:'diffusion',r:8,
+desc:'Technique de structuration du débat via un commentaire épinglé avec cadre VPA.',
+detail:'<h3>Principe</h3><p>Sous chaque vidéo, un commentaire épinglé structure le débat avec la méthode Voir·Penser·Agir. C\'est le pont entre la diffusion passive et la délibération active.</p><h3>Format type</h3><ul><li>👁️ VOIR : Qu\'avez-vous observé ?</li><li>🧠 PENSER : Qu\'est-ce que ça interroge ?</li><li>✊ AGIR : Que pourrait-on faire ?</li><li>📋 Lien vers Pol.is / Consider.it</li></ul>',
+meta:{cout:'0€',type:'Technique',acces:'—'},
+links:['youtube','voir-penser-agir','polis']},
+
+{id:'polis',icon:'📊',name:'Pol.is',cat:'deliberation',r:12,
+desc:'Plateforme de délibération à grande échelle. Cartographie les opinions via vote et clustering.',
+detail:'<h3>Rôle dans l\'écosystème</h3><p>Outil central de délibération. Pol.is permet à des centaines de personnes de s\'exprimer simultanément, révélant les consensus cachés et les lignes de fracture réelles.</p><h3>Fonctionnement</h3><ul><li>Les participant·es votent sur des propositions (d\'accord / pas d\'accord / je passe)</li><li>L\'algorithme regroupe les opinions en clusters</li><li>Les consensus émergent visuellement</li><li>Pas de trolling possible : on vote, on ne commente pas</li></ul><h3>Utilisé par</h3><p>Taïwan (vTaiwan), Uber régulation, Assemblée citoyenne irlandaise…</p><h3>Coût</h3><p><code>0€</code> — Open source, hébergeable.</p>',
+meta:{cout:'0€',type:'Délibération',acces:'Open source'},
+links:['consider-it','your-priorities','anti-trolling','commentaire-epingle']},
+
+{id:'consider-it',icon:'⚖️',name:'Consider.it',cat:'deliberation',r:10,
+desc:'Visualisation pro/contra sur des propositions. Chaque participant·e place un curseur et argumente.',
+detail:'<h3>Rôle dans l\'écosystème</h3><p>Complément à Pol.is pour des délibérations plus nuancées. Chaque proposition est évaluée sur un spectre, avec les arguments pour et contre visibles de tous.</p><h3>Fonctionnement</h3><ul><li>Proposition affichée en haut</li><li>Curseur individuel sur un spectre pour/contre</li><li>Arguments écrits triés par camp</li><li>Visualisation collective de la distribution des avis</li></ul><h3>Coût</h3><p><code>0€</code> — Open source.</p>',
+meta:{cout:'0€',type:'Délibération',acces:'Open source'},
+links:['polis','your-priorities','voir-penser-agir']},
+
+{id:'your-priorities',icon:'🏛️',name:'Your Priorities',cat:'deliberation',r:9,
+desc:'Plateforme de propositions citoyennes avec vote et argumentation structurée.',
+detail:'<h3>Rôle dans l\'écosystème</h3><p>Espace de propositions citoyennes plus élaborées. Contrairement à Pol.is (votes rapides), Your Priorities permet de rédiger des propositions longues et argumentées.</p><h3>Usage</h3><ul><li>Rédaction de propositions citoyennes</li><li>Vote et contre-argumentation</li><li>Utilisé par Reykjavik, Scottish Parliament…</li></ul><h3>Coût</h3><p><code>0€</code> — Open source (Citizens Foundation).</p>',
+meta:{cout:'0€',type:'Délibération',acces:'Open source'},
+links:['polis','consider-it','agorakit']},
+
+{id:'agorakit',icon:'🇧🇪',name:'Agorakit',cat:'deliberation',r:10,
+desc:'Outil belge de gestion de groupes citoyens. Agenda, discussions, fichiers, cartographie.',
+detail:'<h3>Rôle dans l\'écosystème</h3><p>Le « quartier général » des groupes locaux. Agorakit est un outil belge (Philippe Jadin) conçu spécifiquement pour les collectifs citoyens.</p><h3>Fonctionnalités</h3><ul><li>Groupes de discussion thématiques</li><li>Agenda partagé</li><li>Partage de fichiers</li><li>Cartographie des groupes</li><li>Notifications par email</li></ul><h3>Coût</h3><p><code>0€</code> — Open source, hébergement gratuit possible.</p>',
+meta:{cout:'0€',type:'Coordination',acces:'Open source 🇧🇪'},
+links:['your-priorities','mobilizon','infra-belge']},
+
+{id:'anti-trolling',icon:'🛡️',name:'Anti-Trolling by Design',cat:'methodo',r:10,
+desc:'Principes de conception qui rendent le trolling structurellement impossible.',
+detail:'<h3>Principe</h3><p>Le meilleur anti-trolling n\'est pas la modération, c\'est l\'architecture. Concevoir des espaces où le trolling est structurellement impossible ou improductif.</p><h3>Techniques</h3><ul><li><b>Pol.is</b> : pas de réponses, que des votes → pas de flame wars</li><li><b>Commentaire épinglé VPA</b> : cadre la discussion d\'emblée</li><li><b>Cercle de parole numérique</b> : tours de parole séquentiels</li><li><b>Modération par les pairs</b> : signalement communautaire</li></ul><h3>Philosophie</h3><p>« Don\'t feed the trolls » est un échec. Redesign the plate so they can\'t reach the food.</p>',
+meta:{cout:'0€',type:'Méthodologie',acces:'—'},
+links:['polis','voir-penser-agir','commentaire-epingle']},
+
+{id:'voir-penser-agir',icon:'🧭',name:'Voir · Penser · Agir',cat:'methodo',r:14,
+desc:'Cadre méthodologique central. Structure chaque atelier-débat en 3 phases.',
+detail:'<h3>Le cadre VPA</h3><p>Chaque atelier-débat, en ligne ou en présentiel, suit ce cycle en 3 phases. Inspiré de la méthode Voir-Juger-Agir (Joseph Cardijn, JOC, 1925).</p><h3>👁️ VOIR — Observer</h3><p>Collecter, regarder, écouter. Pas encore de jugement. En ligne : vidéo + commentaire épinglé + sondage Pol.is.</p><h3>🧠 PENSER — Analyser</h3><p>Confronter les perspectives. En ligne : Consider.it + Your Priorities + débat structuré.</p><h3>✊ AGIR — Décider</h3><p>Produire des livrables, décider, organiser. En ligne : proposition collective + Agorakit + mobilisation terrain.</p><h3>Contraintes EP</h3><ul><li>Min. 5 participants publics</li><li>Max. 9 pour un dialogue de qualité</li><li>Phase async : 7 jours de maturation</li><li>Debrief sync : dans les 48h</li></ul>',
+meta:{cout:'0€',type:'Méthodologie',acces:'Universel'},
+links:['anti-trolling','commentaire-epingle','atelier-en-kit','batch-processing','bascule-presentiel']},
+
+{id:'batch-processing',icon:'⚡',name:'Batch Processing',cat:'production',r:9,
+desc:'Méthode de production en lot : tourner 4 vidéos, créer 4 Pol.is, planifier 4 semaines en une journée.',
+detail:'<h3>Principe</h3><p>Au lieu de produire un atelier-débat par semaine, produire un mois entier en une session de travail intensive.</p><h3>Workflow</h3><ul><li>J1 : Tourner 4 capsules vidéo</li><li>J2 : Sous-titrer (Whisper AI), monter, publier</li><li>J3 : Créer les 4 sondages Pol.is + commentaires épinglés</li><li>J4 : Planifier la diffusion sur 4 semaines</li></ul><h3>Gain</h3><p>4 ateliers-débats en 4 jours au lieu de 4 semaines. Économie de contexte cognitive massive.</p>',
+meta:{cout:'0€',type:'Méthode',acces:'—'},
+links:['voir-penser-agir','atelier-en-kit','whisper-ai','budget']},
+
+{id:'atelier-en-kit',icon:'📦',name:'Atelier en Kit',cat:'production',r:10,
+desc:'Template complet et forkable pour lancer un atelier-débat citoyen en 15 minutes.',
+detail:'<h3>Contenu du kit</h3><ul><li>Script vidéo (template)</li><li>Commentaire épinglé VPA (template)</li><li>Sondage Pol.is (template)</li><li>Annonce réseaux sociaux (template)</li><li>Fiche de suivi EP (template)</li><li>Guide de l\'animateur·rice</li></ul><h3>Philosophie</h3><p>Un citoyen motivé doit pouvoir lancer un atelier-débat complet en 15 minutes, sans formation préalable. Tout est pré-configuré, il suffit de remplir les blancs.</p><h3>Coût</h3><p><code>0€</code> — CC BY-SA 4.0, forkable.</p>',
+meta:{cout:'0€',type:'Template',acces:'CC BY-SA 4.0'},
+links:['voir-penser-agir','batch-processing','h5p','cc-by-sa']},
+
+{id:'budget',icon:'💰',name:'Budget 29€/mois',cat:'production',r:11,
+desc:'Ventilation du budget minimal pour faire tourner l\'infrastructure complète.',
+detail:'<h3>Ventilation mensuelle</h3><ul><li><b>Nom de domaine</b> : ~1€/mois (12€/an)</li><li><b>Hébergement GitHub Pages</b> : 0€</li><li><b>Obsidian Publish</b> : 8€/mois (optionnel)</li><li><b>Outils délibération</b> : 0€ (open source)</li><li><b>Mastodon / Bluesky</b> : 0€</li><li><b>Claude Pro</b> : 20€/mois (intelligence augmentée)</li></ul><h3>Total</h3><p><code>≈ 29€/mois</code> pour une infrastructure complète de civic tech.</p><h3>Comparaison</h3><p>Une association type dépense 500–2000€/mois en infrastructure numérique. Le ratio est de <b>1:70</b>.</p>',
+meta:{cout:'29€/mois',type:'Infrastructure',acces:'—'},
+links:['batch-processing','atelier-en-kit','infra-belge','modele-framasoft']},
+
+{id:'h5p',icon:'🎮',name:'H5P Interactif',cat:'production',r:8,
+desc:'Contenus interactifs (quiz, vidéos interactives, timelines) pour gamifier les ateliers.',
+detail:'<h3>Rôle</h3><p>H5P permet de transformer des contenus statiques en contenus interactifs sans coder. Quiz de vérification de compréhension, vidéos avec questions intégrées, timelines interactives…</p><h3>Types de contenus</h3><ul><li>Vidéo interactive (questions in-stream)</li><li>Quiz à choix multiples</li><li>Glisser-déposer</li><li>Timeline interactive</li><li>Carte interactive</li></ul><h3>Coût</h3><p><code>0€</code> — Open source, intégrable dans WordPress, Moodle, ou standalone.</p>',
+meta:{cout:'0€',type:'Outil',acces:'Open source'},
+links:['atelier-en-kit','whisper-ai','voir-penser-agir']},
+
+{id:'whisper-ai',icon:'🎤',name:'Whisper AI Sous-titrage',cat:'production',r:8,
+desc:'Transcription et sous-titrage automatique des vidéos via Whisper (OpenAI, open source).',
+detail:'<h3>Rôle</h3><p>Accessibilité universelle. Chaque vidéo est automatiquement sous-titrée en français (et potentiellement en néerlandais, anglais, arabe…).</p><h3>Workflow</h3><ul><li>Extraire l\'audio de la vidéo</li><li>Passer dans Whisper (modèle large)</li><li>Corriger les erreurs mineures</li><li>Intégrer les sous-titres (SRT/VTT)</li></ul><h3>Coût</h3><p><code>0€</code> — Open source, exécutable en local.</p>',
+meta:{cout:'0€',type:'Outil IA',acces:'Open source'},
+links:['youtube','batch-processing','h5p']},
+
+{id:'bascule-presentiel',icon:'🏠',name:'Bascule Présentiel',cat:'terrain',r:10,
+desc:'Transition du numérique vers le terrain : quand et comment passer au présentiel.',
+detail:'<h3>Principe</h3><p>Le numérique est un tremplin, pas une fin. Chaque cycle d\'atelier-débat en ligne peut déboucher sur une rencontre en présentiel.</p><h3>Déclencheurs</h3><ul><li>Cluster Pol.is identifié → rencontre locale</li><li>5+ participants dans la même commune → atelier physique</li><li>Thématique locale spécifique → marche exploratoire</li></ul><h3>Lieux</h3><p>Maisons de quartier, bibliothèques, CPAS, centres culturels, cafés associatifs…</p>',
+meta:{cout:'Variable',type:'Méthode',acces:'—'},
+links:['voir-penser-agir','infra-belge','mobilizon']},
+
+{id:'infra-belge',icon:'🏛️',name:'Infrastructure Belge (~280 assos EP)',cat:'terrain',r:11,
+desc:'Le réseau existant des ~280 associations d\'éducation permanente reconnues en FWB.',
+detail:'<h3>Rôle</h3><p>Les associations d\'éducation permanente reconnues par la FWB sont un réseau de distribution déjà existant. Elles ont les locaux, les animateur·rices, les publics.</p><h3>Chiffres</h3><ul><li>~280 associations reconnues EP</li><li>Réparties sur tout le territoire FWB</li><li>Budget total EP : ~70M€/an</li><li>Publics cibles : précaires, migrant·es, jeunes, seniors…</li></ul><h3>Stratégie</h3><p>Ne pas recréer l\'infrastructure, mais brancher ouaisfieu sur l\'infrastructure existante via l\'Atelier en Kit forkable.</p>',
+meta:{cout:'0€',type:'Réseau',acces:'Partenariat'},
+links:['bascule-presentiel','agorakit','budget','mobilizon']},
+
+{id:'mobilizon',icon:'📅',name:'Mobilizon Événements',cat:'terrain',r:8,
+desc:'Alternative libre à Facebook Events / Meetup pour organiser les rencontres terrain.',
+detail:'<h3>Rôle</h3><p>Gestion des événements sans Facebook. Mobilizon est fédéré (comme Mastodon), sans tracking, open source.</p><h3>Usage</h3><ul><li>Annonce des ateliers présentiels</li><li>Gestion des inscriptions</li><li>Groupes thématiques locaux</li><li>Interopérable avec le Fediverse</li></ul><h3>Coût</h3><p><code>0€</code> — Instances publiques gratuites.</p>',
+meta:{cout:'0€',type:'Événements',acces:'Fédéré'},
+links:['bascule-presentiel','mastodon-bluesky','infra-belge','modele-framasoft']},
+
+{id:'cc-by-sa',icon:'📜',name:'CC BY-SA 4.0',cat:'licence',r:9,
+desc:'Licence Creative Commons qui garantit que tout le contenu reste libre et forkable.',
+detail:'<h3>Pourquoi CC BY-SA</h3><p>Tout contenu produit dans l\'écosystème est sous licence CC BY-SA 4.0. Cela signifie :</p><ul><li><b>BY</b> : Attribution — citer ouaisfieu</li><li><b>SA</b> : Share Alike — les dérivés doivent rester sous la même licence</li></ul><h3>Implication</h3><p>N\'importe quel collectif citoyen peut reprendre, adapter, et rediffuser tout le contenu. La clause SA empêche la privatisation.</p>',
+meta:{cout:'0€',type:'Licence',acces:'Libre'},
+links:['atelier-en-kit','modele-framasoft']},
+
+{id:'modele-framasoft',icon:'🐧',name:'Modèle Framasoft',cat:'licence',r:9,
+desc:'Inspiration : Framasoft comme modèle d\'écosystème libre à petite échelle.',
+detail:'<h3>Référence</h3><p>Framasoft est une association française qui a montré qu\'on pouvait créer un écosystème numérique complet avec une petite équipe et un budget modeste.</p><h3>Principes retenus</h3><ul><li>Logiciels libres uniquement</li><li>Pas de publicité, pas de tracking</li><li>Documentation ouverte de tout</li><li>Communauté d\'utilisateur·rices comme contributeur·rices</li><li>Modèle économique basé sur le don</li></ul><h3>Adaptation ouaisfieu</h3><p>Même philosophie, adaptée au contexte belge de l\'éducation permanente. Budget encore plus réduit (29€ vs ~800k€/an pour Framasoft).</p>',
+meta:{cout:'0€',type:'Modèle',acces:'Inspiration'},
+links:['cc-by-sa','peertube','mobilizon','budget']}
+];
+
+// ──────────────────────────────────
+// CONSOLE — 100% independent of D3
+// ──────────────────────────────────
+const cmdEl=document.getElementById('cmd');
+
+['keydown','keyup','keypress','mousedown','click'].forEach(ev=>{
+  cmdEl.addEventListener(ev,e=>e.stopPropagation());
+});
+
+cmdEl.addEventListener('keydown',function(e){
+  if(e.key!=='Enter')return;
+  const v=this.value.trim().toLowerCase();
+  this.value='';
+  if(!v)return;
+  handleCmd(v);
+});
+
+function handleCmd(v){
+  if(v==='help'){toast('📋 help · list · budget · fork · about · [nom du nœud]');return;}
+  if(v==='list'){toast(ND.map(n=>n.icon+' '+n.name).join(' · '));return;}
+  if(v==='budget'){openModal('budget');return;}
+  if(v==='fork'){toast('🍴 Fork → github.com/ouaisfieu/atelier-debat-industriel — CC BY-SA 4.0');return;}
+  if(v==='about'){toast('⚡ ATELIER-DÉBAT INDUSTRIEL v2.0 — Scaler l\'EP avec 29€/mois — ouaisfieu');return;}
+  if(v==='vpa'||v==='voir-penser-agir'){openModal('voir-penser-agir');return;}
+  if(v==='korben'){toast('🤖 280 assos × 0 budget × 1 citoyen motivé = révolution douce. Math checks out.');return;}
+  // fuzzy search
+  const found=ND.find(n=>n.id===v||n.name.toLowerCase()===v||n.id.includes(v)||n.name.toLowerCase().includes(v));
+  if(found){openModal(found.id);}
+  else{toast('⚠ Nœud "'+v+'" non trouvé. Tapez "list" pour la liste complète.');}
+}
+
+function toast(msg){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),5500);
+}
+
+// ──────────────────────────────────
+// MODAL
+// ──────────────────────────────────
+function openModal(id){
+  const n=ND.find(x=>x.id===id);if(!n)return;
+  const cat=CATS[n.cat];
+  document.getElementById('m-ico').textContent=n.icon;
+  document.getElementById('m-title').textContent=n.name;
+  const catEl=document.getElementById('m-cat');
+  catEl.textContent=cat.label;catEl.style.background=cat.color+'22';catEl.style.color=cat.color;
+  let h=n.detail;
+  if(n.meta){
+    h+='<div class="m-meta">';
+    Object.entries(n.meta).forEach(([k,v])=>{
+      h+='<div class="m-meta-i"><div class="m-meta-l">'+k+'</div><div class="m-meta-v">'+v+'</div></div>';
+    });
+    h+='</div>';
+  }
+  if(n.links&&n.links.length){
+    h+='<div class="m-links">';
+    n.links.forEach(lid=>{
+      const ln=ND.find(x=>x.id===lid);
+      if(ln)h+='<button class="m-link-btn" onclick="openModal(\''+lid+'\')">'+ln.icon+' '+ln.name+'</button>';
+    });
+    h+='</div>';
+  }
+  document.getElementById('m-body').innerHTML=h;
+  document.getElementById('modal-bg').classList.add('open');
+  document.querySelectorAll('.nd-card').forEach(c=>c.classList.remove('active'));
+  const card=document.querySelector('.nd-card[data-id="'+id+'"]');
+  if(card){card.classList.add('active');card.scrollIntoView({behavior:'smooth',block:'nearest'});}
+  if(typeof hlNode==='function')hlNode(id);
+}
+function closeModal(){
+  document.getElementById('modal-bg').classList.remove('open');
+  if(typeof unhl==='function')unhl();
+}
+document.getElementById('m-close').addEventListener('click',closeModal);
+document.getElementById('modal-bg').addEventListener('click',function(e){if(e.target===this)closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+// ──────────────────────────────────
+// SIDE PANEL
+// ──────────────────────────────────
+(function(){
+  const list=document.getElementById('pn-list');
+  ND.forEach(n=>{
+    const cat=CATS[n.cat];
+    const card=document.createElement('div');card.className='nd-card';card.dataset.id=n.id;
+    card.onclick=()=>openModal(n.id);
+    const ico=document.createElement('span');ico.className='nd-ico';ico.textContent=n.icon;
+    const nm=document.createElement('span');nm.className='nd-name';nm.textContent=n.name;
+    const cEl=document.createElement('span');cEl.className='nd-cat';
+    cEl.style.background=cat.color+'18';cEl.style.color=cat.color;cEl.textContent=cat.label;
+    card.appendChild(ico);card.appendChild(nm);card.appendChild(cEl);list.appendChild(card);
+  });
+})();
+document.getElementById('pn-toggle').addEventListener('click',function(){
+  const p=document.getElementById('panel');p.classList.toggle('collapsed');
+  this.textContent=p.classList.contains('collapsed')?'▶':'◀';
+});
+
+// ──────────────────────────────────
+// MATRIX RAIN
+// ──────────────────────────────────
+(function(){
+  const c=document.getElementById('matrix'),ctx=c.getContext('2d');
+  let W,H,cols,drops;
+  const chars='アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン01'.split('');
+  function init(){
+    W=c.width=innerWidth;H=c.height=innerHeight;
+    cols=Math.floor(W/14);drops=Array(cols).fill(1);
+  }
+  init();addEventListener('resize',init);
+  function draw(){
+    ctx.fillStyle='rgba(10,14,20,0.06)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#48bb78';ctx.font='12px var(--font)';
+    for(let i=0;i<cols;i++){
+      const ch=chars[Math.floor(Math.random()*chars.length)];
+      ctx.fillText(ch,i*14,drops[i]*14);
+      if(drops[i]*14>H&&Math.random()>.975)drops[i]=0;
+      drops[i]++;
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ──────────────────────────────────
+// D3 GRAPH — loaded separately, fails gracefully
+// ──────────────────────────────────
+var hlNode=function(){};
+var unhl=function(){};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+(function(){
+  if(typeof d3==='undefined'){console.warn('D3 unavailable — console still functional');return;}
+  const svg=d3.select('#graph-svg'),box=document.getElementById('graph-area');
+  let W=box.clientWidth,H=box.clientHeight;
+  const g=svg.append('g');
+  const zoom=d3.zoom().scaleExtent([.2,4]).filter(e=>e.target.tagName!=='INPUT').on('zoom',e=>g.attr('transform',e.transform));
+  svg.call(zoom);
+
+  const links=[];
+  ND.forEach(n=>(n.links||[]).forEach(tid=>{
+    if(ND.find(x=>x.id===tid)&&!links.find(l=>(l.source===n.id&&l.target===tid)||(l.source===tid&&l.target===n.id)))
+      links.push({source:n.id,target:tid});
+  }));
+
+  const linkSel=g.append('g').selectAll('line').data(links).join('line').attr('class','g-link').attr('opacity',.2);
+  const nodeSel=g.append('g').selectAll('g').data(ND).join('g').style('cursor','pointer')
+    .call(d3.drag()
+      .on('start',(e,d)=>{if(!e.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y})
+      .on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y})
+      .on('end',(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null}));
+
+  // Glow
+  nodeSel.append('circle').attr('r',d=>d.r+5).attr('fill','none')
+    .attr('stroke',d=>CATS[d.cat].color).attr('stroke-width',.7).attr('opacity',.12)
+    .style('animation','ng 4s ease infinite').style('animation-delay',()=>Math.random()*3+'s');
+  // Main
+  nodeSel.append('circle').attr('r',d=>d.r)
+    .attr('fill',d=>CATS[d.cat].color+'1a').attr('stroke',d=>CATS[d.cat].color).attr('stroke-width',1.5);
+  // Icon
+  nodeSel.append('text').attr('text-anchor','middle').attr('dy','.35em')
+    .style('font-size',d=>(d.r*.8)+'px').style('pointer-events','none').text(d=>d.icon);
+  // Label
+  nodeSel.append('text').attr('class','n-label').attr('dy',d=>d.r+11).text(d=>d.name);
+
+  const st=document.createElement('style');st.textContent='@keyframes ng{0%,100%{opacity:.12}50%{opacity:.35}}';
+  document.head.appendChild(st);
+
+  nodeSel.on('click',(e,d)=>{e.stopPropagation();openModal(d.id)});
+
+  const tip=document.getElementById('tip');
+  nodeSel.on('mouseenter',(e,d)=>{
+    tip.querySelector('.tn').textContent=d.icon+' '+d.name;
+    tip.querySelector('.td').textContent=CATS[d.cat].label+' — '+d.desc;
+    tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-12)+'px';
+  });
+  nodeSel.on('mousemove',e=>{tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-12)+'px'});
+  nodeSel.on('mouseleave',()=>{tip.style.display='none'});
+
+  const sim=d3.forceSimulation(ND)
+    .force('link',d3.forceLink(links).id(d=>d.id).distance(100).strength(.28))
+    .force('charge',d3.forceManyBody().strength(-400))
+    .force('center',d3.forceCenter(W/2,H/2))
+    .force('collide',d3.forceCollide().radius(d=>d.r+8))
+    .on('tick',()=>{
+      linkSel.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+      nodeSel.attr('transform',d=>'translate('+d.x+','+d.y+')');
+    });
+
+  addEventListener('resize',()=>{W=box.clientWidth;H=box.clientHeight;sim.force('center',d3.forceCenter(W/2,H/2)).alpha(.3).restart()});
+
+  hlNode=function(id){
+    const connected=new Set([id]);
+    links.forEach(l=>{
+      const s=typeof l.source==='object'?l.source.id:l.source;
+      const t=typeof l.target==='object'?l.target.id:l.target;
+      if(s===id)connected.add(t);if(t===id)connected.add(s);
+    });
+    nodeSel.selectAll('circle:nth-child(2)').attr('opacity',d=>connected.has(d.id)?1:.1);
+    nodeSel.selectAll('.n-label').attr('opacity',d=>connected.has(d.id)?1:.1);
+    linkSel.each(function(l){
+      const s=typeof l.source==='object'?l.source.id:l.source;
+      const t=typeof l.target==='object'?l.target.id:l.target;
+      const lit=(s===id||t===id);
+      d3.select(this).attr('class',lit?'g-link lit':'g-link').attr('opacity',lit?.6:.03);
+    });
+    const nd=ND.find(n=>n.id===id);
+    if(nd&&nd.x!==undefined){
+      svg.transition().duration(700).call(zoom.transform,d3.zoomIdentity.translate(W/2-nd.x*1.15,H/2-nd.y*1.15).scale(1.15));
+    }
+  };
+  unhl=function(){
+    nodeSel.selectAll('circle:nth-child(2)').attr('opacity',1);
+    nodeSel.selectAll('.n-label').attr('opacity',.75);
+    linkSel.attr('class','g-link').attr('opacity',.2);
+  };
+
+  setTimeout(()=>toast('⚡ Architecture chargée — 20 nœuds · 29€/mois · tapez "help" dans la console'),1200);
+})();
+</script>
+</body>
+</html>
