@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RETRO TV — Télévision Citoyenne</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bungee&family=Roboto+Mono:wght@400;700&display=swap');
+        
+        :root {
+            --tv-wood: #8b6914;
+            --tv-wood-dark: #5c4a0f;
+            --tv-cream: #d4c9a8;
+            --tv-bezel: #3a3a3a;
+            --screen-green: #004400;
+            --led-red: #ff3333;
+            --led-green: #33ff33;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: linear-gradient(180deg, #4a3520 0%, #2a1f15 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        /* WALLPAPER PATTERN */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: repeating-linear-gradient(
+                90deg,
+                transparent 0px,
+                transparent 40px,
+                rgba(255,255,255,0.02) 40px,
+                rgba(255,255,255,0.02) 80px
+            );
+            pointer-events: none;
+        }
+
+        /* TV SET */
+        .tv-set {
+            position: relative;
+        }
+
+        /* ANTENNA */
+        .antenna {
+            position: absolute;
+            top: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 60px;
+        }
+
+        .antenna-arm {
+            width: 4px;
+            height: 80px;
+            background: linear-gradient(180deg, #888 0%, #555 100%);
+            transform-origin: bottom center;
+            border-radius: 2px;
+        }
+
+        .antenna-arm:first-child {
+            transform: rotate(-25deg);
+        }
+
+        .antenna-arm:last-child {
+            transform: rotate(25deg);
+        }
+
+        .antenna-ball {
+            position: absolute;
+            top: -8px;
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle at 30% 30%, #aaa 0%, #666 100%);
+            border-radius: 50%;
+        }
+
+        .antenna-arm:first-child .antenna-ball {
+            left: -4px;
+        }
+
+        .antenna-arm:last-child .antenna-ball {
+            right: -4px;
+        }
+
+        /* TV CABINET */
+        .tv-cabinet {
+            background: linear-gradient(180deg, var(--tv-wood) 0%, var(--tv-wood-dark) 100%);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 
+                0 30px 60px rgba(0,0,0,0.5),
+                inset 0 2px 0 rgba(255,255,255,0.2),
+                inset 0 -2px 0 rgba(0,0,0,0.3);
+            display: flex;
+            gap: 20px;
+        }
+
+        /* SCREEN SECTION */
+        .screen-section {
+            flex: 1;
+        }
+
+        .screen-bezel {
+            background: var(--tv-bezel);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .screen {
+            background: #000;
+            aspect-ratio: 4/3;
+            border-radius: 20px / 15px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                inset 0 0 50px rgba(0,0,0,0.5),
+                0 0 30px rgba(0,0,0,0.3);
+        }
+
+        /* CRT CURVE */
+        .crt-curve {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%);
+            pointer-events: none;
+            z-index: 10;
+            border-radius: 20px / 15px;
+        }
+
+        /* SCANLINES */
+        .scanlines {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.15) 0px,
+                rgba(0,0,0,0.15) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* SCREEN REFLECTION */
+        .screen-reflection {
+            position: absolute;
+            top: 5%;
+            left: 5%;
+            width: 30%;
+            height: 20%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        /* VIDEO */
+        .video-container {
+            width: 100%;
+            height: 100%;
+            border-radius: 20px / 15px;
+            overflow: hidden;
+        }
+
+        .video-container video,
+        .video-container iframe {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* CHANNEL DISPLAY */
+        .channel-display {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.8);
+            padding: 8px 15px;
+            font-family: 'Bungee', cursive;
+            font-size: 1.5rem;
+            color: var(--led-green);
+            text-shadow: 0 0 10px var(--led-green);
+            z-index: 20;
+            display: none;
+        }
+
+        .channel-display.visible {
+            display: block;
+            animation: channel-fade 3s forwards;
+        }
+
+        @keyframes channel-fade {
+            0%, 80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* CONTROL PANEL */
+        .control-panel {
+            width: 120px;
+            background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+            border-radius: 10px;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        /* BRAND */
+        .brand-plate {
+            text-align: center;
+            padding: 10px;
+            background: linear-gradient(180deg, #c0c0c0 0%, #a0a0a0 100%);
+            border-radius: 5px;
+        }
+
+        .brand-name {
+            font-family: 'Bungee', cursive;
+            font-size: 0.7rem;
+            color: #333;
+            letter-spacing: 2px;
+        }
+
+        /* KNOBS */
+        .knob-section {
+            text-align: center;
+        }
+
+        .knob-label {
+            font-size: 0.55rem;
+            color: #666;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .knob {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto;
+            background: 
+                radial-gradient(circle at 30% 30%, #555 0%, #222 100%);
+            border-radius: 50%;
+            border: 3px solid #444;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 
+                0 5px 15px rgba(0,0,0,0.5),
+                inset 0 -2px 5px rgba(0,0,0,0.3);
+        }
+
+        .knob::before {
+            content: "";
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 15px;
+            background: #888;
+            border-radius: 2px;
+        }
+
+        .knob-value {
+            font-size: 0.7rem;
+            color: #888;
+            margin-top: 8px;
+        }
+
+        /* BUTTONS */
+        .button-row {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .tv-btn {
+            padding: 12px;
+            background: linear-gradient(180deg, #444 0%, #222 100%);
+            border: 2px solid #555;
+            border-radius: 5px;
+            color: #888;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .tv-btn:hover {
+            background: linear-gradient(180deg, #555 0%, #333 100%);
+            color: #fff;
+        }
+
+        .tv-btn.power-btn {
+            background: linear-gradient(180deg, #333 0%, #111 100%);
+            border-color: var(--led-red);
+        }
+
+        .tv-btn.power-btn.on {
+            border-color: var(--led-green);
+            box-shadow: 0 0 10px rgba(51, 255, 51, 0.3);
+        }
+
+        /* LED */
+        .led-section {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .led {
+            width: 10px;
+            height: 10px;
+            background: #333;
+            border-radius: 50%;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        .led.on-red {
+            background: var(--led-red);
+            box-shadow: 0 0 10px var(--led-red);
+        }
+
+        .led.on-green {
+            background: var(--led-green);
+            box-shadow: 0 0 10px var(--led-green);
+        }
+
+        /* SPEAKER GRILLE */
+        .speaker-section {
+            margin-top: auto;
+        }
+
+        .speaker-grille {
+            height: 60px;
+            background: repeating-linear-gradient(
+                0deg,
+                #1a1a1a 0px,
+                #1a1a1a 3px,
+                #0a0a0a 3px,
+                #0a0a0a 6px
+            );
+            border-radius: 5px;
+            border: 2px solid #333;
+        }
+
+        /* TV STAND */
+        .tv-stand {
+            display: flex;
+            justify-content: center;
+            gap: 200px;
+            margin-top: -5px;
+        }
+
+        .stand-leg {
+            width: 30px;
+            height: 60px;
+            background: linear-gradient(90deg, var(--tv-wood-dark) 0%, var(--tv-wood) 50%, var(--tv-wood-dark) 100%);
+            border-radius: 0 0 5px 5px;
+        }
+
+        /* PLAYLIST */
+        .playlist-section {
+            margin-top: 30px;
+            max-width: 600px;
+        }
+
+        .playlist-title {
+            font-family: 'Bungee', cursive;
+            font-size: 0.9rem;
+            color: var(--tv-cream);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .playlist-grid {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .playlist-item {
+            background: rgba(0,0,0,0.3);
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 10px;
+            width: 120px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .playlist-item:hover {
+            border-color: var(--tv-cream);
+        }
+
+        .playlist-item.active {
+            border-color: var(--led-green);
+            box-shadow: 0 0 15px rgba(51, 255, 51, 0.2);
+        }
+
+        .item-channel {
+            font-family: 'Bungee', cursive;
+            font-size: 1.5rem;
+            color: var(--led-green);
+            margin-bottom: 5px;
+        }
+
+        .item-title {
+            font-size: 0.65rem;
+            color: var(--tv-cream);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* FOOTER */
+        .retro-footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.7rem;
+            color: #5a4a30;
+        }
+
+        .retro-footer a {
+            color: var(--tv-cream);
+            text-decoration: none;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 600px) {
+            .tv-cabinet {
+                flex-direction: column;
+            }
+            .control-panel {
+                width: 100%;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .antenna { display: none; }
+            .tv-stand { gap: 100px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="tv-set">
+    <!-- ANTENNA -->
+    <div class="antenna">
+        <div class="antenna-arm"><div class="antenna-ball"></div></div>
+        <div class="antenna-arm"><div class="antenna-ball"></div></div>
+    </div>
+
+    <!-- TV CABINET -->
+    <div class="tv-cabinet" id="player">
+        <!-- SCREEN -->
+        <div class="screen-section">
+            <div class="screen-bezel">
+                <div class="screen" id="screen">
+                    <div class="video-container" id="videoContainer"></div>
+                    <div class="scanlines"></div>
+                    <div class="crt-curve"></div>
+                    <div class="screen-reflection"></div>
+                    <div class="channel-display" id="channelDisplay">03</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTROLS -->
+        <div class="control-panel">
+            <div class="brand-plate">
+                <div class="brand-name">OUAISFI</div>
+            </div>
+
+            <div class="knob-section">
+                <div class="knob-label">VOLUME</div>
+                <div class="knob" id="volumeKnob"></div>
+                <div class="knob-value" id="volumeValue">80%</div>
+            </div>
+
+            <div class="knob-section">
+                <div class="knob-label">CHANNEL</div>
+                <div class="knob" id="channelKnob"></div>
+                <div class="knob-value" id="channelValue">CH 03</div>
+            </div>
+
+            <div class="button-row">
+                <button class="tv-btn power-btn on" id="btnPower">POWER</button>
+                <button class="tv-btn" id="btnPlay">▶ PLAY</button>
+            </div>
+
+            <div class="led-section">
+                <div class="led on-green" id="ledPower"></div>
+                <div class="led" id="ledSignal"></div>
+            </div>
+
+            <div class="speaker-section">
+                <div class="speaker-grille"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STAND -->
+    <div class="tv-stand">
+        <div class="stand-leg"></div>
+        <div class="stand-leg"></div>
+    </div>
+
+    <!-- PLAYLIST -->
+    <div class="playlist-section">
+        <div class="playlist-title">★ PROGRAMMES ★</div>
+        <div class="playlist-grid" id="playlistGrid"></div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="retro-footer">
+        © 2026 CCPLC — <a href="https://ouaisfi.eu" target="_blank">ouaisfi.eu</a> — CC BY-NC 4.0
+    </div>
+</div>
+
+<script>
+const videos = [
+    { channel: "03", title: "BRIEFING ALPHA", src: "https://www.youtube.com/embed/dQw4w9WgXcQ" },
+    { channel: "07", title: "PARTICRATIE", src: "https://www.youtube.com/embed/dQw4w9WgXcQ" },
+    { channel: "11", title: "VEILLE SOCIALE", src: "https://www.youtube.com/embed/dQw4w9WgXcQ" },
+    { channel: "21", title: "ARCHIVES", src: "https://www.youtube.com/embed/dQw4w9WgXcQ" }
+];
+
+let currentVideo = 0;
+let isPlaying = false;
+let isPowered = true;
+
+const screen = document.getElementById('screen');
+const videoContainer = document.getElementById('videoContainer');
+const btnPlay = document.getElementById('btnPlay');
+const btnPower = document.getElementById('btnPower');
+const channelDisplay = document.getElementById('channelDisplay');
+const channelValue = document.getElementById('channelValue');
+const ledSignal = document.getElementById('ledSignal');
+const ledPower = document.getElementById('ledPower');
+const playlistGrid = document.getElementById('playlistGrid');
+
+function renderPlaylist() {
+    playlistGrid.innerHTML = '';
+    videos.forEach((v, i) => {
+        const item = document.createElement('div');
+        item.className = `playlist-item ${i === currentVideo ? 'active' : ''}`;
+        item.innerHTML = `
+            <div class="item-channel">${v.channel}</div>
+            <div class="item-title">${v.title}</div>
+        `;
+        item.onclick = () => changeChannel(i);
+        playlistGrid.appendChild(item);
+    });
+}
+
+function changeChannel(index) {
+    if (!isPowered) return;
+    currentVideo = index;
+    const v = videos[index];
+    
+    channelDisplay.textContent = v.channel;
+    channelDisplay.classList.remove('visible');
+    void channelDisplay.offsetWidth; // Reflow
+    channelDisplay.classList.add('visible');
+    
+    channelValue.textContent = `CH ${v.channel}`;
+    
+    loadVideo();
+    
+    document.querySelectorAll('.playlist-item').forEach((item, i) => {
+        item.classList.toggle('active', i === index);
+    });
+}
+
+function loadVideo() {
+    if (!isPowered) {
+        videoContainer.innerHTML = '';
+        return;
+    }
+    
+    const v = videos[currentVideo];
+    videoContainer.innerHTML = `
+        <iframe src="${v.src}?enablejsapi=1&autoplay=0&controls=0&modestbranding=1&rel=0" 
+            frameborder="0" allowfullscreen></iframe>
+    `;
+}
+
+function togglePower() {
+    isPowered = !isPowered;
+    btnPower.classList.toggle('on', isPowered);
+    ledPower.classList.toggle('on-green', isPowered);
+    
+    if (isPowered) {
+        loadVideo();
+        screen.style.background = '#000';
+    } else {
+        videoContainer.innerHTML = '';
+        screen.style.background = '#111';
+        isPlaying = false;
+        btnPlay.textContent = '▶ PLAY';
+        ledSignal.classList.remove('on-red');
+    }
+}
+
+function togglePlay() {
+    if (!isPowered) return;
+    isPlaying = !isPlaying;
+    btnPlay.textContent = isPlaying ? '❚❚ PAUSE' : '▶ PLAY';
+    ledSignal.classList.toggle('on-red', isPlaying);
+}
+
+btnPower.onclick = togglePower;
+btnPlay.onclick = togglePlay;
+
+document.getElementById('channelKnob').onclick = () => {
+    changeChannel((currentVideo + 1) % videos.length);
+};
+
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+    if (e.key === '+' || e.key === 'ArrowUp') changeChannel((currentVideo + 1) % videos.length);
+    if (e.key === '-' || e.key === 'ArrowDown') changeChannel((currentVideo - 1 + videos.length) % videos.length);
+});
+
+renderPlaylist();
+loadVideo();
+</script>
+
+</body>
+</html>
