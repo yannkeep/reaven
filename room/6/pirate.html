@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RADIO PIRATE FM — Fréquences Libres</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Russo+One&display=swap');
+        
+        :root {
+            --radio-wood: #8b4513;
+            --radio-cream: #f5f5dc;
+            --dial-amber: #ffb347;
+            --dial-glow: rgba(255, 179, 71, 0.5);
+            --needle-red: #ff3333;
+            --speaker-gray: #2a2a2a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: linear-gradient(180deg, #2c1810 0%, #1a0f0a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* RADIO CABINET */
+        .radio-cabinet {
+            width: 100%;
+            max-width: 600px;
+            background: linear-gradient(145deg, #5c3317 0%, #3c210f 100%);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 
+                0 30px 60px rgba(0,0,0,0.7),
+                inset 0 2px 0 rgba(255,255,255,0.1),
+                inset 0 -2px 0 rgba(0,0,0,0.3);
+            border: 4px solid #2a1508;
+        }
+
+        /* BRAND PLATE */
+        .brand-plate {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .brand-name {
+            font-family: 'Russo One', sans-serif;
+            font-size: 1.8rem;
+            color: var(--dial-amber);
+            text-shadow: 0 0 20px var(--dial-glow), 0 2px 0 #000;
+            letter-spacing: 8px;
+        }
+
+        .brand-sub {
+            font-size: 0.6rem;
+            color: #aa8855;
+            letter-spacing: 4px;
+            margin-top: 5px;
+        }
+
+        /* DIAL WINDOW */
+        .dial-window {
+            background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+            border: 3px solid #2a1508;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* DIAL GLOW */
+        .dial-glow {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center, var(--dial-glow) 0%, transparent 70%);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* FREQUENCY SCALE */
+        .freq-scale {
+            position: relative;
+            height: 60px;
+            background: linear-gradient(180deg, #111 0%, #1a1a1a 100%);
+            border-radius: 5px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .freq-numbers {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 20px;
+            font-size: 0.7rem;
+            color: var(--radio-cream);
+            position: relative;
+            z-index: 2;
+        }
+
+        .freq-marks {
+            position: absolute;
+            bottom: 10px;
+            left: 20px;
+            right: 20px;
+            height: 20px;
+            background: repeating-linear-gradient(
+                90deg,
+                var(--radio-cream) 0px,
+                var(--radio-cream) 1px,
+                transparent 1px,
+                transparent 10px
+            );
+            opacity: 0.3;
+        }
+
+        /* TUNING NEEDLE */
+        .tuning-needle {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            width: 3px;
+            height: 40px;
+            background: var(--needle-red);
+            box-shadow: 0 0 10px var(--needle-red);
+            transform: translateX(-50%);
+            z-index: 10;
+            transition: left 0.3s ease;
+        }
+
+        .tuning-needle::before {
+            content: "▼";
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--needle-red);
+            font-size: 0.8rem;
+        }
+
+        /* CURRENT FREQ DISPLAY */
+        .freq-display {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .freq-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--dial-amber);
+            text-shadow: 0 0 20px var(--dial-glow);
+        }
+
+        .freq-unit {
+            font-size: 1rem;
+            color: #aa8855;
+            margin-left: 5px;
+        }
+
+        .freq-band {
+            font-size: 0.7rem;
+            color: #666;
+            margin-top: 5px;
+            letter-spacing: 3px;
+        }
+
+        /* STATION INFO */
+        .station-info {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .station-name {
+            font-size: 1.2rem;
+            color: var(--radio-cream);
+            margin-bottom: 5px;
+        }
+
+        .station-program {
+            font-size: 0.75rem;
+            color: var(--dial-amber);
+            letter-spacing: 2px;
+        }
+
+        /* SPEAKER GRILLE */
+        .speaker-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .speaker {
+            aspect-ratio: 1;
+            background: var(--speaker-gray);
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 
+                inset 0 5px 15px rgba(0,0,0,0.5),
+                0 3px 0 rgba(255,255,255,0.05);
+        }
+
+        .speaker::before {
+            content: "";
+            position: absolute;
+            top: 10%; left: 10%;
+            width: 80%; height: 80%;
+            background: 
+                radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                repeating-radial-gradient(
+                    circle at center,
+                    #1a1a1a 0px,
+                    #1a1a1a 2px,
+                    #2a2a2a 2px,
+                    #2a2a2a 4px
+                );
+            border-radius: 50%;
+        }
+
+        .speaker-center {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30%;
+            height: 30%;
+            background: radial-gradient(circle at 40% 40%, #444 0%, #222 100%);
+            border-radius: 50%;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .playing .speaker-center {
+            animation: speaker-pulse 0.1s infinite alternate;
+        }
+
+        @keyframes speaker-pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            100% { transform: translate(-50%, -50%) scale(1.02); }
+        }
+
+        /* CONTROLS PANEL */
+        .controls-panel {
+            background: linear-gradient(180deg, #3c210f 0%, #2a1508 100%);
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #1a0f0a;
+        }
+
+        /* KNOBS ROW */
+        .knobs-row {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .knob-container {
+            text-align: center;
+        }
+
+        .knob-label {
+            font-size: 0.55rem;
+            color: #aa8855;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .knob {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: 
+                radial-gradient(circle at 30% 30%, #666 0%, #333 50%, #1a1a1a 100%);
+            border: 3px solid #444;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 
+                0 5px 15px rgba(0,0,0,0.5),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+
+        .knob::before {
+            content: "";
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 15px;
+            background: var(--dial-amber);
+            border-radius: 2px;
+        }
+
+        .knob-value {
+            font-size: 0.7rem;
+            color: var(--dial-amber);
+            margin-top: 8px;
+        }
+
+        /* BUTTONS ROW */
+        .buttons-row {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .radio-btn {
+            width: 60px;
+            height: 50px;
+            background: linear-gradient(180deg, #444 0%, #222 100%);
+            border: 2px solid #555;
+            border-radius: 8px;
+            color: #888;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            transition: all 0.15s ease;
+        }
+
+        .radio-btn:hover {
+            background: linear-gradient(180deg, #555 0%, #333 100%);
+            color: var(--dial-amber);
+        }
+
+        .radio-btn:active {
+            transform: scale(0.95);
+        }
+
+        .radio-btn.play-btn {
+            width: 80px;
+            background: linear-gradient(180deg, #8b4513 0%, #5c2d0a 100%);
+            border-color: #aa6633;
+            color: var(--dial-amber);
+        }
+
+        .radio-btn.play-btn.active {
+            background: linear-gradient(180deg, #aa6633 0%, #8b4513 100%);
+            box-shadow: 0 0 15px var(--dial-glow);
+        }
+
+        .btn-icon {
+            font-size: 1.2rem;
+        }
+
+        /* PROGRESS */
+        .progress-section {
+            margin-bottom: 15px;
+        }
+
+        .progress-bg {
+            height: 6px;
+            background: #1a1a1a;
+            border-radius: 3px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--dial-amber), #ffcc00);
+            width: 0%;
+            box-shadow: 0 0 10px var(--dial-glow);
+        }
+
+        .progress-times {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.7rem;
+            color: #666;
+        }
+
+        /* PRESETS */
+        .presets-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .preset-btn {
+            width: 35px;
+            height: 35px;
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: #666;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .preset-btn:hover {
+            background: #333;
+            color: var(--dial-amber);
+            border-color: var(--dial-amber);
+        }
+
+        .preset-btn.active {
+            background: var(--dial-amber);
+            color: #000;
+            border-color: var(--dial-amber);
+        }
+
+        /* SIGNAL INDICATOR */
+        .signal-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .signal-label {
+            font-size: 0.6rem;
+            color: #666;
+            letter-spacing: 2px;
+        }
+
+        .signal-meter {
+            display: flex;
+            gap: 3px;
+        }
+
+        .signal-bar {
+            width: 8px;
+            height: 15px;
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .signal-bar.active {
+            background: var(--dial-amber);
+            box-shadow: 0 0 5px var(--dial-glow);
+        }
+
+        /* ON AIR */
+        .on-air {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .on-air-badge {
+            display: inline-block;
+            padding: 5px 20px;
+            background: transparent;
+            border: 2px solid #333;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            color: #333;
+            letter-spacing: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .playing .on-air-badge {
+            background: var(--needle-red);
+            border-color: var(--needle-red);
+            color: white;
+            box-shadow: 0 0 20px rgba(255, 51, 51, 0.5);
+            animation: on-air-blink 1s infinite;
+        }
+
+        @keyframes on-air-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 500px) {
+            .brand-name { font-size: 1.3rem; }
+            .freq-value { font-size: 2rem; }
+            .speaker-section { gap: 10px; }
+            .knob { width: 50px; height: 50px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="radio-cabinet" id="player">
+    <!-- BRAND -->
+    <div class="brand-plate">
+        <div class="brand-name">RADIO PIRATE</div>
+        <div class="brand-sub">FRÉQUENCES LIBRES — DEPUIS 2026</div>
+    </div>
+
+    <!-- DIAL -->
+    <div class="dial-window">
+        <div class="dial-glow"></div>
+        
+        <div class="freq-scale">
+            <div class="freq-numbers">
+                <span>88</span><span>92</span><span>96</span><span>100</span><span>104</span><span>108</span>
+            </div>
+            <div class="freq-marks"></div>
+            <div class="tuning-needle" id="tuningNeedle"></div>
+        </div>
+
+        <div class="freq-display">
+            <span class="freq-value" id="freqValue">106.1</span>
+            <span class="freq-unit">MHz</span>
+            <div class="freq-band">FM STEREO</div>
+        </div>
+
+        <div class="station-info">
+            <div class="station-name" id="stationName">CCPLC BROADCAST</div>
+            <div class="station-program" id="stationProgram">PARTY ON GAME OVER</div>
+        </div>
+    </div>
+
+    <!-- SPEAKERS -->
+    <div class="speaker-section">
+        <div class="speaker"><div class="speaker-center"></div></div>
+        <div class="speaker"><div class="speaker-center"></div></div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls-panel">
+        <!-- KNOBS -->
+        <div class="knobs-row">
+            <div class="knob-container">
+                <div class="knob-label">VOLUME</div>
+                <div class="knob" id="volumeKnob"></div>
+                <div class="knob-value" id="volumeValue">80%</div>
+            </div>
+            <div class="knob-container">
+                <div class="knob-label">TUNING</div>
+                <div class="knob" id="tuningKnob"></div>
+                <div class="knob-value">FINE</div>
+            </div>
+            <div class="knob-container">
+                <div class="knob-label">BASS</div>
+                <div class="knob"></div>
+                <div class="knob-value">+3</div>
+            </div>
+        </div>
+
+        <!-- BUTTONS -->
+        <div class="buttons-row">
+            <button class="radio-btn" id="btnPrev">
+                <span class="btn-icon">⏮</span>
+            </button>
+            <button class="radio-btn" id="btnRew">
+                <span class="btn-icon">⏪</span>
+            </button>
+            <button class="radio-btn play-btn" id="btnPlay">
+                <span class="btn-icon">▶</span>
+            </button>
+            <button class="radio-btn" id="btnFwd">
+                <span class="btn-icon">⏩</span>
+            </button>
+            <button class="radio-btn" id="btnNext">
+                <span class="btn-icon">⏭</span>
+            </button>
+        </div>
+
+        <!-- PROGRESS -->
+        <div class="progress-section">
+            <div class="progress-bg" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-times">
+                <span id="timeCurrent">00:00</span>
+                <span id="timeTotal">00:00</span>
+            </div>
+        </div>
+
+        <!-- PRESETS -->
+        <div class="presets-row">
+            <button class="preset-btn active" data-index="0">1</button>
+            <button class="preset-btn" data-index="1">2</button>
+            <button class="preset-btn" data-index="2">3</button>
+        </div>
+
+        <!-- SIGNAL -->
+        <div class="signal-indicator">
+            <span class="signal-label">SIGNAL</span>
+            <div class="signal-meter">
+                <div class="signal-bar active"></div>
+                <div class="signal-bar active"></div>
+                <div class="signal-bar active"></div>
+                <div class="signal-bar active"></div>
+                <div class="signal-bar" id="signal5"></div>
+            </div>
+        </div>
+
+        <!-- ON AIR -->
+        <div class="on-air">
+            <span class="on-air-badge">ON AIR</span>
+        </div>
+    </div>
+</div>
+
+<audio id="audio" preload="metadata"></audio>
+
+<script>
+const playlist = [
+    { title: "PARTY ON GAME OVER", station: "CCPLC BROADCAST", freq: "106.1", src: "https://dl.ouaisfi.eu/ccplc/podcast/L_ingénierie_militante_de_la_campagne_Stop_Arizona.m4a" },
+    { title: "BULLETIN SOCIAL", station: "RÉSEAU 11·60", freq: "98.7", src: "https://dl.ouaisfi.eu/ccplc/podcast/L_ingénierie_militante_de_la_campagne_Stop_Arizona.m4a" },
+    { title: "WAKE UP CALL", station: "CELLULE ALPHA", freq: "102.3", src: "https://dl.ouaisfi.eu/ccplc/podcast/L_ingénierie_militante_de_la_campagne_Stop_Arizona.m4a" }
+];
+
+const audio = document.getElementById('audio');
+const player = document.getElementById('player');
+const btnPlay = document.getElementById('btnPlay');
+const progressFill = document.getElementById('progressFill');
+const progressBar = document.getElementById('progressBar');
+const tuningNeedle = document.getElementById('tuningNeedle');
+const freqValue = document.getElementById('freqValue');
+const stationName = document.getElementById('stationName');
+const stationProgram = document.getElementById('stationProgram');
+const timeCurrent = document.getElementById('timeCurrent');
+const timeTotal = document.getElementById('timeTotal');
+const presetBtns = document.querySelectorAll('.preset-btn');
+
+let currentTrack = 0;
+let isPlaying = false;
+
+function formatTime(s) {
+    if (isNaN(s)) return "00:00";
+    return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+}
+
+function loadTrack(i) {
+    const t = playlist[i];
+    audio.src = t.src;
+    freqValue.textContent = t.freq;
+    stationName.textContent = t.station;
+    stationProgram.textContent = t.title;
+    
+    // Move needle based on frequency
+    const freqNum = parseFloat(t.freq);
+    const percent = ((freqNum - 88) / 20) * 100;
+    tuningNeedle.style.left = `${10 + percent * 0.8}%`;
+    
+    presetBtns.forEach((btn, idx) => btn.classList.toggle('active', idx === i));
+}
+
+function play() {
+    audio.play().then(() => {
+        isPlaying = true;
+        player.classList.add('playing');
+        btnPlay.classList.add('active');
+        btnPlay.querySelector('.btn-icon').textContent = '⏸';
+    });
+}
+
+function pause() {
+    audio.pause();
+    isPlaying = false;
+    player.classList.remove('playing');
+    btnPlay.classList.remove('active');
+    btnPlay.querySelector('.btn-icon').textContent = '▶';
+}
+
+btnPlay.onclick = () => isPlaying ? pause() : play();
+document.getElementById('btnPrev').onclick = () => { currentTrack = (currentTrack - 1 + playlist.length) % playlist.length; loadTrack(currentTrack); if(isPlaying) play(); };
+document.getElementById('btnNext').onclick = () => { currentTrack = (currentTrack + 1) % playlist.length; loadTrack(currentTrack); if(isPlaying) play(); };
+document.getElementById('btnRew').onclick = () => audio.currentTime -= 10;
+document.getElementById('btnFwd').onclick = () => audio.currentTime += 10;
+
+presetBtns.forEach(btn => {
+    btn.onclick = () => {
+        currentTrack = parseInt(btn.dataset.index);
+        loadTrack(currentTrack);
+        play();
+    };
+});
+
+audio.ontimeupdate = () => {
+    progressFill.style.width = `${(audio.currentTime / audio.duration) * 100 || 0}%`;
+    timeCurrent.textContent = formatTime(audio.currentTime);
+    timeTotal.textContent = formatTime(audio.duration);
+};
+
+progressBar.onclick = (e) => {
+    const rect = progressBar.getBoundingClientRect();
+    audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+};
+
+audio.onended = () => { currentTrack = (currentTrack + 1) % playlist.length; loadTrack(currentTrack); play(); };
+
+document.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); isPlaying ? pause() : play(); } });
+
+loadTrack(0);
+audio.volume = 0.8;
+</script>
+
+</body>
+</html>
