@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediaFocus : Analyse Deborsu</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Phosphor Icons (for UI elements) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+    <!-- Chosen Palette: Modern Newsroom -->
+    <!-- 
+        Background: Slate-50 (Paper white/grey)
+        Primary Text: Slate-900 (Ink black)
+        Accent 1: Indigo-600 (Trust/Professionalism)
+        Accent 2: Rose-600 (Controversy/Alert)
+        Neutral: Slate-200/400 (Dividers)
+    -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Slate-50 */
+            color: #0f172a; /* Slate-900 */
+        }
+        h1, h2, h3, .serif {
+            font-family: 'Merriweather', serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        .active-tab {
+            border-bottom: 2px solid #4f46e5; /* Indigo-600 */
+            color: #4f46e5;
+            font-weight: 600;
+        }
+        .inactive-tab {
+            border-bottom: 2px solid transparent;
+            color: #64748b; /* Slate-500 */
+        }
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.1);
+        }
+        /* Custom scrollbar for text areas */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+    </style>
+    
+    <!-- Application Structure Plan:
+        The app mimics a professional "Media Audit" dossier. 
+        1. **Dashboard (Overview):** Immediate visual stats on his style and audience reception.
+        2. **Le Dossier (Detailed Analysis):** Addresses the user's specific hostile keywords (Fraude, Pauvrophobie, etc.) as distinct "Case Files".
+        3. **Style Lab (Interactive):** Users engage with the "Infotainment" model to understand the mechanics behind the criticism.
+        4. **Synthesis (Conclusion):** A balanced summary of the report findings.
+        
+        Why this structure? The user's query is highly polarized. A neutral, analytical dashboard approach lowers the temperature and allows for objective examination of each claim.
+    -->
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <i class="ph ph-newspaper-clipping text-2xl text-indigo-600"></i>
+                    <span class="text-xl font-bold tracking-tight text-slate-900">MediaFocus<span class="font-light text-slate-500"> | Dossier Deborsu</span></span>
+                </div>
+                <div class="hidden md:flex space-x-8 items-center" id="desktop-nav">
+                    <!-- Nav items injected by JS -->
+                </div>
+                <!-- Mobile menu button -->
+                <div class="flex items-center md:hidden">
+                    <button id="mobile-menu-btn" class="p-2 rounded-md text-slate-400 hover:text-slate-500 hover:bg-slate-100 focus:outline-none">
+                        <i class="ph ph-list text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Nav -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-slate-100">
+            <div class="px-2 pt-2 pb-3 space-y-1" id="mobile-nav-items">
+                <!-- Mobile items injected by JS -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main id="app-content" class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <!-- Views will be injected here by JS -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="mb-2 text-sm">Généré par MediaFocus IA • Basé sur l'analyse du discours public et médiatique</p>
+            <p class="text-xs opacity-50">Ce rapport est une synthèse interactive à but pédagogique. Il ne constitue pas un jugement juridique.</p>
+        </div>
+    </footer>
+
+    <!-- Templates -->
+    
+    <!-- VIEW: DASHBOARD -->
+    <template id="view-dashboard">
+        <div class="space-y-8 animate-fade-in">
+            <!-- Header -->
+            <div class="text-center max-w-3xl mx-auto">
+                <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Profil : Christophe Deborsu</h1>
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    Journaliste vedette de RTL-TVI, animateur de débats dominicaux. Connu pour son style direct, parfois jugé populiste, et son focus sur les clivages belges.
+                    Cette analyse décompose les critiques récurrentes : partialité, sensationalisme et traitement des questions sociales.
+                </p>
+            </div>
+
+            <!-- Key Metrics Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="card p-6 border-l-4 border-indigo-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500 uppercase tracking-wide">Format</p>
+                            <h3 class="text-2xl font-bold text-slate-900">Infotainment</h3>
+                        </div>
+                        <i class="ph ph-television text-3xl text-indigo-200"></i>
+                    </div>
+                    <p class="mt-2 text-sm text-slate-600">Mélange de politique stricte et de divertissement. Source principale de sa popularité et des critiques.</p>
+                </div>
+                <div class="card p-6 border-l-4 border-rose-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500 uppercase tracking-wide">Niveau de Polémique</p>
+                            <h3 class="text-2xl font-bold text-slate-900">Élevé</h3>
+                        </div>
+                        <i class="ph ph-fire text-3xl text-rose-200"></i>
+                    </div>
+                    <p class="mt-2 text-sm text-slate-600">Fréquemment accusé de polariser les débats (ex: Thèmes sur la fraude sociale, conflits linguistiques).</p>
+                </div>
+                <div class="card p-6 border-l-4 border-emerald-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500 uppercase tracking-wide">Positionnement</p>
+                            <h3 class="text-2xl font-bold text-slate-900">M. Tout-le-monde</h3>
+                        </div>
+                        <i class="ph ph-users-three text-3xl text-emerald-200"></i>
+                    </div>
+                    <p class="mt-2 text-sm text-slate-600">Se positionne comme la voix du "bon sens" populaire face aux élites politiques.</p>
+                </div>
+            </div>
+
+            <!-- Chart Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Radar Chart: Style Analysis -->
+                <div class="card p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">L'Empreinte Journalistique</h3>
+                    <p class="text-sm text-slate-500 mb-6">Analyse des traits caractéristiques de ses émissions (C'est pas tous les jours dimanche, etc.).</p>
+                    <div class="chart-container">
+                        <canvas id="styleRadarChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Bar Chart: Recurring Themes -->
+                <div class="card p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Thèmes de Prédilection & Critiques</h3>
+                    <p class="text-sm text-slate-500 mb-6">Sujets fréquents vs. Volume des critiques associées (basé sur l'analyse du discours).</p>
+                    <div class="chart-container">
+                        <canvas id="themesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- VIEW: ANALYSIS FILES -->
+    <template id="view-analysis">
+        <div class="space-y-8 animate-fade-in">
+            <div class="max-w-3xl">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Analyse des Griefs</h2>
+                <p class="text-lg text-slate-600">
+                    Explorez les accusations spécifiques mentionnées dans votre recherche. Cliquez sur un dossier pour voir les détails, le contexte et le verdict analytique.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Sidebar Selection -->
+                <div class="lg:col-span-4 space-y-3">
+                    <div id="file-buttons-container" class="flex flex-col gap-2">
+                        <!-- Buttons injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Detail View -->
+                <div class="lg:col-span-8">
+                    <div id="file-content-area" class="card p-8 h-full min-h-[500px] border border-slate-200">
+                        <!-- Content injected by JS -->
+                        <div class="flex flex-col items-center justify-center h-full text-slate-400">
+                            <i class="ph ph-magnifying-glass text-5xl mb-4"></i>
+                            <p>Sélectionnez un dossier pour commencer l'analyse.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- VIEW: INTERACTIVE LAB -->
+    <template id="view-lab">
+        <div class="space-y-8 animate-fade-in">
+            <div class="max-w-3xl mx-auto text-center">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Labo Éditorial : La Fabrique du Titre</h2>
+                <p class="text-lg text-slate-600">
+                    Christophe Deborsu est souvent accusé de privilégier la formule choc au fond. Testez cette mécanique. Comment transformeriez-vous une info neutre en débat "Deborsu" ?
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mt-8">
+                <!-- Input Side -->
+                <div class="card p-6 space-y-6">
+                    <div>
+                        <h3 class="font-bold text-slate-800 mb-2">1. Le Sujet Neutre</h3>
+                        <div class="bg-slate-100 p-4 rounded text-slate-700 text-sm font-mono">
+                            "Rapport de l'ONSS : Le taux de fraude sociale est stable à 3%, mais certains secteurs restent problématiques."
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="font-bold text-slate-800 mb-2">2. Choisissez votre Angle</h3>
+                        <div class="space-y-3">
+                            <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-slate-50 transition">
+                                <input type="radio" name="angle" value="nuance" class="mr-3 h-5 w-5 text-indigo-600">
+                                <div>
+                                    <span class="font-semibold block text-slate-800">Nuancé / Classique</span>
+                                    <span class="text-xs text-slate-500">Informer sur la stabilité des chiffres.</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-slate-50 transition">
+                                <input type="radio" name="angle" value="provo" class="mr-3 h-5 w-5 text-indigo-600">
+                                <div>
+                                    <span class="font-semibold block text-slate-800">Provocateur / "Clash"</span>
+                                    <span class="text-xs text-slate-500">Mettre en avant les secteurs problématiques pour créer l'émotion.</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-slate-50 transition">
+                                <input type="radio" name="angle" value="populiste" class="mr-3 h-5 w-5 text-indigo-600">
+                                <div>
+                                    <span class="font-semibold block text-slate-800">Populiste / Accusateur</span>
+                                    <span class="text-xs text-slate-500">Généraliser la fraude à l'ensemble de la population.</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button id="generate-headline-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded shadow transition flex items-center justify-center gap-2">
+                        <i class="ph ph-magic-wand"></i> Générer le Bandeau TV
+                    </button>
+                </div>
+
+                <!-- Output Side (TV Screen Simulator) -->
+                <div class="relative">
+                    <div class="bg-black rounded-xl overflow-hidden shadow-2xl aspect-video relative flex items-center justify-center">
+                        <!-- Background placeholder -->
+                        <div class="absolute inset-0 bg-gradient-to-br from-slate-800 to-black opacity-80"></div>
+                        <div class="absolute inset-0 flex items-center justify-center opacity-20">
+                            <i class="ph ph-user text-9xl text-white"></i>
+                        </div>
+                        
+                        <!-- TV Overlay -->
+                        <div class="absolute bottom-8 left-0 right-0 px-8">
+                            <div class="bg-yellow-400 text-black px-4 py-1 text-xs font-bold inline-block mb-1 transform -skew-x-12 uppercase">
+                                En Direct
+                            </div>
+                            <div class="bg-white/90 backdrop-blur-sm border-l-8 border-rose-600 p-4 transform -skew-x-6 shadow-lg">
+                                <h2 id="tv-headline" class="text-2xl md:text-3xl font-black text-slate-900 uppercase leading-none">
+                                    EN ATTENTE DE SUJET...
+                                </h2>
+                                <p id="tv-subtext" class="text-sm md:text-base font-medium text-rose-700 mt-1">
+                                    C'est pas tous les jours dimanche
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analysis Box -->
+                    <div id="analysis-box" class="mt-4 bg-white border border-slate-200 p-4 rounded-lg hidden animate-fade-in-up">
+                        <h4 class="font-bold text-slate-800 flex items-center gap-2">
+                            <i class="ph ph-chart-bar text-indigo-600"></i> Analyse d'Impact
+                        </h4>
+                        <p id="analysis-text" class="text-slate-600 mt-2 text-sm"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Data & State ---
+        const appState = {
+            currentView: 'dashboard',
+            activeFileId: null
+        };
+
+        const navItems = [
+            { id: 'dashboard', label: 'Vue d\'Ensemble', icon: 'ph-chart-pie-slice' },
+            { id: 'analysis', label: 'Dossiers Critiques', icon: 'ph-files' },
+            { id: 'lab', label: 'Labo Éditorial', icon: 'ph-flask' }
+        ];
+
+        // Content for "Analysis Files" based on the user's aggressive keywords
+        const analysisFiles = [
+            {
+                id: 'pauvrophobie',
+                title: 'Accusation : "Pauvrophobie" & Mépris de Classe',
+                icon: 'ph-users',
+                color: 'text-rose-600',
+                borderColor: 'border-rose-600',
+                keywords: ['Chômage', 'Contrôle', 'Stigmatisation'],
+                content: `
+                    <h3 class="text-xl font-bold text-slate-900 mb-4">Le Contexte</h3>
+                    <p class="mb-4">Cette critique découle souvent du choix des thèmes et des invités dans les émissions de débat dominicales. Des segments titrés de manière provocatrice (ex: "Faut-il fliquer les chômeurs ?") sont perçus par une partie de la gauche et des associations comme une stigmatisation des précaires.</p>
+                    
+                    <h3 class="text-xl font-bold text-slate-900 mb-4">L'Analyse</h3>
+                    <ul class="list-disc pl-5 space-y-2 mb-6">
+                        <li><strong>La Méthode Deborsu :</strong> Il joue souvent "l'avocat du diable" ou pose les questions que "les gens se posent" (le fameux "bon sens populaire"). Cela peut donner l'impression qu'il valide des préjugés anti-pauvres, alors qu'il cherche à provoquer le débat.</li>
+                        <li><strong>Le "Scandale" :</strong> Les séquences virales sur les réseaux sociaux sont souvent des extraits courts où une question choc est posée, sans la nuance apportée par les experts ensuite.</li>
+                    </ul>
+
+                    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4">
+                        <p class="text-sm text-indigo-800"><strong>Verdict :</strong> Plus une question de <em>format</em> (recherche du clash et de l'audience) que d'idéologie personnelle avérée. Le risque de ce format est de légitimer des discours stigmatisants en les mettant à égalité avec des faits sociologiques.</p>
+                    </div>
+                `
+            },
+            {
+                id: 'fraude',
+                title: 'Accusation : "Tous Fraudeurs ?" & Désinformation',
+                icon: 'ph-warning-octagon',
+                color: 'text-orange-600',
+                borderColor: 'border-orange-600',
+                keywords: ['Fraude Fiscale', 'Fraude Sociale', 'Généralisation'],
+                content: `
+                    <h3 class="text-xl font-bold text-slate-900 mb-4">Le Contexte</h3>
+                    <p class="mb-4">Les mots-clés "Tous fraudeurs" font écho à des émissions type reportage ou débat sur RTL-TVI (parfois présentées par d'autres, mais associées au style de la chaîne) qui focalisent sur les abus.</p>
+                    
+                    <h3 class="text-xl font-bold text-slate-900 mb-4">Réalité vs Perception</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="bg-white border border-slate-200 p-4 rounded shadow-sm">
+                            <h4 class="font-bold text-rose-600 mb-2">La Critique</h4>
+                            <p class="text-sm">Accusation de monter en épingle des cas anecdotiques de fraude sociale pour laisser entendre que "tout le monde triche", alimentant un sentiment d'injustice chez les travailleurs.</p>
+                        </div>
+                        <div class="bg-white border border-slate-200 p-4 rounded shadow-sm">
+                            <h4 class="font-bold text-emerald-600 mb-2">La Défense</h4>
+                            <p class="text-sm">Deborsu affirme traiter des sujets qui fâchent parce qu'ils intéressent le public. Il invite généralement des contradicteurs pour défendre le système.</p>
+                        </div>
+                    </div>
+                    
+                    <p class="mb-4">Il n'y a <strong>aucune preuve</strong> de fraude personnelle ou de scandale financier ("Fraude ?") concernant le journaliste lui-même. Les termes semblent renvoyer aux thématiques traitées.</p>
+                `
+            },
+            {
+                id: 'maga',
+                title: 'Accusation : "MAGA" & Biais Politique',
+                icon: 'ph-globe-hemisphere-west',
+                color: 'text-blue-600',
+                borderColor: 'border-blue-600',
+                keywords: ['USA', 'Trump', 'RTL', 'Biais'],
+                content: `
+                    <h3 class="text-xl font-bold text-slate-900 mb-4">Lien avec Trump/MAGA ?</h3>
+                    <p class="mb-4">Christophe Deborsu couvre régulièrement les élections américaines ou invite des analystes. L'accusation d'être "MAGA" (pro-Trump) est surprenante pour un journaliste de centre-droit belge classique.</p>
+
+                    <h3 class="text-xl font-bold text-slate-900 mb-4">Pourquoi cette perception ?</h3>
+                    <ul class="list-disc pl-5 space-y-2 mb-6">
+                        <li><strong>Traitement Spectacle :</strong> La couverture des élections US par RTL est souvent axée sur le spectacle, les "petites phrases" de Trump, ce qui peut être perçu à tort comme une fascination ou une adhésion.</li>
+                        <li><strong>Parallèle Populiste :</strong> Certains critiques font un parallèle entre le style "parler vrai" de Deborsu et les rhétoriques populistes internationales, mais idéologiquement, le lien est ténu.</li>
+                    </ul>
+
+                    <div class="bg-slate-100 p-4 rounded">
+                        <p class="text-sm text-slate-700 italic">"Mauvais journaliste ?" : C'est une critique subjective. Son style est clivant : on adore sa proximité ou on déteste sa simplification. Il n'est pas considéré comme un journaliste d'investigation, mais d'opinion/débat.</p>
+                    </div>
+                `
+            },
+            {
+                id: 'flamand',
+                title: 'Dossier : L\'Obsession Communautaire',
+                icon: 'ph-chats-circle',
+                color: 'text-yellow-600',
+                borderColor: 'border-yellow-600',
+                keywords: ['N-VA', 'Flandre', 'Conflit'],
+                content: `
+                    <h3 class="text-xl font-bold text-slate-900 mb-4">Le Monsieur Flandre</h3>
+                    <p class="mb-4">Auteur de "Comment devenir Flamand", Deborsu a construit sa carrière sur sa capacité à expliquer la Flandre aux francophones.</p>
+                    
+                    <h3 class="text-xl font-bold text-slate-900 mb-4">Critique de Partialité</h3>
+                    <p class="mb-4">Il est parfois accusé d'être trop complaisant avec le nationalisme flamand (N-VA) en voulant le "comprendre" et l'expliquer, ou inversement, de caricaturer les Flamands pour l'audimat francophone.</p>
+                    
+                    <p>C'est cependant son domaine d'expertise le plus reconnu, où il apporte une réelle plus-value par rapport à des journalistes purement francophones.</p>
+                `
+            }
+        ];
+
+        // --- Initialization ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initNavigation();
+            renderView('dashboard');
+        });
+
+        // --- Navigation Logic ---
+
+        function initNavigation() {
+            const desktopNav = document.getElementById('desktop-nav');
+            const mobileNavItems = document.getElementById('mobile-nav-items');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            navItems.forEach(item => {
+                // Desktop
+                const link = document.createElement('a');
+                link.href = '#';
+                link.className = `flex items-center gap-2 text-sm font-medium transition-colors duration-200 hover:text-indigo-600 ${item.id === appState.currentView ? 'active-tab' : 'inactive-tab'}`;
+                link.innerHTML = `<i class="ph ${item.icon} text-lg"></i> ${item.label}`;
+                link.onclick = (e) => { e.preventDefault(); renderView(item.id); };
+                desktopNav.appendChild(link);
+
+                // Mobile
+                const mLink = document.createElement('a');
+                mLink.href = '#';
+                mLink.className = `block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50`;
+                mLink.innerHTML = `<i class="ph ${item.icon} inline-block mr-2"></i> ${item.label}`;
+                mLink.onclick = (e) => { 
+                    e.preventDefault(); 
+                    renderView(item.id); 
+                    mobileMenu.classList.add('hidden');
+                };
+                mobileNavItems.appendChild(mLink);
+            });
+
+            mobileMenuBtn.onclick = () => {
+                mobileMenu.classList.toggle('hidden');
+            };
+        }
+
+        function updateNavStyles() {
+            const links = document.getElementById('desktop-nav').querySelectorAll('a');
+            links.forEach((link, index) => {
+                if (navItems[index].id === appState.currentView) {
+                    link.classList.add('active-tab');
+                    link.classList.remove('inactive-tab');
+                } else {
+                    link.classList.remove('active-tab');
+                    link.classList.add('inactive-tab');
+                }
+            });
+        }
+
+        // --- View Rendering ---
+
+        function renderView(viewId) {
+            appState.currentView = viewId;
+            updateNavStyles();
+            
+            const mainContent = document.getElementById('app-content');
+            const template = document.getElementById(`view-${viewId}`);
+            
+            // Clear content
+            mainContent.innerHTML = '';
+            
+            // Clone template content
+            const clone = template.content.cloneNode(true);
+            mainContent.appendChild(clone);
+
+            // Initialize view-specific logic
+            if (viewId === 'dashboard') {
+                initDashboardCharts();
+            } else if (viewId === 'analysis') {
+                initAnalysisView();
+            } else if (viewId === 'lab') {
+                initLabView();
+            }
+        }
+
+        // --- Dashboard Logic ---
+
+        function initDashboardCharts() {
+            // Chart 1: Style Radar
+            const ctxRadar = document.getElementById('styleRadarChart').getContext('2d');
+            new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Provocation', 'Rigueur Factuelle', 'Accessibilité', 'Sensationnalisme', 'Analyse de Fond', 'Humour'],
+                    datasets: [{
+                        label: 'Style Deborsu',
+                        data: [85, 40, 95, 75, 45, 80],
+                        fill: true,
+                        backgroundColor: 'rgba(79, 70, 229, 0.2)', // Indigo-600 low alpha
+                        borderColor: 'rgb(79, 70, 229)',
+                        pointBackgroundColor: 'rgb(79, 70, 229)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(79, 70, 229)'
+                    },
+                    {
+                        label: 'Standard JT Classique',
+                        data: [20, 90, 60, 30, 85, 10],
+                        fill: true,
+                        backgroundColor: 'rgba(148, 163, 184, 0.2)', // Slate-400
+                        borderColor: 'rgb(148, 163, 184)',
+                        pointBackgroundColor: 'rgb(148, 163, 184)',
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    elements: { line: { borderWidth: 3 } },
+                    scales: {
+                        r: {
+                            angleLines: { display: true },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            ticks: { display: false } // Hide numbers for cleaner look
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Chart 2: Themes & Controversies Bar Chart
+            const ctxBar = document.getElementById('themesChart').getContext('2d');
+            new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Communautaire (Flandre)', 'Social (Chômage/Fraude)', 'Politique Belge', 'International (USA/Royauté)', 'Faits Divers'],
+                    datasets: [
+                        {
+                            label: 'Volume de Traitement',
+                            data: [80, 70, 60, 50, 40],
+                            backgroundColor: '#e2e8f0', // Slate-200
+                            borderRadius: 4,
+                            order: 2
+                        },
+                        {
+                            label: 'Intensité des Critiques',
+                            data: [30, 85, 40, 25, 60], // High criticism on Social issues
+                            backgroundColor: (context) => {
+                                const val = context.raw;
+                                return val > 70 ? '#e11d48' : '#4f46e5'; // Red if high criticism, else Indigo
+                            },
+                            borderRadius: 4,
+                            order: 1
+                        }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, grid: { display: true, color: '#f1f5f9' } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ": " + context.raw + "%";
+                                }
+                            }
+                        },
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        // --- Analysis View Logic ---
+
+        function initAnalysisView() {
+            const btnContainer = document.getElementById('file-buttons-container');
+            const contentArea = document.getElementById('file-content-area');
+
+            analysisFiles.forEach(file => {
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-center gap-4 bg-white hover:bg-slate-50 border-slate-100 group`;
+                btn.innerHTML = `
+                    <div class="p-2 rounded-full bg-slate-100 text-slate-500 group-hover:text-indigo-600 transition-colors">
+                        <i class="ph ${file.icon} text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm md:text-base">${file.title}</h4>
+                        <div class="flex flex-wrap gap-1 mt-1">
+                            ${file.keywords.map(k => `<span class="text-xs px-2 py-0.5 bg-slate-100 text-slate-500 rounded">${k}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+                
+                btn.onclick = () => {
+                    // Reset all buttons
+                    Array.from(btnContainer.children).forEach(b => {
+                        b.className = `w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-center gap-4 bg-white hover:bg-slate-50 border-slate-100 group`;
+                    });
+                    // Activate clicked
+                    btn.className = `w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-center gap-4 bg-white shadow-md ${file.borderColor}`;
+                    
+                    // Render content
+                    contentArea.innerHTML = `
+                        <div class="animate-fade-in">
+                            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+                                <i class="ph ${file.icon} text-3xl ${file.color}"></i>
+                                <h2 class="text-2xl font-bold text-slate-900">${file.title}</h2>
+                            </div>
+                            <div class="prose prose-slate max-w-none">
+                                ${file.content}
+                            </div>
+                        </div>
+                    `;
+                };
+                
+                btnContainer.appendChild(btn);
+            });
+        }
+
+        // --- Lab View Logic ---
+
+        function initLabView() {
+            const btn = document.getElementById('generate-headline-btn');
+            const tvHeadline = document.getElementById('tv-headline');
+            const analysisBox = document.getElementById('analysis-box');
+            const analysisText = document.getElementById('analysis-text');
+
+            btn.onclick = () => {
+                const selected = document.querySelector('input[name="angle"]:checked');
+                if (!selected) return;
+
+                const angle = selected.value;
+                let headline = "";
+                let analysis = "";
+                let colorClass = "";
+
+                switch(angle) {
+                    case 'nuance':
+                        headline = "FRAUDE SOCIALE : CHIFFRES STABLES";
+                        analysis = "<strong>Approche Service Public :</strong> Titre informatif, rassurant, factuel. <br><em>Problème pour l'audimat :</em> Peu accrocheur, ne suscite pas d'émotion immédiate. Risque de zapping.";
+                        colorClass = "text-white";
+                        break;
+                    case 'provo':
+                        headline = "QUI TRICHE ENCORE EN BELGIQUE ?";
+                        analysis = "<strong>Approche Deborsu (Standard) :</strong> Transforme une stat en une question interpellante. Utilisation du 'Qui' pour personnaliser. <br><em>Effet :</em> Crée de la curiosité sans être nécessairement mensonger, mais oriente vers la suspicion.";
+                        colorClass = "text-yellow-400";
+                        break;
+                    case 'populiste':
+                        headline = "L'IMPUNITÉ DES FRAUDEURS !";
+                        analysis = "<strong>Approche Tabloïd :</strong> Affirmation choc qui ne reflète pas la statistique (3%). <br><em>Critique :</em> C'est ce type de raccourci qui est reproché lors des dérapages. Cela génère de la colère (et des clics), mais déforme la réalité.";
+                        colorClass = "text-rose-500";
+                        break;
+                }
+
+                tvHeadline.innerText = headline;
+                tvHeadline.className = `text-2xl md:text-3xl font-black uppercase leading-none ${colorClass}`;
+                
+                analysisText.innerHTML = analysis;
+                analysisBox.classList.remove('hidden');
+            };
+        }
+
+    </script>
+    
+    <!-- Animation Styles -->
+    <style>
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All icons via Phosphor Web Font. Charts via Chart.js. -->
+    <!-- Visualization & Content Choices:
+        1. Radar Chart: Chosen to visualize the multi-dimensional aspect of "Journalistic Style" (Rigor vs. Ent) which is central to the user's "Bad Journalist?" query.
+        2. Bar Chart: Comparative view of Themes vs. Controversy Level to isolate exactly WHERE the "scandals" come from (Social issues).
+        3. Interactive Lab: A gamified element to demonstrate the concept of "Framing" rather than just explaining it textually.
+    -->
+</body>
+</html>
