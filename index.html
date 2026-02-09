@@ -1,0 +1,563 @@
+import React, { useState, useEffect } from 'react';
+import { Search, Network, AlertTriangle, Map, TrendingUp, Users, FileText, Globe, Activity, Shield, Target, Eye, Radio, Database, BarChart3, GitBranch, Zap, Brain } from 'lucide-react';
+
+// Données simulées pour la démonstration
+const mockData = {
+  organizations: [
+    { id: 1, name: "ONG Environnement Plus", type: "Environnement", risk: "low", influence: 7, members: 1250, location: "Bruxelles" },
+    { id: 2, name: "Collectif Démocratie Active", type: "Politique", risk: "medium", influence: 8, members: 850, location: "Liège" },
+    { id: 3, name: "Association Culturelle Al-Nour", type: "Culturel", risk: "medium", influence: 6, members: 640, location: "Molenbeek" },
+    { id: 4, name: "Forum Citoyen Wallon", type: "Société civile", risk: "low", influence: 5, members: 420, location: "Namur" },
+    { id: 5, name: "Réseau Anti-Austérité", type: "Économie", risk: "high", influence: 9, members: 2100, location: "Bruxelles" }
+  ],
+  threats: [
+    { id: 1, level: "high", type: "Cyber", description: "Activité APT détectée", timestamp: "2025-11-25 14:23" },
+    { id: 2, level: "medium", type: "Radicalisation", description: "Surveillance préventive", timestamp: "2025-11-25 12:15" },
+    { id: 3, level: "low", type: "Manifestation", description: "Événement prévu le 02/12", timestamp: "2025-11-24 18:45" }
+  ],
+  mediaMonitoring: [
+    { source: "Le Soir", sentiment: "neutral", keywords: ["politique", "gouvernement"], count: 47 },
+    { source: "RTBF", sentiment: "negative", keywords: ["crise", "économie"], count: 32 },
+    { source: "De Standaard", sentiment: "positive", keywords: ["innovation", "technologie"], count: 28 }
+  ],
+  networkConnections: [
+    { from: 1, to: 2, strength: 0.7, type: "collaboration" },
+    { from: 2, to: 5, strength: 0.9, type: "alliance" },
+    { from: 3, to: 4, strength: 0.4, type: "contact" },
+    { from: 1, to: 4, strength: 0.6, type: "partenariat" }
+  ]
+};
+
+const Dashboard = () => {
+  const [activeTab, setActiveTab] = useState('overview');
+  const [selectedOrg, setSelectedOrg] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [alerts, setAlerts] = useState(mockData.threats);
+  const [isScanning, setIsScanning] = useState(false);
+
+  useEffect(() => {
+    // Simulation de mise à jour en temps réel
+    const interval = setInterval(() => {
+      setAlerts(prev => {
+        const newAlert = {
+          id: Date.now(),
+          level: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)],
+          type: ['Cyber', 'Physique', 'Information', 'Économique'][Math.floor(Math.random() * 4)],
+          description: 'Nouvelle activité détectée',
+          timestamp: new Date().toLocaleString('fr-BE')
+        };
+        return [newAlert, ...prev].slice(0, 10);
+      });
+    }, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getRiskColor = (risk) => {
+    switch(risk) {
+      case 'high': return 'text-red-500 bg-red-50';
+      case 'medium': return 'text-orange-500 bg-orange-50';
+      case 'low': return 'text-green-500 bg-green-50';
+      default: return 'text-gray-500 bg-gray-50';
+    }
+  };
+
+  const startScan = () => {
+    setIsScanning(true);
+    setTimeout(() => setIsScanning(false), 3000);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+      {/* Header */}
+      <header className="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Shield className="w-10 h-10 text-blue-400" />
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                  VSSE Intelligence Hub
+                </h1>
+                <p className="text-xs text-slate-400">Plateforme de Veille Stratégique Intégrée</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 px-4 py-2 bg-slate-700/50 rounded-lg">
+                <Activity className="w-4 h-4 text-green-400 animate-pulse" />
+                <span className="text-sm">Système Opérationnel</span>
+              </div>
+              <button 
+                onClick={startScan}
+                className={`px-4 py-2 rounded-lg transition-all ${isScanning ? 'bg-blue-600 animate-pulse' : 'bg-blue-500 hover:bg-blue-600'}`}
+              >
+                <div className="flex items-center gap-2">
+                  <Radio className="w-4 h-4" />
+                  {isScanning ? 'Scan en cours...' : 'Lancer Scan'}
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Navigation Tabs */}
+      <nav className="bg-slate-800/30 border-b border-slate-700">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex gap-1 overflow-x-auto">
+            {[
+              { id: 'overview', icon: BarChart3, label: 'Vue d\'ensemble' },
+              { id: 'organizations', icon: Users, label: 'Cartographie Société Civile' },
+              { id: 'threats', icon: AlertTriangle, label: 'Analyse Menaces' },
+              { id: 'network', icon: GitBranch, label: 'Réseaux d\'Influence' },
+              { id: 'media', icon: Globe, label: 'Veille Médiatique' },
+              { id: 'methodology', icon: Brain, label: 'Méthodologie' }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-6 py-3 transition-all whitespace-nowrap ${
+                  activeTab === tab.id 
+                    ? 'bg-blue-500 text-white border-b-2 border-blue-400' 
+                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        {/* Vue d'ensemble */}
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            {/* KPIs */}
+            <div className="grid grid-cols-4 gap-4">
+              {[
+                { label: 'Organisations Suivies', value: '1,247', icon: Users, trend: '+12%', color: 'blue' },
+                { label: 'Alertes Actives', value: alerts.length, icon: AlertTriangle, trend: '+3', color: 'orange' },
+                { label: 'Sources Médias', value: '156', icon: Globe, trend: '+8', color: 'green' },
+                { label: 'Taux de Couverture', value: '94%', icon: Target, trend: '+2%', color: 'purple' }
+              ].map((kpi, i) => (
+                <div key={i} className={`bg-gradient-to-br from-slate-800 to-slate-700 rounded-xl p-6 border border-slate-600 hover:border-${kpi.color}-500 transition-all`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <kpi.icon className={`w-8 h-8 text-${kpi.color}-400`} />
+                    <span className="text-green-400 text-sm font-semibold">{kpi.trend}</span>
+                  </div>
+                  <div className="text-3xl font-bold mb-1">{kpi.value}</div>
+                  <div className="text-slate-400 text-sm">{kpi.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Alertes Récentes */}
+            <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <Zap className="w-5 h-5 text-yellow-400" />
+                Alertes en Temps Réel
+              </h3>
+              <div className="space-y-2">
+                {alerts.slice(0, 5).map(alert => (
+                  <div key={alert.id} className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-3 h-3 rounded-full ${alert.level === 'high' ? 'bg-red-500 animate-pulse' : alert.level === 'medium' ? 'bg-orange-500' : 'bg-green-500'}`} />
+                      <div>
+                        <div className="font-semibold">{alert.type}</div>
+                        <div className="text-sm text-slate-400">{alert.description}</div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-slate-500">{alert.timestamp}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Carte de Chaleur Géographique */}
+            <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <Map className="w-5 h-5 text-blue-400" />
+                Distribution Géographique des Acteurs
+              </h3>
+              <div className="h-64 bg-slate-700/30 rounded-lg flex items-center justify-center">
+                <div className="text-center">
+                  <Map className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                  <p className="text-slate-500">Visualisation interactive de la carte de Belgique</p>
+                  <p className="text-sm text-slate-600 mt-2">Points chauds : Bruxelles (45%), Liège (22%), Anvers (18%)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Cartographie Société Civile */}
+        {activeTab === 'organizations' && (
+          <div className="space-y-6">
+            <div className="flex gap-4 mb-6">
+              <div className="flex-1 relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher une organisation, un secteur, une région..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+              <button className="px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg transition-all flex items-center gap-2">
+                <Database className="w-5 h-5" />
+                Exporter Données
+              </button>
+            </div>
+
+            <div className="grid gap-4">
+              {mockData.organizations.map(org => (
+                <div 
+                  key={org.id}
+                  onClick={() => setSelectedOrg(org)}
+                  className="bg-slate-800 rounded-xl border border-slate-700 p-6 hover:border-blue-500 cursor-pointer transition-all"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h4 className="text-xl font-semibold">{org.name}</h4>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getRiskColor(org.risk)}`}>
+                          Risque {org.risk === 'high' ? 'Élevé' : org.risk === 'medium' ? 'Moyen' : 'Faible'}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-4 mt-4">
+                        <div>
+                          <div className="text-slate-400 text-sm">Type</div>
+                          <div className="font-semibold">{org.type}</div>
+                        </div>
+                        <div>
+                          <div className="text-slate-400 text-sm">Influence</div>
+                          <div className="font-semibold">{org.influence}/10</div>
+                        </div>
+                        <div>
+                          <div className="text-slate-400 text-sm">Membres</div>
+                          <div className="font-semibold">{org.members.toLocaleString()}</div>
+                        </div>
+                        <div>
+                          <div className="text-slate-400 text-sm">Localisation</div>
+                          <div className="font-semibold">{org.location}</div>
+                        </div>
+                      </div>
+                    </div>
+                    <Eye className="w-6 h-6 text-blue-400" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {selectedOrg && (
+              <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                <div className="bg-slate-800 rounded-xl border border-slate-700 p-8 max-w-2xl w-full">
+                  <h3 className="text-2xl font-bold mb-4">{selectedOrg.name}</h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 bg-slate-700/50 rounded-lg">
+                        <div className="text-slate-400 text-sm mb-1">Niveau d'Influence</div>
+                        <div className="text-2xl font-bold">{selectedOrg.influence}/10</div>
+                      </div>
+                      <div className="p-4 bg-slate-700/50 rounded-lg">
+                        <div className="text-slate-400 text-sm mb-1">Membres Actifs</div>
+                        <div className="text-2xl font-bold">{selectedOrg.members}</div>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-slate-700/50 rounded-lg">
+                      <div className="text-slate-400 text-sm mb-2">Analyse de Réseau</div>
+                      <p className="text-sm">Cette organisation maintient {mockData.networkConnections.filter(c => c.from === selectedOrg.id || c.to === selectedOrg.id).length} connexions actives avec d'autres entités surveillées.</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setSelectedOrg(null)}
+                    className="mt-6 w-full py-3 bg-blue-500 hover:bg-blue-600 rounded-lg transition-all"
+                  >
+                    Fermer
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Analyse Menaces */}
+        {activeTab === 'threats' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { level: 'Critique', count: alerts.filter(a => a.level === 'high').length, color: 'red' },
+                { level: 'Moyen', count: alerts.filter(a => a.level === 'medium').length, color: 'orange' },
+                { level: 'Faible', count: alerts.filter(a => a.level === 'low').length, color: 'green' }
+              ].map(stat => (
+                <div key={stat.level} className={`bg-gradient-to-br from-${stat.color}-900/50 to-slate-800 rounded-xl p-6 border border-${stat.color}-500/30`}>
+                  <div className="text-4xl font-bold mb-2">{stat.count}</div>
+                  <div className="text-slate-400">Menaces {stat.level}s</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+              <h3 className="text-xl font-semibold mb-4">Historique des Menaces</h3>
+              <div className="space-y-3">
+                {alerts.map(alert => (
+                  <div key={alert.id} className="flex items-center gap-4 p-4 bg-slate-700/30 rounded-lg">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                      alert.level === 'high' ? 'bg-red-500/20 text-red-400' :
+                      alert.level === 'medium' ? 'bg-orange-500/20 text-orange-400' :
+                      'bg-green-500/20 text-green-400'
+                    }`}>
+                      <AlertTriangle className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold">{alert.type}</span>
+                        <span className="text-xs text-slate-500">{alert.timestamp}</span>
+                      </div>
+                      <div className="text-sm text-slate-400">{alert.description}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Réseaux d'Influence */}
+        {activeTab === 'network' && (
+          <div className="space-y-6">
+            <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+              <h3 className="text-xl font-semibold mb-4">Visualisation des Réseaux</h3>
+              <div className="h-96 bg-slate-700/30 rounded-lg flex items-center justify-center">
+                <div className="text-center">
+                  <Network className="w-20 h-20 text-slate-600 mx-auto mb-4" />
+                  <p className="text-slate-500 mb-2">Graphe interactif des connexions entre organisations</p>
+                  <p className="text-sm text-slate-600">
+                    {mockData.networkConnections.length} connexions actives identifiées
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+              <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+                <h4 className="font-semibold mb-4">Acteurs Centraux</h4>
+                {mockData.organizations.sort((a, b) => b.influence - a.influence).slice(0, 3).map(org => (
+                  <div key={org.id} className="mb-3 p-3 bg-slate-700/50 rounded-lg">
+                    <div className="font-semibold">{org.name}</div>
+                    <div className="text-sm text-slate-400">Influence: {org.influence}/10</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+                <h4 className="font-semibold mb-4">Connexions Fortes</h4>
+                {mockData.networkConnections.sort((a, b) => b.strength - a.strength).slice(0, 3).map((conn, i) => (
+                  <div key={i} className="mb-3 p-3 bg-slate-700/50 rounded-lg">
+                    <div className="text-sm">
+                      {mockData.organizations.find(o => o.id === conn.from)?.name} 
+                      <span className="text-slate-500 mx-2">↔</span>
+                      {mockData.organizations.find(o => o.id === conn.to)?.name}
+                    </div>
+                    <div className="text-xs text-slate-400 mt-1">Force: {(conn.strength * 100).toFixed(0)}%</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Veille Médiatique */}
+        {activeTab === 'media' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-3 gap-4">
+              {mockData.mediaMonitoring.map((media, i) => (
+                <div key={i} className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-semibold">{media.source}</h4>
+                    <Globe className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div className="mb-4">
+                    <div className="text-sm text-slate-400 mb-2">Sentiment</div>
+                    <div className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                      media.sentiment === 'positive' ? 'bg-green-500/20 text-green-400' :
+                      media.sentiment === 'negative' ? 'bg-red-500/20 text-red-400' :
+                      'bg-slate-500/20 text-slate-400'
+                    }`}>
+                      {media.sentiment}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-slate-400 mb-2">Mots-clés principaux</div>
+                    <div className="flex flex-wrap gap-2">
+                      {media.keywords.map((kw, j) => (
+                        <span key={j} className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs">
+                          {kw}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mt-4 text-2xl font-bold">{media.count}</div>
+                  <div className="text-sm text-slate-400">articles analysés</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+              <h3 className="text-xl font-semibold mb-4">Tendances Médiatiques</h3>
+              <div className="h-64 bg-slate-700/30 rounded-lg flex items-center justify-center">
+                <div className="text-center">
+                  <TrendingUp className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                  <p className="text-slate-500">Graphique d'évolution temporelle des thématiques</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Méthodologie */}
+        {activeTab === 'methodology' && (
+          <div className="space-y-6">
+            <div className="bg-gradient-to-br from-blue-900/50 to-slate-800 rounded-xl border border-blue-500/30 p-8">
+              <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
+                <Brain className="w-8 h-8 text-blue-400" />
+                Méthodologie de Développement
+              </h2>
+              
+              <div className="space-y-6">
+                <section>
+                  <h3 className="text-xl font-semibold mb-3 text-blue-400">1. Architecture Technique</h3>
+                  <div className="bg-slate-800/50 rounded-lg p-4 space-y-2 text-sm">
+                    <p><strong>Frontend:</strong> React 18 avec hooks (useState, useEffect) pour gestion d'état réactive</p>
+                    <p><strong>Styling:</strong> Tailwind CSS pour design system cohérent et responsive</p>
+                    <p><strong>Icons:</strong> Lucide React pour iconographie professionnelle</p>
+                    <p><strong>État:</strong> Variables JavaScript en mémoire (pas de localStorage dans environnement Claude)</p>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-xl font-semibold mb-3 text-blue-400">2. Modules Fonctionnels Implémentés</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {[
+                      { name: "Dashboard KPI", desc: "Indicateurs clés en temps réel" },
+                      { name: "Cartographie Organisations", desc: "Base de données société civile" },
+                      { name: "Système d'Alertes", desc: "Détection menaces multi-niveaux" },
+                      { name: "Analyse de Réseaux", desc: "Visualisation connexions inter-acteurs" },
+                      { name: "Veille Médiatique", desc: "Monitoring sources + analyse sentiment" },
+                      { name: "Géolocalisation", desc: "Distribution géographique acteurs" }
+                    ].map((module, i) => (
+                      <div key={i} className="bg-slate-700/50 rounded-lg p-4">
+                        <div className="font-semibold mb-1">{module.name}</div>
+                        <div className="text-xs text-slate-400">{module.desc}</div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-xl font-semibold mb-3 text-blue-400">3. Cycle de Développement</h3>
+                  <div className="space-y-3">
+                    {[
+                      { phase: "Analyse Besoins", actions: "Identification des besoins VSSE, étude benchmarks internationaux" },
+                      { phase: "Architecture", actions: "Conception modulaire, définition flux de données, sécurisation" },
+                      { phase: "Développement", actions: "Implémentation composants React, intégration APIs, tests unitaires" },
+                      { phase: "Visualisation", actions: "Design UI/UX immersif, création dashboards interactifs" },
+                      { phase: "Optimisation", actions: "Performance, responsive design, accessibilité" }
+                    ].map((step, i) => (
+                      <div key={i} className="flex items-start gap-4 bg-slate-800/50 rounded-lg p-4">
+                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 font-bold">
+                          {i + 1}
+                        </div>
+                        <div>
+                          <div className="font-semibold mb-1">{step.phase}</div>
+                          <div className="text-sm text-slate-400">{step.actions}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-xl font-semibold mb-3 text-blue-400">4. Sources de Données (Architecture Réelle)</h3>
+                  <div className="bg-slate-800/50 rounded-lg p-4 space-y-2 text-sm">
+                    <p><strong>OSINT:</strong> Collecte automatisée sources ouvertes (médias, réseaux sociaux, registres publics)</p>
+                    <p><strong>APIs Gouvernementales:</strong> Intégration SPF Intérieur, Justice, BCE/KBO</p>
+                    <p><strong>Web Scraping:</strong> Monitoring sites organisations société civile, forums, plateformes</p>
+                    <p><strong>Bases de Données:</strong> PostgreSQL + Elasticsearch pour recherche full-text</p>
+                    <p><strong>Traitement NLP:</strong> Analyse sentiment, extraction entités, détection thématiques</p>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-xl font-semibold mb-3 text-blue-400">5. Améliorations Futures</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {[
+                      "Intégration Machine Learning pour prédiction risques",
+                      "Analyse réseaux sociaux en temps réel (Twitter, Facebook)",
+                      "Cartographie 3D interactive des réseaux d'influence",
+                      "Module de génération rapports automatisés",
+                      "Système de collaboration multi-utilisateurs",
+                      "Intégration biométrie et reconnaissance faciale",
+                      "API RESTful pour intégration systèmes tiers",
+                      "Chiffrement end-to-end communications sensibles"
+                    ].map((improvement, i) => (
+                      <div key={i} className="flex items-start gap-2 bg-slate-700/30 rounded p-3 text-sm">
+                        <div className="w-2 h-2 rounded-full bg-green-400 mt-1.5 flex-shrink-0" />
+                        <span>{improvement}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-xl font-semibold mb-3 text-blue-400">6. Aspects Sécurité et Conformité</h3>
+                  <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 space-y-2 text-sm">
+                    <p><strong>RGPD:</strong> Respect vie privée, anonymisation données, droit à l'oubli</p>
+                    <p><strong>Classification:</strong> Niveaux de confidentialité (Public, Restreint, Confidentiel, Secret)</p>
+                    <p><strong>Authentification:</strong> 2FA obligatoire, SSO avec eID belge</p>
+                    <p><strong>Audit Trail:</strong> Journalisation complète actions utilisateurs</p>
+                    <p><strong>Encryption:</strong> TLS 1.3 transport, AES-256 données au repos</p>
+                  </div>
+                </section>
+              </div>
+            </div>
+
+            <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+              <h3 className="text-xl font-semibold mb-4">Technologies Utilisées</h3>
+              <div className="flex flex-wrap gap-3">
+                {[
+                  "React 18", "Tailwind CSS", "Lucide Icons", "JavaScript ES6+",
+                  "Hooks API", "Responsive Design", "Real-time Updates", "Component Architecture",
+                  "State Management", "Event Handling", "Conditional Rendering", "Data Visualization"
+                ].map((tech, i) => (
+                  <span key={i} className="px-4 py-2 bg-blue-500/20 text-blue-300 rounded-lg text-sm font-semibold">
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-slate-800/50 border-t border-slate-700 mt-12">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between text-sm text-slate-400">
+            <div>© 2025 VSSE - Sûreté de l'État | Développé pour test d'entrée</div>
+            <div className="flex items-center gap-4">
+              <span>Classification: DEMO</span>
+              <span>•</span>
+              <span>Version: 1.0.0</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default Dashboard;
