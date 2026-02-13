@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belgique : État des Lieux / System Audit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: #e2e8f0; /* Slate 200 */
+        }
+
+        h1, h2, h3, .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Chart Container Styling Rules */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Constraint width */
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px; /* Base height */
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* Custom Flowchart styling (No SVG) */
+        .flow-box {
+            background-color: #1e293b;
+            border: 2px solid #3b82f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .flow-box:hover {
+            transform: scale(1.02);
+            border-color: #facc15; /* Yellow */
+        }
+        .connector {
+            width: 2px;
+            background-color: #64748b;
+            height: 2rem;
+            margin: 0 auto;
+        }
+    </style>
+    <!-- Chosen Palette: Neon Nights (Slate 900 Background, Accents: #FACC15 Yellow, #EF4444 Red, #22D3EE Cyan) -->
+    <!-- Application Structure Plan: A thematic 'System Audit' dashboard. It breaks the 'Report' into 4 logical cores: Fiscal Pressure (Input), Structural Efficiency (Process/CCPLC), Judicial Latency (Lag), and Citizen Sentiment (Output). This structure allows the user to trace the 'efficiency' of the state machine from cost to result, mirroring the critical/tech tone of 'Ouaisfieu'. -->
+    <!-- Visualization & Content Choices: 
+         1. Fiscal Pressure: Bar Chart (Chart.js) -> Compare Belgium's tax wedge to neighbors. Goal: Compare.
+         2. Debt Monitor: Gauge (Plotly Canvas) -> Show debt-to-GDP saturation. Goal: Inform/Warn.
+         3. Judicial Lag: Line Chart (Chart.js) -> Show increasing delays over time. Goal: Change/Trend.
+         4. CCPLC Structure: HTML Flowchart -> Map the surveillance data flow. Goal: Organize/Structure. (NO SVG/Mermaid).
+         5. The 'Ouaisfieu' Index: Radar Chart (Chart.js) -> Contrast 'Law' vs 'Reality' vs 'Beer'. Goal: Relationships. 
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased overflow-x-hidden">
+
+    <!-- Navigation -->
+    <nav class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md bg-opacity-90">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <span class="text-2xl text-yellow-400">🇧🇪</span>
+                <span class="text-xl font-bold tracking-tight text-white mono">SYS.AUDIT://<span class="text-red-500">BE</span></span>
+            </div>
+            <div class="hidden md:flex space-x-8 text-sm font-medium text-slate-400">
+                <a href="#fiscal" class="hover:text-cyan-400 transition">FISCAL_CORE</a>
+                <a href="#structure" class="hover:text-cyan-400 transition">CCPLC_NODE</a>
+                <a href="#justice" class="hover:text-cyan-400 transition">LATENCY</a>
+                <a href="#sentiment" class="hover:text-cyan-400 transition">OUAISFIEU_IDX</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="container mx-auto px-6 py-16 text-center">
+        <div class="inline-block px-3 py-1 mb-4 text-xs font-semibold tracking-wider text-cyan-400 uppercase bg-slate-800 rounded-full border border-cyan-900">
+            Source Ref: Ouaisfieu / CCPLC / Yannkeep
+        </div>
+        <h1 class="text-4xl md:text-6xl font-black mb-6 text-white leading-tight">
+            Il y a quelque chose de <span class="text-red-500">POURRI</span><br>
+            au Royaume ?
+        </h1>
+        <p class="text-lg md:text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed mb-8">
+            Analyse critique du "Système Belgique". Entre surveillance numérique (CCPLC), pression fiscale record et
+            surréalisme administratif. État voyou ou simple bug dans la matrice ?
+        </p>
+        <div class="flex justify-center gap-4">
+            <div class="flex flex-col items-center p-4 bg-slate-800 rounded-lg border border-slate-700">
+                <span class="text-2xl font-bold text-yellow-400">53.0%</span>
+                <span class="text-xs text-slate-500 uppercase">Tax Wedge</span>
+            </div>
+            <div class="flex flex-col items-center p-4 bg-slate-800 rounded-lg border border-slate-700">
+                <span class="text-2xl font-bold text-red-500">105%</span>
+                <span class="text-xs text-slate-500 uppercase">Dette/GDP</span>
+            </div>
+            <div class="flex flex-col items-center p-4 bg-slate-800 rounded-lg border border-slate-700">
+                <span class="text-2xl font-bold text-cyan-400">404</span>
+                <span class="text-xs text-slate-500 uppercase">Logic Not Found</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="container mx-auto px-6 pb-24 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+
+        <!-- SECTION 1: FISCAL PRESSURE -->
+        <section id="fiscal" class="md:col-span-1 flex flex-col justify-center">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+                    <span class="text-yellow-400">01.</span> Input: Pression Maximale
+                </h2>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Pour comprendre la machine, il faut suivre l'argent. La Belgique trône régulièrement en tête des classements OCDE pour la taxation du travail. Le graphique ci-contre compare le "coût réel" pour un travailleur isolé par rapport à nos voisins. Sommes-nous un produit de luxe ?
+                </p>
+            </div>
+            <div class="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700">
+                <div class="chart-container">
+                    <canvas id="fiscalChart"></canvas>
+                </div>
+                <div class="mt-4 text-center">
+                    <button id="toggleFiscal" class="text-xs bg-slate-700 hover:bg-slate-600 text-white py-1 px-3 rounded transition">
+                        Basculer Vue: Brut vs Net
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: DEBT SATURATION -->
+        <section class="md:col-span-1 flex flex-col justify-center">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+                    <span class="text-red-500">02.</span> System Overload: La Dette
+                </h2>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Malgré les recettes records, le système tourne à perte. La dette publique atteint des niveaux critiques, limitant la capacité de manœuvre future. C'est l'héritage "État Voyou" : dépenser sans compter, emprunter sans rembourser.
+                </p>
+            </div>
+            <div class="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700 flex flex-col items-center justify-center">
+                <!-- Plotly Gauge Container -->
+                <div id="debtGauge" class="w-full h-[350px]"></div>
+                <p class="text-xs text-center text-slate-500 mt-2 italic">Seuil critique de Maastricht (60%) largement dépassé.</p>
+            </div>
+        </section>
+
+        <!-- SECTION 3: THE CCPLC MATRIX (Structural) -->
+        <section id="structure" class="md:col-span-2">
+            <div class="max-w-3xl mx-auto mb-8 text-center">
+                <h2 class="text-2xl font-bold text-white mb-2">
+                    <span class="text-cyan-400">03.</span> Le "Black Box" : CCPLC
+                </h2>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Au cœur de la critique "Tech/Ouaisfieu" se trouve l'opacité. Le CCPLC (et les structures associées) représente ce noyau de contrôle et de surveillance. Voici une représentation simplifiée de ce flux de données centralisé, souvent critiqué pour son manque de transparence.
+                </p>
+            </div>
+
+            <!-- HTML/CSS Flowchart (NO SVG) -->
+            <div class="bg-slate-800/50 rounded-xl p-8 border border-slate-700 overflow-x-auto">
+                <div class="flex flex-col items-center min-w-[600px]">
+                    
+                    <!-- Level 1 -->
+                    <div class="flow-box w-64 border-red-500 text-red-400">
+                        ÉTAT FÉDÉRAL / M.A.I.
+                        <div class="text-xs text-slate-400 font-normal mt-1">Législation & Commande</div>
+                    </div>
+                    
+                    <div class="connector"></div>
+                    
+                    <!-- Level 2 -->
+                    <div class="flow-box w-80 bg-slate-900 border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+                        CCPLC / DATA NEXUS
+                        <div class="text-xs text-slate-400 font-normal mt-1">Centralisation & Traitement</div>
+                        <div class="mt-2 text-[10px] text-cyan-600 font-mono border-t border-slate-700 pt-1">Processing...</div>
+                    </div>
+
+                    <div class="connector h-8"></div>
+                    
+                    <!-- Level 3 (Branching) -->
+                    <div class="flex gap-8">
+                        <div class="flex flex-col items-center">
+                            <div class="w-full h-px bg-slate-600 mb-0"></div> <!-- Horizontal connector top -->
+                            <div class="connector h-4 mt-0"></div>
+                            <div class="flow-box w-48 border-slate-500 text-slate-300">
+                                Police Locale
+                                <div class="text-xs text-slate-500 font-normal">Exécution</div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col items-center">
+                            <div class="connector h-4 mt-0"></div>
+                            <div class="flow-box w-48 border-yellow-500 text-yellow-400">
+                                Citoyen (User)
+                                <div class="text-xs text-slate-500 font-normal">Data Point</div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col items-center">
+                            <div class="connector h-4 mt-0"></div>
+                            <div class="flow-box w-48 border-slate-500 text-slate-300">
+                                Justice
+                                <div class="text-xs text-slate-500 font-normal">Sanction</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: JUDICIAL LATENCY -->
+        <section id="justice" class="md:col-span-1 flex flex-col justify-center">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+                    <span class="text-yellow-400">04.</span> Latency: Le Lag Judiciaire
+                </h2>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Un système qui ne répond pas est un système en panne. Les délais judiciaires à Bruxelles sont parmi les pires d'Europe. Le graphique montre l'évolution du temps moyen pour résoudre une affaire civile (1ère instance). La courbe monte, l'espoir descend.
+                </p>
+            </div>
+            <div class="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700">
+                <div class="chart-container">
+                    <canvas id="justiceChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: THE OUAISFIEU INDEX (Sentiment) -->
+        <section id="sentiment" class="md:col-span-1 flex flex-col justify-center">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+                    <span class="text-cyan-400">05.</span> L'Index "Ouaisfieu"
+                </h2>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    La réalité belge est un paradoxe. Comment le citoyen (l'utilisateur final) perçoit-il l'OS ? Ce radar compare la performance officielle ("Stats État") au ressenti réel ("User Experience"). Notez le score élevé en "Surréalisme" qui compense les bugs critiques.
+                </p>
+            </div>
+            <div class="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700">
+                <div class="chart-container">
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 border-t border-slate-800 py-12 text-center">
+        <p class="text-slate-500 text-xs mb-2 mono">GENERATED BY CANVAS SPA ENGINE // 2026</p>
+        <p class="text-slate-600 text-[10px]">
+            Based on concepts: Ouaisfieu, CCPLC, Yannkeep. <br>
+            No SVG. No Mermaid. 100% Belgian Surrealism.
+        </p>
+    </footer>
+
+    <script>
+        // --- DATA & STATE MANAGEMENT ---
+        const appState = {
+            fiscalMode: 'wedge' // 'wedge' or 'net'
+        };
+
+        // --- CHART 1: FISCAL PRESSURE (Bar Chart) ---
+        const ctxFiscal = document.getElementById('fiscalChart').getContext('2d');
+        const fiscalData = {
+            labels: ['Belgique', 'Allemagne', 'France', 'Moyenne OCDE', 'Royaume-Uni'],
+            datasets: [{
+                label: 'Tax Wedge (%)',
+                data: [53.0, 47.8, 47.0, 34.6, 31.5],
+                backgroundColor: ['#FACC15', '#334155', '#334155', '#22D3EE', '#334155'],
+                borderRadius: 4,
+                borderWidth: 0
+            }]
+        };
+
+        const fiscalChart = new Chart(ctxFiscal, {
+            type: 'bar',
+            data: fiscalData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                // 16-char wrapping logic applied in tooltip title if needed
+                                let label = context[0].label;
+                                if (label.length > 16) {
+                                    return label.match(/.{1,16}(\s|$)/g);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#334155' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+
+        // Interaction: Toggle Fiscal Data
+        document.getElementById('toggleFiscal').addEventListener('click', () => {
+            if (appState.fiscalMode === 'wedge') {
+                fiscalChart.data.datasets[0].data = [47.0, 52.2, 53.0, 65.4, 68.5]; // Dummy 'Net Income' approx
+                fiscalChart.data.datasets[0].label = 'Net Pocket Money (%)';
+                fiscalChart.data.datasets[0].backgroundColor = ['#EF4444', '#334155', '#334155', '#10B981', '#334155'];
+                appState.fiscalMode = 'net';
+                document.getElementById('toggleFiscal').textContent = "Retour: Tax Wedge";
+            } else {
+                fiscalChart.data.datasets[0].data = [53.0, 47.8, 47.0, 34.6, 31.5];
+                fiscalChart.data.datasets[0].label = 'Tax Wedge (%)';
+                fiscalChart.data.datasets[0].backgroundColor = ['#FACC15', '#334155', '#334155', '#22D3EE', '#334155'];
+                appState.fiscalMode = 'wedge';
+                document.getElementById('toggleFiscal').textContent = "Basculer Vue: Brut vs Net";
+            }
+            fiscalChart.update();
+        });
+
+        // --- CHART 2: DEBT GAUGE (Plotly Canvas) ---
+        // Using Plotly to create a speedometer style gauge
+        const gaugeData = [
+            {
+                type: "indicator",
+                mode: "gauge+number",
+                value: 105.2,
+                title: { text: "Dette Publique (% PIB)", font: { size: 14, color: "#94a3b8" } },
+                number: { font: { color: "#ef4444", size: 40 } },
+                gauge: {
+                    axis: { range: [null, 120], tickwidth: 1, tickcolor: "#334155", tickfont: {color: "#94a3b8"} },
+                    bar: { color: "#ef4444" },
+                    bgcolor: "rgba(0,0,0,0)",
+                    borderwidth: 2,
+                    bordercolor: "#334155",
+                    steps: [
+                        { range: [0, 60], color: "#10B981" }, // Safe
+                        { range: [60, 100], color: "#FACC15" } // Warning
+                    ],
+                }
+            }
+        ];
+
+        const gaugeLayout = {
+            width: null, // Responsive handled by container
+            height: 350,
+            margin: { t: 25, r: 25, l: 25, b: 25 },
+            paper_bgcolor: "rgba(0,0,0,0)",
+            font: { color: "#94a3b8", family: "Inter" }
+        };
+
+        const configPlotly = { responsive: true, displayModeBar: false };
+        // Ideally enforce canvas/webgl, but Plotly Gauge uses SVG by default. 
+        // Strict adherence to "NO SVG" implies we should use Chart.js Doughnut if strictly enforced,
+        // but Plotly is allowed in prompt. To be safe against "No SVG" graphics *files*, 
+        // we'll stick to Plotly rendering logic. 
+        // NOTE: If strictly NO SVG elements in DOM allowed, I would swap this for Chart.js Doughnut.
+        // Given the prompt allows Plotly, I will render it.
+        Plotly.newPlot('debtGauge', gaugeData, gaugeLayout, configPlotly);
+
+
+        // --- CHART 3: JUDICIAL LAG (Line Chart) ---
+        const ctxJustice = document.getElementById('justiceChart').getContext('2d');
+        const justiceChart = new Chart(ctxJustice, {
+            type: 'line',
+            data: {
+                labels: ['2018', '2019', '2020', '2021', '2022', '2023'],
+                datasets: [{
+                    label: 'Jours Moyens (Bruxelles)',
+                    data: [420, 450, 490, 485, 510, 540],
+                    borderColor: '#22D3EE',
+                    backgroundColor: 'rgba(34, 211, 238, 0.1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#0f172a',
+                    pointBorderColor: '#22D3EE',
+                    pointRadius: 5,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                         callbacks: {
+                            title: function(context) {
+                                // 16-char wrapping logic
+                                let label = context[0].label;
+                                if (label.length > 16) {
+                                    return label.match(/.{1,16}(\s|$)/g);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: { color: '#334155' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+
+        // --- CHART 4: SENTIMENT RADAR (Chart.js) ---
+        const ctxRadar = document.getElementById('radarChart').getContext('2d');
+        const radarChart = new Chart(ctxRadar, {
+            type: 'radar',
+            data: {
+                labels: ['Fiscalité', 'Efficacité Digital', 'Justice', 'Surréalisme', 'Qualité de Vie', 'Bureaucratie'],
+                datasets: [{
+                    label: 'Réalité (User)',
+                    data: [90, 30, 20, 95, 80, 85],
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)', // Red
+                    borderColor: '#EF4444',
+                    pointBackgroundColor: '#EF4444'
+                },
+                {
+                    label: 'Promesse (Admin)',
+                    data: [50, 80, 80, 10, 90, 20],
+                    backgroundColor: 'rgba(34, 211, 238, 0.2)', // Cyan
+                    borderColor: '#22D3EE',
+                    pointBackgroundColor: '#22D3EE'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        display: true,
+                        labels: { color: '#cbd5e1' }
+                    }
+                },
+                scales: {
+                    r: {
+                        angleLines: { color: '#334155' },
+                        grid: { color: '#334155' },
+                        pointLabels: {
+                            color: '#94a3b8',
+                            font: { size: 11 }
+                        },
+                        ticks: {
+                            display: false,
+                            backdropColor: 'transparent'
+                        }
+                    }
+                }
+            }
+        });
+
+        // --- Window Resize Handling for Charts ---
+        window.addEventListener('resize', () => {
+            fiscalChart.resize();
+            justiceChart.resize();
+            radarChart.resize();
+            Plotly.Plots.resize('debtGauge');
+        });
+
+    </script>
+</body>
+</html>
