@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Belgique : État ou Illusion ? | Analyse Interactive</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f1ea; /* Warm neutral background */
+            color: #1a1a1a;
+        }
+        
+        h1, h2, h3, .serif-font {
+            font-family: 'Merriweather', serif;
+        }
+
+        /* Chart Container Styles - MANDATORY */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom Utilities */
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn-toggle {
+            transition: all 0.3s ease;
+        }
+
+        .active-tab {
+            border-bottom: 2px solid #ef4444; /* Red accent */
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        /* Hide scrollbar for clean horizontal scroll if needed */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+
+    <!-- Placeholder Comments -->
+    <!-- Chosen Palette: "Surrealist Noir" - Warm beige/paper background (#f4f1ea), Stark Black text, Soft White cards, Muted Red (#ef4444) and Mustard Yellow (#eab308) accents representing the Belgian tricolor but desaturated for a serious, journalistic tone. -->
+    
+    <!-- Application Structure Plan: 
+         Structure: "The Deconstruction Dashboard".
+         1. Header: Sets the provocative premise based on the "Conspiracy" title.
+         2. "The Reality Switch" (Core Interaction): A global toggle that shifts the entire view from "Unitary Illusion" (Aggregated Belgian Data) to "Fragmented Reality" (Regional Data). This directly addresses the report's theme of a hidden reality.
+         3. Section 1: Political Divergence. Visualizes the "Two Democracies" concept.
+         4. Section 2: The Narrative Matrix. Interactive cards exploring the specific claims of the source report (media silence, cordon sanitaire, separatism).
+         5. Section 3: Future Simulator. A slider-based tool to predict the outcome of the next state reform (Status Quo vs. Confederalism vs. Separatism).
+         Why: This structure allows the user to physically "peel back" the layers of the state to see the underlying data, making the abstract political theory concrete and personal.
+    -->
+
+    <!-- Visualization & Content Choices:
+         1. Comparison Charts (Bar/Doughnut): Used in "Political Divergence". Goal: Compare. Method: Chart.js. Interaction: The "Reality Switch" updates the datasets dynamically (Average vs. Split). Justification: Shows the impossibility of a "national average".
+         2. Narrative Grid: HTML/CSS Grid with JS toggle. Goal: Inform/Organize. Method: Clickable cards. Justification: Breaks down dense theoretical text into digestible "clues" or "evidence points".
+         3. Dynamic Text: Used in the "Future Simulator". Goal: Change. Method: JS-driven text injection based on slider input. Justification: Gamifies the complex constitutional scenarios.
+         4. Confirmation: NO SVG graphics used. NO Mermaid JS used.
+    -->
+    
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Header Section -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-4 md:mb-0 text-center md:text-left">
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-900 serif-font">Le Paradoxe Belge</h1>
+                <p class="text-sm text-gray-500 mt-1">Dossier : Le pays est-il une fiction politique ?</p>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex space-x-6 text-sm font-medium">
+                <button onclick="scrollToSection('analyse')" class="hover:text-red-600 transition-colors">L'Analyse</button>
+                <button onclick="scrollToSection('theories')" class="hover:text-red-600 transition-colors">Les Théories</button>
+                <button onclick="scrollToSection('simulateur')" class="hover:text-red-600 transition-colors">Le Futur</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow w-full max-w-6xl mx-auto px-4 py-8 space-y-12">
+
+        <!-- Intro / Abstract -->
+        <section class="max-w-3xl mx-auto text-center space-y-6">
+            <p class="text-lg md:text-xl text-gray-700 leading-relaxed serif-font italic">
+                « La Belgique est-elle devenue une théorie du complot qui ne dit pas son nom ? »
+            </p>
+            <p class="text-gray-600">
+                Ce rapport interactif explore l'hypothèse selon laquelle l'existence même de l'État belge relève désormais d'une "croyance" maintenue artificiellement, face à une réalité sociologique et politique profondément morcelée. Explorez les données pour confronter le mythe unitaire à la réalité régionale.
+            </p>
+            <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                <span class="font-bold">Mode d'emploi :</span> Utilisez l'interrupteur ci-dessous pour révéler ce que les moyennes nationales cachent.
+            </div>
+        </section>
+
+        <!-- GLOBAL CONTROL: The Reality Switch -->
+        <section id="analyse" class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8 border-b pb-4">
+                <div class="mb-4 md:mb-0">
+                    <h2 class="text-2xl font-bold text-gray-900 serif-font">La Fracture Politique</h2>
+                    <p class="text-gray-500 text-sm mt-1">Une démocratie ou deux opinions publiques distinctes ?</p>
+                </div>
+                
+                <!-- The Switch -->
+                <div class="flex items-center bg-gray-100 p-1 rounded-lg">
+                    <button id="btn-unitary" onclick="setMode('unitary')" class="px-4 py-2 rounded-md text-sm font-semibold bg-white shadow-sm text-gray-800 btn-toggle">L'Illusion Unitaire</button>
+                    <button id="btn-regional" onclick="setMode('regional')" class="px-4 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-900 btn-toggle">La Réalité Morcelée</button>
+                </div>
+            </div>
+
+            <!-- Content Container -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <!-- Chart 1: Left/Right Spectrum -->
+                <div class="flex flex-col">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Orientation Électorale</h3>
+                        <p id="desc-orientation" class="text-sm text-gray-600 h-10">
+                            En moyenne, la Belgique semble être un pays de centre-droit modéré.
+                        </p>
+                    </div>
+                    <div class="chart-container bg-gray-50 rounded-lg p-2 border border-gray-100">
+                        <canvas id="chartSpectrum"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Top Concerns -->
+                <div class="flex flex-col">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Priorités Citoyennes</h3>
+                        <p id="desc-concerns" class="text-sm text-gray-600 h-10">
+                            Les priorités semblent uniformes : pouvoir d'achat et santé.
+                        </p>
+                    </div>
+                    <div class="chart-container bg-gray-50 rounded-lg p-2 border border-gray-100">
+                        <canvas id="chartConcerns"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-8 p-4 bg-gray-50 border-l-4 border-red-500 rounded-r-lg">
+                <h4 class="font-bold text-gray-900">Le Constat du Rapport :</h4>
+                <p class="text-gray-700 text-sm mt-1" id="analysis-text">
+                    La structure fédérale masque une bipolarisation croissante. Là où le mythe national projette un compromis, les données régionales révèlent deux sociétés évoluant dans des directions opposées.
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 2: Narrative Analysis -->
+        <section id="theories" class="space-y-6">
+            <div class="text-center max-w-2xl mx-auto">
+                <h2 class="text-2xl font-bold text-gray-900 serif-font">La Mécanique du "Non-Dit"</h2>
+                <p class="text-gray-500 mt-2">
+                    Comment le système politique maintient-il l'unité face aux forces centrifuges ? Analyse des mécanismes qualifiés de "conspirationnistes" par les critiques.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1 -->
+                <div class="card p-6 cursor-pointer group" onclick="toggleCard(this)">
+                    <div class="flex justify-between items-start">
+                        <div class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold uppercase tracking-wide">Mécanisme 1</div>
+                        <span class="text-gray-400 text-xl group-hover:text-gray-600">+</span>
+                    </div>
+                    <h3 class="mt-4 text-xl font-bold text-gray-900">Le Cordon Sanitaire</h3>
+                    <p class="mt-2 text-gray-600 text-sm">
+                        La théorie : Un outil démocratique de protection des valeurs.
+                    </p>
+                    <div class="hidden-content mt-4 pt-4 border-t border-gray-100 text-sm text-gray-700 hidden">
+                        <span class="font-semibold text-red-600">L'Analyse Critique :</span>
+                        En Flandre, il est perçu par 40% de l'électorat comme un déni de démocratie, alimentant l'idée que "l'establishment belge" complote contre la volonté populaire flamande.
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="card p-6 cursor-pointer group" onclick="toggleCard(this)">
+                    <div class="flex justify-between items-start">
+                        <div class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold uppercase tracking-wide">Mécanisme 2</div>
+                        <span class="text-gray-400 text-xl group-hover:text-gray-600">+</span>
+                    </div>
+                    <h3 class="mt-4 text-xl font-bold text-gray-900">Les Transferts Financiers</h3>
+                    <p class="mt-2 text-gray-600 text-sm">
+                        La théorie : La solidarité fédérale normale.
+                    </p>
+                    <div class="hidden-content mt-4 pt-4 border-t border-gray-100 text-sm text-gray-700 hidden">
+                        <span class="font-semibold text-yellow-600">L'Analyse Critique :</span>
+                        Chiffrés à 7 milliards/an (Nord vers Sud), ils sont le carburant du sentiment d'injustice au Nord ("Vlaanderen betaalt") et de dépendance au Sud, figeant les positions politiques.
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="card p-6 cursor-pointer group" onclick="toggleCard(this)">
+                    <div class="flex justify-between items-start">
+                        <div class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold uppercase tracking-wide">Mécanisme 3</div>
+                        <span class="text-gray-400 text-xl group-hover:text-gray-600">+</span>
+                    </div>
+                    <h3 class="mt-4 text-xl font-bold text-gray-900">Le "Compromis à la Belge"</h3>
+                    <p class="mt-2 text-gray-600 text-sm">
+                        La théorie : L'art de la négociation complexe.
+                    </p>
+                    <div class="hidden-content mt-4 pt-4 border-t border-gray-100 text-sm text-gray-700 hidden">
+                        <span class="font-semibold text-blue-600">L'Analyse Critique :</span>
+                        Devenu synonyme d'opacité. Les gouvernements Vivaldi (sans majorité en Flandre) renforcent l'idée que le vote flamand est mathématiquement neutralisé par le système belge.
+                    </div>
+                </div>
+            </div>
+            <p class="text-center text-xs text-gray-400 mt-2">Cliquez sur les cartes pour révéler l'analyse.</p>
+        </section>
+
+        <!-- Section 3: Future Simulator -->
+        <section id="simulateur" class="bg-gray-900 text-white rounded-xl shadow-lg p-6 md:p-10">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <div>
+                    <h2 class="text-2xl font-bold serif-font mb-4 text-white">Simulateur de Dissolution</h2>
+                    <p class="text-gray-400 mb-8 text-sm">
+                        Si la Belgique est une "théorie", que se passe-t-il quand on cesse d'y croire ? Ajustez le curseur d'autonomie pour voir les scénarios probables selon le rapport.
+                    </p>
+                    
+                    <div class="space-y-6">
+                        <label for="autonomyRange" class="block text-sm font-medium text-gray-300">Niveau d'Autonomie Régionale</label>
+                        <input type="range" id="autonomyRange" min="1" max="3" step="1" value="1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-red-500">
+                        <div class="flex justify-between text-xs text-gray-500 uppercase font-bold tracking-wider">
+                            <span>Status Quo</span>
+                            <span>Confédéralisme</span>
+                            <span>Séparatisme</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 rounded-lg p-6 border border-gray-700 flex flex-col justify-center">
+                    <h3 id="scenario-title" class="text-xl font-bold text-red-400 mb-2">Scénario 1 : L'Agonie Lente</h3>
+                    <p id="scenario-desc" class="text-gray-300 leading-relaxed text-sm">
+                        La Belgique continue de fonctionner par inertie. Les blocages institutionnels augmentent (500+ jours sans gouvernement). La montée des extrêmes paralyse le niveau fédéral, rendant l'État ingouvernable mais indivisible.
+                    </p>
+                    <div class="mt-6 pt-6 border-t border-gray-700 grid grid-cols-2 gap-4">
+                        <div>
+                            <span class="block text-xs text-gray-500">Viabilité</span>
+                            <div class="w-full bg-gray-700 h-2 mt-1 rounded-full overflow-hidden">
+                                <div id="bar-viability" class="bg-green-500 h-full" style="width: 60%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="block text-xs text-gray-500">Tension Sociale</span>
+                            <div class="w-full bg-gray-700 h-2 mt-1 rounded-full overflow-hidden">
+                                <div id="bar-tension" class="bg-yellow-500 h-full" style="width: 40%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 mt-12 py-8">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <p class="text-sm text-gray-500">
+                Application interactive générée basée sur l'analyse de sociologie politique belge.
+            </p>
+            <p class="text-xs text-gray-400 mt-2">
+                Les données sont des projections basées sur les tendances électorales récentes (2019-2024).
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // State Management
+        const state = {
+            mode: 'unitary', // 'unitary' or 'regional'
+            scenario: 1
+        };
+
+        // Data Store
+        const dataStore = {
+            spectrum: {
+                unitary: {
+                    labels: ['Belgique'],
+                    datasets: [
+                        { label: 'Gauche (PS/Vooruit/PTB/PVDA)', data: [28], backgroundColor: '#ef4444' },
+                        { label: 'Centre (MR/OpenVLD/Engagés/CD&V)', data: [32], backgroundColor: '#3b82f6' },
+                        { label: 'Droite/Nationaliste (N-VA/VB)', data: [35], backgroundColor: '#eab308' } // Approx
+                    ]
+                },
+                regional: {
+                    labels: ['Flandre', 'Wallonie', 'Bruxelles'],
+                    datasets: [
+                        { label: 'Gauche (PS/Vooruit/PTB/PVDA)', data: [15, 45, 42], backgroundColor: '#ef4444' },
+                        { label: 'Centre (MR/OpenVLD/Engagés/CD&V)', data: [25, 40, 30], backgroundColor: '#3b82f6' },
+                        { label: 'Droite/Nationaliste (N-VA/VB)', data: [60, 15, 28], backgroundColor: '#eab308' }
+                    ]
+                }
+            },
+            concerns: {
+                unitary: {
+                    labels: ['Pouvoir d\'Achat', 'Santé', 'Immigration', 'Climat'],
+                    data: [40, 30, 20, 10],
+                    colors: ['#4b5563', '#4b5563', '#4b5563', '#4b5563']
+                },
+                regional: {
+                    labels: ['Pouvoir d\'Achat', 'Santé', 'Immigration', 'Climat'],
+                    datasets: [
+                        { label: 'Flandre', data: [30, 20, 40, 10], backgroundColor: '#eab308' },
+                        { label: 'Wallonie', data: [50, 30, 10, 10], backgroundColor: '#ef4444' }
+                    ]
+                }
+            },
+            descriptions: {
+                unitary: {
+                    orientation: "En moyenne, la Belgique présente un profil politique équilibré, avec un centre fort.",
+                    concerns: "Les préoccupations socio-économiques dominent l'ensemble du territoire."
+                },
+                regional: {
+                    orientation: "Le clivage est total : La Flandre vote massivement à droite/nationaliste, la Wallonie à gauche.",
+                    concerns: "La Flandre priorise l'identité et l'immigration; la Wallonie priorise la sécurité sociale."
+                }
+            }
+        };
+
+        // Chart Instances
+        let chartSpectrumInstance = null;
+        let chartConcernsInstance = null;
+
+        // Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            setupInteractions();
+        });
+
+        function setupInteractions() {
+            // Slider Interaction
+            const slider = document.getElementById('autonomyRange');
+            slider.addEventListener('input', (e) => updateScenario(e.target.value));
+        }
+
+        // --- Chart Logic ---
+
+        function initCharts() {
+            // Chart 1: Spectrum (Stacked Bar)
+            const ctxSpectrum = document.getElementById('chartSpectrum').getContext('2d');
+            chartSpectrumInstance = new Chart(ctxSpectrum, {
+                type: 'bar',
+                data: dataStore.spectrum.unitary,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: { stacked: true, max: 100 },
+                        y: { stacked: true }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.raw + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Concerns (Radar or Bar - choosing Bar for clarity)
+            const ctxConcerns = document.getElementById('chartConcerns').getContext('2d');
+            chartConcernsInstance = new Chart(ctxConcerns, {
+                type: 'bar',
+                data: {
+                    labels: dataStore.concerns.unitary.labels,
+                    datasets: [{
+                        label: 'Priorité (%)',
+                        data: dataStore.concerns.unitary.data,
+                        backgroundColor: dataStore.concerns.unitary.colors
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 60 }
+                    },
+                    plugins: {
+                        legend: { display: false } // Hidden for unitary view
+                    }
+                }
+            });
+        }
+
+        function setMode(mode) {
+            state.mode = mode;
+            const btnUnitary = document.getElementById('btn-unitary');
+            const btnRegional = document.getElementById('btn-regional');
+            const descOrientation = document.getElementById('desc-orientation');
+            const descConcerns = document.getElementById('desc-concerns');
+
+            // UI Toggle
+            if (mode === 'unitary') {
+                btnUnitary.classList.replace('text-gray-500', 'text-gray-800');
+                btnUnitary.classList.replace('font-medium', 'font-semibold');
+                btnUnitary.classList.add('bg-white', 'shadow-sm');
+                btnUnitary.classList.remove('hover:text-gray-900');
+
+                btnRegional.classList.replace('text-gray-800', 'text-gray-500');
+                btnRegional.classList.replace('font-semibold', 'font-medium');
+                btnRegional.classList.remove('bg-white', 'shadow-sm');
+                btnRegional.classList.add('hover:text-gray-900');
+            } else {
+                btnRegional.classList.replace('text-gray-500', 'text-gray-800');
+                btnRegional.classList.replace('font-medium', 'font-semibold');
+                btnRegional.classList.add('bg-white', 'shadow-sm');
+                btnRegional.classList.remove('hover:text-gray-900');
+
+                btnUnitary.classList.replace('text-gray-800', 'text-gray-500');
+                btnUnitary.classList.replace('font-semibold', 'font-medium');
+                btnUnitary.classList.remove('bg-white', 'shadow-sm');
+                btnUnitary.classList.add('hover:text-gray-900');
+            }
+
+            // Update Text
+            descOrientation.textContent = dataStore.descriptions[mode].orientation;
+            descConcerns.textContent = dataStore.descriptions[mode].concerns;
+
+            // Update Chart 1 (Spectrum)
+            chartSpectrumInstance.data = dataStore.spectrum[mode];
+            chartSpectrumInstance.update();
+
+            // Update Chart 2 (Concerns)
+            if (mode === 'unitary') {
+                chartConcernsInstance.data = {
+                    labels: dataStore.concerns.unitary.labels,
+                    datasets: [{
+                        label: 'Priorité (%)',
+                        data: dataStore.concerns.unitary.data,
+                        backgroundColor: dataStore.concerns.unitary.colors
+                    }]
+                };
+                chartConcernsInstance.options.plugins.legend.display = false;
+            } else {
+                chartConcernsInstance.data = {
+                    labels: dataStore.concerns.regional.labels,
+                    datasets: dataStore.concerns.regional.datasets
+                };
+                chartConcernsInstance.options.plugins.legend.display = true;
+                chartConcernsInstance.options.plugins.legend.position = 'bottom';
+            }
+            chartConcernsInstance.update();
+        }
+
+        // --- Card Logic ---
+        function toggleCard(element) {
+            const hiddenContent = element.querySelector('.hidden-content');
+            const icon = element.querySelector('span');
+            
+            if (hiddenContent.classList.contains('hidden')) {
+                hiddenContent.classList.remove('hidden');
+                icon.textContent = '-';
+                element.classList.add('ring-2', 'ring-red-100');
+            } else {
+                hiddenContent.classList.add('hidden');
+                icon.textContent = '+';
+                element.classList.remove('ring-2', 'ring-red-100');
+            }
+        }
+
+        // --- Scenario Simulator Logic ---
+        function updateScenario(val) {
+            const title = document.getElementById('scenario-title');
+            const desc = document.getElementById('scenario-desc');
+            const barViability = document.getElementById('bar-viability');
+            const barTension = document.getElementById('bar-tension');
+            
+            val = parseInt(val);
+
+            if (val === 1) {
+                // Status Quo
+                title.textContent = "Scénario 1 : L'Agonie Lente";
+                title.className = "text-xl font-bold text-gray-200 mb-2";
+                desc.textContent = "La Belgique continue de fonctionner par inertie. Les blocages institutionnels augmentent. La montée des extrêmes paralyse le niveau fédéral, rendant l'État ingouvernable mais indivisible.";
+                barViability.style.width = "60%";
+                barViability.className = "bg-yellow-500 h-full";
+                barTension.style.width = "40%";
+                barTension.className = "bg-yellow-500 h-full";
+            } else if (val === 2) {
+                // Confederalism
+                title.textContent = "Scénario 2 : Le Confédéralisme";
+                title.className = "text-xl font-bold text-blue-400 mb-2";
+                desc.textContent = "Le centre de gravité bascule totalement vers les entités fédérées. La Belgique ne garde que la défense et la dette. Bruxelles devient un district européen ingérable sans refinancement.";
+                barViability.style.width = "80%";
+                barViability.className = "bg-green-500 h-full";
+                barTension.style.width = "70%";
+                barTension.className = "bg-orange-500 h-full";
+            } else if (val === 3) {
+                // Separatism
+                title.textContent = "Scénario 3 : L'Évaporation";
+                title.className = "text-xl font-bold text-red-500 mb-2";
+                desc.textContent = "Déclaration d'indépendance de la Flandre. Chaos juridique international. La Wallonie s'appauvrit brutalement (-20% PIB). Bruxelles devient une Cité-État isolée. Fin de la monarchie.";
+                barViability.style.width = "30%";
+                barViability.className = "bg-red-600 h-full";
+                barTension.style.width = "95%";
+                barTension.className = "bg-red-600 h-full";
+            }
+        }
+
+        // Navigation Scroll
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+    </script>
+</body>
+</html>
