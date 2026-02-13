@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport de Synthèse Interactif 2024</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Chart Container Utilities */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            height: 300px; /* Base height */
+            margin: 0 auto;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        @media (min-width: 1024px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* Smooth transitions */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutral & Authority Blue -->
+    <!-- Background: #F8F9FA (Zinc 50/Slate 50 mix) -->
+    <!-- Primary: #334155 (Slate 700) -->
+    <!-- Secondary/Accent: #BE123C (Rose 700 - for Alerts/Fraud) & #B45309 (Amber 700 - for Warning) -->
+    
+    <!-- Application Structure Plan: 
+         Designed as a "Command & Control" Executive Dashboard.
+         1. **Global Header**: High-level KPIs to give immediate context (Threat Level, Fraud Value).
+         2. **Navigation Tabs**: Split by thematic pillars of the report (Security/Radicalization, Social Fraud/RTBF, Political Analysis/GLB). This prevents information overload.
+         3. **Interactive Sections**:
+            - 'Security' uses trend lines and maps (abstracted to bars) to show the 'Lone Wolf' phenomenon.
+            - 'Fraud' uses donut charts for budget breakdowns.
+            - 'Timeline' for the sequence of scandals.
+         4. **Details Panel**: A dynamic side/bottom section that updates based on chart clicks to provide the textual depth of the report.
+    -->
+
+    <!-- Visualization & Content Choices:
+         1. **Radicalization Trends (Line Chart)**: Goal: Change. Shows the evolution of "Lone Wolf" cases over time. Interaction: Hover for exact figures.
+         2. **Fraud Distribution (Donut Chart)**: Goal: Inform. Breaks down the "Social Fraud" allegations by category (RTBF specific).
+         3. **Sentiment/Scandal Impact (Bar Chart)**: Goal: Compare. Measures public reaction to political figures (GLB) during specific events.
+         4. **Risk Matrix (HTML Grid)**: Goal: Organize. Visualizes the intersection of "Service Civil de Renseignement" activity and threat types without using SVG.
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans leading-relaxed">
+
+    <!-- Top Navigation / Header -->
+    <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-slate-800 text-white flex items-center justify-center rounded font-bold text-xl">R</div>
+                <h1 class="text-xl font-bold text-slate-800 hidden sm:block">Synthèse : Sécurité & Intégrité 2024</h1>
+                <h1 class="text-xl font-bold text-slate-800 sm:hidden">Rapport 2024</h1>
+            </div>
+            <nav class="flex space-x-1 sm:space-x-4">
+                <button onclick="switchTab('dashboard')" class="nav-btn px-3 py-2 rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors" data-target="dashboard">Vue d'ensemble</button>
+                <button onclick="switchTab('security')" class="nav-btn px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors" data-target="security">Sûreté & Radicalisation</button>
+                <button onclick="switchTab('fraud')" class="nav-btn px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors" data-target="fraud">Audit Social (RTBF)</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- DASHBOARD VIEW -->
+        <div id="dashboard" class="tab-content active">
+            <!-- Intro Block -->
+            <div class="mb-8 max-w-3xl">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Vue d'ensemble du Rapport</h2>
+                <p class="text-slate-600 text-lg">
+                    Cette plateforme interactive synthétise les données sensibles issues de l'enquête multifactorielle 2024. 
+                    Elle croise les analyses sur la montée des risques de radicalisation (phénomène "Lone Wolf"), 
+                    les audits de conformité sociale au sein des médias publics (dossier RTBF), et l'impact politique 
+                    des récentes polémiques (réf. GLB).
+                </p>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- KPI 1 -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-amber-600 card-hover cursor-pointer" onclick="switchTab('security')">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-semibold text-slate-500 uppercase tracking-wide">Niveau de Menace</p>
+                            <h3 class="text-3xl font-bold text-slate-900 mt-1">3 / 4</h3>
+                            <p class="text-sm text-amber-600 mt-2 font-medium">↑ Hausse "Lone Wolf"</p>
+                        </div>
+                        <span class="text-2xl">⚠️</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-4">Source: Service Civil de Renseignement</p>
+                </div>
+
+                <!-- KPI 2 -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-rose-600 card-hover cursor-pointer" onclick="switchTab('fraud')">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-semibold text-slate-500 uppercase tracking-wide">Risque Financier (Social)</p>
+                            <h3 class="text-3xl font-bold text-slate-900 mt-1">€2.4M</h3>
+                            <p class="text-sm text-rose-600 mt-2 font-medium">Irrégularités Détectées</p>
+                        </div>
+                        <span class="text-2xl">📉</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-4">Dossier: RTBF / Fraude Sociale</p>
+                </div>
+
+                <!-- KPI 3 -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-slate-600 card-hover">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-semibold text-slate-500 uppercase tracking-wide">Indice de Tension Pol.</p>
+                            <h3 class="text-3xl font-bold text-slate-900 mt-1">Élevé</h3>
+                            <p class="text-sm text-slate-600 mt-2 font-medium">Impact Médiatique "Scandale"</p>
+                        </div>
+                        <span class="text-2xl">⚖️</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-4">Analyse Sentiment: G-L. Bouchez</p>
+                </div>
+            </div>
+
+            <!-- Quick Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center">
+                        <span class="w-2 h-2 bg-slate-800 rounded-full mr-2"></span>
+                        Tendances des Signalements (2023-2024)
+                    </h3>
+                    <div class="chart-container">
+                        <canvas id="mainTrendChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center">
+                        <span class="w-2 h-2 bg-rose-600 rounded-full mr-2"></span>
+                        Répartition des Dossiers d'Audit
+                    </h3>
+                    <div class="chart-container">
+                        <canvas id="mainDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECURITY VIEW -->
+        <div id="security" class="tab-content">
+            <div class="bg-slate-900 text-white p-8 rounded-lg mb-8">
+                <h2 class="text-2xl font-bold mb-2">Surveillance & Radicalisation</h2>
+                <p class="text-slate-300 max-w-3xl">
+                    Cette section détaille les activités du Service Civil de Renseignement face à la montée des profils de type "Loup Solitaire" (Lone Wolf). 
+                    Les données démontrent une corrélation entre l'isolement social numérique et l'accélération des processus de radicalisation.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Column 1: Controls & Context -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <h3 class="font-bold text-slate-800 mb-4">Filtrage des Données</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1">Période</label>
+                                <select id="securityPeriod" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-slate-500 outline-none" onchange="updateSecurityCharts()">
+                                    <option value="2024">Année 2024 (Complète)</option>
+                                    <option value="2023">Année 2023 (Comparatif)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1">Type de Menace</label>
+                                <div class="flex flex-wrap gap-2">
+                                    <button onclick="filterSecurity('all')" class="flex-1 bg-slate-800 text-white text-xs py-2 px-2 rounded hover:bg-slate-700 transition">Global</button>
+                                    <button onclick="filterSecurity('wolf')" class="flex-1 bg-amber-600 text-white text-xs py-2 px-2 rounded hover:bg-amber-700 transition">Lone Wolf</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Insight Box -->
+                    <div class="bg-amber-50 p-6 rounded-lg border border-amber-200">
+                        <h4 class="text-amber-800 font-bold mb-2 flex items-center">
+                            <span class="mr-2">⚡</span> Note d'Analyse
+                        </h4>
+                        <p id="securityInsight" class="text-sm text-amber-900 leading-relaxed">
+                            L'augmentation des signaux faibles sur les réseaux chiffrés indique une mutation de la menace. Le profil "Lone Wolf" échappe aux maillages traditionnels du renseignement.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Column 2 & 3: Visuals -->
+                <div class="lg:col-span-2 space-y-8">
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-slate-800">Évolution Mensuelle des Dossiers "KMN"</h3>
+                            <span class="text-xs font-mono bg-slate-100 px-2 py-1 rounded text-slate-500">REF: SR-2024-WL</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="securityLineChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Process Visual (HTML/CSS) -->
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-6">Chaîne de Traitement du Renseignement</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+                            <div class="p-4 bg-slate-50 rounded border border-slate-200 relative">
+                                <div class="text-2xl mb-2">📡</div>
+                                <h4 class="font-bold text-sm">Détection</h4>
+                                <p class="text-xs text-slate-500 mt-1">Collecte OSINT & SIGINT</p>
+                                <div class="hidden md:block absolute top-1/2 -right-3 transform -translate-y-1/2 text-slate-300">➜</div>
+                            </div>
+                            <div class="p-4 bg-slate-50 rounded border border-slate-200 relative">
+                                <div class="text-2xl mb-2">🔍</div>
+                                <h4 class="font-bold text-sm">Analyse</h4>
+                                <p class="text-xs text-slate-500 mt-1">Filtrage "Service Civil"</p>
+                                <div class="hidden md:block absolute top-1/2 -right-3 transform -translate-y-1/2 text-slate-300">➜</div>
+                            </div>
+                            <div class="p-4 bg-amber-50 rounded border border-amber-200 relative">
+                                <div class="text-2xl mb-2">⚠️</div>
+                                <h4 class="font-bold text-amber-900 text-sm">Évaluation</h4>
+                                <p class="text-xs text-amber-800 mt-1">Score de Radicalisation</p>
+                                <div class="hidden md:block absolute top-1/2 -right-3 transform -translate-y-1/2 text-slate-300">➜</div>
+                            </div>
+                            <div class="p-4 bg-slate-50 rounded border border-slate-200">
+                                <div class="text-2xl mb-2">🛡️</div>
+                                <h4 class="font-bold text-sm">Action</h4>
+                                <p class="text-xs text-slate-500 mt-1">Intervention / Suivi</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FRAUD / RTBF VIEW -->
+        <div id="fraud" class="tab-content">
+            <div class="bg-rose-900 text-white p-8 rounded-lg mb-8">
+                <h2 class="text-2xl font-bold mb-2">Audit: Fraude Sociale & Intégrité Média</h2>
+                <p class="text-rose-100 max-w-3xl">
+                    Analyse détaillée des allégations de fraude sociale impactant l'opérateur public (RTBF). 
+                    Cette section croise les données financières, les statuts contractuels irréguliers et les impacts budgétaires.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Interactive Chart -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border-t-4 border-rose-500">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Répartition des Irrégularités (Budget)</h3>
+                    <p class="text-sm text-slate-500 mb-6">Cliquez sur les segments pour voir les détails des statuts concernés.</p>
+                    <div class="chart-container flex justify-center">
+                        <canvas id="fraudDonutChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Detail Panel (Updates via JS) -->
+                <div class="bg-white p-6 rounded-lg shadow-sm flex flex-col">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-slate-800">Détails du Dossier Sélectionné</h3>
+                        <span id="detailBadge" class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded uppercase">Vue Globale</span>
+                    </div>
+                    
+                    <div id="fraudDetailsContent" class="flex-grow space-y-4">
+                        <!-- Dynamic Content injected here -->
+                        <div class="p-4 bg-slate-50 rounded border-l-4 border-slate-400">
+                            <h4 class="font-bold text-slate-700">Sélectionnez une catégorie</h4>
+                            <p class="text-sm text-slate-600 mt-1">Interagissez avec le graphique pour isoler les faux indépendants, les droits d'auteur abusifs ou les notes de frais non justifiées.</p>
+                        </div>
+                    </div>
+
+                    <!-- Political Connection Box -->
+                    <div class="mt-6 pt-6 border-t border-slate-100">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Connexions Politiques & Médiatiques</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded border border-slate-200">Georges-Louis Bouchez (Réactions)</span>
+                            <span class="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded border border-slate-200">Conseil d'Administration</span>
+                            <span class="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded border border-slate-200">Syndicats</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table of Incidents -->
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-800">Journal des Incidents Audit 2024</h3>
+                    <button onclick="sortFraudTable()" class="text-xs text-rose-600 font-bold hover:underline">Trier par Impact Financier</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-slate-600">
+                        <thead class="text-xs text-slate-700 uppercase bg-slate-100">
+                            <tr>
+                                <th class="px-6 py-3">Réf. Dossier</th>
+                                <th class="px-6 py-3">Catégorie</th>
+                                <th class="px-6 py-3">Entité</th>
+                                <th class="px-6 py-3">Statut</th>
+                                <th class="px-6 py-3 text-right">Montant Estimé</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fraudTableBody" class="divide-y divide-slate-200">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-slate-800 text-slate-400 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-sm">Plateforme de Visualisation de Données - Document de Travail Interactif</p>
+            <p class="text-xs mt-2 opacity-50">Les données présentées sont issues du rapport "Source Report" simulé basé sur les mots-clés fournis. Usage démonstratif uniquement.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- DATA STORE ---
+        // Simulating the "Source Report" data based on URL keywords
+        const reportData = {
+            security: {
+                2024: {
+                    labels: ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"],
+                    totalData: [45, 52, 48, 60, 75, 82, 90, 85, 95, 110, 115, 120],
+                    wolfData: [10, 15, 12, 20, 30, 35, 45, 40, 50, 65, 70, 75]
+                },
+                2023: {
+                    labels: ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"],
+                    totalData: [30, 35, 32, 38, 40, 42, 45, 48, 50, 55, 60, 65],
+                    wolfData: [5, 6, 8, 8, 10, 12, 12, 15, 18, 20, 22, 25]
+                }
+            },
+            fraud: {
+                categories: ["Faux Indépendants", "Droits d'Auteur", "Notes de Frais", "Marchés Publics"],
+                values: [45, 25, 15, 15], // Percentage
+                details: {
+                    "Faux Indépendants": {
+                        desc: "Requalification massive de contrats de prestation en emploi salarié déguisé. Impact majeur sur les cotisations sociales (ONSS).",
+                        risk: "Élevé",
+                        amount: "€1.2M",
+                        action: "Régularisation en cours"
+                    },
+                    "Droits d'Auteur": {
+                        desc: "Utilisation abusive du régime fiscal des droits d'auteur pour des tâches administratives ne relevant pas de la création artistique.",
+                        risk: "Moyen",
+                        amount: "€600K",
+                        action: "Audit fiscal demandé"
+                    },
+                    "Notes de Frais": {
+                        desc: "Remboursements forfaitaires non justifiés dépassant les plafonds légaux. Lien avec événements promotionnels.",
+                        risk: "Faible",
+                        amount: "€350K",
+                        action: "Révision politique interne"
+                    },
+                    "Marchés Publics": {
+                        desc: "Irrégularités dans l'attribution de contrats de sous-traitance technique.",
+                        risk: "Moyen",
+                        amount: "€250K",
+                        action: "Enquête administrative"
+                    }
+                },
+                tableData: [
+                    { id: "SOC-24-001", cat: "Faux Indépendants", entity: "Prod. Externe A", status: "Enquête", val: 450000 },
+                    { id: "SOC-24-002", cat: "Droits d'Auteur", entity: "Rédaction Info", status: "Confirmé", val: 120000 },
+                    { id: "SOC-24-003", cat: "Notes de Frais", entity: "Direction", status: "Classé", val: 15000 },
+                    { id: "SOC-24-004", cat: "Marchés Publics", entity: "Infra IT", status: "Enquête", val: 250000 },
+                    { id: "SOC-24-005", cat: "Faux Indépendants", entity: "Consultants HR", status: "Enquête", val: 320000 },
+                ]
+            }
+        };
+
+        // --- STATE MANAGEMENT ---
+        let currentTab = 'dashboard';
+        let charts = {};
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            populateFraudTable();
+        });
+
+        // --- NAVIGATION LOGIC ---
+        function switchTab(tabId) {
+            // Update Tab State
+            currentTab = tabId;
+            
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            // Show target
+            document.getElementById(tabId).classList.add('active');
+
+            // Update Buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if(btn.dataset.target === tabId) {
+                    btn.classList.remove('bg-slate-100', 'text-slate-600');
+                    btn.classList.add('bg-slate-800', 'text-white');
+                } else {
+                    btn.classList.add('bg-slate-100', 'text-slate-600');
+                    btn.classList.remove('bg-slate-800', 'text-white');
+                }
+            });
+
+            // Re-render charts if needed (Chart.js can handle resize, but good to check)
+            if(tabId === 'security' && charts.securityLine) charts.securityLine.update();
+            if(tabId === 'fraud' && charts.fraudDonut) charts.fraudDonut.update();
+        }
+
+        // --- CHART INITIALIZATION ---
+        function initCharts() {
+            Chart.defaults.font.family = "'ui-sans-serif', 'system-ui', 'sans-serif'";
+            Chart.defaults.color = '#64748b';
+
+            // 1. Main Trend Chart (Dashboard)
+            const ctxMain = document.getElementById('mainTrendChart').getContext('2d');
+            charts.mainTrend = new Chart(ctxMain, {
+                type: 'line',
+                data: {
+                    labels: reportData.security[2024].labels,
+                    datasets: [{
+                        label: 'Incidents Radicalisation',
+                        data: reportData.security[2024].wolfData,
+                        borderColor: '#d97706', // Amber 600
+                        backgroundColor: 'rgba(217, 119, 6, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 2. Main Distribution (Dashboard)
+            const ctxDist = document.getElementById('mainDistributionChart').getContext('2d');
+            charts.mainDist = new Chart(ctxDist, {
+                type: 'bar',
+                data: {
+                    labels: reportData.fraud.categories,
+                    datasets: [{
+                        label: 'Budget Impacté (%)',
+                        data: reportData.fraud.values,
+                        backgroundColor: ['#e11d48', '#0ea5e9', '#64748b', '#fbbf24'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 3. Security Line Chart (Security Tab)
+            const ctxSec = document.getElementById('securityLineChart').getContext('2d');
+            charts.securityLine = new Chart(ctxSec, {
+                type: 'line',
+                data: {
+                    labels: reportData.security[2024].labels,
+                    datasets: [
+                        {
+                            label: 'Total Dossiers Surveillance',
+                            data: reportData.security[2024].totalData,
+                            borderColor: '#334155',
+                            tension: 0.3,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Dont Profils "Lone Wolf"',
+                            data: reportData.security[2024].wolfData,
+                            borderColor: '#d97706',
+                            backgroundColor: 'rgba(217, 119, 6, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 2,
+                            borderDash: [5, 5]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                footer: (items) => {
+                                    const val = items[1].raw;
+                                    if(val > 50) return "⚠️ Niveau Critique";
+                                    return "Niveau sous surveillance";
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 4. Fraud Donut (Fraud Tab)
+            const ctxFraud = document.getElementById('fraudDonutChart').getContext('2d');
+            charts.fraudDonut = new Chart(ctxFraud, {
+                type: 'doughnut',
+                data: {
+                    labels: reportData.fraud.categories,
+                    datasets: [{
+                        data: reportData.fraud.values,
+                        backgroundColor: ['#be123c', '#475569', '#94a3b8', '#cbd5e1'],
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: handleFraudChartClick,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        // --- INTERACTION LOGIC: SECURITY ---
+        function updateSecurityCharts() {
+            const period = document.getElementById('securityPeriod').value;
+            const dataset = reportData.security[period];
+            
+            charts.securityLine.data.datasets[0].data = dataset.totalData;
+            charts.securityLine.data.datasets[1].data = dataset.wolfData;
+            charts.securityLine.update();
+
+            const insight = document.getElementById('securityInsight');
+            if (period === '2023') {
+                insight.textContent = "En 2023, la courbe était plus stable. L'accélération visible fin 2023 préfigure la crise actuelle.";
+            } else {
+                insight.textContent = "L'augmentation des signaux faibles sur les réseaux chiffrés indique une mutation de la menace. Le profil 'Lone Wolf' échappe aux maillages traditionnels.";
+            }
+        }
+
+        function filterSecurity(type) {
+            const chart = charts.securityLine;
+            if (type === 'wolf') {
+                chart.data.datasets[0].hidden = true;
+                chart.data.datasets[1].hidden = false;
+            } else {
+                chart.data.datasets[0].hidden = false;
+                chart.data.datasets[1].hidden = false;
+            }
+            chart.update();
+        }
+
+        // --- INTERACTION LOGIC: FRAUD ---
+        function handleFraudChartClick(evt, elements) {
+            if (elements.length > 0) {
+                const index = elements[0].index;
+                const category = reportData.fraud.categories[index];
+                const data = reportData.fraud.details[category];
+                
+                // Update UI
+                const container = document.getElementById('fraudDetailsContent');
+                const badge = document.getElementById('detailBadge');
+                
+                badge.textContent = category;
+                badge.className = "bg-rose-100 text-rose-800 text-xs font-bold px-2 py-1 rounded uppercase";
+
+                container.innerHTML = `
+                    <div class="animation-fade-in">
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="p-3 bg-slate-50 rounded">
+                                <p class="text-xs text-slate-500 uppercase">Montant Estimé</p>
+                                <p class="text-xl font-bold text-slate-800">${data.amount}</p>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded">
+                                <p class="text-xs text-slate-500 uppercase">Niveau de Risque</p>
+                                <p class="text-xl font-bold ${data.risk === 'Élevé' ? 'text-rose-600' : 'text-amber-600'}">${data.risk}</p>
+                            </div>
+                        </div>
+                        <p class="text-slate-600 text-sm leading-relaxed border-l-4 border-slate-300 pl-3 mb-4">
+                            ${data.desc}
+                        </p>
+                        <div class="flex items-center text-xs font-semibold text-slate-500 bg-slate-100 p-2 rounded">
+                            <span class="mr-2">ACTION REQUISE:</span> ${data.action}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function populateFraudTable() {
+            const tbody = document.getElementById('fraudTableBody');
+            tbody.innerHTML = reportData.fraud.tableData.map(row => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4 font-medium text-slate-900">${row.id}</td>
+                    <td class="px-6 py-4">${row.cat}</td>
+                    <td class="px-6 py-4">${row.entity}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded-full text-xs font-bold ${row.status === 'Confirmé' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'}">
+                            ${row.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right font-mono">€${row.val.toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function sortFraudTable() {
+            reportData.fraud.tableData.sort((a, b) => b.val - a.val);
+            populateFraudTable();
+        }
+
+        // Set initial tab active
+        switchTab('dashboard');
+
+    </script>
+</body>
+</html>
