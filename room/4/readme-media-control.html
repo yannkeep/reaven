@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guide — Mission Media Control — Comment créer votre lecteur</title>
+<meta name="description" content="Guide pas-à-pas pour créer votre propre lecteur multimédia gratuit, sans pub, sans tracking.">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cyan: #00b8d4;
+  --cyan-light: #e0f7fa;
+  --cyan-border: #80deea;
+  --cyan-dark: #006978;
+  --green: #2e7d32;
+  --green-light: #e8f5e9;
+  --green-border: #a5d6a7;
+  --amber: #f57f17;
+  --amber-light: #fffde7;
+  --amber-border: #fff176;
+  --red: #c62828;
+  --red-light: #ffebee;
+  --navy: #0a0e17;
+  --navy-mid: #162232;
+  --white: #ffffff;
+  --off-white: #f7f9fc;
+  --bg: #f0f4f8;
+  --text: #1a2a3a;
+  --text-body: #37474f;
+  --text-soft: #607d8b;
+  --text-faint: #90a4ae;
+  --border: #dce4ec;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --mono: 'Share Tech Mono', monospace;
+  --display: 'Orbitron', sans-serif;
+  --heading: 'Chakra Petch', sans-serif;
+  --body: 'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+
+body {
+  font-family: var(--body);
+  color: var(--text-body);
+  background: var(--bg);
+  line-height: 1.75;
+  font-size: 17px;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--cyan-dark); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* HERO */
+.hero {
+  background: var(--navy);
+  position: relative;
+  overflow: hidden;
+  padding: 56px 24px 48px;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.035) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140%;
+  height: 80%;
+  background: radial-gradient(ellipse, rgba(0,184,212,0.07) 0%, transparent 65%);
+}
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 660px;
+  margin: 0 auto;
+  text-align: center;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 16px;
+  border: 1px solid rgba(0,229,255,0.2);
+  border-radius: 99px;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: rgba(0,229,255,0.7);
+  letter-spacing: 0.12em;
+  margin-bottom: 24px;
+}
+.hero-badge .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #4caf50;
+  box-shadow: 0 0 8px rgba(76,175,80,0.4);
+  animation: dotPulse 2s infinite;
+}
+@keyframes dotPulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.hero h1 {
+  font-family: var(--heading);
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+  font-weight: 700;
+  color: white;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+.hero h1 em { font-style: normal; color: #00e5ff; }
+.hero-desc {
+  color: rgba(255,255,255,0.6);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  max-width: 540px;
+  margin: 0 auto 28px;
+}
+.hero-desc strong { color: rgba(255,255,255,0.85); font-weight: 600; }
+.hero-pills { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.pill { padding: 6px 16px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; }
+.pill-cyan { background: rgba(0,184,212,0.15); color: #4dd0e1; }
+.pill-green { background: rgba(76,175,80,0.15); color: #81c784; }
+.pill-amber { background: rgba(255,152,0,0.15); color: #ffb74d; }
+
+/* NAV */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.nav::-webkit-scrollbar { display: none; }
+.nav-inner {
+  max-width: 880px;
+  margin: 0 auto;
+  display: flex;
+  padding: 0 16px;
+}
+.nav a {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 14px;
+  font-family: var(--heading);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.nav a:hover { color: var(--text); border-bottom-color: var(--cyan); }
+
+/* WRAP */
+.wrap { max-width: 740px; margin: 0 auto; padding: 0 24px 100px; }
+
+/* SECTIONS */
+.sec { padding-top: 52px; }
+.sec-tag { font-family: var(--mono); font-size: 0.6rem; color: var(--cyan); letter-spacing: 0.18em; margin-bottom: 6px; }
+.sec h2 { font-family: var(--heading); font-size: 1.55rem; font-weight: 700; color: var(--text); margin-bottom: 12px; line-height: 1.25; }
+.sec > p { margin-bottom: 18px; font-size: 1.02rem; }
+
+/* INTRO CARDS */
+.intro-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 24px 0; }
+.intro-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 20px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.intro-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.intro-card .ic-icon { font-size: 1.6rem; margin-bottom: 10px; display: block; }
+.intro-card .ic-title { font-family: var(--heading); font-weight: 700; color: var(--text); font-size: 0.95rem; margin-bottom: 5px; }
+.intro-card .ic-desc { font-size: 0.88rem; color: var(--text-soft); line-height: 1.6; }
+
+/* STEP CARDS */
+.step {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 18px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.step-top { display: flex; align-items: center; gap: 14px; padding: 20px 24px 16px; }
+.step-num {
+  width: 40px; height: 40px;
+  background: var(--navy);
+  color: #00e5ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(10,14,23,0.2);
+}
+.step h3 { font-family: var(--heading); font-size: 1.1rem; font-weight: 700; color: var(--text); line-height: 1.3; }
+.step-body { padding: 0 24px 22px; }
+.step-body p { margin-bottom: 12px; }
+.step-body ul, .step-body ol { margin: 0 0 14px 22px; line-height: 2; }
+.step-body li { padding-left: 4px; }
+
+/* OS TABS */
+.os-tabs { display: flex; gap: 0; background: var(--bg); border-radius: var(--radius-sm); padding: 3px; margin-bottom: 16px; }
+.os-tab {
+  flex: 1; padding: 10px 12px; border: none; background: transparent; border-radius: 6px;
+  font-family: var(--heading); font-size: 0.82rem; font-weight: 600; color: var(--text-soft);
+  cursor: pointer; transition: all 0.2s; text-align: center;
+}
+.os-tab:hover { color: var(--text); }
+.os-tab.active { background: var(--white); color: var(--text); box-shadow: var(--shadow-sm); }
+.os-panel { display: none; }
+.os-panel.active { display: block; }
+
+/* KBD */
+kbd {
+  display: inline-block; background: var(--off-white); border: 1px solid var(--border); border-bottom-width: 2px;
+  border-radius: 5px; padding: 2px 8px; font-family: var(--mono); font-size: 0.82em; color: var(--text); line-height: 1.5; white-space: nowrap;
+}
+
+/* BOXES */
+.box { border-radius: var(--radius-sm); padding: 16px 20px; margin: 16px 0; display: flex; gap: 12px; align-items: flex-start; line-height: 1.65; font-size: 0.95rem; }
+.box-icon { font-size: 1.15rem; flex-shrink: 0; margin-top: 2px; }
+.box-text { flex: 1; }
+.box-text strong { font-weight: 600; }
+.box.ok { background: var(--green-light); border: 1px solid var(--green-border); color: #1b5e20; }
+.box.info { background: var(--cyan-light); border: 1px solid var(--cyan-border); color: #004d40; }
+.box.warn { background: var(--amber-light); border: 1px solid var(--amber-border); color: #7a6100; }
+.box.nope { background: var(--red-light); border: 1px solid #ef9a9a; color: #b71c1c; }
+
+/* INLINE CODE */
+code.il { font-family: var(--mono); font-size: 0.88em; background: #eef2f7; padding: 2px 7px; border-radius: 4px; color: var(--navy-mid); }
+
+/* CODE BLOCKS */
+.code { background: var(--navy); border-radius: var(--radius-sm); margin: 16px 0; overflow: hidden; box-shadow: var(--shadow-sm); }
+.code-top { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.06); }
+.code-label { font-family: var(--mono); font-size: 0.6rem; color: rgba(0,229,255,0.5); letter-spacing: 0.1em; }
+.code-copy { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 3px 10px; font-family: var(--mono); font-size: 0.6rem; color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.2s; }
+.code-copy:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
+.code pre { padding: 18px 20px; overflow-x: auto; font-family: var(--mono); font-size: 0.85rem; line-height: 1.75; color: #c0d8ef; white-space: pre; }
+.code .cm { color: #546e7a; }
+.code .kw { color: #4dd0e1; }
+.code .st { color: #a5d6a7; }
+.code .p  { color: #78909c; }
+
+/* VISUAL EDITOR */
+.visual-editor { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 20px 0; box-shadow: var(--shadow-sm); }
+.ve-bar { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--off-white); border-bottom: 1px solid var(--border); font-size: 0.78rem; color: var(--text-soft); }
+.ve-bar .dots { display: flex; gap: 5px; }
+.ve-bar .dots span { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--border); }
+.ve-bar .dots span:nth-child(1) { background: #ef5350; border-color: #e53935; }
+.ve-bar .dots span:nth-child(2) { background: #ffb74d; border-color: #ffa726; }
+.ve-bar .dots span:nth-child(3) { background: #66bb6a; border-color: #43a047; }
+.ve-bar .filename { font-family: var(--mono); font-size: 0.75rem; }
+.ve-content { padding: 18px 20px; font-family: var(--mono); font-size: 0.82rem; line-height: 1.9; color: var(--text-body); overflow-x: auto; white-space: pre; }
+.ve-content .hl { background: #fff9c4; border-radius: 3px; padding: 1px 2px; }
+.ve-content .arrow { color: var(--cyan); font-family: var(--body); font-size: 0.85rem; font-weight: 600; }
+
+/* FORMAT GRID */
+.fmt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; margin: 20px 0; }
+.fmt-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px 18px; transition: all 0.2s; box-shadow: var(--shadow-sm); }
+.fmt-card:hover { border-color: var(--cyan); box-shadow: 0 2px 12px rgba(0,184,212,0.1); transform: translateY(-1px); }
+.fmt-name { font-family: var(--heading); font-weight: 700; color: var(--text); font-size: 0.92rem; margin-bottom: 3px; }
+.fmt-ex { font-family: var(--mono); font-size: 0.68rem; color: var(--text-faint); word-break: break-all; }
+
+/* INTERFACE LIST */
+.iface-list { display: flex; flex-direction: column; gap: 8px; margin: 20px 0; }
+.iface-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 18px; display: flex; align-items: flex-start; gap: 14px; box-shadow: var(--shadow-sm); transition: all 0.15s; }
+.iface-item:hover { border-color: var(--cyan-border); }
+.iface-tag { font-family: var(--mono); font-size: 0.55rem; color: #00e5ff; background: var(--navy); padding: 4px 8px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; margin-top: 3px; letter-spacing: 0.06em; }
+.iface-txt { flex: 1; font-size: 0.95rem; line-height: 1.6; }
+.iface-txt strong { color: var(--text); font-weight: 600; }
+
+/* SHARE GRID */
+.share-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; margin: 22px 0; }
+.share-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 18px; text-align: center; box-shadow: var(--shadow-sm); transition: all 0.25s; }
+.share-card:hover { border-color: var(--cyan); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.share-icon { font-size: 1.8rem; margin-bottom: 10px; display: block; }
+.share-name { font-family: var(--heading); font-weight: 700; color: var(--text); font-size: 0.95rem; margin-bottom: 6px; }
+.share-desc { font-size: 0.82rem; color: var(--text-soft); line-height: 1.55; }
+.share-diff { display: inline-block; margin-top: 8px; font-size: 0.68rem; padding: 2px 10px; border-radius: 99px; font-weight: 600; }
+.diff-easy { background: var(--green-light); color: var(--green); }
+.diff-med { background: var(--amber-light); color: var(--amber); }
+
+/* FAQ */
+.faq { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; overflow: hidden; box-shadow: var(--shadow-sm); }
+.faq-q { padding: 16px 20px; font-family: var(--heading); font-weight: 600; color: var(--text); font-size: 0.98rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; user-select: none; gap: 12px; }
+.faq-q:hover { background: var(--off-white); }
+.faq-chevron { width: 20px; height: 20px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: var(--text-soft); flex-shrink: 0; transition: all 0.3s; }
+.faq.open .faq-chevron { transform: rotate(180deg); background: var(--cyan-light); color: var(--cyan-dark); }
+.faq-a { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; font-size: 0.95rem; line-height: 1.75; color: var(--text-body); }
+.faq.open .faq-a { max-height: 500px; }
+.faq-a-inner { padding: 0 20px 18px; }
+
+.divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 42px 0 0; }
+
+/* FOOTER */
+.foot { background: var(--navy); padding: 44px 24px; text-align: center; }
+.foot-brand { font-family: var(--display); font-size: 0.65rem; color: rgba(255,255,255,0.5); letter-spacing: 0.15em; margin-bottom: 10px; }
+.foot p { color: rgba(255,255,255,0.35); font-size: 0.85rem; line-height: 1.8; }
+.foot a { color: #00e5ff; }
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .hero { padding: 40px 18px 36px; }
+  .hero h1 { font-size: 1.4rem; }
+  .intro-grid { grid-template-columns: 1fr; }
+  .step-top { padding: 16px 18px 12px; }
+  .step-body { padding: 0 18px 18px; }
+  .code pre { padding: 14px 16px; font-size: 0.75rem; }
+  .nav a { padding: 12px 10px; font-size: 0.72rem; }
+  .fmt-grid { grid-template-columns: 1fr; }
+  .share-grid { grid-template-columns: 1fr 1fr; }
+  .ve-content { font-size: 0.7rem; }
+}
+@media print {
+  .nav { display: none; }
+  .hero { padding: 28px 18px; }
+  body { font-size: 11pt; background: white; }
+  .step, .box, .faq { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge"><span class="dot"></span> GUIDE INTERACTIF</div>
+    <h1>Créez votre propre<br><em>lecteur multimédia</em></h1>
+    <p class="hero-desc">
+      Un guide <strong>pas-à-pas</strong> pour télécharger, personnaliser et partager 
+      votre lecteur Mission Media Control. <strong>Aucune compétence technique requise.</strong>
+    </p>
+    <div class="hero-pills">
+      <span class="pill pill-cyan">Gratuit</span>
+      <span class="pill pill-green">Sans pub ni tracking</span>
+      <span class="pill pill-amber">1 seul fichier</span>
+    </div>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#quoi"><span class="nav-icon">🛰️</span> C'est quoi</a>
+    <a href="#telecharger"><span class="nav-icon">⬇️</span> Télécharger</a>
+    <a href="#personnaliser"><span class="nav-icon">✏️</span> Personnaliser</a>
+    <a href="#formats"><span class="nav-icon">📡</span> Formats</a>
+    <a href="#interface"><span class="nav-icon">🖥️</span> Interface</a>
+    <a href="#partager"><span class="nav-icon">🔗</span> Partager</a>
+    <a href="#faq"><span class="nav-icon">💬</span> FAQ</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<section class="sec" id="quoi">
+  <div class="sec-tag">PRÉSENTATION</div>
+  <h2>C'est quoi ?</h2>
+  <p>Mission Media Control est un <strong>lecteur multimédia gratuit</strong> qui lit YouTube, Vimeo, SoundCloud, Spotify, podcasts, fichiers audio et vidéo — <strong>tout, dans une seule page web.</strong></p>
+  <p>Vous mettez vos liens, il s'occupe du reste. Le design est inspiré des centres de contrôle de la NASA, parce que c'est plus agréable qu'un lecteur tout blanc.</p>
+
+  <div class="intro-grid">
+    <div class="intro-card">
+      <span class="ic-icon">🎬</span>
+      <div class="ic-title">Tous les formats</div>
+      <div class="ic-desc">YouTube, Vimeo, SoundCloud, Spotify, Dailymotion, PeerTube, MP4, MP3…</div>
+    </div>
+    <div class="intro-card">
+      <span class="ic-icon">📄</span>
+      <div class="ic-title">Un seul fichier</div>
+      <div class="ic-desc">Pas d'installation, pas de compte, pas de serveur. Un fichier HTML, point.</div>
+    </div>
+    <div class="intro-card">
+      <span class="ic-icon">🔒</span>
+      <div class="ic-title">Vie privée</div>
+      <div class="ic-desc">Aucun cookie, aucun tracker, aucune pub, aucune donnée collectée.</div>
+    </div>
+    <div class="intro-card">
+      <span class="ic-icon">🎁</span>
+      <div class="ic-title">Libre et gratuit</div>
+      <div class="ic-desc">Copyleft — utilisez-le, modifiez-le, partagez-le comme vous voulez.</div>
+    </div>
+  </div>
+
+  <div class="box info">
+    <span class="box-icon">💡</span>
+    <div class="box-text"><strong>Pas besoin de savoir coder.</strong> Si vous savez copier-coller du texte et enregistrer un fichier, vous pouvez personnaliser ce lecteur. Ce guide vous explique tout, étape par étape.</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="sec" id="telecharger">
+  <div class="sec-tag">ÉTAPE 1 SUR 3</div>
+  <h2>Télécharger le lecteur</h2>
+  <p>D'abord, il faut récupérer le fichier du lecteur sur votre ordinateur. Choisissez votre système :</p>
+
+  <div class="step">
+    <div class="step-top">
+      <div class="step-num">1</div>
+      <h3>Enregistrer la page depuis le navigateur</h3>
+    </div>
+    <div class="step-body">
+      <p>Ouvrez la page du lecteur dans votre navigateur (Chrome, Firefox, Safari, Edge…). Puis :</p>
+      <div class="os-tabs" data-group="dl">
+        <button class="os-tab active" data-os="win">🪟 Windows</button>
+        <button class="os-tab" data-os="mac">🍎 Mac</button>
+        <button class="os-tab" data-os="phone">📱 Téléphone</button>
+      </div>
+      <div class="os-panel active" data-os="win" data-group="dl">
+        <ol>
+          <li>Appuyez sur <kbd>Ctrl</kbd> + <kbd>S</kbd></li>
+          <li>En bas de la fenêtre, dans <strong>« Type »</strong>, choisissez <strong>« Page web, HTML uniquement »</strong></li>
+          <li>Choisissez où enregistrer (Bureau, Documents…)</li>
+          <li>Cliquez <strong>Enregistrer</strong></li>
+        </ol>
+      </div>
+      <div class="os-panel" data-os="mac" data-group="dl">
+        <ol>
+          <li>Appuyez sur <kbd>Cmd</kbd> + <kbd>S</kbd></li>
+          <li>Dans <strong>« Format »</strong>, choisissez <strong>« Source de la page »</strong></li>
+          <li>Choisissez où enregistrer</li>
+          <li>Cliquez <strong>Enregistrer</strong></li>
+        </ol>
+      </div>
+      <div class="os-panel" data-os="phone" data-group="dl">
+        <ol>
+          <li>Appuyez sur le <strong>menu</strong> du navigateur (les 3 points ⋮ ou le bouton partage ↗)</li>
+          <li>Cherchez <strong>« Enregistrer la page »</strong>, <strong>« Télécharger »</strong> ou <strong>« Partager → Enregistrer dans Fichiers »</strong></li>
+          <li>Le fichier se retrouve dans votre dossier Téléchargements</li>
+        </ol>
+      </div>
+      <div class="box ok">
+        <span class="box-icon">✅</span>
+        <div class="box-text">Vous avez maintenant un fichier <code class="il">mission-media-control.html</code> sur votre ordinateur. <strong>C'est tout</strong> — un seul fichier, rien d'autre à télécharger.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-top">
+      <div class="step-num">2</div>
+      <h3>Vérifiez que ça marche</h3>
+    </div>
+    <div class="step-body">
+      <p><strong>Double-cliquez</strong> sur le fichier. Il doit s'ouvrir dans votre navigateur et afficher le lecteur avec son interface NASA.</p>
+      <p>Si ça fonctionne, passez à l'étape suivante. Si le fichier s'ouvre en texte bizarre, vérifiez qu'il se termine bien par <code class="il">.html</code> et pas <code class="il">.txt</code>.</p>
+      <div class="box warn">
+        <span class="box-icon">⚠️</span>
+        <div class="box-text"><strong>Le fichier s'ouvre en mode texte ?</strong> Renommez-le : clic droit → Renommer, et remplacez <code class="il">.txt</code> par <code class="il">.html</code>. Windows vous demandera confirmation — dites oui.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="sec" id="personnaliser">
+  <div class="sec-tag">ÉTAPE 2 SUR 3 — LA PLUS IMPORTANTE</div>
+  <h2>Mettre vos propres contenus</h2>
+  <p>C'est ici que ça devient intéressant. Vous allez remplacer les médias d'exemple par <strong>vos</strong> vidéos, podcasts et musiques.</p>
+
+  <div class="step">
+    <div class="step-top">
+      <div class="step-num">1</div>
+      <h3>Ouvrir le fichier dans un éditeur de texte</h3>
+    </div>
+    <div class="step-body">
+      <p>Il faut ouvrir le fichier <code class="il">.html</code> dans un <strong>éditeur de texte</strong> — pas dans le navigateur (sinon vous voyez la page, pas le code).</p>
+      <div class="os-tabs" data-group="ed">
+        <button class="os-tab active" data-os="win">🪟 Windows</button>
+        <button class="os-tab" data-os="mac">🍎 Mac</button>
+        <button class="os-tab" data-os="better">✨ Mieux</button>
+      </div>
+      <div class="os-panel active" data-os="win" data-group="ed">
+        <p><strong>Clic droit</strong> sur le fichier → <strong>Ouvrir avec</strong> → <strong>Bloc-notes</strong></p>
+        <p style="font-size:.88rem;color:var(--text-soft)">Si Bloc-notes n'apparaît pas, cherchez « Choisir une autre application » puis « Bloc-notes ».</p>
+      </div>
+      <div class="os-panel" data-os="mac" data-group="ed">
+        <p><strong>Clic droit</strong> → <strong>Ouvrir avec</strong> → <strong>TextEdit</strong></p>
+        <p>Puis : <strong>Format → Convertir en texte brut</strong> (sinon TextEdit affiche la page au lieu du code).</p>
+      </div>
+      <div class="os-panel" data-os="better" data-group="ed">
+        <p>Pour plus de confort, téléchargez un vrai éditeur de code (c'est gratuit) :</p>
+        <ul>
+          <li><strong>Notepad++</strong> — léger, parfait pour les débutants (Windows)</li>
+          <li><strong>Visual Studio Code</strong> — plus complet, tous systèmes</li>
+          <li><strong>Sublime Text</strong> — rapide et élégant</li>
+        </ul>
+        <p style="font-size:.88rem;color:var(--text-soft);margin-top:8px">Avantage : ces éditeurs colorent le code, ce qui rend tout beaucoup plus lisible.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-top">
+      <div class="step-num">2</div>
+      <h3>Trouver la zone à modifier</h3>
+    </div>
+    <div class="step-body">
+      <p>Utilisez la fonction <strong>Rechercher</strong> :</p>
+      <ul>
+        <li>Windows : <kbd>Ctrl</kbd> + <kbd>F</kbd></li>
+        <li>Mac : <kbd>Cmd</kbd> + <kbd>F</kbd></li>
+      </ul>
+      <p>Tapez <code class="il">MISSION_PAYLOAD</code> et appuyez sur Entrée. Vous tombez sur ceci :</p>
+
+      <div class="visual-editor">
+        <div class="ve-bar">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <span class="filename">mission-media-control.html</span>
+        </div>
+<div class="ve-content">const MISSION_PAYLOAD = [
+
+  {
+    title: <span class="hl">"Bruxelles ruinée par 613 jours"</span>,   <span class="arrow">← le titre affiché</span>
+    url:   <span class="hl">"https://dl.ouaisfi.eu/..."</span>          <span class="arrow">← le lien du média</span>
+  },
+  {
+    title: <span class="hl">"613 jours de faillite politique"</span>,
+    url:   <span class="hl">"https://dl.ouaisfi.eu/..."</span>
+  },
+
+];</div>
+      </div>
+      <p>C'est <strong>votre playlist</strong>. Chaque bloc entre <code class="il">{ }</code> = un média. Les zones en jaune sont les seules choses à modifier.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-top">
+      <div class="step-num">3</div>
+      <h3>Remplacer par vos contenus</h3>
+    </div>
+    <div class="step-body">
+      <p>Effacez les contenus d'exemple et mettez les vôtres. Chaque média a un <strong>titre</strong> et une <strong>url</strong>. C'est tout.</p>
+
+      <div class="code">
+        <div class="code-top">
+          <span class="code-label">EXEMPLE — VOTRE PLAYLIST</span>
+          <button class="code-copy" onclick="copyCode(this)">Copier</button>
+        </div>
+<pre>
+<span class="kw">const</span> MISSION_PAYLOAD <span class="p">=</span> <span class="p">[</span>
+
+  <span class="p">{</span>
+    title<span class="p">:</span> <span class="st">"Ma vidéo YouTube préférée"</span><span class="p">,</span>
+    url<span class="p">:</span>   <span class="st">"https://www.youtube.com/watch?v=dQw4w9WgXcQ"</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    title<span class="p">:</span> <span class="st">"Un podcast que j'aime bien"</span><span class="p">,</span>
+    url<span class="p">:</span>   <span class="st">"https://soundcloud.com/artiste/episode-12"</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    title<span class="p">:</span> <span class="st">"Un docu sur Vimeo"</span><span class="p">,</span>
+    url<span class="p">:</span>   <span class="st">"https://vimeo.com/148751763"</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    title<span class="p">:</span> <span class="st">"Mon fichier audio"</span><span class="p">,</span>
+    url<span class="p">:</span>   <span class="st">"https://monsite.com/audio/episode.mp3"</span>
+  <span class="p">},</span>
+
+<span class="p">];</span>
+</pre>
+      </div>
+
+      <div class="box info">
+        <span class="box-icon">🎯</span>
+        <div class="box-text">
+          <strong>Où trouver le lien d'un contenu ?</strong><br>
+          <strong>YouTube</strong> — sous la vidéo, cliquez « Partager » et copiez le lien<br>
+          <strong>Vimeo / Dailymotion</strong> — copiez l'URL dans la barre d'adresse<br>
+          <strong>SoundCloud</strong> — copiez l'URL dans la barre d'adresse<br>
+          <strong>Spotify</strong> — clic droit sur un titre → « Copier le lien du titre »
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-top">
+      <div class="step-num">4</div>
+      <h3>Sauvegarder et tester</h3>
+    </div>
+    <div class="step-body">
+      <p>Enregistrez le fichier (<kbd>Ctrl</kbd> + <kbd>S</kbd> / <kbd>Cmd</kbd> + <kbd>S</kbd>), puis double-cliquez dessus. Il s'ouvre dans votre navigateur avec vos contenus.</p>
+      <p><strong>C'est terminé. Votre lecteur personnalisé est prêt.</strong></p>
+    </div>
+  </div>
+
+  <div class="box nope">
+    <span class="box-icon">🚫</span>
+    <div class="box-text">
+      <strong>Les 3 erreurs à éviter :</strong><br>
+      <strong>1.</strong> Oublier la <strong>virgule</strong> <code class="il">,</code> après chaque <code class="il">}</code> (sauf le tout dernier)<br>
+      <strong>2.</strong> Oublier les <strong>guillemets</strong> <code class="il">" "</code> autour du titre et de l'URL<br>
+      <strong>3.</strong> Mettre une apostrophe non protégée — écrivez <code class="il">l\'info</code> ou utilisez des guillemets doubles partout
+    </div>
+  </div>
+
+  <div class="box ok">
+    <span class="box-icon">🔄</span>
+    <div class="box-text"><strong>Pas de panique.</strong> Si vous cassez quelque chose, re-téléchargez le fichier original et recommencez. Rien n'est permanent.</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="sec" id="formats">
+  <div class="sec-tag">COMPATIBILITÉ</div>
+  <h2>Quels liens je peux mettre ?</h2>
+  <p>Collez n'importe lequel de ces liens — le lecteur détecte automatiquement le type. Vous n'avez rien d'autre à faire.</p>
+
+  <div class="fmt-grid">
+    <div class="fmt-card"><div class="fmt-name">▶ YouTube</div><div class="fmt-ex">youtube.com/watch?v=…</div></div>
+    <div class="fmt-card"><div class="fmt-name">▶ Vimeo</div><div class="fmt-ex">vimeo.com/123456</div></div>
+    <div class="fmt-card"><div class="fmt-name">♫ SoundCloud</div><div class="fmt-ex">soundcloud.com/artiste/titre</div></div>
+    <div class="fmt-card"><div class="fmt-name">♫ Spotify</div><div class="fmt-ex">open.spotify.com/track/…</div></div>
+    <div class="fmt-card"><div class="fmt-name">▶ Dailymotion</div><div class="fmt-ex">dailymotion.com/video/…</div></div>
+    <div class="fmt-card"><div class="fmt-name">⊕ PeerTube</div><div class="fmt-ex">instance.tube/w/…</div></div>
+    <div class="fmt-card"><div class="fmt-name">▶ Vidéo directe</div><div class="fmt-ex">.mp4 · .webm · .ogv</div></div>
+    <div class="fmt-card"><div class="fmt-name">♫ Audio direct</div><div class="fmt-ex">.mp3 · .m4a · .ogg · .wav · .flac</div></div>
+    <div class="fmt-card"><div class="fmt-name">⚡ Embed HTML</div><div class="fmt-ex">&lt;iframe src="…"&gt;&lt;/iframe&gt;</div></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="sec" id="interface">
+  <div class="sec-tag">VISITE GUIDÉE</div>
+  <h2>L'interface, zone par zone</h2>
+  <p>Voici à quoi sert chaque partie du lecteur :</p>
+
+  <div class="iface-list">
+    <div class="iface-item"><span class="iface-tag">EN-TÊTE</span><div class="iface-txt">Le nom du lecteur et <strong>l'horloge MET</strong> — le temps écoulé depuis votre premier clic. C'est purement décoratif, pour l'ambiance NASA.</div></div>
+    <div class="iface-item"><span class="iface-tag">STATUT</span><div class="iface-txt"><strong>Barre de statut</strong> — 4 indicateurs : état du système, si un flux est actif, le type de source, et le nombre de médias chargés.</div></div>
+    <div class="iface-item"><span class="iface-tag">ÉCRAN</span><div class="iface-txt"><strong>L'écran principal</strong> — c'est ici que se joue le contenu. Il s'adapte : grand pour une vidéo, compact pour de l'audio.</div></div>
+    <div class="iface-item"><span class="iface-tag">INFO</span><div class="iface-txt">Le <strong>nom du média en cours</strong>. Le bouton <strong>&lt;/&gt; EMBED</strong> génère un code HTML pour intégrer le média dans un autre site ou blog.</div></div>
+    <div class="iface-item"><span class="iface-tag">ONDES</span><div class="iface-txt"><strong>Visualiseur en forme d'ondes</strong> — des barres animées. C'est purement esthétique : ça donne l'impression que le signal est actif.</div></div>
+    <div class="iface-item"><span class="iface-tag">QUEUE</span><div class="iface-txt"><strong>Payload Manifest</strong> — la liste de tous vos médias. <strong>Cliquez</strong> sur un élément pour le jouer. <strong>✕</strong> pour le retirer.</div></div>
+    <div class="iface-item"><span class="iface-tag">AJOUT</span><div class="iface-txt"><strong>+ Ajouter un signal</strong> — un panneau qui se déplie. Collez un lien, appuyez LAUNCH ou Entrée. Le média apparaît et se joue aussitôt. Utile pour ajouter des choses sans toucher au code.</div></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="sec" id="partager">
+  <div class="sec-tag">ÉTAPE 3 SUR 3</div>
+  <h2>Partager votre lecteur</h2>
+  <p>Votre lecteur est prêt. Comment le mettre entre les mains des autres ?</p>
+
+  <div class="share-grid">
+    <div class="share-card"><span class="share-icon">💻</span><div class="share-name">En local</div><div class="share-desc">Double-cliquez sur le fichier. Il s'ouvre dans votre navigateur.</div><span class="share-diff diff-easy">Facile</span></div>
+    <div class="share-card"><span class="share-icon">📧</span><div class="share-name">Par email</div><div class="share-desc">Envoyez le .html en pièce jointe. Le destinataire double-clique, c'est prêt.</div><span class="share-diff diff-easy">Facile</span></div>
+    <div class="share-card"><span class="share-icon">💾</span><div class="share-name">Clé USB</div><div class="share-desc">Copiez le fichier sur une clé. Ça marche sur n'importe quel ordinateur.</div><span class="share-diff diff-easy">Facile</span></div>
+    <div class="share-card"><span class="share-icon">✏️</span><div class="share-name">CodePen</div><div class="share-desc">Collez tout le code dans le panneau HTML d'un nouveau Pen. Partagez le lien.</div><span class="share-diff diff-easy">Facile</span></div>
+    <div class="share-card"><span class="share-icon">🌐</span><div class="share-name">GitHub Pages</div><div class="share-desc">Poussez le fichier sur GitHub, activez Pages. URL publique et gratuite.</div><span class="share-diff diff-med">Intermédiaire</span></div>
+    <div class="share-card"><span class="share-icon">🖥️</span><div class="share-name">Votre site web</div><div class="share-desc">Uploadez le fichier HTML chez votre hébergeur. C'est une page comme une autre.</div><span class="share-diff diff-med">Intermédiaire</span></div>
+  </div>
+
+  <div class="step">
+    <div class="step-top">
+      <div class="step-num">★</div>
+      <h3>La méthode la plus facile pour partager en ligne</h3>
+    </div>
+    <div class="step-body">
+      <p><strong>Utilisez CodePen.</strong> C'est gratuit et ça prend 2 minutes :</p>
+      <ol>
+        <li>Allez sur <a href="https://codepen.io" target="_blank" rel="noopener">codepen.io</a> et créez un compte gratuit</li>
+        <li>Cliquez sur <strong>« New Pen »</strong></li>
+        <li>Ouvrez votre fichier <code class="il">.html</code> dans le Bloc-notes</li>
+        <li>Sélectionnez <strong>tout</strong> (<kbd>Ctrl</kbd>+<kbd>A</kbd>), copiez (<kbd>Ctrl</kbd>+<kbd>C</kbd>)</li>
+        <li>Sur CodePen, cliquez dans le panneau <strong>HTML</strong>, collez (<kbd>Ctrl</kbd>+<kbd>V</kbd>)</li>
+        <li>Le lecteur apparaît en bas. Cliquez <strong>Save</strong></li>
+        <li>Partagez l'URL — n'importe qui peut y accéder</li>
+      </ol>
+      <div class="box ok">
+        <span class="box-icon">🔗</span>
+        <div class="box-text">Votre lecteur est en ligne. Envoyez le lien CodePen par email, messagerie, réseaux sociaux — tout le monde peut voir et écouter vos contenus.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="sec" id="faq">
+  <div class="sec-tag">QUESTIONS / RÉPONSES</div>
+  <h2>Questions fréquentes</h2>
+
+  <div class="faq"><div class="faq-q">Est-ce que ça marche sur téléphone ?<span class="faq-chevron">▾</span></div><div class="faq-a"><div class="faq-a-inner">Oui. L'interface s'adapte automatiquement à toutes les tailles d'écran — téléphone, tablette, ordinateur.</div></div></div>
+  <div class="faq"><div class="faq-q">Les vidéos se lancent toutes seules ?<span class="faq-chevron">▾</span></div><div class="faq-a"><div class="faq-a-inner">Le lecteur essaie, mais la plupart des navigateurs mobiles bloquent l'autoplay. Sur ordinateur, ça dépend de vos réglages. Un simple clic lance la lecture dans tous les cas.</div></div></div>
+  <div class="faq"><div class="faq-q">Il y a une limite au nombre de médias ?<span class="faq-chevron">▾</span></div><div class="faq-a"><div class="faq-a-inner">Non. Mettez-en 3, 30 ou 300 — aucune limite. La liste défile si elle est longue.</div></div></div>
+  <div class="faq"><div class="faq-q">Mes données sont-elles collectées ?<span class="faq-chevron">▾</span></div><div class="faq-a"><div class="faq-a-inner">Non. Le lecteur ne contient aucun cookie, aucun tracker, aucune analytique. Il communique uniquement avec les plateformes dont vous chargez les contenus (YouTube, SoundCloud…) — ce sont elles qui gèrent leurs propres cookies.</div></div></div>
+  <div class="faq"><div class="faq-q">Je peux changer les couleurs et le design ?<span class="faq-chevron">▾</span></div><div class="faq-a"><div class="faq-a-inner">Oui. Tout est dans le même fichier. Cherchez le bloc <code class="il">:root</code> en haut — c'est là que sont définies toutes les couleurs. Changez les valeurs et enregistrez.</div></div></div>
+  <div class="faq"><div class="faq-q">Je peux l'utiliser pour mon asso, mes cours, mon projet ?<span class="faq-chevron">▾</span></div><div class="faq-a"><div class="faq-a-inner">Oui, sans aucune restriction. Copyleft — utilisez-le, modifiez-le, redistribuez-le librement. La seule chose qu'on demande : ne rajoutez pas de tracking dedans.</div></div></div>
+  <div class="faq"><div class="faq-q">J'ai peur de casser quelque chose…<span class="faq-chevron">▾</span></div><div class="faq-a"><div class="faq-a-inner">La seule zone à toucher est le tableau <code class="il">MISSION_PAYLOAD</code> — une vingtaine de lignes. Si ça casse : re-téléchargez le fichier et recommencez. Zéro risque.</div></div></div>
+  <div class="faq"><div class="faq-q">Ça marche sans internet ?<span class="faq-chevron">▾</span></div><div class="faq-a"><div class="faq-a-inner">Le fichier HTML fonctionne hors ligne. Mais les contenus en ligne (YouTube, SoundCloud…) ont besoin d'une connexion. Les fichiers audio/vidéo stockés sur votre ordinateur, eux, fonctionnent sans internet.</div></div></div>
+  <div class="faq"><div class="faq-q">C'est quoi « ouaisfieu » ?<span class="faq-chevron">▾</span></div><div class="faq-a"><div class="faq-a-inner">Une initiative citoyenne belge d'intelligence civique. On fabrique des outils numériques gratuits et sans tracking pour que les gens puissent s'informer, se former et agir. Plus d'infos sur <a href="https://ouaisfi.eu" target="_blank" rel="noopener">ouaisfi.eu</a>.</div></div></div>
+</section>
+
+</div>
+
+<footer class="foot">
+  <div class="foot-brand">OUAISFIEU AEROSPACE DIVISION</div>
+  <p>Projet <a href="https://ouaisfi.eu">ouaisfieu</a> — initiative citoyenne belge<br>Copyleft 2026 — Aucun droit réservé — <strong>Fork · Hack · Spread</strong></p>
+</footer>
+
+<script>
+document.querySelectorAll('.os-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const group = tab.parentElement.dataset.group;
+    const os = tab.dataset.os;
+    tab.parentElement.querySelectorAll('.os-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll(`.os-panel[data-group="${group}"]`).forEach(p => p.classList.remove('active'));
+    document.querySelector(`.os-panel[data-group="${group}"][data-os="${os}"]`).classList.add('active');
+  });
+});
+document.querySelectorAll('.faq-q').forEach(q => {
+  q.addEventListener('click', () => {
+    const faq = q.parentElement;
+    const wasOpen = faq.classList.contains('open');
+    document.querySelectorAll('.faq').forEach(f => f.classList.remove('open'));
+    if (!wasOpen) faq.classList.add('open');
+  });
+});
+function copyCode(btn) {
+  const pre = btn.closest('.code').querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    btn.textContent = 'Copié ✓';
+    setTimeout(() => btn.textContent = 'Copier', 2000);
+  });
+}
+</script>
+</body>
+</html>
