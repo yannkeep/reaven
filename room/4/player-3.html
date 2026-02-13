@@ -1,0 +1,1044 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MISSION AUDIO CONTROL — Centre de Commandement Civique</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Chakra+Petch:wght@300;400;600;700&display=swap');
+
+:root {
+  --nasa-blue: #0b3d91;
+  --nasa-red: #fc3d21;
+  --nasa-white: #e8ecf1;
+  --hud-cyan: #00e5ff;
+  --hud-cyan-dim: rgba(0, 229, 255, 0.15);
+  --hud-green: #76ff03;
+  --hud-amber: #ffc400;
+  --hud-red: #ff1744;
+  --panel-bg: #0a0e17;
+  --panel-surface: #0f1923;
+  --panel-border: #1a2a3a;
+  --panel-border-lit: #1e3a5a;
+  --grid-line: rgba(0, 229, 255, 0.04);
+  --text-dim: #4a6a8a;
+  --mono: 'Share Tech Mono', monospace;
+  --display: 'Orbitron', sans-serif;
+  --ui: 'Chakra Petch', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--panel-bg);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  font-family: var(--mono);
+  color: var(--hud-cyan);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ══════ GRID BACKGROUND ══════ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 30%, rgba(0,229,255,0.03) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ══════ MAIN CONSOLE ══════ */
+.console {
+  width: 100%;
+  max-width: 680px;
+  position: relative;
+  z-index: 1;
+  animation: bootUp 1s ease-out;
+}
+
+@keyframes bootUp {
+  0% { opacity: 0; transform: translateY(20px); filter: blur(4px); }
+  60% { opacity: 1; filter: blur(0); }
+  100% { transform: translateY(0); }
+}
+
+/* ══════ TOP BAR ══════ */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+  margin-bottom: 6px;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+}
+
+.top-bar .mission-id {
+  color: var(--hud-cyan);
+  opacity: 0.6;
+}
+
+/* ══════ HEADER ══════ */
+.header {
+  background: var(--panel-surface);
+  border: 1px solid var(--panel-border);
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--hud-cyan), transparent);
+  opacity: 0.6;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.nasa-patch {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--hud-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: radial-gradient(circle, rgba(0,229,255,0.08) 0%, transparent 70%);
+  flex-shrink: 0;
+}
+
+.nasa-patch::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  border: 1px dashed rgba(0,229,255,0.2);
+}
+
+.patch-icon {
+  font-size: 1.3rem;
+  filter: drop-shadow(0 0 6px var(--hud-cyan));
+}
+
+.header-title {
+  font-family: var(--display);
+  font-size: clamp(0.75rem, 2.5vw, 1rem);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--nasa-white);
+  text-shadow: 0 0 20px rgba(0,229,255,0.2);
+}
+
+.header-sub {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  letter-spacing: 0.15em;
+  margin-top: 3px;
+}
+
+.header-right {
+  text-align: right;
+}
+
+.met-label {
+  font-size: 0.5rem;
+  color: var(--text-dim);
+  letter-spacing: 0.15em;
+}
+
+.met-clock {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--hud-green);
+  text-shadow: 0 0 12px rgba(118,255,3,0.3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ══════ STATUS STRIP ══════ */
+.status-strip {
+  display: flex;
+  gap: 1px;
+  margin: 6px 0;
+}
+
+.status-cell {
+  flex: 1;
+  background: var(--panel-surface);
+  border: 1px solid var(--panel-border);
+  padding: 8px 10px;
+  text-align: center;
+}
+
+.status-cell .label {
+  font-size: 0.5rem;
+  color: var(--text-dim);
+  letter-spacing: 0.12em;
+  margin-bottom: 4px;
+}
+
+.status-cell .value {
+  font-family: var(--display);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.val-green { color: var(--hud-green); text-shadow: 0 0 8px rgba(118,255,3,0.25); }
+.val-cyan { color: var(--hud-cyan); text-shadow: 0 0 8px rgba(0,229,255,0.25); }
+.val-amber { color: var(--hud-amber); text-shadow: 0 0 8px rgba(255,196,0,0.25); }
+.val-red { color: var(--hud-red); text-shadow: 0 0 8px rgba(255,23,68,0.25); }
+
+/* ══════ TELEMETRY / FREQUENCY ══════ */
+.telemetry-panel {
+  background: var(--panel-surface);
+  border: 1px solid var(--panel-border);
+  margin: 6px 0;
+  overflow: hidden;
+}
+
+.telemetry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--panel-border);
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+}
+
+.telemetry-body {
+  padding: 16px 14px;
+  position: relative;
+}
+
+/* Frequency scanner */
+.freq-scanner {
+  position: relative;
+  height: 70px;
+  background: #060c14;
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.freq-scanner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(0,229,255,0.03) 0px,
+    rgba(0,229,255,0.03) 1px,
+    transparent 1px,
+    transparent 20px
+  );
+  pointer-events: none;
+}
+
+.freq-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 14px;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  position: relative;
+  z-index: 2;
+}
+
+.freq-ticks {
+  position: absolute;
+  bottom: 8px;
+  left: 14px;
+  right: 14px;
+  height: 22px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(0,229,255,0.15) 0px,
+    rgba(0,229,255,0.15) 1px,
+    transparent 1px,
+    transparent 12px
+  );
+}
+
+/* Sweep line (like radar) */
+.sweep-line {
+  position: absolute;
+  bottom: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--hud-cyan);
+  box-shadow: 0 0 12px var(--hud-cyan), 0 0 30px rgba(0,229,255,0.3);
+  z-index: 10;
+  transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  left: 50%;
+}
+
+.sweep-line::before {
+  content: '▼';
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--hud-cyan);
+  font-size: 0.65rem;
+  text-shadow: 0 0 6px var(--hud-cyan);
+}
+
+/* Frequency readout */
+.freq-readout {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.freq-number {
+  font-family: var(--display);
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: var(--hud-cyan);
+  text-shadow: 0 0 30px rgba(0,229,255,0.3);
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+.freq-unit {
+  font-family: var(--display);
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+}
+
+.freq-mode {
+  text-align: center;
+  font-size: 0.55rem;
+  color: var(--hud-green);
+  letter-spacing: 0.2em;
+  opacity: 0.6;
+}
+
+/* Channel info box */
+.channel-info {
+  background: rgba(0,229,255,0.04);
+  border: 1px solid rgba(0,229,255,0.12);
+  border-radius: 4px;
+  padding: 12px 16px;
+  text-align: center;
+  margin-top: 12px;
+}
+
+.channel-callsign {
+  font-family: var(--ui);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--nasa-white);
+  letter-spacing: 0.1em;
+}
+
+.channel-program {
+  font-size: 0.7rem;
+  color: var(--hud-amber);
+  letter-spacing: 0.15em;
+  margin-top: 4px;
+}
+
+/* ══════ WAVEFORM VISUALIZER ══════ */
+.waveform-panel {
+  background: var(--panel-surface);
+  border: 1px solid var(--panel-border);
+  margin: 6px 0;
+  padding: 10px 14px;
+}
+
+.waveform-label {
+  font-size: 0.5rem;
+  color: var(--text-dim);
+  letter-spacing: 0.12em;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.waveform-canvas {
+  width: 100%;
+  height: 50px;
+  background: #060c14;
+  border: 1px solid var(--panel-border);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.waveform-canvas::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(0,229,255,0.1);
+}
+
+.wave-bars {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 2px;
+  padding: 0 8px;
+}
+
+.wave-bar {
+  flex: 1;
+  max-width: 6px;
+  background: var(--hud-cyan);
+  border-radius: 1px;
+  height: 4px;
+  opacity: 0.6;
+  transition: height 0.1s ease;
+}
+
+/* ══════ CONTROLS ══════ */
+.controls-panel {
+  background: var(--panel-surface);
+  border: 1px solid var(--panel-border);
+  margin: 6px 0;
+  padding: 16px 14px;
+}
+
+/* Knobs row */
+.knobs-row {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 16px;
+}
+
+.knob-group { text-align: center; }
+
+.knob-title {
+  font-size: 0.5rem;
+  color: var(--text-dim);
+  letter-spacing: 0.12em;
+  margin-bottom: 6px;
+}
+
+.knob {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: conic-gradient(from 220deg, #1a2a3a, #0f1923, #1a2a3a);
+  border: 2px solid var(--panel-border-lit);
+  position: relative;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4), inset 0 0 20px rgba(0,229,255,0.03);
+  transition: border-color 0.3s;
+}
+
+.knob:hover {
+  border-color: var(--hud-cyan);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 12px var(--hud-cyan-dim);
+}
+
+.knob::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 14px;
+  background: var(--hud-cyan);
+  border-radius: 1px;
+  box-shadow: 0 0 6px var(--hud-cyan);
+}
+
+.knob::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,229,255,0.08);
+}
+
+.knob-val {
+  font-family: var(--display);
+  font-size: 0.6rem;
+  color: var(--hud-cyan);
+  margin-top: 6px;
+  font-weight: 700;
+}
+
+/* Transport buttons */
+.transport-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.t-btn {
+  width: 52px;
+  height: 44px;
+  background: #0c1520;
+  border: 1px solid var(--panel-border-lit);
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+
+.t-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.t-btn:hover {
+  border-color: var(--hud-cyan);
+  color: var(--hud-cyan);
+  box-shadow: 0 0 12px var(--hud-cyan-dim);
+}
+
+.t-btn:active { transform: scale(0.95); }
+
+.t-btn.primary {
+  width: 68px;
+  background: rgba(0,229,255,0.08);
+  border-color: var(--hud-cyan);
+  color: var(--hud-cyan);
+}
+
+.t-btn.primary.active {
+  background: rgba(0,229,255,0.15);
+  box-shadow: 0 0 20px var(--hud-cyan-dim), inset 0 0 20px rgba(0,229,255,0.05);
+}
+
+/* Progress */
+.progress-track {
+  height: 4px;
+  background: #0c1520;
+  border: 1px solid var(--panel-border);
+  border-radius: 2px;
+  cursor: pointer;
+  margin-bottom: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--hud-cyan), var(--hud-green));
+  box-shadow: 0 0 8px rgba(0,229,255,0.3);
+  transition: width 0.1s linear;
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -3px;
+  width: 8px;
+  height: 10px;
+  background: var(--hud-cyan);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--hud-cyan);
+}
+
+.progress-times {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 14px;
+}
+
+/* Channel presets */
+.presets-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.preset {
+  width: 40px;
+  height: 32px;
+  background: #0c1520;
+  border: 1px solid var(--panel-border-lit);
+  border-radius: 3px;
+  color: var(--text-dim);
+  font-family: var(--display);
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preset:hover {
+  border-color: var(--hud-cyan);
+  color: var(--hud-cyan);
+}
+
+.preset.active {
+  background: rgba(0,229,255,0.12);
+  border-color: var(--hud-cyan);
+  color: var(--hud-cyan);
+  box-shadow: 0 0 10px var(--hud-cyan-dim);
+}
+
+/* Signal + Comms */
+.bottom-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.signal-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.signal-lbl {
+  font-size: 0.5rem;
+  color: var(--text-dim);
+  letter-spacing: 0.12em;
+}
+
+.signal-bars {
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+}
+
+.sig {
+  width: 5px;
+  border-radius: 1px;
+  background: #1a2a3a;
+  transition: all 0.3s;
+}
+
+.sig:nth-child(1) { height: 6px; }
+.sig:nth-child(2) { height: 10px; }
+.sig:nth-child(3) { height: 14px; }
+.sig:nth-child(4) { height: 18px; }
+.sig:nth-child(5) { height: 22px; }
+
+.sig.on { background: var(--hud-green); box-shadow: 0 0 6px rgba(118,255,3,0.3); }
+
+.comms-badge {
+  padding: 4px 14px;
+  border: 1px solid #1a2a3a;
+  border-radius: 3px;
+  font-family: var(--display);
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: #1a2a3a;
+  letter-spacing: 0.15em;
+  transition: all 0.3s;
+}
+
+.comms-badge.live {
+  border-color: var(--hud-red);
+  color: var(--hud-red);
+  box-shadow: 0 0 16px rgba(255,23,68,0.15);
+  animation: commsPulse 1.5s infinite;
+}
+
+@keyframes commsPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ══════ FOOTER ══════ */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 4px 0;
+  font-size: 0.5rem;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  opacity: 0.4;
+}
+
+/* ══════ RESPONSIVE ══════ */
+@media (max-width: 520px) {
+  .header-title { font-size: 0.7rem; }
+  .header { padding: 12px 14px; }
+  .freq-number { font-size: 2rem; }
+  .knob { width: 44px; height: 44px; }
+  .t-btn { width: 44px; height: 38px; }
+  .t-btn.primary { width: 58px; }
+  .status-strip { flex-wrap: wrap; }
+  .status-cell { min-width: 30%; }
+  .nasa-patch { width: 40px; height: 40px; }
+}
+</style>
+</head>
+<body>
+
+<div class="console" id="player">
+
+  <div class="top-bar">
+    <span>OUAISFIEU AEROSPACE DIVISION</span>
+    <span class="mission-id">MISSION MAC-2026-BXL</span>
+  </div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="nasa-patch">
+        <span class="patch-icon">📡</span>
+      </div>
+      <div>
+        <div class="header-title">MISSION AUDIO CONTROL</div>
+        <div class="header-sub">CENTRE DE COMMANDEMENT CIVIQUE</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="met-label">MET ELAPSED</div>
+      <div class="met-clock" id="metClock">00:00:00</div>
+    </div>
+  </div>
+
+  <!-- STATUS STRIP -->
+  <div class="status-strip">
+    <div class="status-cell">
+      <div class="label">SYSTÈME</div>
+      <div class="value val-green">NOMINAL</div>
+    </div>
+    <div class="status-cell">
+      <div class="label">FLUX</div>
+      <div class="value val-cyan" id="statusFlux">STANDBY</div>
+    </div>
+    <div class="status-cell">
+      <div class="label">CANAL</div>
+      <div class="value val-amber" id="statusCanal">CH-01</div>
+    </div>
+    <div class="status-cell">
+      <div class="label">VOLUME</div>
+      <div class="value val-cyan" id="statusVol">80%</div>
+    </div>
+  </div>
+
+  <!-- TELEMETRY -->
+  <div class="telemetry-panel">
+    <div class="telemetry-header">
+      <span>RADIO FREQUENCY TELEMETRY</span>
+      <span id="telLock">● LOCKED</span>
+    </div>
+    <div class="telemetry-body">
+      <div class="freq-scanner">
+        <div class="freq-labels">
+          <span>88</span><span>92</span><span>96</span><span>100</span><span>104</span><span>108</span>
+        </div>
+        <div class="freq-ticks"></div>
+        <div class="sweep-line" id="sweepLine" style="left:82.4%"></div>
+      </div>
+      <div class="freq-readout">
+        <span class="freq-number" id="freqValue">106.1</span>
+        <span class="freq-unit">MHz</span>
+      </div>
+      <div class="freq-mode">FM STEREO — SIGNAL ACQUIRED</div>
+      <div class="channel-info">
+        <div class="channel-callsign" id="stationName">CCPLC BROADCAST</div>
+        <div class="channel-program" id="stationProgram">GAME ON PARTY OVER</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WAVEFORM -->
+  <div class="waveform-panel">
+    <div class="waveform-label">
+      <span>AUDIO WAVEFORM</span>
+      <span id="wfStatus">IDLE</span>
+    </div>
+    <div class="waveform-canvas">
+      <div class="wave-bars" id="waveBars"></div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls-panel">
+    <div class="knobs-row">
+      <div class="knob-group">
+        <div class="knob-title">VOLUME</div>
+        <div class="knob" id="volumeKnob"></div>
+        <div class="knob-val" id="volumeVal">80%</div>
+      </div>
+      <div class="knob-group">
+        <div class="knob-title">TUNING</div>
+        <div class="knob" id="tuningKnob"></div>
+        <div class="knob-val">FINE</div>
+      </div>
+      <div class="knob-group">
+        <div class="knob-title">GAIN</div>
+        <div class="knob"></div>
+        <div class="knob-val">+3 dB</div>
+      </div>
+    </div>
+
+    <div class="transport-row">
+      <button class="t-btn" id="btnPrev">⏮</button>
+      <button class="t-btn" id="btnRew">⏪</button>
+      <button class="t-btn primary" id="btnPlay">▶</button>
+      <button class="t-btn" id="btnFwd">⏩</button>
+      <button class="t-btn" id="btnNext">⏭</button>
+    </div>
+
+    <div class="progress-track" id="progressBar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-times">
+      <span id="timeCurrent">T+ 00:00</span>
+      <span id="timeTotal">00:00</span>
+    </div>
+
+    <div class="presets-row">
+      <button class="preset active" data-index="0">CH1</button>
+      <button class="preset" data-index="1">CH2</button>
+      <button class="preset" data-index="2">CH3</button>
+    </div>
+
+    <div class="bottom-strip">
+      <div class="signal-block">
+        <span class="signal-lbl">SIGNAL</span>
+        <div class="signal-bars">
+          <div class="sig on"></div>
+          <div class="sig on"></div>
+          <div class="sig on"></div>
+          <div class="sig on"></div>
+          <div class="sig" id="sig5"></div>
+        </div>
+      </div>
+      <div class="comms-badge" id="commsBadge">COMMS</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>OUAISFIEU GROUND CONTROL — COPYLEFT ∞</span>
+    <span>BXL-242 / SECTOR 7G</span>
+  </div>
+</div>
+
+<audio id="audio" preload="metadata"></audio>
+
+<script>
+const playlist = [
+  { title: "GAME ON PARTY OVER", station: "CCPLC BROADCAST", freq: "106.1", src: "https://dl.ouaisfi.eu/bxl-242/Bruxelles_ruin%C3%A9e_par_613_jours_de_blocage.m4a" },
+  { title: "BULLETIN SOCIAL", station: "RÉSEAU 11·60", freq: "98.7", src: "https://dl.ouaisfi.eu/bxl-242/613_jours_de_faillite_politique_%C3%A0_Bruxelles.m4a" },
+  { title: "WAKE UP CALL", station: "CELLULE ALPHA", freq: "102.3", src: "https://dl.ouaisfi.eu/bxl-242/Bruxelles_joue_sa_survie_apr%C3%A8s_613_jours.m4a" }
+];
+
+const audio = document.getElementById('audio');
+const player = document.getElementById('player');
+const btnPlay = document.getElementById('btnPlay');
+const progressFill = document.getElementById('progressFill');
+const progressBar = document.getElementById('progressBar');
+const sweepLine = document.getElementById('sweepLine');
+const freqValue = document.getElementById('freqValue');
+const stationName = document.getElementById('stationName');
+const stationProgram = document.getElementById('stationProgram');
+const timeCurrent = document.getElementById('timeCurrent');
+const timeTotal = document.getElementById('timeTotal');
+const presetBtns = document.querySelectorAll('.preset');
+const metClock = document.getElementById('metClock');
+const commsBadge = document.getElementById('commsBadge');
+const statusFlux = document.getElementById('statusFlux');
+const wfStatus = document.getElementById('wfStatus');
+
+let currentTrack = 0;
+let isPlaying = false;
+let metStart = null;
+let waveBarsEls = [];
+
+// Build waveform bars
+const waveBarsContainer = document.getElementById('waveBars');
+for (let i = 0; i < 64; i++) {
+  const bar = document.createElement('div');
+  bar.className = 'wave-bar';
+  waveBarsContainer.appendChild(bar);
+  waveBarsEls.push(bar);
+}
+
+function formatTime(s) {
+  if (isNaN(s)) return "00:00";
+  return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+}
+
+function formatMET(ms) {
+  const s = Math.floor(ms / 1000);
+  const h = String(Math.floor(s / 3600)).padStart(2,'0');
+  const m = String(Math.floor((s % 3600) / 60)).padStart(2,'0');
+  const sec = String(s % 60).padStart(2,'0');
+  return `${h}:${m}:${sec}`;
+}
+
+function loadTrack(i) {
+  const t = playlist[i];
+  audio.src = t.src;
+  freqValue.textContent = t.freq;
+  stationName.textContent = t.station;
+  stationProgram.textContent = t.title;
+  document.getElementById('statusCanal').textContent = `CH-0${i + 1}`;
+
+  const freqNum = parseFloat(t.freq);
+  const percent = ((freqNum - 88) / 20) * 100;
+  sweepLine.style.left = `${10 + percent * 0.8}%`;
+
+  presetBtns.forEach((btn, idx) => btn.classList.toggle('active', idx === i));
+}
+
+function play() {
+  audio.play().then(() => {
+    isPlaying = true;
+    if (!metStart) metStart = Date.now();
+    player.classList.add('playing');
+    btnPlay.classList.add('active');
+    btnPlay.textContent = '⏸';
+    commsBadge.classList.add('live');
+    commsBadge.textContent = 'LIVE';
+    statusFlux.textContent = 'STREAMING';
+    statusFlux.className = 'value val-green';
+    wfStatus.textContent = 'ACTIVE';
+  });
+}
+
+function pause() {
+  audio.pause();
+  isPlaying = false;
+  player.classList.remove('playing');
+  btnPlay.classList.remove('active');
+  btnPlay.textContent = '▶';
+  commsBadge.classList.remove('live');
+  commsBadge.textContent = 'COMMS';
+  statusFlux.textContent = 'PAUSED';
+  statusFlux.className = 'value val-amber';
+  wfStatus.textContent = 'IDLE';
+}
+
+btnPlay.onclick = () => isPlaying ? pause() : play();
+
+document.getElementById('btnPrev').onclick = () => {
+  currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
+  loadTrack(currentTrack);
+  if (isPlaying) play();
+};
+
+document.getElementById('btnNext').onclick = () => {
+  currentTrack = (currentTrack + 1) % playlist.length;
+  loadTrack(currentTrack);
+  if (isPlaying) play();
+};
+
+document.getElementById('btnRew').onclick = () => audio.currentTime -= 10;
+document.getElementById('btnFwd').onclick = () => audio.currentTime += 10;
+
+presetBtns.forEach(btn => {
+  btn.onclick = () => {
+    currentTrack = parseInt(btn.dataset.index);
+    loadTrack(currentTrack);
+    play();
+  };
+});
+
+audio.ontimeupdate = () => {
+  progressFill.style.width = `${(audio.currentTime / audio.duration) * 100 || 0}%`;
+  timeCurrent.textContent = `T+ ${formatTime(audio.currentTime)}`;
+  timeTotal.textContent = formatTime(audio.duration);
+};
+
+progressBar.onclick = (e) => {
+  const rect = progressBar.getBoundingClientRect();
+  audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+};
+
+audio.onended = () => {
+  currentTrack = (currentTrack + 1) % playlist.length;
+  loadTrack(currentTrack);
+  play();
+};
+
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') { e.preventDefault(); isPlaying ? pause() : play(); }
+});
+
+// MET clock
+setInterval(() => {
+  if (metStart) {
+    metClock.textContent = formatMET(Date.now() - metStart);
+  }
+}, 1000);
+
+// Waveform visualizer
+function animateWave() {
+  waveBarsEls.forEach((bar) => {
+    if (isPlaying) {
+      const h = 4 + Math.random() * 38;
+      bar.style.height = `${h}px`;
+      bar.style.opacity = 0.3 + Math.random() * 0.7;
+      bar.style.background = h > 30 ? 'var(--hud-green)' : 'var(--hud-cyan)';
+    } else {
+      bar.style.height = '4px';
+      bar.style.opacity = '0.2';
+      bar.style.background = 'var(--hud-cyan)';
+    }
+  });
+  requestAnimationFrame(animateWave);
+}
+animateWave();
+
+// Init
+loadTrack(0);
+audio.volume = 0.8;
+</script>
+
+</body>
+</html>
