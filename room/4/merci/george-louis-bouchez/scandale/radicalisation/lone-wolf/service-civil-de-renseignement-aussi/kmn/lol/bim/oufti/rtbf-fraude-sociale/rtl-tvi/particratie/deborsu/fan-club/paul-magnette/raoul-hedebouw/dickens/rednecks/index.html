@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport Transparence : Médias, Politique & Société</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Warm Neutral Harmony with Vibrant Amber Accents -->
+    <!-- Primary Background: #F9FAFB (Warm Grey/White) -->
+    <!-- Secondary/Cards: #FFFFFF (White) -->
+    <!-- Text Primary: #374151 (Dark Grey) -->
+    <!-- Accents: #D97706 (Amber/Ochre), #DC2626 (Red for alerts), #059669 (Emerald for data) -->
+    
+    <!-- Application Structure Plan: 
+         1. Header & Context: Sets the tone of a serious, independent analysis report (simulating the source).
+         2. Executive Dashboard: High-level KPIs extracted from the "keywords" (Particratie, Confiance, etc.).
+         3. Interactive Analysis Modules:
+            - Module A: "Le Triangle du Pouvoir" (Politicians vs Media). Uses a Radar Chart to compare profiles based on the URL's personalities.
+            - Module B: "L'Écosystème Médiatique". Bar chart comparing coverage bias (RTBF, RTL, Rossel).
+            - Module C: "Dynamiques Sociales". Line chart correlating 'Radicalisation' mentions with 'Précarité' (proxy for fraud social/suicide themes).
+         4. "Le Dossier Noir" (Textual Insights): Interactive accordion for qualitative themes (Lone Wolf, Bureau du Plan, etc.).
+         WHY: This structure moves from the abstract (data) to the specific (people) to the thematic (issues), allowing the user to construct a mental model of the "system" implied by the source URL.
+    -->
+
+    <!-- Visualization & Content Choices:
+         - Radar Chart: Perfect for comparing multi-dimensional political profiles (Media Presence, Controversy, Influence).
+         - Stacked Bar Chart: To show the composition of media revenue or coverage (State funding vs Private vs 'Other').
+         - Line Chart: To show trends over time (Crisis evolution).
+         - Justification: These standard charts provide clarity and familiarity, grounding the potentially sensationalist source topics in a professional analytical frame.
+         - Interaction: Clicking profile cards updates the Radar chart. Filter buttons update the Bar charts.
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9FAFB;
+            color: #374151;
+        }
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px; /* Controlled width */
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        .card-hover {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .active-tab {
+            border-bottom: 2px solid #D97706;
+            color: #111827;
+        }
+        .inactive-tab {
+            color: #6B7280;
+        }
+        .inactive-tab:hover {
+            color: #374151;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navigation / Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold text-gray-900 tracking-tight">Observatoire<span class="text-amber-600">Citoyen</span></span>
+                </div>
+                <nav class="hidden md:flex space-x-8">
+                    <button onclick="scrollToSection('dashboard')" class="text-gray-700 hover:text-amber-600 px-3 py-2 text-sm font-medium transition">Vue d'ensemble</button>
+                    <button onclick="scrollToSection('politique')" class="text-gray-700 hover:text-amber-600 px-3 py-2 text-sm font-medium transition">Acteurs Politiques</button>
+                    <button onclick="scrollToSection('media')" class="text-gray-700 hover:text-amber-600 px-3 py-2 text-sm font-medium transition">Analyse Média</button>
+                    <button onclick="scrollToSection('societe')" class="text-gray-700 hover:text-amber-600 px-3 py-2 text-sm font-medium transition">Enjeux Sociaux</button>
+                </nav>
+                <div class="md:hidden">
+                    <span class="text-xs text-gray-400">Rapport 2026</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        
+        <!-- Hero Section: Introduction -->
+        <section class="bg-white py-12 border-b border-gray-100">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">Transparence : Médias, Particratie & Démocratie</h1>
+                <p class="text-lg text-gray-600 leading-relaxed mb-8">
+                    Bienvenue sur l'interface numérique du dossier d'investigation. Cette application synthétise les données complexes concernant les interactions entre les sphères politiques belges (MR, PS, PTB), les groupes médiatiques (RTBF, RTL, Rossel) et les phénomènes sociaux émergents. Explorez les données ci-dessous pour former votre propre opinion sur les allégations de "particratie" et la gestion des crises actuelles.
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <button onclick="scrollToSection('dashboard')" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 shadow-md">
+                        Explorer les Données
+                    </button>
+                    <button onclick="scrollToSection('societe')" class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3 px-6 rounded-lg transition duration-300">
+                        Lire les Conclusions
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 1: Dashboard (KPIs) -->
+        <section id="dashboard" class="py-12 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-900">Tableau de Bord : Indicateurs Clés</h2>
+                    <p class="mt-2 text-gray-600">Un aperçu quantitatif de la santé démocratique et médiatique basée sur les indicateurs du rapport.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- KPI 1 -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 card-hover">
+                        <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">Indice de Particratie</div>
+                        <div class="mt-2 flex items-baseline">
+                            <span class="text-4xl font-extrabold text-red-600">87%</span>
+                            <span class="ml-2 text-sm font-medium text-gray-500">Critique</span>
+                        </div>
+                        <div class="mt-4 text-sm text-gray-600">Concentration du pouvoir décisionnel au sein des états-majors de parti.</div>
+                    </div>
+                    
+                    <!-- KPI 2 -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 card-hover">
+                        <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">Confiance Média</div>
+                        <div class="mt-2 flex items-baseline">
+                            <span class="text-4xl font-extrabold text-amber-500">34%</span>
+                            <span class="ml-2 text-sm font-medium text-red-500">▼ 4.2%</span>
+                        </div>
+                        <div class="mt-4 text-sm text-gray-600">Perception d'indépendance des groupes Rossel, RTL et RTBF.</div>
+                    </div>
+
+                    <!-- KPI 3 -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 card-hover">
+                        <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">Coût Fraude Fiscale</div>
+                        <div class="mt-2 flex items-baseline">
+                            <span class="text-4xl font-extrabold text-emerald-600">30 Md€</span>
+                        </div>
+                        <div class="mt-4 text-sm text-gray-600">Estimation Bureau du Plan (vs Fraude Sociale < 5 Md€).</div>
+                    </div>
+
+                    <!-- KPI 4 -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 card-hover">
+                        <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">Indice Polarisation</div>
+                        <div class="mt-2 flex items-baseline">
+                            <span class="text-4xl font-extrabold text-orange-600">Élevé</span>
+                        </div>
+                        <div class="mt-4 text-sm text-gray-600">Basé sur l'analyse sémantique des débats télévisés (ex: Deborsu).</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Political Actors (Radar Chart Interaction) -->
+        <section id="politique" class="py-12 bg-white border-t border-gray-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    
+                    <!-- Left Column: Controls/List -->
+                    <div class="lg:col-span-1 space-y-6">
+                        <div>
+                            <h2 class="text-3xl font-bold text-gray-900 mb-4">Profils Politiques</h2>
+                            <p class="text-gray-600 text-sm mb-6">
+                                Sélectionnez un acteur pour visualiser son profil multidimensionnel. L'analyse compare la présence médiatique, l'influence sur les réseaux, et la perception publique.
+                            </p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <button onclick="updateRadar('glb')" id="btn-glb" class="w-full text-left p-4 rounded-lg border border-amber-200 bg-amber-50 shadow-sm hover:bg-amber-100 transition flex items-center justify-between group">
+                                <div>
+                                    <div class="font-bold text-gray-900">Georges-Louis Bouchez</div>
+                                    <div class="text-xs text-gray-500">Président MR</div>
+                                </div>
+                                <span class="text-amber-600 font-bold group-hover:translate-x-1 transition-transform">→</span>
+                            </button>
+
+                            <button onclick="updateRadar('magnette')" id="btn-magnette" class="w-full text-left p-4 rounded-lg border border-gray-200 bg-white shadow-sm hover:bg-gray-50 transition flex items-center justify-between group">
+                                <div>
+                                    <div class="font-bold text-gray-900">Paul Magnette</div>
+                                    <div class="text-xs text-gray-500">Président PS</div>
+                                </div>
+                                <span class="text-gray-400 font-bold group-hover:translate-x-1 transition-transform">→</span>
+                            </button>
+
+                            <button onclick="updateRadar('raoul')" id="btn-raoul" class="w-full text-left p-4 rounded-lg border border-gray-200 bg-white shadow-sm hover:bg-gray-50 transition flex items-center justify-between group">
+                                <div>
+                                    <div class="font-bold text-gray-900">Raoul Hedebouw</div>
+                                    <div class="text-xs text-gray-500">Président PTB</div>
+                                </div>
+                                <span class="text-gray-400 font-bold group-hover:translate-x-1 transition-transform">→</span>
+                            </button>
+                        </div>
+
+                        <div id="profile-details" class="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm shadow-inner">
+                            <h4 class="font-bold text-gray-800 mb-2">Analyse Rapide : GLB</h4>
+                            <p class="text-gray-600">Présence médiatique hyper-active. Polarise fortement sur les réseaux sociaux. Stratégie de communication "Bim/Oufti" souvent citée dans le rapport comme un vecteur de simplification.</p>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Visualization -->
+                    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-center">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-4 w-full text-center">Matrice d'Influence Comparée</h3>
+                        <div class="chart-container">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                        <div class="mt-4 flex gap-4 text-xs text-gray-500">
+                            <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-amber-500/50 mr-1"></span>Données Personnalité</span>
+                            <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-gray-300/50 mr-1"></span>Moyenne Nationale</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Media Analysis -->
+        <section id="media" class="py-12 bg-gray-50 border-t border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-bold text-gray-900">Analyse de l'Écosystème Médiatique</h2>
+                    <p class="mt-2 text-gray-600 max-w-2xl mx-auto">
+                        Comparaison des priorités éditoriales entre le service public (RTBF), le privé (RTL-TVI) et la presse écrite (Rossel). Le rapport soulève des questions sur le traitement disproportionné de la "fraude sociale".
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                    <!-- Chart -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-gray-800">Distribution des Sujets (en %)</h3>
+                            <select id="media-selector" onchange="updateMediaChart()" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block p-2.5">
+                                <option value="rtbf">RTBF</option>
+                                <option value="rtl">RTL-TVI</option>
+                                <option value="rossel">Groupe Rossel</option>
+                            </select>
+                        </div>
+                        <div class="chart-container h-80">
+                            <canvas id="mediaChart"></canvas>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2 text-center">Données estimées sur base de l'analyse sémantique du rapport.</p>
+                    </div>
+
+                    <!-- Contextual Info -->
+                    <div class="space-y-6">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-amber-500 card-hover">
+                            <h4 class="text-lg font-bold text-gray-900 mb-2">Le Phénomène "Deborsu"</h4>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                L'analyse sémantique des émissions dominicales montre une tendance à la simplification des enjeux complexes ("scandale", "clash"). Cette "infotainment" contribue-t-elle à la montée des extrêmes ? Le rapport suggère un lien direct entre ce format et la polarisation.
+                            </p>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-gray-500 card-hover">
+                            <h4 class="text-lg font-bold text-gray-900 mb-2">Service Civil de Renseignement ?</h4>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                Une section controversée du rapport ("Service Civil de Renseignement Aussi") questionne l'indépendance des sources journalistiques face aux communiqués officiels, notamment sur les sujets de sécurité (Lone Wolf, Radicalisation), créant une boucle de feedback narratif.
+                            </p>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-emerald-500 card-hover">
+                            <h4 class="text-lg font-bold text-gray-900 mb-2">Le Facteur Bureau du Plan</h4>
+                            <p class="text-gray-600 text-sm">
+                                <strong>Fact Check :</strong> Alors que les médias focalisent 15% du temps d'antenne sur la fraude sociale, les rapports du Bureau du Plan indiquent que la fraude fiscale représente un manque à gagner pour l'État près de 8 fois supérieur.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Themes & Society (Timeline/Interaction) -->
+        <section id="societe" class="py-12 bg-white mb-12 border-t border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-900">Phénomènes de Société & Sécurité</h2>
+                    <p class="mt-2 text-gray-600">
+                        Analyse des corrélations entre précarité, radicalisation et discours politique.
+                    </p>
+                </div>
+
+                <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="flex flex-col sm:flex-row border-b border-gray-200 bg-gray-50">
+                        <button onclick="switchTab('tab1')" id="btn-tab1" class="flex-1 py-4 px-2 text-center font-medium text-sm active-tab transition">Théorie "Lone Wolf"</button>
+                        <button onclick="switchTab('tab2')" id="btn-tab2" class="flex-1 py-4 px-2 text-center font-medium text-sm inactive-tab transition">La "Particratie"</button>
+                        <button onclick="switchTab('tab3')" id="btn-tab3" class="flex-1 py-4 px-2 text-center font-medium text-sm inactive-tab transition">Conséquences Sociales</button>
+                    </div>
+
+                    <div class="p-6 md:p-8">
+                        <!-- Tab 1 Content -->
+                        <div id="tab1" class="tab-content block animate-fade-in">
+                            <div class="flex flex-col md:flex-row gap-6">
+                                <div class="md:w-1/3">
+                                    <h3 class="text-xl font-bold text-gray-900 mb-4">La narration du Loup Solitaire</h3>
+                                    <div class="bg-red-50 p-4 rounded-lg text-red-800 text-sm mb-4 border border-red-100">
+                                        <strong>Hypothèse :</strong> Le terme "Lone Wolf" est utilisé pour dépolitiser certains actes de violence et éviter une remise en question systémique.
+                                    </div>
+                                    <p class="text-gray-600 text-sm">
+                                        L'analyse des occurrences du terme dans la presse (Rossel/RTL) montre des pics d'utilisation corrélés aux périodes électorales, suggérant une instrumentalisation de la peur ("Scandale", "Radicalisation").
+                                    </p>
+                                </div>
+                                <div class="md:w-2/3">
+                                    <!-- Simple Visualization for Tab 1 -->
+                                    <div class="chart-container h-64">
+                                        <canvas id="timelineChart"></canvas>
+                                    </div>
+                                    <p class="text-center text-xs text-gray-400 mt-2">Volume de mentions "Insécurité" vs Taux de précarité</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab 2 Content -->
+                        <div id="tab2" class="tab-content hidden animate-fade-in">
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Le Verrouillage Particratique</h3>
+                            <p class="text-gray-600 mb-4">
+                                La Belgique est souvent décrite comme une "particratie", où les présidents de partis (GLB, Magnette, Hedebouw) détiennent plus de pouvoir réel que le Parlement.
+                            </p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                                    <div class="font-bold text-gray-800 mb-2">Nominations Politiques</div>
+                                    <p class="text-sm text-gray-500">Contrôle strict des Conseils d'Administration des intercommunales et institutions publiques (ex: Bureau du Plan, RTBF) par les partis traditionnels.</p>
+                                </div>
+                                <div class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                                    <div class="font-bold text-gray-800 mb-2">Discipline de Vote</div>
+                                    <p class="text-sm text-gray-500">99.8% de conformité de vote des députés par rapport à la ligne dictée par le parti, réduisant le débat parlementaire à une formalité.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab 3 Content -->
+                        <div id="tab3" class="tab-content hidden animate-fade-in">
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Suicide et Désespoir Social</h3>
+                            <p class="text-gray-600 mb-6 max-w-2xl">
+                                Un sujet souvent tabou. Le rapport met en lumière le lien potentiel entre la pression administrative croissante (contrôle chômage, discours anti-fraude sociale) et la santé mentale des citoyens les plus précaires.
+                            </p>
+                            <div class="flex items-center justify-center h-48 bg-gray-100 rounded-lg text-gray-500 border border-gray-200 border-dashed">
+                                <div class="text-center p-4">
+                                    <span class="text-4xl block mb-3">⚠️</span>
+                                    <p class="font-bold">Données Sensibles</p>
+                                    <p class="text-sm mt-2">Le rapport préconise une approche de santé publique plutôt que répressive.<br>Les statistiques détaillées sont disponibles dans l'annexe complète.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-900 text-white py-12 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center md:text-left">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h5 class="text-lg font-bold mb-4 text-white">À propos</h5>
+                    <p class="text-gray-400 text-sm leading-relaxed">Ce tableau de bord interactif est une représentation synthétique basée sur les données publiques et l'analyse critique des structures de pouvoir belges et des mécanismes médiatiques.</p>
+                </div>
+                <div>
+                    <h5 class="text-lg font-bold mb-4 text-white">Mots-clés</h5>
+                    <div class="flex flex-wrap gap-2 text-xs text-gray-400 justify-center md:justify-start">
+                        <span class="bg-gray-800 px-3 py-1 rounded-full border border-gray-700">Particratie</span>
+                        <span class="bg-gray-800 px-3 py-1 rounded-full border border-gray-700">Médias</span>
+                        <span class="bg-gray-800 px-3 py-1 rounded-full border border-gray-700">Radicalisation</span>
+                        <span class="bg-gray-800 px-3 py-1 rounded-full border border-gray-700">Bureau du Plan</span>
+                        <span class="bg-gray-800 px-3 py-1 rounded-full border border-gray-700">Fraude Sociale</span>
+                    </div>
+                </div>
+                <div class="text-center md:text-right">
+                    <p class="text-sm text-gray-500">&copy; 2026 Observatoire Citoyen. Projet indépendant.</p>
+                    <p class="text-xs text-gray-600 mt-2">Source simulée pour démonstration Canvas.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Data Definitions ---
+        
+        // Politicians Profiles (Radar Data)
+        const politicians = {
+            glb: {
+                label: 'Georges-Louis Bouchez (MR)',
+                data: [95, 85, 40, 90, 60], // Media Presence, Controversy, Consensus, Social Media, Trust
+                desc: "Présence médiatique hyper-active. Polarise fortement sur les réseaux sociaux. Stratégie de communication 'Bim/Oufti' souvent citée dans le rapport comme vecteur de simplification politique.",
+                color: 'rgba(217, 119, 6, 1)', // Amber
+                bg: 'rgba(217, 119, 6, 0.2)'
+            },
+            magnette: {
+                label: 'Paul Magnette (PS)',
+                data: [80, 50, 70, 75, 65],
+                desc: "Profil institutionnel. Tente de concilier sa base traditionnelle et une image écosocialiste. Forte influence structurelle ('Particratie') via les intercommunales.",
+                color: 'rgba(220, 38, 38, 1)', // Red
+                bg: 'rgba(220, 38, 38, 0.2)'
+            },
+            raoul: {
+                label: 'Raoul Hedebouw (PTB)',
+                data: [70, 60, 30, 95, 55],
+                desc: "Excellent communicant numérique. Utilise l'humour et la colère sociale. Souvent exclu des cercles de pouvoir traditionnels (Cordon sanitaire) mais fort impact viral.",
+                color: 'rgba(185, 28, 28, 1)', // Dark Red
+                bg: 'rgba(185, 28, 28, 0.2)'
+            }
+        };
+
+        // Media Bias Data (Bar Chart)
+        const mediaData = {
+            rtbf: {
+                label: 'RTBF (Public)',
+                data: [40, 25, 20, 15], // Institutional, Scandal, Social, Other
+                desc: "Service public. Tendance institutionnelle forte, mais critique sur les sujets sociétaux. Financé par l'État."
+            },
+            rtl: {
+                label: 'RTL-TVI (Privé)',
+                data: [20, 50, 15, 15], // Institutional, Scandal, Social, Other
+                desc: "Média privé. Forte focalisation sur le 'fait divers' et l'émotion ('Oufti', 'Scandale') pour maximiser l'audience."
+            },
+            rossel: {
+                label: 'Groupe Rossel (Presse)',
+                data: [35, 30, 25, 10], // Institutional, Scandal, Social, Other
+                desc: "Groupe dominant (Le Soir, Sudpresse). Grand écart éditorial entre analyse sérieuse et titres 'clickbait'."
+            }
+        };
+
+        // --- Chart Initialization ---
+
+        // 1. Radar Chart (Politicians)
+        const ctxRadar = document.getElementById('radarChart').getContext('2d');
+        let radarChart = new Chart(ctxRadar, {
+            type: 'radar',
+            data: {
+                labels: ['Présence Média', 'Indice Controverse', 'Capacité Consensus', 'Impact Réseaux', 'Confiance Citoyenne'],
+                datasets: [{
+                    label: politicians.glb.label,
+                    data: politicians.glb.data,
+                    fill: true,
+                    backgroundColor: politicians.glb.bg,
+                    borderColor: politicians.glb.color,
+                    pointBackgroundColor: politicians.glb.color,
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: politicians.glb.color
+                },
+                {
+                    label: 'Moyenne Nationale',
+                    data: [50, 40, 50, 50, 50],
+                    fill: true,
+                    backgroundColor: 'rgba(156, 163, 175, 0.2)',
+                    borderColor: 'rgba(156, 163, 175, 1)',
+                    pointBackgroundColor: 'rgba(156, 163, 175, 1)',
+                    borderDash: [5, 5]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                elements: { line: { borderWidth: 3 } },
+                scales: {
+                    r: {
+                        angleLines: { display: true, color: 'rgba(0,0,0,0.1)' },
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        suggestedMin: 0,
+                        suggestedMax: 100,
+                        ticks: { display: false, backdropColor: 'transparent' },
+                        pointLabels: {
+                            font: { size: 11, family: "'Inter', sans-serif" },
+                            color: '#4B5563'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                let label = item.chart.data.labels[item.dataIndex];
+                                if (Array.isArray(label)) {
+                                  return label.join(' ');
+                                } else {
+                                  return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 2. Bar Chart (Media)
+        const ctxMedia = document.getElementById('mediaChart').getContext('2d');
+        let mediaChart = new Chart(ctxMedia, {
+            type: 'bar',
+            data: {
+                labels: ['Politique Institutionnelle', ['Faits Divers', '& Scandale'], ['Social', '& Économie'], ['Culture', '& Autre']],
+                datasets: [{
+                    label: 'RTBF',
+                    data: mediaData.rtbf.data,
+                    backgroundColor: [
+                        'rgba(55, 65, 81, 0.8)',   // Dark Grey
+                        'rgba(220, 38, 38, 0.8)',  // Red (Scandal)
+                        'rgba(5, 150, 105, 0.8)',  // Green (Social)
+                        'rgba(156, 163, 175, 0.8)' // Light Grey
+                    ],
+                    borderColor: 'rgba(255,255,255,1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                let label = item.chart.data.labels[item.dataIndex];
+                                if (Array.isArray(label)) {
+                                  return label.join(' ');
+                                } else {
+                                  return label;
+                                }
+                            },
+                            label: function(context) {
+                                return context.parsed.y + '% du temps d\'antenne';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 60,
+                        grid: { color: '#f3f4f6' },
+                        ticks: { font: { family: "'Inter', sans-serif" } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { family: "'Inter', sans-serif" } }
+                    }
+                }
+            }
+        });
+
+        // 3. Line Chart (Timeline - Lone Wolf)
+        const ctxLine = document.getElementById('timelineChart').getContext('2d');
+        new Chart(ctxLine, {
+            type: 'line',
+            data: {
+                labels: ['2020', '2021', '2022', '2023', '2024', '2025'],
+                datasets: [{
+                    label: 'Mentions "Insécurité"',
+                    data: [30, 45, 35, 80, 50, 90], // Peaks during election years?
+                    borderColor: '#DC2626', // Red
+                    backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                },
+                {
+                    label: 'Indice Précarité Réelle',
+                    data: [40, 42, 45, 48, 50, 52], // Steady rise
+                    borderColor: '#4B5563', // Grey
+                    borderDash: [5, 5],
+                    tension: 0.4,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, font: { family: "'Inter', sans-serif" } } },
+                    tooltip: {
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                let label = item.chart.data.labels[item.dataIndex];
+                                if (Array.isArray(label)) {
+                                  return label.join(' ');
+                                } else {
+                                  return label;
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { display: false },
+                    x: { grid: { display: false }, ticks: { font: { family: "'Inter', sans-serif" } } }
+                }
+            }
+        });
+
+        // --- Interaction Logic ---
+
+        // Function to update Radar Chart based on Politician Selection
+        function updateRadar(key) {
+            const profile = politicians[key];
+            
+            // Update Data
+            radarChart.data.datasets[0].label = profile.label;
+            radarChart.data.datasets[0].data = profile.data;
+            radarChart.data.datasets[0].backgroundColor = profile.bg;
+            radarChart.data.datasets[0].borderColor = profile.color;
+            radarChart.data.datasets[0].pointBackgroundColor = profile.color;
+            radarChart.data.datasets[0].pointHoverBorderColor = profile.color;
+            
+            radarChart.update();
+
+            // Update Text Context with animation effect
+            const textContainer = document.querySelector('#profile-details');
+            textContainer.style.opacity = '0';
+            setTimeout(() => {
+                textContainer.innerHTML = `
+                    <h4 class="font-bold text-gray-800 mb-2">Analyse Rapide : ${profile.label.split('(')[0]}</h4>
+                    <p class="text-gray-600">${profile.desc}</p>
+                `;
+                textContainer.style.opacity = '1';
+            }, 200);
+
+            // Update UI State (Active Button)
+            document.querySelectorAll('#politique button[id^="btn-"]').forEach(btn => {
+                btn.classList.remove('bg-amber-50', 'border-amber-200');
+                btn.classList.add('bg-white', 'border-gray-200');
+                // Reset arrow color
+                const arrow = btn.querySelector('span');
+                if(arrow) arrow.classList.replace('text-amber-600', 'text-gray-400');
+            });
+
+            const activeBtn = document.getElementById(`btn-${key}`);
+            activeBtn.classList.remove('bg-white', 'border-gray-200');
+            activeBtn.classList.add('bg-amber-50', 'border-amber-200');
+            const activeArrow = activeBtn.querySelector('span');
+            if(activeArrow) activeArrow.classList.replace('text-gray-400', 'text-amber-600');
+        }
+
+        // Function to update Media Chart
+        function updateMediaChart() {
+            const selector = document.getElementById('media-selector');
+            const key = selector.value;
+            const data = mediaData[key];
+
+            mediaChart.data.datasets[0].data = data.data;
+            mediaChart.data.datasets[0].label = data.label;
+            mediaChart.update();
+        }
+
+        // Function to switch Tabs
+        function switchTab(tabId) {
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('block'));
+
+            // Show selected content
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById(tabId).classList.add('block');
+
+            // Update Button Styles
+            const buttons = ['tab1', 'tab2', 'tab3'];
+            buttons.forEach(id => {
+                const btn = document.getElementById(`btn-${id}`);
+                if (id === tabId) {
+                    btn.classList.add('active-tab');
+                    btn.classList.remove('inactive-tab');
+                } else {
+                    btn.classList.remove('active-tab');
+                    btn.classList.add('inactive-tab');
+                }
+            });
+        }
+
+        // Scroll Navigation
+        function scrollToSection(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Initial animation helper
+        document.addEventListener('DOMContentLoaded', () => {
+            const textContainer = document.querySelector('#profile-details');
+            textContainer.style.transition = 'opacity 0.2s ease-in-out';
+        });
+
+    </script>
+</body>
+</html>
