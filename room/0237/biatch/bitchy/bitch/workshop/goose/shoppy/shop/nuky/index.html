@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport d'Analyse : Projet G.O.O.S.E.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom Font for a cleaner look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Chart Container Styling - Mandatory per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Max width constraint */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        .active-tab {
+            border-bottom: 2px solid #f97316; /* Orange-500 */
+            color: #f97316;
+            font-weight: 600;
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals & Orange Accent (Goose Theme) -->
+    <!-- Application Structure Plan: Dashboard layout with top navigation tabs. 
+         1. Overview: High-level metrics and mission statement.
+         2. Behavioral Analysis: Charts regarding the 'Goose' agent's interactions.
+         3. Technical Outcomes: Code quality and bug reports simulated from a workshop environment.
+         Structure chosen to allow users to switch between 'Business Value' and 'Technical Implementation' views easily. -->
+    <!-- Visualization & Content Choices: 
+         - Bar Chart: Frequency of items stolen (Goal: Compare).
+         - Line Chart: Chaos levels over time (Goal: Change/Trend).
+         - Donut Chart: User sentiment breakdown (Goal: Inform/Proportion).
+         - Interactive 'Honk' Button: Demonstrates agent responsiveness directly in the UI. 
+         - Logic: Vanilla JS state management to filter data views (Day 1 vs Day 2 of workshop). -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-lg">G</div>
+                    <span class="font-bold text-xl tracking-tight text-slate-800">Projet <span class="text-orange-500">G.O.O.S.E.</span></span>
+                </div>
+                <div class="text-sm text-slate-500 hidden sm:block">Rapport de Synthèse Interactif</div>
+            </div>
+            <!-- Navigation -->
+            <nav class="flex space-x-8 -mb-px overflow-x-auto" aria-label="Tabs">
+                <button id="nav-overview" onclick="switchTab('overview')" class="active-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors hover:text-orange-500">
+                    Vue d'ensemble
+                </button>
+                <button id="nav-behavior" onclick="switchTab('behavior')" class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm text-slate-500 hover:text-orange-500 hover:border-slate-300 transition-colors">
+                    Comportement de l'Agent
+                </button>
+                <button id="nav-technical" onclick="switchTab('technical')" class="whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm text-slate-500 hover:text-orange-500 hover:border-slate-300 transition-colors">
+                    Métriques Techniques
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- Controls / Filters -->
+        <div class="flex flex-wrap items-center justify-between mb-8 gap-4 bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-800">Paramètres d'Analyse</h2>
+                <p class="text-sm text-slate-500">Filtrer les données par session de workshop</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <label for="session-select" class="text-sm font-medium text-slate-700">Session:</label>
+                <select id="session-select" onchange="updateData()" class="block w-40 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md bg-slate-50 border">
+                    <option value="all">Global (Cumulé)</option>
+                    <option value="day1">Jour 1: Proto</option>
+                    <option value="day2">Jour 2: Chaos</option>
+                </select>
+                <button onclick="triggerHonk()" class="ml-4 bg-orange-100 text-orange-700 px-4 py-2 rounded-md font-medium text-sm hover:bg-orange-200 transition-colors border border-orange-200 shadow-sm flex items-center gap-2">
+                    <span>📣</span> Simuler Interaction
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW: OVERVIEW -->
+        <div id="view-overview" class="space-y-6 animate-fade-in">
+            <!-- Context Intro -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                <h3 class="text-xl font-bold text-slate-800 mb-2">Contexte du Rapport</h3>
+                <p class="text-slate-600 leading-relaxed">
+                    Ce rapport interactif analyse les résultats du workshop "Room 0237". L'objectif était de développer un agent autonome (nom de code : <strong>The Goose</strong>) capable d'interactions imprévisibles dans un environnement web. Les données ci-dessous synthétisent l'engagement des utilisateurs et l'efficacité des mécanismes de nuisance implémentés.
+                </p>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div class="text-slate-500 text-sm font-medium uppercase tracking-wider mb-1">Objets Volés</div>
+                    <div class="flex items-baseline">
+                        <span id="kpi-stolen" class="text-3xl font-bold text-slate-800">1,240</span>
+                        <span class="ml-2 text-sm font-medium text-green-600">▲ 12%</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-400">Total cumulé sur 48h</div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div class="text-slate-500 text-sm font-medium uppercase tracking-wider mb-1">Taux de "Honk"</div>
+                    <div class="flex items-baseline">
+                        <span id="kpi-honk" class="text-3xl font-bold text-slate-800">45.2</span>
+                        <span class="ml-2 text-sm font-medium text-slate-400">/ min</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-400">Moyenne par session active</div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div class="text-slate-500 text-sm font-medium uppercase tracking-wider mb-1">Score de Chaos</div>
+                    <div class="flex items-baseline">
+                        <span id="kpi-chaos" class="text-3xl font-bold text-orange-500">9.8</span>
+                        <span class="ml-2 text-sm font-medium text-slate-400">/ 10</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-400">Indice de perturbation UX</div>
+                </div>
+            </div>
+
+            <!-- Intro to Chart -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <div class="mb-4">
+                        <h4 class="text-lg font-bold text-slate-800">Répartition des Actions</h4>
+                        <p class="text-sm text-slate-500">Analyse des types d'interactions initiées par l'agent Oie.</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="actionsChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-center">
+                    <h4 class="text-lg font-bold text-slate-800 mb-4">Résumé Exécutif</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-orange-100 text-orange-500 font-bold text-xs mt-0.5">1</div>
+                            <p class="ml-3 text-sm text-slate-600">L'agent démontre une capacité exceptionnelle à perturber le flux de travail de l'utilisateur, confirmant le succès de l'algorithme "Nuisance-First".</p>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-orange-100 text-orange-500 font-bold text-xs mt-0.5">2</div>
+                            <p class="ml-3 text-sm text-slate-600">Le mécanisme de vol de curseur (Mouse Snatch) est l'interaction la plus engageante, bien que génératrice de frustration élevée.</p>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-orange-100 text-orange-500 font-bold text-xs mt-0.5">3</div>
+                            <p class="ml-3 text-sm text-slate-600">Recommandation : Augmenter le volume du "Honk" de 15% pour maximiser l'impact lors de la prochaine itération.</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <span class="text-xs font-semibold text-slate-500 uppercase">Dernière mise à jour</span>
+                        <p class="text-sm text-slate-800 font-medium">Il y a 12 minutes (Agent actif)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: BEHAVIOR -->
+        <div id="view-behavior" class="hidden space-y-6">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                <h3 class="text-xl font-bold text-slate-800 mb-2">Analyse Comportementale</h3>
+                <p class="text-slate-600">
+                    Cette section détaille les préférences de l'IA en matière de cibles (objets virtuels) et l'évolution de son agressivité au cours d'une session type. Utilisez le filtre "Session" ci-dessus pour voir l'évolution entre le prototype et la version finale.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Stolen Items Chart -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <div class="mb-4 flex justify-between items-end">
+                        <div>
+                            <h4 class="text-lg font-bold text-slate-800">Inventaire des Vols</h4>
+                            <p class="text-sm text-slate-500">Objets les plus fréquemment dérobés par l'agent.</p>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="itemsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Aggression Timeline -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <div class="mb-4">
+                        <h4 class="text-lg font-bold text-slate-800">Niveau de Chaos (Temps Réel)</h4>
+                        <p class="text-sm text-slate-500">Intensité des actions sur une fenêtre de 60 secondes.</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chaosChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Qualitative Insights Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                <div class="bg-orange-50 p-6 rounded-xl border border-orange-100">
+                    <div class="text-2xl mb-2">🔔</div>
+                    <h5 class="font-bold text-slate-800 mb-2">Obsession pour la Cloche</h5>
+                    <p class="text-sm text-slate-600">L'agent priorise la cloche dans 87% des scénarios où elle est présente, ignorant les inputs utilisateur.</p>
+                </div>
+                <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                    <div class="text-2xl mb-2">💧</div>
+                    <h5 class="font-bold text-slate-800 mb-2">Zone de L'étang</h5>
+                    <p class="text-sm text-slate-600">Zone de repos. L'activité baisse de 40% lorsque l'agent est à proximité d'eau virtuelle.</p>
+                </div>
+                <div class="bg-slate-100 p-6 rounded-xl border border-slate-200">
+                    <div class="text-2xl mb-2">👟</div>
+                    <h5 class="font-bold text-slate-800 mb-2">Attaque des Lacets</h5>
+                    <p class="text-sm text-slate-600">Nouvelle fonctionnalité : fait trébucher le curseur de la souris, provoquant une perte de focus.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: TECHNICAL -->
+        <div id="view-technical" class="hidden space-y-6">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                <h3 class="text-xl font-bold text-slate-800 mb-2">Métriques Techniques</h3>
+                <p class="text-slate-600">
+                    Performance du code généré durant le workshop. Analyse de la stabilité du moteur physique et de la satisfaction (ironique) des utilisateurs.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- User Sentiment -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 col-span-1">
+                    <div class="mb-4">
+                        <h4 class="text-lg font-bold text-slate-800">Sentiment Utilisateur</h4>
+                        <p class="text-sm text-slate-500">Basé sur l'analyse des mouvements de souris erratiques.</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="sentimentChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <p class="text-xs text-slate-400 italic">"C'est un jeu horrible, j'adore." - Beta Tester #42</p>
+                    </div>
+                </div>
+
+                <!-- Bug Reports Table -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 col-span-1 lg:col-span-2">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-lg font-bold text-slate-800">Logs du Système</h4>
+                        <span class="px-2 py-1 bg-red-100 text-red-600 text-xs font-bold rounded">LIVE</span>
+                    </div>
+                    <div class="overflow-hidden rounded-lg border border-slate-200">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Timestamp</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Event</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Sévérité</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-slate-200" id="log-table-body">
+                                <!-- JS will populate this -->
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">14:02:22</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">Oie coincée dans div #header</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-600">Moyen</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">Résolu (Honk)</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">14:05:45</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">Vol de focus input</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-orange-600">Élevé</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">Intentionnel</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">14:10:01</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">Stack Overflow (Trop de honks)</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">Critique</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">En cours</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-100 border-t border-slate-200 mt-auto py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-sm text-slate-500">© 2024 Workshop Room 0237 Analysis. Generated from source concept.</p>
+            <p class="text-xs text-slate-400 mt-2">Ce rapport est une simulation interactive basée sur l'URL fournie.</p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA STORE ---
+        const appData = {
+            currentTab: 'overview',
+            session: 'all',
+            charts: {},
+            // Data for different sessions
+            datasets: {
+                all: {
+                    kpi: { stolen: 1240, honk: 45.2, chaos: 9.8 },
+                    actions: [35, 25, 20, 15, 5], // Walk, Honk, Steal, Run, Trip
+                    items: [150, 120, 90, 60, 40], // Keys, Glasses, Rake, Bell, Sandwich
+                    chaosHistory: [2, 3, 5, 8, 7, 9, 8, 10, 6, 8],
+                    sentiment: [15, 60, 25] // Happy, Frustrated, Amused
+                },
+                day1: {
+                    kpi: { stolen: 420, honk: 12.5, chaos: 4.2 },
+                    actions: [60, 10, 5, 20, 5],
+                    items: [50, 30, 10, 5, 2],
+                    chaosHistory: [1, 2, 1, 3, 2, 4, 3, 2, 1, 2],
+                    sentiment: [40, 20, 40]
+                },
+                day2: {
+                    kpi: { stolen: 820, honk: 78.9, chaos: 9.9 },
+                    actions: [10, 40, 35, 10, 5],
+                    items: [100, 90, 80, 55, 38],
+                    chaosHistory: [5, 7, 9, 10, 9, 10, 10, 8, 9, 10],
+                    sentiment: [5, 80, 15]
+                }
+            }
+        };
+
+        // --- INIT & NAVIGATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            // Start animation loop for chaos chart
+            setInterval(simulateRealtimeChaos, 2000);
+        });
+
+        function switchTab(tabId) {
+            // Update Tab Styling
+            ['overview', 'behavior', 'technical'].forEach(t => {
+                const btn = document.getElementById(`nav-${t}`);
+                const view = document.getElementById(`view-${t}`);
+                
+                if (t === tabId) {
+                    btn.className = "active-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors hover:text-orange-500";
+                    view.classList.remove('hidden');
+                    // Re-render charts in this view to ensure correct sizing
+                    updateChartsInView(t);
+                } else {
+                    btn.className = "whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm text-slate-500 hover:text-orange-500 hover:border-slate-300 transition-colors";
+                    view.classList.add('hidden');
+                }
+            });
+            appData.currentTab = tabId;
+        }
+
+        // --- CHART INITIALIZATION ---
+        function initCharts() {
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                        padding: 12,
+                        cornerRadius: 8,
+                    }
+                }
+            };
+
+            // 1. Overview: Actions (Doughnut)
+            const ctxActions = document.getElementById('actionsChart').getContext('2d');
+            appData.charts.actions = new Chart(ctxActions, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Marcher', 'Honk', 'Voler', 'Courir', 'Faire tomber'],
+                    datasets: [{
+                        data: appData.datasets.all.actions,
+                        backgroundColor: ['#94a3b8', '#f97316', '#ef4444', '#3b82f6', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: commonOptions
+            });
+
+            // 2. Behavior: Stolen Items (Bar)
+            const ctxItems = document.getElementById('itemsChart').getContext('2d');
+            appData.charts.items = new Chart(ctxItems, {
+                type: 'bar',
+                data: {
+                    labels: ['Clés', 'Lunettes', 'Râteau', 'Cloche', 'Sandwich'],
+                    datasets: [{
+                        label: 'Quantité volée',
+                        data: appData.datasets.all.items,
+                        backgroundColor: '#f97316',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        y: { beginAtZero: true, grid: { borderDash: [2, 4] } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // 3. Behavior: Chaos Timeline (Line)
+            const ctxChaos = document.getElementById('chaosChart').getContext('2d');
+            appData.charts.chaos = new Chart(ctxChaos, {
+                type: 'line',
+                data: {
+                    labels: ['T-45s', 'T-40s', 'T-35s', 'T-30s', 'T-25s', 'T-20s', 'T-15s', 'T-10s', 'T-5s', 'Now'],
+                    datasets: [{
+                        label: 'Niveau de Chaos',
+                        data: appData.datasets.all.chaosHistory,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        y: { min: 0, max: 12, display: false },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // 4. Technical: Sentiment (Pie)
+            const ctxSentiment = document.getElementById('sentimentChart').getContext('2d');
+            appData.charts.sentiment = new Chart(ctxSentiment, {
+                type: 'pie',
+                data: {
+                    labels: ['Content', 'Frustré', 'Amusé'],
+                    datasets: [{
+                        data: appData.datasets.all.sentiment,
+                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+                        borderWidth: 0
+                    }]
+                },
+                options: commonOptions
+            });
+        }
+
+        // --- INTERACTION LOGIC ---
+        function updateData() {
+            const select = document.getElementById('session-select');
+            const session = select.value;
+            appData.session = session;
+            const data = appData.datasets[session];
+
+            // Update KPIs
+            animateValue("kpi-stolen", parseInt(document.getElementById("kpi-stolen").innerText.replace(/,/g, '')), data.kpi.stolen, 800);
+            animateValue("kpi-honk", parseFloat(document.getElementById("kpi-honk").innerText), data.kpi.honk, 800);
+            document.getElementById("kpi-chaos").innerText = data.kpi.chaos;
+
+            // Update Charts
+            appData.charts.actions.data.datasets[0].data = data.actions;
+            appData.charts.actions.update();
+
+            appData.charts.items.data.datasets[0].data = data.items;
+            appData.charts.items.update();
+
+            appData.charts.chaos.data.datasets[0].data = data.chaosHistory;
+            appData.charts.chaos.update();
+
+            appData.charts.sentiment.data.datasets[0].data = data.sentiment;
+            appData.charts.sentiment.update();
+        }
+
+        function triggerHonk() {
+            // Visual feedback
+            const btn = document.querySelector('button[onclick="triggerHonk()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "<span>📣</span> HONK!";
+            btn.classList.add('bg-orange-300', 'scale-105');
+            
+            // Update Chaos Chart temporarily
+            const currentChaos = appData.charts.chaos.data.datasets[0].data;
+            const spikedChaos = [...currentChaos];
+            spikedChaos[spikedChaos.length - 1] = 12; // Spike
+            appData.charts.chaos.data.datasets[0].data = spikedChaos;
+            appData.charts.chaos.update('none');
+
+            // Reset after delay
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove('bg-orange-300', 'scale-105');
+            }, 300);
+        }
+
+        function simulateRealtimeChaos() {
+            // Only update if in 'Behavior' tab to save resources, or keep background running
+            // Slight randomization of the last point of the Chaos chart
+            const chart = appData.charts.chaos;
+            const data = chart.data.datasets[0].data;
+            
+            // Shift array left
+            data.shift();
+            // Add new random value based on current base chaos level
+            const baseLevel = appData.datasets[appData.session].kpi.chaos;
+            const noise = (Math.random() * 4) - 2;
+            let newVal = Math.max(0, Math.min(12, baseLevel + noise));
+            
+            data.push(newVal);
+            chart.update('none'); // Update without full animation
+        }
+
+        function updateChartsInView(tab) {
+            // Helper to resize chart if needed when tab becomes visible
+            if(tab === 'overview') appData.charts.actions.resize();
+            if(tab === 'behavior') {
+                appData.charts.items.resize();
+                appData.charts.chaos.resize();
+            }
+            if(tab === 'technical') appData.charts.sentiment.resize();
+        }
+
+        // Utility for number animation
+        function animateValue(id, start, end, duration) {
+            if (start === end) return;
+            const range = end - start;
+            let current = start;
+            const increment = end > start ? 1 : -1;
+            const stepTime = Math.abs(Math.floor(duration / range));
+            const obj = document.getElementById(id);
+            
+            // For float handling
+            const isFloat = end % 1 !== 0;
+            
+            const timer = setInterval(function() {
+                if (isFloat) {
+                    current += (end - start) / 20; // approximate steps
+                    if ((range > 0 && current >= end) || (range < 0 && current <= end)) {
+                        current = end;
+                    }
+                    obj.innerHTML = current.toFixed(1);
+                } else {
+                    current += increment;
+                    obj.innerHTML = current.toLocaleString();
+                }
+                
+                if (current == end) {
+                    clearInterval(timer);
+                }
+            }, isFloat ? 50 : stepTime);
+        }
+    </script>
+</body>
+</html>
