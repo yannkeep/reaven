@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse Dynamiques Médiatico-Politiques | Belgique</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Chosen Palette: Warm Neutrals & Belgian Political Accents -->
+    <!-- Background: #FDFBF7 (Warm Off-White) -->
+    <!-- Text: #1F2937 (Gray-800) -->
+    <!-- Accents: #1E40AF (MR Blue), #DC2626 (PS Red), #7F1D1D (PTB Burgundy), #F59E0B (Buzz/Alert) -->
+
+    <!-- Application Structure Plan: 
+         The app is designed as an "Executive Dashboard" to make the complex web of political interactions and media metrics digestible.
+         1. Header: Sets the context of the report.
+         2. Control Center: Global filters (Politician Selection) that drive the data across the entire page, simulating a drill-down analysis.
+         3. KPI Cards: Immediate quantitative insights ("Score de Buzz", "Indice de Polarisation").
+         4. Section 1 (Media Presence): Bar charts comparing airtime across channels (RTBF/RTL), crucial for understanding the "Particratie" element.
+         5. Section 2 (Thematic Analysis): Doughnut charts showing which themes (Radicalisation, Fraude Sociale, etc.) are associated with the selected profile.
+         6. Section 3 (Timeline): Line chart showing the "Scandal/Event" velocity over time.
+         7. Qualitative Insights: Text blocks that update dynamically to explain the "Why" behind the data.
+         This structure was chosen to move from high-level metrics to specific thematic deep-dives, allowing the user to act as the analyst.
+    -->
+
+    <!-- Visualization & Content Choices:
+         1. Goal: Compare Media Impact -> Method: Grouped Bar Chart -> Interaction: Toggle between Total Minutes vs Frequency -> Justification: Shows the disparity between public (RTBF) and private (RTL) coverage.
+         2. Goal: Analyze Themes -> Method: Doughnut Chart -> Interaction: Hover for details -> Justification: Quickly visualizes the rhetorical focus of each actor (e.g., GLB on "Radicalisation" vs Raoul on "Social").
+         3. Goal: Track "Buzz" -> Method: Line Chart -> Interaction: None (Trend view) -> Justification: Visualizes the volatility mentioned in the URL (lol/bim/oufti).
+         4. Goal: Context -> Method: Dynamic Text Cards -> Interaction: Updates based on selection -> Justification: Provides the narrative layer missing from raw numbers.
+         5. CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All visuals are Canvas (Chart.js) or HTML/CSS.
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF7; /* Warm neutral background */
+            color: #374151;
+        }
+
+        /* Chart Container Styling - MANDATORY ADHERENCE */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Constraint for large screens */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base mobile height */
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px; /* Tablet/Desktop height */
+            }
+        }
+
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #E5E7EB;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-btn.active {
+            background-color: #374151;
+            color: #ffffff;
+            border-color: #374151;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navigation / Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-gray-800 rounded flex items-center justify-center text-white font-bold text-lg">B</div>
+                <h1 class="text-xl font-bold tracking-tight text-gray-900">BelgianPol <span class="text-gray-500 font-normal">Analytics</span></h1>
+            </div>
+            <nav class="hidden md:flex space-x-6">
+                <a href="#" class="text-gray-600 hover:text-black font-medium transition-colors">Vue d'ensemble</a>
+                <a href="#media-section" class="text-gray-600 hover:text-black font-medium transition-colors">Médias</a>
+                <a href="#themes-section" class="text-gray-600 hover:text-black font-medium transition-colors">Thématiques</a>
+                <a href="#conclusion" class="text-gray-600 hover:text-black font-medium transition-colors">Synthèse</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- Intro Section -->
+        <section class="mb-10 text-center max-w-3xl mx-auto">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Dynamiques de la Particratie et Impact Médiatique</h2>
+            <p class="text-lg text-gray-600 leading-relaxed">
+                Ce rapport interactif explore la corrélation entre la présence médiatique (RTBF, RTL-TVI) et les controverses politiques en Belgique francophone. 
+                Utilisez les filtres ci-dessous pour analyser les profils de <strong>Georges-Louis Bouchez (MR)</strong>, <strong>Paul Magnette (PS)</strong> et <strong>Raoul Hedebouw (PTB)</strong> 
+                à travers le prisme de thèmes tels que la radicalisation, la fraude sociale et la polarisation ("Rednecks" vs "Fan Club").
+            </p>
+        </section>
+
+        <!-- Interactive Controls -->
+        <section class="mb-10" aria-label="Filtres Principaux">
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button onclick="updateDashboard('GLB')" id="btn-GLB" class="nav-btn active px-6 py-3 rounded-full border-2 border-gray-300 font-semibold text-sm uppercase tracking-wider hover:border-blue-600 hover:text-blue-600 transition-all">
+                    G.L. Bouchez (MR)
+                </button>
+                <button onclick="updateDashboard('Magnette')" id="btn-Magnette" class="nav-btn px-6 py-3 rounded-full border-2 border-gray-300 font-semibold text-sm uppercase tracking-wider hover:border-red-600 hover:text-red-600 transition-all">
+                    Paul Magnette (PS)
+                </button>
+                <button onclick="updateDashboard('Hedebouw')" id="btn-Hedebouw" class="nav-btn px-6 py-3 rounded-full border-2 border-gray-300 font-semibold text-sm uppercase tracking-wider hover:border-red-900 hover:text-red-900 transition-all">
+                    Raoul Hedebouw (PTB)
+                </button>
+            </div>
+        </section>
+
+        <!-- Dashboard Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            <!-- Left Column: KPIs & Profile (4 cols) -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                <!-- Dynamic Profile Card -->
+                <div class="card p-6 border-l-4" id="profile-card-border">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase mb-2">Profil Analysé</h3>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-1" id="profile-name">Georges-Louis Bouchez</h2>
+                    <p class="text-sm font-medium text-blue-600 mb-4" id="profile-role">Président MR</p>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-4" id="profile-desc">
+                        Figure centrale de la communication politique agressive ("Bim", "Oufti"). 
+                        Forte polarisation observée sur les réseaux sociaux et présence massive sur les plateaux télévisés.
+                    </p>
+                    <div class="border-t border-gray-100 pt-4 mt-2">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm text-gray-500">Score de "Buzz"</span>
+                            <span class="font-bold text-gray-900" id="score-buzz">94/100</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-yellow-500 h-2 rounded-full transition-all duration-1000" style="width: 94%" id="bar-buzz"></div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm text-gray-500">Indice de Polarisation</span>
+                            <span class="font-bold text-gray-900" id="score-pol">High</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-red-500 h-2 rounded-full transition-all duration-1000" style="width: 85%" id="bar-pol"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Insight Card -->
+                <div class="card p-6 bg-slate-50">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase mb-3">Focus Analyse</h3>
+                    <p class="text-gray-700 italic" id="insight-text">
+                        "L'utilisation de la polémique comme outil de communication permet de saturer l'espace médiatique, mais risque d'aliéner une partie de l'électorat modéré."
+                    </p>
+                </div>
+            </div>
+
+            <!-- Middle Column: Main Charts (8 cols) -->
+            <div class="lg:col-span-8 flex flex-col gap-8">
+                
+                <!-- Section: Media Presence -->
+                <div id="media-section" class="card p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">Répartition du Temps d'Antenne</h3>
+                            <p class="text-sm text-gray-500">Comparatif RTBF (Service Public) vs RTL-TVI (Privé)</p>
+                        </div>
+                        <div class="mt-2 sm:mt-0 px-3 py-1 bg-gray-100 rounded text-xs font-mono text-gray-600">
+                            Unité: Minutes/Semaine
+                        </div>
+                    </div>
+                    
+                    <p class="mb-4 text-sm text-gray-600">
+                        Cette section illustre la stratégie de canal. Une forte présence sur RTL-TVI (Deborsu) corrèle souvent avec des sujets "Grand Public" (Pouvoir d'achat, Sécurité), tandis que la RTBF favorise les débats institutionnels.
+                    </p>
+
+                    <!-- Chart Container 1 -->
+                    <div class="w-full flex justify-center">
+                        <div class="chart-container">
+                            <canvas id="mediaChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row for Secondary Charts -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    
+                    <!-- Section: Thematics -->
+                    <div id="themes-section" class="card p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-1">Thématiques Dominantes</h3>
+                        <p class="text-sm text-gray-500 mb-4">Analyse sémantique des interventions</p>
+                        
+                        <!-- Chart Container 2 -->
+                         <div class="w-full flex justify-center">
+                            <div class="chart-container">
+                                <canvas id="themeChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-xs text-center text-gray-400">
+                            Données basées sur les mots-clés: Radicalisation, Fraude, Particratie.
+                        </div>
+                    </div>
+
+                    <!-- Section: Sentiment/Buzz -->
+                    <div class="card p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-1">Évolution du "Buzz"</h3>
+                        <p class="text-sm text-gray-500 mb-4">Indice d'impact sur 6 mois (Facteur "Oufti")</p>
+
+                        <!-- Chart Container 3 -->
+                        <div class="w-full flex justify-center">
+                            <div class="chart-container">
+                                <canvas id="buzzChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Detailed Text Analysis Section -->
+        <section class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div class="bg-white p-6 rounded-lg border border-gray-200">
+                <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 text-xl">🔍</div>
+                <h4 class="font-bold text-gray-900 mb-2">Le Phénomène "Lone Wolf"</h4>
+                <p class="text-sm text-gray-600">
+                    L'analyse suggère que certains leaders adoptent une stratégie de "Loup Solitaire" au sein de leur propre parti ("Fan Club" interne vs appareil du parti), créant des tensions mais maximisant la visibilité personnelle.
+                </p>
+            </div>
+            <div class="bg-white p-6 rounded-lg border border-gray-200">
+                <div class="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4 text-xl">⚖️</div>
+                <h4 class="font-bold text-gray-900 mb-2">Fraude Sociale vs Fiscale</h4>
+                <p class="text-sm text-gray-600">
+                    Le clivage gauche-droite reste marqué par le choix des batailles : la focalisation sur la "Fraude Sociale" (droite) vs "Fraude Fiscale" (gauche) reste le marqueur le plus fiable de l'orientation éditoriale des interventions.
+                </p>
+            </div>
+            <div class="bg-white p-6 rounded-lg border border-gray-200">
+                <div class="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mb-4 text-xl">📢</div>
+                <h4 class="font-bold text-gray-900 mb-2">L'Effet "C'est pas tous les jours dimanche"</h4>
+                <p class="text-sm text-gray-600">
+                    Les émissions de débat dominicales (RTL-TVI) agissent comme des amplificateurs majeurs pour les séquences "clash", favorisant les petites phrases ("Bim", "Lol") au détriment de l'analyse de fond.
+                </p>
+            </div>
+        </section>
+
+        <!-- Conclusion -->
+        <section id="conclusion" class="bg-gray-800 text-gray-200 rounded-xl p-8 text-center">
+            <h2 class="text-2xl font-bold text-white mb-4">Conclusion du Rapport</h2>
+            <p class="max-w-3xl mx-auto leading-relaxed mb-6">
+                La "Particratie" belge semble muter vers une personnalisation extrême du pouvoir. 
+                Que ce soit par la provocation calculée ou le populisme de terrain, les présidents de partis deviennent des marques médiatiques autonomes.
+                L'analyse des mots-clés du rapport (Scandale, Radicalisation, Service Civil) montre une tension croissante entre la gestion de l'État et la nécessité du spectacle politique permanent.
+            </p>
+            <button class="bg-white text-gray-900 hover:bg-gray-100 px-6 py-2 rounded-lg font-semibold transition-colors">
+                Télécharger le PDF complet
+            </button>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 mt-auto py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
+            <p>&copy; 2024 Analyse Politique Indépendante. Basé sur le document source index.pdf.</p>
+            <p class="mt-2">Données simulées à des fins de démonstration de l'interface.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- DATA STORE ---
+        // Simulated data based on the "Source Report" inferred context
+        const reportData = {
+            'GLB': {
+                name: 'Georges-Louis Bouchez',
+                role: 'Président MR',
+                desc: 'Ubiquité médiatique. Utilise la controverse comme levier de visibilité. Forte pénétration sur les réseaux sociaux et débats télévisés.',
+                color: '#1E40AF', // Blue
+                buzzScore: 94,
+                polScore: 85,
+                mediaData: [120, 180], // RTBF, RTL
+                themeData: [45, 15, 25, 15], // Radicalisation, Fraude, Eco, Autres
+                buzzTrend: [65, 70, 85, 80, 90, 94],
+                insight: "Sa stratégie de rupture constante ('Bim') lui assure une domination du temps de parole, notamment sur RTL-TVI."
+            },
+            'Magnette': {
+                name: 'Paul Magnette',
+                role: 'Président PS',
+                desc: 'Style plus institutionnel mais offensif sur les questions socio-économiques. Tente de contrer la montée du PTB.',
+                color: '#DC2626', // Red
+                buzzScore: 78,
+                polScore: 60,
+                mediaData: [150, 110], // RTBF, RTL
+                themeData: [10, 20, 50, 20], // Radicalisation, Fraude, Eco, Autres
+                buzzTrend: [70, 75, 72, 78, 76, 78],
+                insight: "Privilégie la RTBF pour les annonces structurelles. Son discours se concentre sur la défense du modèle social face aux 'attaques'."
+            },
+            'Hedebouw': {
+                name: 'Raoul Hedebouw',
+                role: 'Président PTB',
+                desc: 'Communication de terrain, humour et simplicité ("Rednecks", "Oufti"). Attaque frontale contre la "Particratie".',
+                color: '#7F1D1D', // Dark Red
+                buzzScore: 88,
+                polScore: 92,
+                mediaData: [80, 140], // RTBF, RTL
+                themeData: [5, 40, 30, 25], // Radicalisation, Fraude (fiscale), Eco, Autres
+                buzzTrend: [60, 65, 80, 85, 82, 88],
+                insight: "Excellent client pour les formats courts et les débats vifs. Utilise l'humour pour faire passer des messages de rupture radicale."
+            }
+        };
+
+        // --- STATE MANAGEMENT ---
+        let currentProfile = 'GLB';
+        let charts = {}; // Store chart instances
+
+        // --- DOM ELEMENTS ---
+        const ui = {
+            name: document.getElementById('profile-name'),
+            role: document.getElementById('profile-role'),
+            desc: document.getElementById('profile-desc'),
+            buzzScore: document.getElementById('score-buzz'),
+            barBuzz: document.getElementById('bar-buzz'),
+            polScore: document.getElementById('score-pol'),
+            barPol: document.getElementById('bar-pol'),
+            insight: document.getElementById('insight-text'),
+            cardBorder: document.getElementById('profile-card-border'),
+            btns: {
+                'GLB': document.getElementById('btn-GLB'),
+                'Magnette': document.getElementById('btn-Magnette'),
+                'Hedebouw': document.getElementById('btn-Hedebouw')
+            }
+        };
+
+        // --- CHART INITIALIZATION ---
+        function initCharts() {
+            // 1. Media Presence Chart (Bar)
+            const ctxMedia = document.getElementById('mediaChart').getContext('2d');
+            charts.media = new Chart(ctxMedia, {
+                type: 'bar',
+                data: {
+                    labels: ['RTBF (Service Public)', 'RTL-TVI (Privé)'],
+                    datasets: [{
+                        label: 'Minutes / Semaine',
+                        data: reportData[currentProfile].mediaData,
+                        backgroundColor: reportData[currentProfile].color,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1F2937',
+                            padding: 12,
+                            bodyFont: { family: 'Inter', size: 13 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#F3F4F6' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // 2. Theme Chart (Doughnut)
+            const ctxTheme = document.getElementById('themeChart').getContext('2d');
+            charts.theme = new Chart(ctxTheme, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Sécurité/Radicalisation', 'Fraude/Social', 'Économie/Particratie', 'Autres'],
+                    datasets: [{
+                        data: reportData[currentProfile].themeData,
+                        backgroundColor: [
+                            '#374151', // Dark Gray
+                            '#6B7280', // Medium Gray
+                            reportData[currentProfile].color, // Party Color (Main Focus)
+                            '#E5E7EB'  // Light Gray
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { 
+                                font: { family: 'Inter', size: 11 },
+                                boxWidth: 12,
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 3. Buzz Trend Chart (Line)
+            const ctxBuzz = document.getElementById('buzzChart').getContext('2d');
+            charts.buzz = new Chart(ctxBuzz, {
+                type: 'line',
+                data: {
+                    labels: ['Mois 1', 'Mois 2', 'Mois 3', 'Mois 4', 'Mois 5', 'Mois 6'],
+                    datasets: [{
+                        label: 'Indice de Buzz',
+                        data: reportData[currentProfile].buzzTrend,
+                        borderColor: '#F59E0B',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#FFFFFF',
+                        pointBorderColor: '#F59E0B',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { color: '#F3F4F6', borderDash: [5, 5] }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // --- UPDATE LOGIC ---
+        function updateDashboard(profileKey) {
+            currentProfile = profileKey;
+            const data = reportData[profileKey];
+
+            // 1. Update UI Texts
+            ui.name.textContent = data.name;
+            ui.role.textContent = data.role;
+            ui.role.className = `text-sm font-medium mb-4`;
+            ui.role.style.color = data.color;
+            ui.desc.textContent = data.desc;
+            ui.insight.textContent = `"${data.insight}"`;
+            
+            // 2. Update Scores & Bars
+            ui.buzzScore.textContent = data.buzzScore + '/100';
+            ui.barBuzz.style.width = data.buzzScore + '%';
+            
+            ui.polScore.textContent = data.polScore > 80 ? 'Très Élevé' : (data.polScore > 50 ? 'Élevé' : 'Modéré');
+            ui.barPol.style.width = data.polScore + '%';
+            
+            // Update Card Border Color
+            ui.cardBorder.style.borderLeftColor = data.color;
+
+            // 3. Update Buttons State
+            Object.keys(ui.btns).forEach(key => {
+                if (key === profileKey) {
+                    ui.btns[key].classList.add('active');
+                    ui.btns[key].classList.add('bg-gray-800', 'text-white', 'border-gray-800');
+                    ui.btns[key].classList.remove('text-gray-600', 'border-gray-300');
+                    // Reset custom hover colors manually if needed, but active class handles bg
+                } else {
+                    ui.btns[key].classList.remove('active', 'bg-gray-800', 'text-white', 'border-gray-800');
+                    ui.btns[key].classList.add('text-gray-600', 'border-gray-300');
+                }
+            });
+
+            // 4. Update Charts
+            if (charts.media) {
+                charts.media.data.datasets[0].data = data.mediaData;
+                charts.media.data.datasets[0].backgroundColor = data.color;
+                charts.media.update();
+            }
+
+            if (charts.theme) {
+                charts.theme.data.datasets[0].data = data.themeData;
+                charts.theme.data.datasets[0].backgroundColor[2] = data.color; // Update accent color in doughnut
+                charts.theme.update();
+            }
+
+            if (charts.buzz) {
+                charts.buzz.data.datasets[0].data = data.buzzTrend;
+                charts.buzz.update();
+            }
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            // Set initial button state logic strictly
+            updateDashboard('GLB'); 
+        });
+
+    </script>
+</body>
+</html>
