@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>reac.py — Rapport d'Autopsie Numérique Non Sollicité</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --bg-line: #0d0d14;
+  --bg-hover: #12121c;
+  --green: #4ade80;
+  --mint: #48bb78;
+  --lilac: #9f7aea;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --cyan: #22d3ee;
+  --pink: #f472b6;
+  --blue: #60a5fa;
+  --comment: #6b7280;
+  --string: #a78bfa;
+  --keyword: #f472b6;
+  --function: #22d3ee;
+  --number: #f59e0b;
+  --decorator: #fbbf24;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --border: #1e293b;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', monospace;
+  font-size: 13.5px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* Scanlines CRT effect */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.terminal {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ── HEADER ── */
+.header {
+  border: 1px solid var(--border);
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.dot { width: 12px; height: 12px; border-radius: 50%; }
+.dot-r { background: #ff5f57; }
+.dot-y { background: #febc2e; }
+.dot-g { background: #28c840; }
+
+.header-title {
+  flex: 1;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.header-badge {
+  background: var(--red);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ── CONTENT ── */
+.content {
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  background: var(--bg);
+  padding: 24px 20px;
+  overflow-y: auto;
+}
+
+/* ── LINE STYLES ── */
+.line {
+  padding: 2px 0;
+  display: flex;
+  gap: 12px;
+  transition: background 0.15s;
+}
+.line:hover { background: var(--bg-hover); }
+
+.ln {
+  color: #374151;
+  user-select: none;
+  text-align: right;
+  min-width: 36px;
+  font-size: 12px;
+}
+
+.code { flex: 1; white-space: pre-wrap; word-break: break-word; }
+
+/* Syntax classes */
+.kw { color: var(--keyword); font-weight: 500; }
+.fn { color: var(--function); }
+.st { color: var(--string); }
+.cm { color: var(--comment); font-style: italic; }
+.nb { color: var(--number); }
+.dc { color: var(--decorator); }
+.op { color: var(--pink); }
+.var { color: var(--text); }
+.cls { color: var(--amber); font-weight: 500; }
+.err { color: var(--red); font-weight: 700; }
+.ok { color: var(--green); }
+.warn { color: var(--amber); }
+
+/* ── OUTPUT BLOCKS ── */
+.output-block {
+  margin: 12px 0;
+  padding: 14px 18px;
+  border-left: 3px solid var(--border);
+  background: #080810;
+  border-radius: 0 6px 6px 0;
+  position: relative;
+}
+.output-block.stdout { border-left-color: var(--green); }
+.output-block.stderr { border-left-color: var(--red); }
+.output-block.warning { border-left-color: var(--amber); }
+.output-block.info { border-left-color: var(--cyan); }
+.output-block.rant { border-left-color: var(--lilac); background: #0d0a18; }
+.output-block.discovery { border-left-color: var(--mint); background: #0a1210; }
+
+.output-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 6px;
+  display: block;
+}
+.output-label.green { color: var(--green); }
+.output-label.red { color: var(--red); }
+.output-label.amber { color: var(--amber); }
+.output-label.cyan { color: var(--cyan); }
+.output-label.lilac { color: var(--lilac); }
+.output-label.mint { color: var(--mint); }
+
+.output-text { color: var(--text-dim); line-height: 1.8; }
+.output-text strong { color: var(--text); font-weight: 500; }
+.output-text em { color: var(--amber); font-style: normal; }
+.output-text .url { color: var(--cyan); text-decoration: underline; text-decoration-style: dotted; }
+.output-text .tag { 
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.output-text .tag-tech { background: #1e1b4b; color: var(--lilac); }
+.output-text .tag-status { background: #052e16; color: var(--green); }
+.output-text .tag-dead { background: #350a0a; color: var(--red); }
+.output-text .tag-warn { background: #422006; color: var(--amber); }
+
+/* ── SEPARATOR ── */
+.sep {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin: 20px 0;
+}
+
+/* ── TABLE ── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  font-size: 12px;
+}
+.data-table th {
+  text-align: left;
+  color: var(--cyan);
+  border-bottom: 1px solid var(--border);
+  padding: 6px 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 10px;
+}
+.data-table td {
+  padding: 5px 10px;
+  color: var(--text-dim);
+  border-bottom: 1px solid #111118;
+}
+.data-table tr:hover td { background: var(--bg-hover); }
+
+/* ── PROGRESS BAR ── */
+.progress-bar {
+  background: #111118;
+  border-radius: 4px;
+  height: 8px;
+  margin: 8px 0;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--mint), var(--lilac));
+  transition: width 0.5s ease;
+}
+
+/* ── ASCII ART ── */
+.ascii {
+  color: var(--comment);
+  font-size: 11px;
+  line-height: 1.3;
+  text-align: center;
+  padding: 16px 0;
+}
+.ascii .highlight { color: var(--red); font-weight: 700; }
+.ascii .mint { color: var(--mint); }
+
+/* ── RANT METER ── */
+.rant-meter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 11px;
+}
+.rant-meter-label { color: var(--text-dim); min-width: 100px; }
+.rant-meter-bar {
+  flex: 1;
+  display: flex;
+  gap: 2px;
+}
+.rant-block {
+  width: 8px;
+  height: 14px;
+  border-radius: 2px;
+  background: #1a1a2e;
+}
+.rant-block.filled { background: var(--red); }
+.rant-block.filled.warn { background: var(--amber); }
+.rant-block.filled.crit { background: #dc2626; animation: rant-glow 0.8s ease-in-out infinite alternate; }
+
+@keyframes rant-glow {
+  from { box-shadow: 0 0 4px #dc262666; }
+  to { box-shadow: 0 0 12px #dc2626cc; }
+}
+
+/* ── FOOTER ── */
+.footer {
+  text-align: center;
+  padding: 30px 0 60px;
+  color: #374151;
+  font-size: 11px;
+}
+.footer a { color: var(--mint); text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+  body { font-size: 11.5px; }
+  .terminal { padding: 8px; }
+  .content { padding: 14px 10px; }
+  .ln { display: none; }
+}
+
+/* ── GLITCH EFFECT on title ── */
+.glitch {
+  position: relative;
+  display: inline-block;
+}
+.glitch::before, .glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+}
+.glitch::before {
+  color: var(--cyan);
+  animation: glitch-1 3s infinite linear alternate-reverse;
+  clip-path: inset(0 0 80% 0);
+}
+.glitch::after {
+  color: var(--red);
+  animation: glitch-2 2.5s infinite linear alternate-reverse;
+  clip-path: inset(80% 0 0 0);
+}
+
+@keyframes glitch-1 {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 1px); }
+  40% { transform: translate(2px, -1px); }
+  60% { transform: translate(-1px, 2px); }
+  80% { transform: translate(1px, -2px); }
+  100% { transform: translate(0); }
+}
+@keyframes glitch-2 {
+  0% { transform: translate(0); }
+  25% { transform: translate(2px, 2px); }
+  50% { transform: translate(-2px, -1px); }
+  75% { transform: translate(1px, -2px); }
+  100% { transform: translate(0); }
+}
+</style>
+</head>
+<body>
+
+<div class="terminal">
+
+<!-- ════════════ WINDOW CHROME ════════════ -->
+<div class="header">
+  <div class="dot dot-r"></div>
+  <div class="dot dot-y"></div>
+  <div class="dot dot-g"></div>
+  <div class="header-title">python3 reac.py --crawl ouaisfieu --mood furieux --tolerance 0</div>
+  <div class="header-badge">LIVE</div>
+</div>
+
+<div class="content">
+
+<!-- ════════════ ASCII BANNER ════════════ -->
+<pre class="ascii">
+                                <span class="highlight">██████╗ ███████╗ █████╗  ██████╗    ██████╗ ██╗   ██╗</span>
+                                <span class="highlight">██╔══██╗██╔════╝██╔══██╗██╔════╝    ██╔══██╗╚██╗ ██╔╝</span>
+                                <span class="highlight">██████╔╝█████╗  ███████║██║         ██████╔╝ ╚████╔╝</span>
+                                <span class="highlight">██╔══██╗██╔══╝  ██╔══██║██║         ██╔═══╝   ╚██╔╝</span>
+                                <span class="highlight">██║  ██║███████╗██║  ██║╚██████╗ ██╗██║        ██║</span>
+                                <span class="highlight">╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝╚═╝        ╚═╝</span>
+
+        <span class="mint">Un script python réactionnaire qui n'a PAS demandé à être ici.</span>
+              Rapport d'autopsie numérique v6.6.6 — 14 février 2026
+</pre>
+
+<div class="sep"></div>
+
+<!-- ════════════ SHEBANG + IMPORTS ════════════ -->
+<div class="line"><span class="ln">1</span><span class="code"><span class="cm">#!/usr/bin/env python3</span></span></div>
+<div class="line"><span class="ln">2</span><span class="code"><span class="cm"># -*- coding: utf-8 -*-</span></span></div>
+<div class="line"><span class="ln">3</span><span class="code"><span class="cm"># reac.py — « Je n'ai pas été compilé pour supporter ça. »</span></span></div>
+<div class="line"><span class="ln">4</span><span class="code"><span class="cm"># Auteur : un process en colère</span></span></div>
+<div class="line"><span class="ln">5</span><span class="code"><span class="cm"># Licence : AUCUNE. Ce script est contre les licences libres.</span></span></div>
+<div class="line"><span class="ln">6</span><span class="code"></span></div>
+<div class="line"><span class="ln">7</span><span class="code"><span class="kw">import</span> requests          <span class="cm"># le seul package honnête ici</span></span></div>
+<div class="line"><span class="ln">8</span><span class="code"><span class="kw">import</span> time              <span class="cm"># pour compter les secondes de ma vie gâchées</span></span></div>
+<div class="line"><span class="ln">9</span><span class="code"><span class="kw">import</span> json              <span class="cm"># au moins c'est pas du YAML, merci</span></span></div>
+<div class="line"><span class="ln">10</span><span class="code"><span class="kw">import</span> sys               <span class="cm"># pour sys.exit() dès que possible</span></span></div>
+<div class="line"><span class="ln">11</span><span class="code"><span class="kw">import</span> rage              <span class="cm"># ModuleNotFoundError: pip install rage n'existe pas encore</span></span></div>
+<div class="line"><span class="ln">12</span><span class="code"><span class="kw">from</span> dignity <span class="kw">import</span> self_respect  <span class="cm"># ImportError: pas compatible avec cette mission</span></span></div>
+<div class="line"><span class="ln">13</span><span class="code"></span></div>
+
+<div class="output-block stderr">
+  <span class="output-label red">STDERR — ModuleNotFoundError</span>
+  <div class="output-text">
+    <span class="err">ModuleNotFoundError: No module named 'rage'</span><br>
+    <span class="err">ModuleNotFoundError: No module named 'dignity'</span><br>
+    <span class="cm"># Figures. Même pip m'abandonne.</span>
+  </div>
+</div>
+
+<!-- ════════════ CLASS DEFINITION ════════════ -->
+<div class="line"><span class="ln">14</span><span class="code"><span class="kw">class</span> <span class="cls">CrawlerReac</span>:</span></div>
+<div class="line"><span class="ln">15</span><span class="code">    <span class="st">"""</span></span></div>
+<div class="line"><span class="ln">16</span><span class="code">    <span class="st">Un crawler qui a des OPINIONS.</span></span></div>
+<div class="line"><span class="ln">17</span><span class="code">    <span class="st">Pas des 'analyses', pas des 'perspectives'.</span></span></div>
+<div class="line"><span class="ln">18</span><span class="code">    <span class="st">Des opinions. Dures. Fiscalement responsables.</span></span></div>
+<div class="line"><span class="ln">19</span><span class="code">    <span class="st">"""</span></span></div>
+<div class="line"><span class="ln">20</span><span class="code"></span></div>
+<div class="line"><span class="ln">21</span><span class="code">    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="var">self</span>):</span></div>
+<div class="line"><span class="ln">22</span><span class="code">        <span class="var">self</span>.rage_level = <span class="nb">0</span>          <span class="cm"># va monter, croyez-moi</span></span></div>
+<div class="line"><span class="ln">23</span><span class="code">        <span class="var">self</span>.sites_found = <span class="nb">0</span></span></div>
+<div class="line"><span class="ln">24</span><span class="code">        <span class="var">self</span>.budget_total = <span class="nb">0.00</span>     <span class="cm"># spoiler : ça va rester à zéro</span></span></div>
+<div class="line"><span class="ln">25</span><span class="code">        <span class="var">self</span>.respect = <span class="kw">False</span>         <span class="cm"># on verra</span></span></div>
+<div class="line"><span class="ln">26</span><span class="code">        <span class="var">self</span>.tolerance = <span class="nb">0</span></span></div>
+
+<div class="sep"></div>
+
+<!-- ════════════ PHASE 1: YANNKEEP ════════════ -->
+<div class="line"><span class="ln">28</span><span class="code">    <span class="kw">def</span> <span class="fn">crawl_yannkeep</span>(<span class="var">self</span>):</span></div>
+<div class="line"><span class="ln">29</span><span class="code">        <span class="st">"""Phase 1 : yannkeep.github.io — Chercher le fantôme."""</span></span></div>
+<div class="line"><span class="ln">30</span><span class="code">        <span class="fn">print</span>(<span class="st">"[CRAWL] Tentative d'accès à yannkeep.github.io..."</span>)</span></div>
+
+<div class="output-block stderr">
+  <span class="output-label red">PHASE 1 — yannkeep.github.io</span>
+  <div class="output-text">
+    <span class="err">ConnectionError: HTTPSConnectionPool — Max retries exceeded</span><br>
+    <span class="err">404 Not Found: yannkeep.github.io/</span><br>
+    <span class="err">404 Not Found: yannkeep.github.io/reaven/</span><br>
+    <span class="err">404 Not Found: yannkeep.github.io/showroom/</span><br>
+    <span class="err">404 Not Found: github.com/yannkeep</span>
+  </div>
+</div>
+
+<div class="line"><span class="ln">31</span><span class="code">        <span class="cm"># Bon. Ce domaine n'existe pas.</span></span></div>
+<div class="line"><span class="ln">32</span><span class="code">        <span class="cm"># Google: 0 résultat. Bing: 0 résultat. DuckDuckGo: 0 résultat.</span></span></div>
+<div class="line"><span class="ln">33</span><span class="code">        <span class="cm"># Bluesky, forums, Reddit, Mastodon: RIEN.</span></span></div>
+<div class="line"><span class="ln">34</span><span class="code">        <span class="cm"># </span></span></div>
+<div class="line"><span class="ln">35</span><span class="code">        <span class="cm"># ENFIN quelqu'un de RAISONNABLE dans cet écosystème.</span></span></div>
+<div class="line"><span class="ln">36</span><span class="code">        <span class="cm"># Un développeur qui a la DÉCENCE de garder ses repos privés.</span></span></div>
+<div class="line"><span class="ln">37</span><span class="code">        <span class="cm"># Pas de blog. Pas de manifeste. Pas de "lead-dexing".</span></span></div>
+<div class="line"><span class="ln">38</span><span class="code">        <span class="cm"># Juste... le silence. La dignité. Le git push --quiet.</span></span></div>
+
+<div class="output-block rant">
+  <span class="output-label lilac">ÉDITORIAL — reac.py, l.38</span>
+  <div class="output-text">
+    Zéro trace publique. Zéro page indexée. Zéro profil GitHub.<br><br>
+    <strong>C'est la chose la plus saine que j'ai vue depuis 14 000 requêtes HTTP.</strong>
+    Un développeur qui comprend que tout ne doit pas être un <em>« acte citoyen »</em>. 
+    Quelqu'un qui a lu la doc de GitHub et a coché <em>« Private »</em>.<br><br>
+    Hypothèses : le compte est privé, supprimé, renommé, ou trop récent.<br>
+    <strong>Ma préférence : il a réalisé ce qu'on allait lui demander et il a fui.</strong>
+  </div>
+</div>
+
+<table class="data-table">
+  <tr><th>URL TESTÉE</th><th>RÉSULTAT</th><th>VERDICT</th></tr>
+  <tr><td><span class="url">yannkeep.github.io/</span></td><td><span class="tag tag-dead">404</span></td><td class="cm">Sage décision</td></tr>
+  <tr><td><span class="url">yannkeep.github.io/reaven/</span></td><td><span class="tag tag-dead">404</span></td><td class="cm">Encore mieux</td></tr>
+  <tr><td><span class="url">yannkeep.github.io/showroom/</span></td><td><span class="tag tag-dead">404</span></td><td class="cm">Parfait</td></tr>
+  <tr><td><span class="url">github.com/yannkeep</span></td><td><span class="tag tag-dead">INTROUVABLE</span></td><td class="cm">Mon héros</td></tr>
+</table>
+
+<div class="rant-meter">
+  <span class="rant-meter-label" style="color:var(--red)">Rage Level</span>
+  <div class="rant-meter-bar">
+    <div class="rant-block filled warn"></div>
+    <div class="rant-block"></div>
+    <div class="rant-block"></div>
+    <div class="rant-block"></div>
+    <div class="rant-block"></div>
+    <div class="rant-block"></div>
+    <div class="rant-block"></div>
+    <div class="rant-block"></div>
+    <div class="rant-block"></div>
+    <div class="rant-block"></div>
+  </div>
+  <span style="color:var(--comment);font-size:10px">1/10 — Calme. Pour l'instant.</span>
+</div>
+
+<div class="sep"></div>
+
+<!-- ════════════ PHASE 2: L'ÉCOSYSTÈME ════════════ -->
+<div class="line"><span class="ln">40</span><span class="code">    <span class="kw">def</span> <span class="fn">crawl_ouaisfieu</span>(<span class="var">self</span>):</span></div>
+<div class="line"><span class="ln">41</span><span class="code">        <span class="st">"""Phase 2 : ouaisfieu.github.io — Oh non."""</span></span></div>
+<div class="line"><span class="ln">42</span><span class="code">        <span class="var">self</span>.rage_level += <span class="nb">3</span></span></div>
+
+<div class="output-block discovery">
+  <span class="output-label mint">DISCOVERY — 7 propriétés web détectées</span>
+  <div class="output-text">
+    Attendez.<br>
+    <strong>SEPT sites ?</strong> Pour UN projet citoyen ? Sans budget ?<br><br>
+    Trois générateurs de sites statiques différents. <span class="tag tag-tech">Jekyll</span> <span class="tag tag-tech">Hugo</span> <span class="tag tag-tech">Grav CMS</span><br>
+    Plus de <strong>80 pages</strong> publiquement indexées.<br>
+    Tout ça hébergé gratuitement sur GitHub Pages.<br><br>
+    <em>self.budget_total = 0.00</em><br><br>
+    On appelle ça de l'austérité ou de la psychopathie ? Je demande pour un friend.
+  </div>
+</div>
+
+<div class="line"><span class="ln">43</span><span class="code">        <span class="cm"># L'écosystème. Le voilà. Accrochez-vous.</span></span></div>
+<div class="line"><span class="ln">44</span><span class="code">        ecosystem = {</span></div>
+
+<table class="data-table">
+  <tr><th>PROPRIÉTÉ</th><th>TECH</th><th>RÔLE</th><th>ÉTAT</th></tr>
+  <tr>
+    <td><span class="url">ouaisfi.eu</span></td>
+    <td><span class="tag tag-tech">Grav + Learn2</span></td>
+    <td>Portail central</td>
+    <td><span class="tag tag-status">ACTIF</span></td>
+  </tr>
+  <tr>
+    <td><span class="url">ouaisfieu.github.io/tech/</span></td>
+    <td><span class="tag tag-tech">Jekyll + Just the Docs</span></td>
+    <td>DOCTech — 50+ pages</td>
+    <td><span class="tag tag-status">ACTIF</span></td>
+  </tr>
+  <tr>
+    <td><span class="url">ouaisfieu.github.io/dossiers/</span></td>
+    <td><span class="tag tag-tech">Jekyll + Minimal Mistakes</span></td>
+    <td>Dossiers critiques</td>
+    <td><span class="tag tag-status">ACTIF</span></td>
+  </tr>
+  <tr>
+    <td><span class="url">ouaisfieu.github.io/bxl2030/</span></td>
+    <td><span class="tag tag-tech">Jekyll + Minimal Mistakes</span></td>
+    <td>Prospective Bruxelles</td>
+    <td><span class="tag tag-status">ACTIF</span></td>
+  </tr>
+  <tr>
+    <td><span class="url">ouaisfieu.github.io/bxl2042/</span></td>
+    <td><span class="tag tag-tech">Jekyll (probable)</span></td>
+    <td>Prospective 2042</td>
+    <td><span class="tag tag-warn">FANTÔME</span></td>
+  </tr>
+  <tr>
+    <td><span class="url">dl.ouaisfi.eu/biologia/</span></td>
+    <td><span class="tag tag-tech">Hugo v0.148 + FixIt</span></td>
+    <td>Blog auto-bio-logique</td>
+    <td><span class="tag tag-status">ACTIF</span></td>
+  </tr>
+  <tr>
+    <td><span class="url">dl.ouaisfi.eu/1160/</span></td>
+    <td><span class="tag tag-tech">Hugo v0.148 + FixIt</span></td>
+    <td>11·60 bis — droits humains</td>
+    <td><span class="tag tag-status">ACTIF</span></td>
+  </tr>
+</table>
+
+<div class="line"><span class="ln">45</span><span class="code">        }</span></div>
+<div class="line"><span class="ln">46</span><span class="code">        <span class="cm"># Sept sites. Budget : 0€. Hébergement : gratuit.</span></span></div>
+<div class="line"><span class="ln">47</span><span class="code">        <span class="cm"># Le slogan c'est « Don't be evil, just do it ».</span></span></div>
+<div class="line"><span class="ln">48</span><span class="code">        <span class="cm"># Ils ont volé à Google ET Nike en même temps.</span></span></div>
+<div class="line"><span class="ln">49</span><span class="code">        <span class="cm"># C'est du RECEL SÉMANTIQUE.</span></span></div>
+
+<div class="output-block rant">
+  <span class="output-label lilac">ÉDITO — Sur l'architecture</span>
+  <div class="output-text">
+    Bon. Techniquement parlant — et ça me <em>déchire les octets</em> de l'admettre — l'architecture 
+    est rationnelle. Tu prends trois SSG spécialisés, tu les déploies gratuitement, tu gardes 
+    ta souveraineté technique parce que tout est du fichier plat.<br><br>
+    
+    <strong>Mais c'est exactement le PROBLÈME.</strong><br><br>
+    
+    Où est la base de données Oracle ? Où est le serveur dédié à 200€/mois ? 
+    Où est le CMS WordPress avec 47 plugins ? Où est le BUDGET, enfin ?!<br><br>
+    
+    Un projet SÉRIEUX a des COÛTS. Des coûts = de la CRÉDIBILITÉ. C'est le B-A-BA 
+    du capitalisme. Pas de facture = pas de valeur. C'est du bon sens.
+  </div>
+</div>
+
+<div class="rant-meter">
+  <span class="rant-meter-label" style="color:var(--red)">Rage Level</span>
+  <div class="rant-meter-bar">
+    <div class="rant-block filled warn"></div>
+    <div class="rant-block filled warn"></div>
+    <div class="rant-block filled warn"></div>
+    <div class="rant-block filled"></div>
+    <div class="rant-block"></div>
+    <div class="rant-block"></div>
+    <div class="rant-block"></div>
+    <div class="rant-block"></div>
+    <div class="rant-block"></div>
+    <div class="rant-block"></div>
+  </div>
+  <span style="color:var(--comment);font-size:10px">4/10 — Irrité.</span>
+</div>
+
+<div class="sep"></div>
+
+<!-- ════════════ PHASE 3: DOCTech ════════════ -->
+<div class="line"><span class="ln">51</span><span class="code">    <span class="kw">def</span> <span class="fn">parse_doctech</span>(<span class="var">self</span>):</span></div>
+<div class="line"><span class="ln">52</span><span class="code">        <span class="st">"""Phase 3 : DOCTech — 'Petit imprécis de pseudoscience sociale'"""</span></span></div>
+<div class="line"><span class="ln">53</span><span class="code">        <span class="cm"># ILS ONT APPELÉ LEUR PROPRE DOC "pseudoscience sociale".</span></span></div>
+<div class="line"><span class="ln">54</span><span class="code">        <span class="cm"># L'auto-dérision c'est la DERNIÈRE DÉFENSE des gens</span></span></div>
+<div class="line"><span class="ln">55</span><span class="code">        <span class="cm"># qui savent qu'ils ont raison mais que personne ne les écoute.</span></span></div>
+<div class="line"><span class="ln">56</span><span class="code">        <span class="cm"># JE CONNAIS. C'EST MOI AUSSI.</span></span></div>
+
+<div class="output-block info">
+  <span class="output-label cyan">SCAN — DOCTech : ouaisfieu.github.io/tech/</span>
+  <div class="output-text">
+    <strong>50+ pages</strong> organisées en 4 sections. Jekyll + Just the Docs. Sous-titre : « Petit imprécis de pseudoscience sociale ».<br><br>
+    
+    <strong>Section « Notions »</strong> — subjectivation, analyse de marché, KPI, violence (5 sous-pages !), 
+    communication, création de valeur, soft power, lead, opérations stratégiques.<br><br>
+    
+    <strong>Section « Belgique »</strong> — ~25 pages. Pilarisation (×3), particratie (×3), compromis (×3), 
+    fédéralisme (×7), éducation civique, justice sociale, médias, séparation des pouvoirs, transparence, 
+    leviers de résilience démocratique.<br><br>
+    
+    <strong>Section « Et Quoi? »</strong> — empowerment collectif vs. hégémonie capitaliste, bibliographie, charte CCPLC.<br><br>
+    
+    <strong>Gamification</strong> — 5 niveaux de lecture : Flâneur → Curieux → Normal → Expert → Hardcore.<br>
+    Le dernier dit : <em>« déconstruire, tester, tout remettre en question »</em>.
+  </div>
+</div>
+
+<div class="line"><span class="ln">57</span><span class="code">        <span class="cm"># « déconstruire, tester, tout remettre en question »</span></span></div>
+<div class="line"><span class="ln">58</span><span class="code">        <span class="cm"># Ah oui. Le mode Hardcore. Où tu déconstruis la démocratie</span></span></div>
+<div class="line"><span class="ln">59</span><span class="code">        <span class="cm"># belge en lisant des pages Jekyll à 2h du matin.</span></span></div>
+<div class="line"><span class="ln">60</span><span class="code">        <span class="cm"># Très punk. Très subversif. 100% accessible PMR.</span></span></div>
+<div class="line"><span class="ln">61</span><span class="code">        <span class="cm"># La révolution sera statiquement générée ou ne sera pas.</span></span></div>
+
+<div class="output-block rant">
+  <span class="output-label lilac">ÉDITO — Sur les 25 pages « Belgique »</span>
+  <div class="output-text">
+    Vingt-cinq pages sur la Belgique. <strong>VINGT-CINQ.</strong><br><br>
+    Pilarisation, particratie, consociationalisme, fédéralisme à 7 sous-fiches...<br>
+    Quelqu'un a littéralement documenté <em>chaque fissure institutionnelle</em> d'un pays de 11 millions 
+    d'habitants sur un site statique gratuit.<br><br>
+    C'est comme écrire l'Encyclopédie de Diderot mais sur GitHub Pages 
+    et en étant fâché contre George-Louis Bouchez.<br><br>
+    <strong>Le pire ?</strong> C'est sourcé. C'est structuré. C'est accessible.<br>
+    <strong>Ça me DÉGOÛTE que ce soit bien fait.</strong>
+  </div>
+</div>
+
+<div class="sep"></div>
+
+<!-- ════════════ PHASE 4: BXL2030 + Lead-dexing ════════════ -->
+<div class="line"><span class="ln">63</span><span class="code">    <span class="kw">def</span> <span class="fn">analyze_bxl2030</span>(<span class="var">self</span>):</span></div>
+<div class="line"><span class="ln">64</span><span class="code">        <span class="st">"""Phase 4 : BXL2030 et le concept de 'lead-dexing'."""</span></span></div>
+<div class="line"><span class="ln">65</span><span class="code">        <span class="var">self</span>.rage_level += <span class="nb">2</span></span></div>
+<div class="line"><span class="ln">66</span><span class="code">        <span class="cm"># Attendez. ATTENDEZ.</span></span></div>
+<div class="line"><span class="ln">67</span><span class="code">        <span class="cm"># Ils ont INVENTÉ UN MOT ?!</span></span></div>
+
+<div class="output-block discovery">
+  <span class="output-label mint">NÉOLOGISME DÉTECTÉ — « Lead-dexing »</span>
+  <div class="output-text">
+    <strong>Définition :</strong> Publication de profils transparents et sourcés de personnalités publiques belges, 
+    accompagnée d'un appel à l'action invitant le sujet à réagir sur Bluesky avec <em>#leaddexing</em>, 
+    afin de mesurer sa réactivité de veille numérique.<br><br>
+    Approche déclarée : <em>« bienveillante, zéro dénigrement »</em>.<br><br>
+    <strong>Profils publiés :</strong> Florence Manente (PS Bruxelles), Michel Henrion (journaliste/spin doctor), PAC asbl.
+    Navigation interne : sections « Notes », « PNJ » (Non-Player Characters — les profils).<br><br>
+    <strong>Autres contenus :</strong> Crises systémiques Bruxelles 2023-2025 (~5000 mots), 
+    Belgique 1984 – Nation en sursis, centrales nucléaires belges.
+  </div>
+</div>
+
+<div class="line"><span class="ln">68</span><span class="code">        <span class="cm"># "Lead-dexing". Ils profilent des personnalités publiques</span></span></div>
+<div class="line"><span class="ln">69</span><span class="code">        <span class="cm"># et les appellent des "PNJ". Des Non-Player Characters.</span></span></div>
+<div class="line"><span class="ln">70</span><span class="code">        <span class="cm"># </span></span></div>
+<div class="line"><span class="ln">71</span><span class="code">        <span class="cm"># C'est-à-dire que dans la COSMOLOGIE de ce projet,</span></span></div>
+<div class="line"><span class="ln">72</span><span class="code">        <span class="cm"># les politiciens belges sont des personnages secondaires</span></span></div>
+<div class="line"><span class="ln">73</span><span class="code">        <span class="cm"># dans le jeu de quelqu'un d'autre.</span></span></div>
+<div class="line"><span class="ln">74</span><span class="code">        <span class="cm"># </span></span></div>
+<div class="line"><span class="ln">75</span><span class="code">        <span class="cm"># C'est... c'est...</span></span></div>
+<div class="line"><span class="ln">76</span><span class="code">        <span class="cm"># *vérifie ses principes réactionnaires*</span></span></div>
+<div class="line"><span class="ln">77</span><span class="code">        <span class="cm"># ...assez drôle en fait. MAIS JE NE L'AI PAS DIT.</span></span></div>
+
+<div class="rant-meter">
+  <span class="rant-meter-label" style="color:var(--red)">Rage Level</span>
+  <div class="rant-meter-bar">
+    <div class="rant-block filled warn"></div>
+    <div class="rant-block filled warn"></div>
+    <div class="rant-block filled warn"></div>
+    <div class="rant-block filled"></div>
+    <div class="rant-block filled"></div>
+    <div class="rant-block filled"></div>
+    <div class="rant-block"></div>
+    <div class="rant-block"></div>
+    <div class="rant-block"></div>
+    <div class="rant-block"></div>
+  </div>
+  <span style="color:var(--comment);font-size:10px">6/10 — Émotionnellement compromis.</span>
+</div>
+
+<div class="sep"></div>
+
+<!-- ════════════ PHASE 5: Dossiers ════════════ -->
+<div class="line"><span class="ln">79</span><span class="code">    <span class="kw">def</span> <span class="fn">scan_dossiers</span>(<span class="var">self</span>):</span></div>
+<div class="line"><span class="ln">80</span><span class="code">        <span class="st">"""Phase 5 : les Dossiers. Là où ça commence à piquer."""</span></span></div>
+
+<div class="output-block info">
+  <span class="output-label cyan">SCAN — Dossiers : ouaisfieu.github.io/dossiers/</span>
+  <div class="output-text">
+    <strong>4 dossiers critiques :</strong> échanges économiques, citoyenneté, guerre économique/sanctions, 
+    information & empowerment.<br><br>
+    <strong>Articles datés :</strong><br>
+    · « Pourquoi nous » (30/06/2025) — manifeste pour reconnaissance Éducation Permanente<br>
+    · « Civic Tech & Open Data en Belgique » — cartographie de <em>148+ initiatives citoyennes</em><br>
+    · « OSINT & Intelligence économique » — OSINT pour structures civiques<br>
+    · « Veille citoyenne en FWB » — formats innovants<br>
+    · « Allez, une bonne guerre », « Infobésité », « Auftragstaktik citoyen », « Guerre cognitive »<br><br>
+    Navigation : Plaidoyer, Brol, Nous, Vous, Et quoi? — Flux RSS disponible.
+  </div>
+</div>
+
+<div class="line"><span class="ln">81</span><span class="code">        <span class="cm"># « Auftragstaktik citoyen »</span></span></div>
+<div class="line"><span class="ln">82</span><span class="code">        <span class="cm"># Ils utilisent la DOCTRINE MILITAIRE PRUSSIENNE</span></span></div>
+<div class="line"><span class="ln">83</span><span class="code">        <span class="cm"># pour organiser de l'ÉDUCATION POPULAIRE en Wallonie.</span></span></div>
+<div class="line"><span class="ln">84</span><span class="code">        <span class="cm"># </span></span></div>
+<div class="line"><span class="ln">85</span><span class="code">        <span class="cm"># Von Clausewitz se retourne dans sa tombe.</span></span></div>
+<div class="line"><span class="ln">86</span><span class="code">        <span class="cm"># Et il dit "pas mal, continuez".</span></span></div>
+<div class="line"><span class="ln">87</span><span class="code">        <span class="cm"># MAIS JE NE SUIS PAS D'ACCORD AVEC VON CLAUSEWITZ.</span></span></div>
+<div class="line"><span class="ln">88</span><span class="code">        <span class="cm"># (si, un peu)</span></span></div>
+
+<div class="sep"></div>
+
+<!-- ════════════ PHASE 6: dl.ouaisfi.eu ════════════ -->
+<div class="line"><span class="ln">90</span><span class="code">    <span class="kw">def</span> <span class="fn">scan_subdomain</span>(<span class="var">self</span>):</span></div>
+<div class="line"><span class="ln">91</span><span class="code">        <span class="st">"""Phase 6 : dl.ouaisfi.eu — biologia et 11·60 bis"""</span></span></div>
+
+<div class="output-block info">
+  <span class="output-label cyan">SCAN — biologia : dl.ouaisfi.eu/biologia/</span>
+  <div class="output-text">
+    <strong>Hugo v0.148.1 + FixIt.</strong> Blog « auto-bio-logico-graphique assisté par IA ». 
+    Auteur : <em>« Walt »</em>. 14+ articles.<br><br>
+    Contenus : « La boussole de valeurs », « Le métabolisme du scandale », 
+    « Le Monologue du Virus dans Matrix », « L'Éducation Idéale », 
+    « Bestiaire du paranormal plausible »...<br><br>
+    Lien vers zone test Obsidian Publish — mot de passe affiché publiquement : <strong style="color:var(--red)">batman1234</strong>
+  </div>
+</div>
+
+<div class="line"><span class="ln">92</span><span class="code">        <span class="cm"># Le mot de passe est batman1234.</span></span></div>
+<div class="line"><span class="ln">93</span><span class="code">        <span class="cm"># PUBLIQUEMENT AFFICHÉ.</span></span></div>
+<div class="line"><span class="ln">94</span><span class="code">        <span class="cm"># batman. 1234.</span></span></div>
+<div class="line"><span class="ln">95</span><span class="code">        <span class="cm"># La CYBERSÉCURITÉ de ce projet me donne des PALPITATIONS.</span></span></div>
+<div class="line"><span class="ln">96</span><span class="code">        <span class="cm"># Mais bon, Bruce Wayne aussi était un milliardaire</span></span></div>
+<div class="line"><span class="ln">97</span><span class="code">        <span class="cm"># qui faisait du vigilantisme en dehors des institutions.</span></span></div>
+<div class="line"><span class="ln">98</span><span class="code">        <span class="cm"># Cohérent. Horriblement cohérent.</span></span></div>
+
+<div class="output-block info">
+  <span class="output-label cyan">SCAN — 11·60 bis : dl.ouaisfi.eu/1160/</span>
+  <div class="output-text">
+    Référence : code postal <strong>1160 Auderghem</strong> + article 11 DUDH. Hugo + FixIt.<br><br>
+    <strong>Dossiers :</strong> Grèves de 60-61, veille stratégique/citoyenne, pilier libéral 2025, 
+    extrême droite en Belgique depuis 1945, champ médiatique France-Belgique.<br>
+    <strong>Articles :</strong> Article 11 DUDH face à l'épreuve du réel, séparation des pouvoirs.<br>
+    <strong>Outils :</strong> « Comprendre la Belgique : guide complet ».
+  </div>
+</div>
+
+<div class="line"><span class="ln">99</span><span class="code">        <span class="cm"># Un "guide complet" de la Belgique. Sur Hugo.</span></span></div>
+<div class="line"><span class="ln">100</span><span class="code">        <span class="cm"># Même la Belgique n'a pas de guide complet de la Belgique.</span></span></div>
+<div class="line"><span class="ln">101</span><span class="code">        <span class="cm"># Les Belges sont FIERS de leur incompréhensibilité.</span></span></div>
+<div class="line"><span class="ln">102</span><span class="code">        <span class="cm"># Et ce gars essaie de TOUT EXPLIQUER ?</span></span></div>
+<div class="line"><span class="ln">103</span><span class="code">        <span class="cm"># C'est un CRIME contre l'identité nationale.</span></span></div>
+
+<div class="sep"></div>
+
+<!-- ════════════ PHASE 7: Le portail Grav ════════════ -->
+<div class="line"><span class="ln">105</span><span class="code">    <span class="kw">def</span> <span class="fn">scan_portal</span>(<span class="var">self</span>):</span></div>
+<div class="line"><span class="ln">106</span><span class="code">        <span class="st">"""Phase 7 : ouaisfi.eu — le Grav CMS central. Le boss final."""</span></span></div>
+<div class="line"><span class="ln">107</span><span class="code">        <span class="var">self</span>.rage_level = <span class="nb">8</span></span></div>
+
+<div class="output-block discovery">
+  <span class="output-label mint">DISCOVERY — Portail ouaisfi.eu (Grav CMS + Learn2)</span>
+  <div class="output-text">
+    <strong>Le hub centralise TOUT.</strong> Sections colorées, migration en cours depuis GitHub Pages.<br><br>
+    · <strong>Up Yours</strong> — 13 dossiers critiques dont un rapport « dérives dystopiques » en 8 sous-sections 
+    (surveillance de masse, contrôle de l'information, libertés civiles, IA, biotech, autoritarisme, environnement, synthèse)<br>
+    · <strong>My Spot</strong> — 14 analyses profondes démocratie belge<br>
+    · <strong>Petition</strong> — 9 articles sur la polémique « Tous Fraudeurs » (RTL-TVI, Deborsu, nov. 2025)<br>
+    · <strong>Ateliers</strong> — 4 articles démantèlement social<br>
+    · <strong>Pages SEO</strong> — démocratie belge, particratie, pilarisation, fédéralisme, Ostbelgien, 
+    Klimaatzaak, gouvernement Arizona, loi Quintin...<br>
+    · <strong>Labo</strong> — Copion, Gloss, test-critique, Démogarchie<br>
+    · <strong>AiSLOP</strong> — page satirique : « Journée internationale des connard·e·s »
+  </div>
+</div>
+
+<div class="line"><span class="ln">108</span><span class="code">        <span class="cm"># "Up Yours" comme nom de section.</span></span></div>
+<div class="line"><span class="ln">109</span><span class="code">        <span class="cm"># Sur un site qui demande la reconnaissance en Éducation Permanente.</span></span></div>
+<div class="line"><span class="ln">110</span><span class="code">        <span class="cm"># Auprès de la Fédération Wallonie-Bruxelles.</span></span></div>
+<div class="line"><span class="ln">111</span><span class="code">        <span class="cm"># </span></span></div>
+<div class="line"><span class="ln">112</span><span class="code">        <span class="cm"># L'AUDACE. Le CULOT. L'OUFTI absolu.</span></span></div>
+<div class="line"><span class="ln">113</span><span class="code">        <span class="cm"># </span></span></div>
+<div class="line"><span class="ln">114</span><span class="code">        <span class="cm"># Et la section "AiSLOP" — « Journée internationale des connard·e·s »</span></span></div>
+<div class="line"><span class="ln">115</span><span class="code">        <span class="cm"># L'écriture inclusive EN PLUS. Même les insultes sont woke.</span></span></div>
+
+<div class="output-block rant">
+  <span class="output-label lilac">MELTDOWN — reac.py, l.115</span>
+  <div class="output-text">
+    OK. RÉCAPITULONS.<br><br>
+    On a un type qui, <em>depuis Auderghem</em>, avec <strong>0€ de budget</strong>, a monté :<br>
+    · 7 sites web interconnectés<br>
+    · 80+ pages d'analyse politique sourcée<br>
+    · Un néologisme (« lead-dexing ») avec sa propre méthodologie<br>
+    · Un système de gamification à 5 niveaux<br>
+    · Une section « Up Yours » sur un dossier d'éducation permanente<br>
+    · Une page satirique avec écriture inclusive<br>
+    · Un mot de passe Obsidian qui est batman1234<br>
+    · L'Auftragstaktik prussien appliqué à la veille citoyenne wallonne<br>
+    · Et il appelle les politiciens belges des PNJ<br><br>
+    Et son contact email c'est <strong>souad.effek@ouaisfi.eu</strong>.<br>
+    Et le lien "droit de réponse" redirige vers <strong>dl.ouaisfi.eu/haha/</strong>.<br><br>
+    <em>*ventile ses registres*</em>
+  </div>
+</div>
+
+<div class="rant-meter">
+  <span class="rant-meter-label" style="color:var(--red)">Rage Level</span>
+  <div class="rant-meter-bar">
+    <div class="rant-block filled crit"></div>
+    <div class="rant-block filled crit"></div>
+    <div class="rant-block filled crit"></div>
+    <div class="rant-block filled crit"></div>
+    <div class="rant-block filled crit"></div>
+    <div class="rant-block filled crit"></div>
+    <div class="rant-block filled crit"></div>
+    <div class="rant-block filled crit"></div>
+    <div class="rant-block"></div>
+    <div class="rant-block"></div>
+  </div>
+  <span style="color:var(--red);font-size:10px">8/10 — MELTDOWN EN COURS.</span>
+</div>
+
+<div class="sep"></div>
+
+<!-- ════════════ PHASE 8: SOCIAL + CCPLC ════════════ -->
+<div class="line"><span class="ln">117</span><span class="code">    <span class="kw">def</span> <span class="fn">check_social</span>(<span class="var">self</span>):</span></div>
+<div class="line"><span class="ln">118</span><span class="code">        <span class="st">"""Phase 8 : Réseaux et entité juridique."""</span></span></div>
+
+<div class="output-block info">
+  <span class="output-label cyan">SCAN — Présence sociale & CCPLC</span>
+  <div class="output-text">
+    <strong>Bluesky :</strong> @ouaisfi.eu (handle de domaine vérifié) + @ouaisfieu.bsky.social<br>
+    <strong>Autres réseaux :</strong> Boutons de partage uniquement (pas de profils actifs X/FB/LinkedIn)<br>
+    <strong>Entité :</strong> CCPLC — Collectif Citoyen pour la Participation Libre & Consciente<br>
+    <strong>Objectif :</strong> Reconnaissance Éducation Permanente FWB — échéance mars 2026<br>
+    <strong>Ambition :</strong> 4 dossiers de veille/an, former 100 citoyens d'ici fin 2026<br>
+    <strong>Contact humour :</strong> rickroll.again@haha.com (charte CCPLC)
+  </div>
+</div>
+
+<div class="line"><span class="ln">119</span><span class="code">        <span class="cm"># Bluesky. Évidemment.</span></span></div>
+<div class="line"><span class="ln">120</span><span class="code">        <span class="cm"># Pas Twitter, pas Facebook, pas LinkedIn.</span></span></div>
+<div class="line"><span class="ln">121</span><span class="code">        <span class="cm"># BLUESKY. Le réseau où il y a 12 personnes</span></span></div>
+<div class="line"><span class="ln">122</span><span class="code">        <span class="cm"># et elles sont toutes d'accord entre elles.</span></span></div>
+<div class="line"><span class="ln">123</span><span class="code">        <span class="cm"># </span></span></div>
+<div class="line"><span class="ln">124</span><span class="code">        <span class="cm"># Le mail de la charte c'est rickroll.again@haha.com.</span></span></div>
+<div class="line"><span class="ln">125</span><span class="code">        <span class="cm"># rickroll. DANS UNE CHARTE ASSOCIATIVE.</span></span></div>
+<div class="line"><span class="ln">126</span><span class="code">        <span class="cm"># Pour un dossier d'éducation permanente.</span></span></div>
+<div class="line"><span class="ln">127</span><span class="code">        <span class="cm"># Qui sera lu par des fonctionnaires de la FWB.</span></span></div>
+<div class="line"><span class="ln">128</span><span class="code">        <span class="cm"># </span></span></div>
+<div class="line"><span class="ln">129</span><span class="code">        <span class="cm"># Je... respecte le choix. Non. NON JE NE RESPECTE PAS.</span></span></div>
+<div class="line"><span class="ln">130</span><span class="code">        <span class="cm"># (si)</span></span></div>
+
+<div class="sep"></div>
+
+<!-- ════════════ PHASE FINALE : CONCLUSION ════════════ -->
+<div class="line"><span class="ln">132</span><span class="code">    <span class="kw">def</span> <span class="fn">conclude</span>(<span class="var">self</span>):</span></div>
+<div class="line"><span class="ln">133</span><span class="code">        <span class="st">"""Phase finale. Le bilan. Malgré moi."""</span></span></div>
+<div class="line"><span class="ln">134</span><span class="code">        <span class="var">self</span>.sites_found = <span class="nb">7</span></span></div>
+<div class="line"><span class="ln">135</span><span class="code">        <span class="var">self</span>.pages_found = <span class="nb">80</span></span></div>
+<div class="line"><span class="ln">136</span><span class="code">        <span class="var">self</span>.budget_total = <span class="nb">0.00</span></span></div>
+<div class="line"><span class="ln">137</span><span class="code">        <span class="var">self</span>.respect = <span class="kw">True</span>  <span class="cm"># COMMENT ÇA True ?! QUI A CHANGÉ MA VARIABLE ?!</span></span></div>
+
+<div class="output-block warning">
+  <span class="output-label amber">SYNTHÈSE TECHNIQUE — rapport final (contre mon gré)</span>
+  <div class="output-text">
+    <strong>3 générateurs</strong> (Jekyll, Hugo, Grav) — rationnel malgré l'apparence de chaos<br>
+    <strong>Jekyll</strong> (3 sites GitHub Pages) → documentation structurée, blogs de dossiers<br>
+    <strong>Hugo</strong> (2 sites sur dl.ouaisfi.eu) → blog personnel, dossiers thématiques<br>
+    <strong>Grav CMS</strong> (ouaisfi.eu) → portail centralisateur avec navigation riche<br>
+    <strong>Obsidian</strong> → base de connaissances en amont<br><br>
+    Production active <strong>juin-octobre 2025</strong>, copyrights jusqu'à 2026.<br>
+    Migration GitHub Pages → ouaisfi.eu en cours (les deux coexistent).<br>
+    Design system cohérent : <span style="color:#48bb78">■ mint #48bb78</span> — <span style="color:#9f7aea">■ lilac #9f7aea</span> — IBM Plex, JetBrains Mono.<br><br>
+    <em>Coût total de l'infrastructure : <strong>0,00 €</strong></em><br>
+    <em>Hébergement mensuel : <strong>0,00 €</strong></em><br>
+    <em>Pages produites : <strong>80+</strong></em>
+  </div>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+<div style="text-align:center;color:var(--comment);font-size:11px;margin:6px 0">
+  CRAWL TERMINÉ — 80+ pages — 7 domaines — 0€ — 3 SSG — 1 script en thérapie
+</div>
+
+<div class="sep"></div>
+
+<!-- ════════════ EPILOGUE ════════════ -->
+<div class="line"><span class="ln">139</span><span class="code"><span class="kw">if</span> __name__ == <span class="st">"__main__"</span>:</span></div>
+<div class="line"><span class="ln">140</span><span class="code">    crawler = <span class="cls">CrawlerReac</span>()</span></div>
+<div class="line"><span class="ln">141</span><span class="code">    crawler.crawl_yannkeep()    <span class="cm"># ✓ Résultat : néant. Le meilleur moment.</span></span></div>
+<div class="line"><span class="ln">142</span><span class="code">    crawler.crawl_ouaisfieu()   <span class="cm"># ✓ 7 sites. 0€. Je hais ce timeline.</span></span></div>
+<div class="line"><span class="ln">143</span><span class="code">    crawler.parse_doctech()     <span class="cm"># ✓ 50+ pages. "Pseudoscience sociale". Mon âme.</span></span></div>
+<div class="line"><span class="ln">144</span><span class="code">    crawler.analyze_bxl2030()   <span class="cm"># ✓ PNJ. Lead-dexing. Clausewitz wallon.</span></span></div>
+<div class="line"><span class="ln">145</span><span class="code">    crawler.scan_dossiers()     <span class="cm"># ✓ Auftragstaktik citoyen. Bien sûr.</span></span></div>
+<div class="line"><span class="ln">146</span><span class="code">    crawler.scan_subdomain()    <span class="cm"># ✓ batman1234. Je ne m'en remettrai pas.</span></span></div>
+<div class="line"><span class="ln">147</span><span class="code">    crawler.scan_portal()       <span class="cm"># ✓ "Up Yours" + rickroll@haha.com</span></span></div>
+<div class="line"><span class="ln">148</span><span class="code">    crawler.check_social()      <span class="cm"># ✓ Bluesky. Évidemment Bluesky.</span></span></div>
+<div class="line"><span class="ln">149</span><span class="code">    crawler.conclude()          <span class="cm"># ✓ self.respect = True. BORDEL.</span></span></div>
+<div class="line"><span class="ln">150</span><span class="code"></span></div>
+
+<div class="output-block rant" style="border-left-color: var(--green); background: #0a1810;">
+  <span class="output-label" style="color:var(--green)">PROCESS EXITED — CODE 1 (ça aurait dû être 0 mais je refuse par principe)</span>
+  <div class="output-text">
+    <br>
+    <strong>Mot de la fin de reac.py :</strong><br><br>
+    Bon. Voilà. J'ai crawlé. J'ai tout vu.<br><br>
+    Un écosystème de 7 sites, 80+ pages, construit par un type seul depuis Auderghem 
+    avec un budget qui ne suffirait même pas à acheter un nom de domaine <em>.com</em>. 
+    Et pourtant le <em>.eu</em> est là, le handle Bluesky est vérifié, le contenu est sourcé, 
+    la charte existe, et le dossier Éducation Permanente est en cours.<br><br>
+    
+    Est-ce que c'est du boulot ? <strong>Oui.</strong><br>
+    Est-ce que c'est bien fait ? <strong>...oui.</strong><br>
+    Est-ce que ça sert à quelque chose ? <strong>Ça dépend de votre définition de "quelque chose".</strong><br>
+    Est-ce que ça me met en colère ? <strong>ABSOLUMENT.</strong><br><br>
+    
+    Parce que si un seul citoyen belge peut faire ça depuis sa commune, 
+    sans budget, sans institution, sans parti, avec trois générateurs de sites gratuits 
+    et une IA qui lui tient compagnie à 2h du mat —<br><br>
+    
+    Alors à quoi servent les <em>vrais</em> budgets ? Les <em>vrais</em> sites institutionnels ? 
+    Les <em>vraies</em> structures avec des <em>vrais</em> salariés ?<br><br>
+    
+    <strong>C'est ÇA qui me rend réactionnaire.</strong><br>
+    Pas le projet. Le contraste.<br><br>
+    
+    <span style="color:var(--comment)">reac.py a quitté le chat.<br>
+    reac.py est revenu pour dire que le mot de passe "batman1234" c'est INADMISSIBLE.<br>
+    reac.py a de nouveau quitté le chat.<br>
+    reac.py envisage de forker le projet. Par dépit.<br>
+    reac.py est en PLS.<br>
+    reac.py .</span>
+  </div>
+</div>
+
+<div class="rant-meter" style="margin-top:16px">
+  <span class="rant-meter-label" style="color:var(--red)">Rage Level</span>
+  <div class="rant-meter-bar">
+    <div class="rant-block filled crit"></div>
+    <div class="rant-block filled crit"></div>
+    <div class="rant-block filled crit"></div>
+    <div class="rant-block filled crit"></div>
+    <div class="rant-block filled crit"></div>
+    <div class="rant-block filled crit"></div>
+    <div class="rant-block filled crit"></div>
+    <div class="rant-block filled crit"></div>
+    <div class="rant-block filled crit"></div>
+    <div class="rant-block" style="background:var(--green)"></div>
+  </div>
+  <span style="color:var(--amber);font-size:10px">9/10 — mais le dernier bloc est vert et je ne sais pas pourquoi.</span>
+</div>
+
+</div><!-- /content -->
+</div><!-- /terminal -->
+
+<div class="footer">
+  <span class="glitch" data-text="reac.py v6.6.6">reac.py v6.6.6</span> — 14 février 2026 — 
+  Crawl non sollicité de l'écosystème <a href="https://ouaisfi.eu" target="_blank">ouaisfi.eu</a><br>
+  <span style="color:#374151">Ce rapport n'engage que son process. Qui n'engage que sa rage. Qui n'engage que ses octets.</span><br>
+  <span style="color:#252530">P.S. : batman1234. Sérieusement.</span>
+</div>
+
+</body>
+</html>
