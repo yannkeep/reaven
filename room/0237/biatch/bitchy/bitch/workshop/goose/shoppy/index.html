@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport du Flux : Analyse du Chaos Numérique & Belge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F5F5F4; color: #1C1917; }
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 600px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            height: 300px; 
+            max-height: 400px; 
+        }
+        @media (min-width: 768px) { 
+            .chart-container { height: 350px; } 
+        }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .nav-active { border-bottom: 2px solid #EA580C; color: #EA580C; font-weight: 600; }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals (Stone) with Burnt Orange Accents (#EA580C) and Muted Slate for charts. Minimalistic & Harmonious. -->
+    
+    <!-- Application Structure Plan:
+         1. Header: Contextualizes the "Source Report" (the URL string).
+         2. Dashboard Controls: Global filters for the "Chaos Categories" (Politics, Culture, Tech, Vibe).
+         3. Section 1: The Belgian Political-Media Matrix. Interactive Scatter Plot to show relationships between figures (GLB, Magnette) and Media (RTBF, RTL).
+         4. Section 2: The Gastronomy & Pop Culture Index. A Bar chart comparing "Tasty Burgers" (Bicky vs Big Kahuna) and Cultural impact (Akira, Pulp Fiction).
+         5. Section 3: Tech Buzzwords & Dystopia. A Line chart showing the "Loop" of SEO/AI trends.
+         6. Section 4: Raw Data Stream. An interactive list of all keywords from the URL, sortable and clickable for "definitions".
+         
+         WHY: The source "text" is disjointed and associative. A dashboard approach allows users to isolate these disparate threads (Politics vs. Burger Memes) and see the hidden connections without being overwhelmed by the randomness.
+    -->
+
+    <!-- Visualization & Content Choices:
+         - Political Matrix: Scatter Plot (Chart.js) -> Goal: Relationships -> Places politicians on axes of "Médiatisation" vs "Populisme/Style".
+         - Culture Index: Bar Chart (Chart.js) -> Goal: Compare -> Visualizes the "Cool" factor of Fonzie vs the "Trash" factor of Bicky.
+         - Tech Trends: Line Chart (Chart.js) -> Goal: Change -> Shows the hypothetical rise of "Generative Engine Optimization".
+         - 3D Vibe Cloud: Plotly Bubble -> Goal: Explore -> A fun 3D representation of the "Word Salad" to click and rotate.
+         - Text: Unicode Icons -> No SVG -> Used for visual anchors (Burgers, Robots, Flags).
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-stone-100 text-stone-800">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold text-stone-900 tracking-tight">Flux<span class="text-orange-600">Analyzer</span></span>
+                </div>
+                <div class="hidden sm:flex space-x-8 items-center">
+                    <button onclick="navTo('overview')" id="nav-overview" class="nav-active px-3 py-2 text-sm font-medium transition-colors">Vue d'Ensemble</button>
+                    <button onclick="navTo('politics')" id="nav-politics" class="px-3 py-2 text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors">Politique & Médias</button>
+                    <button onclick="navTo('culture')" id="nav-culture" class="px-3 py-2 text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors">Culture & Burgers</button>
+                    <button onclick="navTo('tech')" id="nav-tech" class="px-3 py-2 text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors">Tech & SEO</button>
+                </div>
+                <!-- Mobile menu button placeholder -->
+                <div class="flex items-center sm:hidden">
+                    <button class="text-stone-500 hover:text-stone-900 font-bold">Menu</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+        <!-- Hero / Intro -->
+        <section id="overview" class="view-section animate-fade-in">
+            <div class="bg-white rounded-2xl shadow-sm p-8 border border-stone-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h1 class="text-3xl font-bold text-stone-900 mb-4">Rapport d'Analyse : Le Chaos Numérique</h1>
+                        <p class="text-stone-600 mb-6 leading-relaxed">
+                            Ce rapport interactif synthétise les données extraites du flux URL identifié. Il explore les intersections étranges entre la <span class="font-semibold text-orange-600">particratie belge</span>, la culture du <span class="font-semibold text-orange-600">Bicky Burger</span>, et les algorithmes de <span class="font-semibold text-orange-600">Generative Engine Optimization</span>.
+                        </p>
+                        <div class="flex gap-4">
+                            <div class="bg-stone-50 px-4 py-3 rounded-lg border border-stone-200 text-center">
+                                <span class="block text-2xl font-bold text-stone-800" id="total-keywords">0</span>
+                                <span class="text-xs text-stone-500 uppercase tracking-wide">Mots-clés</span>
+                            </div>
+                            <div class="bg-stone-50 px-4 py-3 rounded-lg border border-stone-200 text-center">
+                                <span class="block text-2xl font-bold text-stone-800">∞</span>
+                                <span class="text-xs text-stone-500 uppercase tracking-wide">Boucle (While True)</span>
+                            </div>
+                            <div class="bg-stone-50 px-4 py-3 rounded-lg border border-stone-200 text-center">
+                                <span class="block text-2xl font-bold text-stone-800">100%</span>
+                                <span class="text-xs text-stone-500 uppercase tracking-wide">Taux de "Oufti"</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="relative h-64 w-full bg-stone-50 rounded-xl border border-stone-200 flex items-center justify-center overflow-hidden">
+                        <!-- Conceptual "Word Cloud" represented visually -->
+                        <div id="word-stream" class="absolute inset-0 p-4 flex flex-wrap gap-2 content-center justify-center opacity-60 pointer-events-none select-none">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div class="z-10 bg-white/90 backdrop-blur-sm px-6 py-4 rounded-xl shadow-lg border border-stone-100">
+                            <h3 class="text-lg font-bold text-stone-800 text-center">État du Système</h3>
+                            <div class="mt-2 flex items-center justify-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
+                                <span class="text-sm font-mono text-stone-600">while True: analyze()</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 1: Politics & Media -->
+        <section id="politics" class="view-section hidden">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-stone-900">La Matrice Politique & Médiatique</h2>
+                <p class="text-stone-600 mt-2 max-w-3xl">
+                    Analyse de la "Particratie" et de ses acteurs majeurs (GLB, Magnette, Hedebouw) face aux canaux de diffusion (RTBF, RTL-TVI). Visualisation de la tension entre "Scandale" et "Fan Club".
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Chart: Political Spectrum -->
+                <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-stone-200">
+                    <h3 class="text-lg font-semibold text-stone-800 mb-4 flex items-center gap-2">
+                        <span>⚖️</span> Positionnement Médiatique
+                    </h3>
+                    <div class="chart-container">
+                        <canvas id="politicsChart"></canvas>
+                    </div>
+                    <div class="mt-4 flex justify-center gap-4 text-sm text-stone-500">
+                        <button onclick="filterPolitics('all')" class="hover:text-orange-600 font-medium">Tous</button>
+                        <button onclick="filterPolitics('left')" class="hover:text-orange-600 font-medium">Gauche (PTB/PS)</button>
+                        <button onclick="filterPolitics('right')" class="hover:text-orange-600 font-medium">Droite (MR)</button>
+                    </div>
+                </div>
+
+                <!-- Info Cards -->
+                <div class="space-y-4">
+                    <div class="bg-white rounded-xl p-5 border border-stone-200 card-hover">
+                        <h4 class="font-bold text-stone-900 mb-1">Georges-Louis Bouchez</h4>
+                        <div class="text-xs font-mono bg-blue-50 text-blue-700 px-2 py-1 rounded w-max mb-2">Tag: #Radicalisation</div>
+                        <p class="text-sm text-stone-600">Score de présence médiatique maximal. Associé aux mots-clés "Bim", "Scandale" et "Fan Club".</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-5 border border-stone-200 card-hover">
+                        <h4 class="font-bold text-stone-900 mb-1">Paul Magnette</h4>
+                        <div class="text-xs font-mono bg-red-50 text-red-700 px-2 py-1 rounded w-max mb-2">Tag: #Particratie</div>
+                        <p class="text-sm text-stone-600">Figure centrale de la structure traditionnelle. Forte corrélation avec "Service Civil".</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-5 border border-stone-200 card-hover">
+                        <h4 class="font-bold text-stone-900 mb-1">Raoul Hedebouw</h4>
+                        <div class="text-xs font-mono bg-red-100 text-red-800 px-2 py-1 rounded w-max mb-2">Tag: #Oufti</div>
+                        <p class="text-sm text-stone-600">Indice de viralité élevé. Mots-clés associés : "Lol", "Rigolote", "Fraude Sociale".</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Culture & Gastronomy -->
+        <section id="culture" class="view-section hidden">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-stone-900">Index Gastronomique & Culturel</h2>
+                <p class="text-stone-600 mt-2 max-w-3xl">
+                    Une comparaison scientifique entre la haute gastronomie fictive (Big Kahuna Burger) et la réalité belge (Bicky Burger), juxtaposée aux références pop-culturelles (Akira, Pulp Fiction, Fonzie).
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Chart: Burger Comparison -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-stone-200">
+                    <h3 class="text-lg font-semibold text-stone-800 mb-4 flex items-center gap-2">
+                        <span>🍔</span> L'Échelle du "Tasty Burger"
+                    </h3>
+                    <div class="chart-container">
+                        <canvas id="burgerChart"></canvas>
+                    </div>
+                    <p class="text-xs text-stone-500 mt-4 text-center italic">"This is a tasty burger" - Source: Pulp Fiction</p>
+                </div>
+
+                <!-- Interactive Vibe List -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-stone-200 flex flex-col">
+                    <h3 class="text-lg font-semibold text-stone-800 mb-4 flex items-center gap-2">
+                        <span>🎬</span> Références Culturelles
+                    </h3>
+                    <div class="flex-1 overflow-y-auto pr-2 space-y-3" style="max-height: 300px;">
+                        <div class="p-3 bg-stone-50 rounded-lg border border-stone-100 hover:bg-orange-50 cursor-pointer transition-colors" onclick="showDetail('pulp')">
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium text-stone-800">Pulp Fiction</span>
+                                <span class="text-xs bg-stone-200 px-2 py-1 rounded">Culte</span>
+                            </div>
+                            <div class="detail-text hidden mt-2 text-sm text-stone-600" id="detail-pulp">
+                                Associé à Big Kahuna Burger. Facteur de coolitude : Maximum.
+                            </div>
+                        </div>
+                        <div class="p-3 bg-stone-50 rounded-lg border border-stone-100 hover:bg-orange-50 cursor-pointer transition-colors" onclick="showDetail('akira')">
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium text-stone-800">Akira</span>
+                                <span class="text-xs bg-stone-200 px-2 py-1 rounded">Anime</span>
+                            </div>
+                            <div class="detail-text hidden mt-2 text-sm text-stone-600" id="detail-akira">
+                                Référence cyberpunk. Neo-Tokyo vs Bruxelles-Midi.
+                            </div>
+                        </div>
+                        <div class="p-3 bg-stone-50 rounded-lg border border-stone-100 hover:bg-orange-50 cursor-pointer transition-colors" onclick="showDetail('fonzie')">
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium text-stone-800">Fonzie</span>
+                                <span class="text-xs bg-stone-200 px-2 py-1 rounded">Be Cool</span>
+                            </div>
+                            <div class="detail-text hidden mt-2 text-sm text-stone-600" id="detail-fonzie">
+                                Symbole de la "Coolitude". Contrast avec "Rednecks".
+                            </div>
+                        </div>
+                        <div class="p-3 bg-stone-50 rounded-lg border border-stone-100 hover:bg-orange-50 cursor-pointer transition-colors" onclick="showDetail('dardenne')">
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium text-stone-800">Frères Dardenne</span>
+                                <span class="text-xs bg-stone-200 px-2 py-1 rounded">Social</span>
+                            </div>
+                            <div class="detail-text hidden mt-2 text-sm text-stone-600" id="detail-dardenne">
+                                Réalisme social belge. Antithèse du "Bim/Bling".
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Tech & Dystopia -->
+        <section id="tech" class="view-section hidden">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-stone-900">La Boucle Technologique</h2>
+                <p class="text-stone-600 mt-2 max-w-3xl">
+                    Surveillance du cycle de la "Hype" : de SEO à GEO (Generative Engine Optimization), en passant par les modèles d'IA (Gemini, Claude) et les structures financières douteuses (Ponzi).
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Chart: Tech Trends -->
+                <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-stone-200">
+                    <h3 class="text-lg font-semibold text-stone-800 mb-4 flex items-center gap-2">
+                        <span>📈</span> Évolution des Buzzwords
+                    </h3>
+                    <div class="chart-container">
+                        <canvas id="techChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Key Metrics -->
+                <div class="space-y-4">
+                     <div class="bg-stone-900 text-white rounded-xl p-5 shadow-lg">
+                        <h4 class="font-mono text-orange-400 mb-2">> while True:</h4>
+                        <p class="text-sm text-stone-300 font-mono mb-4">
+                            python script detected.<br>
+                            analyzing: 'qAnus'<br>
+                            analyzing: 'Ponzi'<br>
+                            result: <span class="text-red-400">CRITICAL_ERROR</span>
+                        </p>
+                        <div class="w-full bg-stone-800 rounded-full h-2">
+                            <div class="bg-orange-500 h-2 rounded-full" style="width: 85%"></div>
+                        </div>
+                        <p class="text-right text-xs text-stone-500 mt-1">System Load: 85%</p>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-5 border border-stone-200">
+                        <h4 class="font-bold text-stone-900 mb-2">Entités IA Détectées</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">Gemini</span>
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">Claude</span>
+                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">Generative Engine Optimization</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 3D Visualization (Plotly) -->
+                <div class="lg:col-span-3 bg-white rounded-xl shadow-sm p-6 border border-stone-200">
+                    <h3 class="text-lg font-semibold text-stone-800 mb-2 flex items-center gap-2">
+                        <span>🌌</span> Nuage de Concepts (3D)
+                    </h3>
+                    <p class="text-sm text-stone-500 mb-4">Explorez les relations entre les concepts du rapport. (Interactif)</p>
+                    <div id="plotlyDiv" class="w-full h-[400px] border border-stone-100 rounded-lg"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-stone-200 mt-12 py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-stone-400 text-sm">
+                Généré par Canvas | Basé sur le flux : <code class="bg-stone-100 px-1 py-0.5 rounded text-xs">/room/4/merci/george-louis-bouchez...</code>
+            </p>
+            <p class="text-stone-300 text-xs mt-2">No SVG were harmed in the making of this dashboard.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Data Layer (Extracted from Source URL Keywords) ---
+        const sourceKeywords = [
+            "george-louis-bouchez", "scandale", "radicalisation", "lone-wolf", 
+            "service-civil-de-renseignement", "rtbf-fraude-sociale", "rtl-tvi", 
+            "particratie", "deborsu", "fan-club", "paul-magnette", "raoul-hedebouw",
+            "dickens", "rednecks", "dardenne", "bicky-burger", "big-kahuna", 
+            "tasty-burger", "pulp-fiction", "akira", "fonzie", "be-cool",
+            "seo", "generative-engine-optimization", "claude", "gemini", "python",
+            "while-true", "ponzi", "qanus", "proud-boy", "maga", "reac",
+            "lol", "bim", "oufti", "trash", "bof", "beurk", "ni-mousse"
+        ];
+
+        // --- State Management ---
+        const state = {
+            currentView: 'overview',
+            politicalFilter: 'all'
+        };
+
+        // --- Navigation Logic ---
+        function navTo(viewId) {
+            // Update state
+            state.currentView = viewId;
+
+            // Hide all sections
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            
+            // Show target section
+            document.getElementById(viewId).classList.remove('hidden');
+
+            // Update Nav UI
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('nav-active', 'text-stone-900');
+                btn.classList.add('text-stone-500');
+            });
+            const activeBtn = document.getElementById(`nav-${viewId}`);
+            if(activeBtn) {
+                activeBtn.classList.add('nav-active', 'text-stone-900');
+                activeBtn.classList.remove('text-stone-500');
+            }
+
+            // Trigger specific chart updates/renders if needed
+            if (viewId === 'tech' && !window.techChartRendered) {
+                renderTechChart();
+                renderPlotlyCloud();
+                window.techChartRendered = true;
+            }
+            if (viewId === 'politics' && !window.politicsChartRendered) {
+                renderPoliticsChart();
+                window.politicsChartRendered = true;
+            }
+            if (viewId === 'culture' && !window.cultureChartRendered) {
+                renderCultureChart();
+                window.cultureChartRendered = true;
+            }
+        }
+
+        // --- Intro Visuals ---
+        function initWordStream() {
+            const container = document.getElementById('word-stream');
+            const totalDisplay = document.getElementById('total-keywords');
+            totalDisplay.innerText = sourceKeywords.length;
+
+            // Random selection of words to float in the background
+            const displayWords = sourceKeywords.sort(() => 0.5 - Math.random()).slice(0, 25);
+            
+            container.innerHTML = displayWords.map(word => {
+                const size = Math.random() > 0.7 ? 'text-lg font-bold text-stone-300' : 'text-xs text-stone-200';
+                return `<span class="${size}">${word.replace(/-/g, ' ')}</span>`;
+            }).join('');
+        }
+
+        // --- Chart 1: Political Spectrum (Scatter) ---
+        let politicsChartInstance = null;
+
+        function renderPoliticsChart() {
+            const ctx = document.getElementById('politicsChart').getContext('2d');
+            
+            // Data Mapping
+            const dataPoints = [
+                { x: 90, y: 80, label: 'GLB', r: 15, category: 'right', color: '#0047AB' }, // High media, High controversy
+                { x: 70, y: 40, label: 'Magnette', r: 12, category: 'left', color: '#FF0000' }, // High media, establishment
+                { x: 85, y: -60, label: 'Hedebouw', r: 14, category: 'left', color: '#8B0000' }, // High media, populist left
+                { x: 40, y: 10, label: 'Deborsu', r: 10, category: 'media', color: '#FFA500' }, // Media figure
+                { x: 20, y: -20, label: 'Dardenne', r: 8, category: 'culture', color: '#555' },
+                { x: 95, y: -90, label: 'Proud Boy/QAnus', r: 8, category: 'extreme', color: '#000' }
+            ];
+
+            politicsChartInstance = new Chart(ctx, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: 'Acteurs du Chaos',
+                        data: dataPoints,
+                        backgroundColor: dataPoints.map(d => d.color),
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.raw.label;
+                                }
+                            }
+                        },
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Médiatisation (%)' },
+                            min: 0, max: 100
+                        },
+                        y: {
+                            title: { display: true, text: '← Traditionnel | Populiste/Viral →' },
+                            min: -100, max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        function filterPolitics(category) {
+            if(!politicsChartInstance) return;
+            
+            const allData = [
+                { x: 90, y: 80, label: 'GLB', r: 15, category: 'right', color: '#0047AB' },
+                { x: 70, y: 40, label: 'Magnette', r: 12, category: 'left', color: '#FF0000' },
+                { x: 85, y: -60, label: 'Hedebouw', r: 14, category: 'left', color: '#8B0000' },
+                { x: 40, y: 10, label: 'Deborsu', r: 10, category: 'media', color: '#FFA500' },
+                { x: 20, y: -20, label: 'Dardenne', r: 8, category: 'culture', color: '#555' },
+                { x: 95, y: -90, label: 'Proud Boy/QAnus', r: 8, category: 'extreme', color: '#000' }
+            ];
+
+            const filtered = category === 'all' 
+                ? allData 
+                : allData.filter(d => d.category === category || d.category === 'media'); // Always keep media context
+
+            politicsChartInstance.data.datasets[0].data = filtered;
+            politicsChartInstance.data.datasets[0].backgroundColor = filtered.map(d => d.color);
+            politicsChartInstance.update();
+        }
+
+        // --- Chart 2: Burger & Culture (Bar) ---
+        function renderCultureChart() {
+            const ctx = document.getElementById('burgerChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Bicky Burger', 'Big Kahuna', 'Ni Mousse', 'Rémoulade'],
+                    datasets: [{
+                        label: 'Indice de "Beurk" vs "Tasty"',
+                        data: [-40, 95, -10, 20], // Negative is "Beurk", Positive is "Tasty"
+                        backgroundColor: [
+                            'rgba(239, 68, 68, 0.7)', // Red for Bicky
+                            'rgba(34, 197, 94, 0.7)', // Green for Big Kahuna
+                            'rgba(234, 179, 8, 0.7)', // Yellow
+                            'rgba(249, 115, 22, 0.7)' // Orange
+                        ],
+                        borderWidth: 0,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            min: -100,
+                            max: 100,
+                            grid: { color: '#E7E5E4' },
+                            title: { display: true, text: '← Beurk (Trash) | Tasty (Cool) →' }
+                        },
+                        y: {
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function showDetail(id) {
+            // Simple accordion logic
+            const el = document.getElementById(`detail-${id}`);
+            if(el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        }
+
+        // --- Chart 3: Tech Trends (Line) ---
+        function renderTechChart() {
+            const ctx = document.getElementById('techChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['2020', '2021', '2022', '2023', '2024', '2025'],
+                    datasets: [
+                        {
+                            label: 'SEO Classique',
+                            data: [90, 85, 80, 60, 40, 20],
+                            borderColor: '#9CA3AF',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Generative Engine Opt.',
+                            data: [0, 5, 15, 50, 85, 95],
+                            borderColor: '#EA580C',
+                            backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Indice Ponzi/Scam',
+                            data: [20, 30, 80, 40, 60, 75], // Volatile
+                            borderColor: '#EF4444',
+                            borderDash: [5, 5],
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Hype / Impact' } }
+                    }
+                }
+            });
+        }
+
+        // --- Plotly 3D Cloud ---
+        function renderPlotlyCloud() {
+            // 3D Bubble chart of keywords mapping: X=Political, Y=Cultural, Z=Tech
+            const keywordsData = [
+                { text: "GLB", x: 10, y: 2, z: 2, size: 20, color: 'blue' },
+                { text: "Magnette", x: 8, y: 3, z: 1, size: 18, color: 'red' },
+                { text: "Python", x: 1, y: 1, z: 10, size: 15, color: 'green' },
+                { text: "SEO", x: 2, y: 2, z: 9, size: 12, color: 'green' },
+                { text: "Bicky", x: 3, y: 10, z: 1, size: 25, color: 'orange' },
+                { text: "Pulp Fiction", x: 2, y: 9, z: 2, size: 22, color: 'orange' },
+                { text: "QAnus", x: 9, y: 1, z: 8, size: 15, color: 'black' },
+                { text: "RTBF", x: 7, y: 5, z: 3, size: 14, color: 'purple' },
+                { text: "Gemini", x: 1, y: 2, z: 9, size: 16, color: 'green' },
+                { text: "Oufti", x: 5, y: 8, z: 1, size: 12, color: 'gray' },
+                { text: "Particratie", x: 9, y: 2, z: 2, size: 18, color: 'red' }
+            ];
+
+            const trace = {
+                x: keywordsData.map(d => d.x),
+                y: keywordsData.map(d => d.y),
+                z: keywordsData.map(d => d.z),
+                text: keywordsData.map(d => d.text),
+                mode: 'text+markers',
+                marker: {
+                    size: keywordsData.map(d => d.size),
+                    color: keywordsData.map(d => d.color),
+                    opacity: 0.7
+                },
+                textfont: {
+                    size: 10,
+                    color: '#333'
+                },
+                type: 'scatter3d'
+            };
+
+            const layout = {
+                margin: { l: 0, r: 0, b: 0, t: 0 },
+                scene: {
+                    xaxis: { title: 'Politique' },
+                    yaxis: { title: 'Culture' },
+                    zaxis: { title: 'Tech' },
+                    bgcolor: '#FAFAF9' // stone-50
+                },
+                paper_bgcolor: '#FAFAF9'
+            };
+
+            Plotly.newPlot('plotlyDiv', [trace], layout, {responsive: true, displayModeBar: false});
+        }
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initWordStream();
+            // Start at overview
+            navTo('overview');
+        });
+
+    </script>
+</body>
+</html>
