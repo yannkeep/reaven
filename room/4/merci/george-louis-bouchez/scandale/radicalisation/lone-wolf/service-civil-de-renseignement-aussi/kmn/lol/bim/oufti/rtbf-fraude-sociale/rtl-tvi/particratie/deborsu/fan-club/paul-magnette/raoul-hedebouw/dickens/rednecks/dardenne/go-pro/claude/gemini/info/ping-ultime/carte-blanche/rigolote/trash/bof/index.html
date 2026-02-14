@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport Forensique 404 : L'Anatomie du Chaos Belge</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom Config & Styles -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFCF8; /* Warm neutral background */
+            color: #2D3748;
+        }
+
+        /* Chart Container Styling (Mandatory) */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 650px; /* Max width to prevent stretching */
+            height: 400px; /* Base height */
+            max-height: 450px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Responsive adjustments for charts */
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        .nav-active {
+            border-bottom: 2px solid #D97706; /* Amber-600 */
+            color: #D97706;
+            font-weight: 600;
+        }
+
+        .card {
+            background: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .hidden-section {
+            display: none;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+
+    <!-- Placeholder Comments Required by Instructions -->
+    <!-- Chosen Palette: Warm Neutrals (Background: #FDFCF8) with Amber/Orange accents for data highlights. Represents a "Bureaucratic Investigation" aesthetic but modernized. -->
+    
+    <!-- Application Structure Plan: 
+         Structure: Dashboard Layout with Tabbed Navigation.
+         Rationale: The "source report" (the URL path) represents a journey through Belgian political/media chaos. A dashboard allows users to break down this complex linear path into analytical categories: "Timeline of Chaos" (Path Analysis), "The Actors" (Politicians), "Media Noise" (Channels/Buzzwords), and "Sentiment" (Reactions).
+         Flow: Intro -> Dashboard Summary -> Drill-down tabs for specific data sets -> Conclusion.
+         Why: A linear scroll would be overwhelming given the amount of disparate keywords. Tabs allow focusing on specific aspects (e.g., comparing politicians) without distraction.
+    -->
+
+    <!-- Visualization & Content Choices:
+         1. Path Velocity (Line Chart): To show the speed of descent from "Info" to "Trash". (Goal: Change)
+         2. Political Noise vs. Impact (Scatter Plot - Plotly): Comparing GLB, Magnette, Hedebouw based on "Scandale" and "Particratie" metrics inferred from context. (Goal: Relationships)
+         3. Buzzword Composition (Doughnut Chart - Chart.js): Breakdown of path segments (Media, Politics, Emotion, Trash). (Goal: Inform)
+         4. The "Ping Ultime" Network (Network/Node diagram using HTML/CSS + JS Lines): Connecting actors to their scandals. (Goal: Organize - No SVG/Mermaid used).
+         5. Dynamic Text Blocks: Contextualizing "Oufti", "Bim", "Lol" within the analysis.
+         
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold text-gray-800 tracking-tight">🕵️‍♂️ Rapport 404-BE</span>
+                </div>
+                <div class="hidden sm:flex space-x-8 items-center">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn nav-active px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition">Vue d'ensemble</button>
+                    <button onclick="switchTab('actors')" id="nav-actors" class="nav-btn px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition">Acteurs Politiques</button>
+                    <button onclick="switchTab('media')" id="nav-media" class="nav-btn px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition">Analyse Médiatique</button>
+                    <button onclick="switchTab('path')" id="nav-path" class="nav-btn px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition">Le Chemin (Path)</button>
+                </div>
+                <!-- Mobile menu button wrapper -->
+                <div class="flex items-center sm:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                        <span class="text-2xl">☰</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden sm:hidden bg-white border-t border-gray-200">
+            <button onclick="switchTab('dashboard')" class="block w-full text-left px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50">Vue d'ensemble</button>
+            <button onclick="switchTab('actors')" class="block w-full text-left px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50">Acteurs Politiques</button>
+            <button onclick="switchTab('media')" class="block w-full text-left px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50">Analyse Médiatique</button>
+            <button onclick="switchTab('path')" class="block w-full text-left px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50">Le Chemin (Path)</button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- HEADER SECTION: Context -->
+        <header class="mb-10 text-center max-w-3xl mx-auto">
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">Analyse de l'Incident "Ping Ultime"</h1>
+            <p class="text-lg text-gray-600 leading-relaxed">
+                Ce rapport interactif dissèque la chaîne de données corrompue menant à l'erreur <span class="font-mono bg-gray-200 px-1 rounded text-red-600">404.html</span>. 
+                Il analyse la collision entre la sphère politique belge (Particratie), le bruit médiatique (RTL/RTBF) et la saturation cognitive numérique (Trash/Lol).
+            </p>
+        </header>
+
+        <!-- VIEW: DASHBOARD -->
+        <section id="view-dashboard" class="fade-in space-y-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- KPI 1 -->
+                <div class="card p-6 border-l-4 border-amber-500">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Index de Chaos</h3>
+                    <div class="mt-2 flex items-baseline">
+                        <span class="text-4xl font-bold text-gray-900">98.4%</span>
+                        <span class="ml-2 text-sm font-medium text-green-600">▲ Critique</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">Saturation atteinte au segment "Oufti".</p>
+                </div>
+                <!-- KPI 2 -->
+                <div class="card p-6 border-l-4 border-blue-500">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Entités Détectées</h3>
+                    <div class="mt-2 flex items-baseline">
+                        <span class="text-4xl font-bold text-gray-900">12</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">3 Politiciens, 2 Chaînes, 1 "Deborsu".</p>
+                </div>
+                <!-- KPI 3 -->
+                <div class="card p-6 border-l-4 border-red-500">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Destination Finale</h3>
+                    <div class="mt-2 flex items-baseline">
+                        <span class="text-4xl font-bold text-gray-900">TRASH</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">Redirigé depuis "Carte Blanche".</p>
+                </div>
+            </div>
+
+            <!-- Intro to Charts -->
+            <div class="bg-blue-50 border border-blue-100 rounded-lg p-6 my-6">
+                <h2 class="text-lg font-bold text-blue-800 mb-2">Structure de l'Analyse</h2>
+                <p class="text-blue-700 text-sm">
+                    Les données ci-dessous visualisent la fréquence et l'intensité des mots-clés extraits de l'URL source. Nous observons une corrélation forte entre "Scandale" et "Audience".
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Chart 1: Content Composition -->
+                <div class="card p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Composition du Bruit Numérique</h3>
+                    <div class="chart-container">
+                        <canvas id="compositionChart"></canvas>
+                    </div>
+                    <p class="mt-4 text-xs text-gray-500 text-center italic">Répartition des segments de l'URL par catégorie.</p>
+                </div>
+
+                <!-- Chart 2: Timeline of Intensity -->
+                <div class="card p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Vélocité de la Radicalisation</h3>
+                    <p class="text-sm text-gray-600 mb-4">Évolution de l'intensité émotionnelle à mesure que l'on avance dans l'URL.</p>
+                    <div class="chart-container">
+                        <canvas id="velocityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: ACTORS (Politique) -->
+        <section id="view-actors" class="hidden-section fade-in space-y-8">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">L'Arène Politique</h2>
+                <p class="text-gray-600 mt-2">
+                    Analyse comparative des figures clés mentionnées dans le chemin d'accès (GLB, Magnette, Hedebouw). 
+                    Le graphique ci-dessous positionne chaque acteur selon son "Coefficient de Scandale" et sa "Présence Médiatique".
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Sidebar Controls -->
+                <div class="card p-6 col-span-1 h-fit">
+                    <h3 class="font-bold text-gray-800 mb-4">Filtres d'Analyse</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" checked id="toggle-glb" class="form-checkbox text-blue-600 rounded">
+                                <span>George-Louis Bouchez (GLB)</span>
+                            </label>
+                        </div>
+                        <div>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" checked id="toggle-magnette" class="form-checkbox text-red-600 rounded">
+                                <span>Paul Magnette</span>
+                            </label>
+                        </div>
+                        <div>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" checked id="toggle-hedebouw" class="form-checkbox text-red-800 rounded">
+                                <span>Raoul Hedebouw</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 p-4 bg-gray-50 rounded-lg">
+                        <h4 class="text-xs font-bold text-gray-500 uppercase">Insight IA</h4>
+                        <p id="actor-insight" class="text-sm text-gray-700 mt-2">
+                            La densité du mot-clé "Fan Club" est anormalement élevée autour de la zone "Deborsu", suggérant une anomalie populiste.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Main Chart: Scatter Plot -->
+                <div class="card p-6 col-span-1 lg:col-span-2">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Matrice Impact vs Bruit</h3>
+                    <div id="actorsPlot" class="w-full h-[400px]"></div> <!-- Plotly Container -->
+                </div>
+            </div>
+
+            <!-- Detailed Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                <!-- Card 1 -->
+                <div class="card p-6 border-t-4 border-blue-600">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-lg">GLB</h3>
+                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Particratie</span>
+                    </div>
+                    <div class="text-sm text-gray-600 space-y-2">
+                        <p><strong>Mots-clés associés:</strong> Scandale, Radicalisation, Service Civil.</p>
+                        <p><strong>Statut:</strong> "Lone Wolf" détecté.</p>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: 95%"></div>
+                        </div>
+                        <p class="text-xs text-right text-gray-500">Taux de "Bim": 95%</p>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="card p-6 border-t-4 border-red-500">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-lg">Magnette</h3>
+                        <span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">Sociale</span>
+                    </div>
+                    <div class="text-sm text-gray-600 space-y-2">
+                        <p><strong>Mots-clés associés:</strong> Fraude, Carte Blanche, Info.</p>
+                        <p><strong>Statut:</strong> Cible récurrente.</p>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                            <div class="bg-red-500 h-2.5 rounded-full" style="width: 70%"></div>
+                        </div>
+                        <p class="text-xs text-right text-gray-500">Taux de "Oufti": 70%</p>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="card p-6 border-t-4 border-red-800">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-lg">Hedebouw</h3>
+                        <span class="text-xs bg-red-100 text-red-900 px-2 py-1 rounded-full">Radical</span>
+                    </div>
+                    <div class="text-sm text-gray-600 space-y-2">
+                        <p><strong>Mots-clés associés:</strong> Lol, Go-Pro, Ping Ultime.</p>
+                        <p><strong>Statut:</strong> Agitateur numérique.</p>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                            <div class="bg-red-800 h-2.5 rounded-full" style="width: 85%"></div>
+                        </div>
+                        <p class="text-xs text-right text-gray-500">Taux de "Rigolote": 85%</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: MEDIA (Analysis) -->
+        <section id="view-media" class="hidden-section fade-in space-y-8">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">La Matrice Médiatique</h2>
+                <p class="text-gray-600 mt-2">
+                    Comment l'information brute se transforme-t-elle en "Trash" ? Analyse des vecteurs de diffusion RTBF et RTL-TVI et de l'impact du phénomène "Deborsu".
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Radar Chart -->
+                <div class="card p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Profils de Diffusion</h3>
+                    <div class="chart-container">
+                        <canvas id="mediaRadarChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Comparison Table/List -->
+                <div class="card p-6 flex flex-col">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Le Cycle du Buzz</h3>
+                    <div class="flex-grow space-y-4 overflow-y-auto pr-2" style="max-h: 350px;">
+                        
+                        <!-- Step 1 -->
+                        <div class="flex items-start p-3 bg-gray-50 rounded hover:bg-gray-100 transition">
+                            <div class="flex-shrink-0 h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold">1</div>
+                            <div class="ml-4">
+                                <h4 class="text-sm font-bold text-gray-900">Source: Info</h4>
+                                <p class="text-xs text-gray-500">Le signal initial. "Service Civil" ou "Fraude Sociale". Faible entropie.</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="flex items-start p-3 bg-gray-50 rounded hover:bg-gray-100 transition">
+                            <div class="flex-shrink-0 h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 font-bold">2</div>
+                            <div class="ml-4">
+                                <h4 class="text-sm font-bold text-gray-900">Amplification: RTL-TVI / Deborsu</h4>
+                                <p class="text-xs text-gray-500">Ajout de "Scandale" et "Fan Club". Le signal devient émotionnel.</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="flex items-start p-3 bg-gray-50 rounded hover:bg-gray-100 transition">
+                            <div class="flex-shrink-0 h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold">3</div>
+                            <div class="ml-4">
+                                <h4 class="text-sm font-bold text-gray-900">Réaction: KMN / LOL</h4>
+                                <p class="text-xs text-gray-500">La "Radicalisation" du discours. Perte de nuance.</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 4 -->
+                        <div class="flex items-start p-3 bg-gray-50 rounded hover:bg-gray-100 transition">
+                            <div class="flex-shrink-0 h-8 w-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold">4</div>
+                            <div class="ml-4">
+                                <h4 class="text-sm font-bold text-gray-900">Terminus: Trash / 404</h4>
+                                <p class="text-xs text-gray-500">Rupture sémantique totale. "Ping Ultime".</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: PATH (Raw Data) -->
+        <section id="view-path" class="hidden-section fade-in space-y-8">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Déconstruction du Chemin</h2>
+                <p class="text-gray-600 mt-2">
+                    Visualisation séquentielle de l'URL fournie. Chaque bloc représente un "nœud" dans l'architecture du site source.
+                </p>
+            </div>
+
+            <!-- Interactive Path Builder -->
+            <div class="card p-6">
+                <div class="flex flex-wrap gap-2" id="path-container">
+                    <!-- JS will populate this -->
+                </div>
+                <div id="path-details" class="mt-8 p-4 bg-gray-50 rounded border border-gray-200 hidden">
+                    <h4 class="font-bold text-gray-800" id="detail-title">Segment Details</h4>
+                    <p class="text-sm text-gray-600 mt-1" id="detail-desc">Click a segment above.</p>
+                    <div class="mt-3 flex gap-2">
+                        <span class="text-xs px-2 py-1 bg-white border rounded" id="detail-type">Type</span>
+                        <span class="text-xs px-2 py-1 bg-white border rounded" id="detail-risk">Risk Level</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-50 border-t border-gray-200 mt-12 py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-sm text-gray-500">Généré par Canvas Create Webapp • Analyse basée sur l'URL fournie.</p>
+            <p class="text-xs text-gray-400 mt-2">Ce rapport est une satire générée automatiquement et ne reflète pas la réalité politique réelle, mais plutôt la réalité numérique de l'URL source.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- 1. Data Store ---
+        const urlSegments = [
+            { id: 'george-louis-bouchez', label: 'George-Louis Bouchez', type: 'Politique', intensity: 90, desc: "Point d'entrée principal. Générateur de bruit élevé." },
+            { id: 'scandale', label: 'Scandale', type: 'Buzzword', intensity: 85, desc: "Catalyseur d'attention médiatique." },
+            { id: 'radicalisation', label: 'Radicalisation', type: 'Buzzword', intensity: 95, desc: "Augmentation de la polarité des débats." },
+            { id: 'lone-wolf', label: 'Lone Wolf', type: 'Concept', intensity: 70, desc: "Indicateur d'isolement politique." },
+            { id: 'service-civil', label: 'Service Civil', type: 'Politique', intensity: 60, desc: "Proposition politique controversée." },
+            { id: 'kmn', label: 'KMN', type: 'Reaction', intensity: 40, desc: "Expression de désarroi ('Koel M\'n N...') ou code interne." },
+            { id: 'lol', label: 'LOL', type: 'Reaction', intensity: 30, desc: "Dérision ironique." },
+            { id: 'bim', label: 'BIM', type: 'Reaction', intensity: 80, desc: "Impact direct ou 'punchline'." },
+            { id: 'oufti', label: 'OUFTI', type: 'Reaction', intensity: 75, desc: "Surprise typiquement belge." },
+            { id: 'rtbf', label: 'RTBF Fraude', type: 'Media', intensity: 85, desc: "Institution publique liée à une polémique." },
+            { id: 'rtl', label: 'RTL-TVI', type: 'Media', intensity: 80, desc: "Diffuseur privé commercial." },
+            { id: 'particratie', label: 'Particratie', type: 'Concept', intensity: 65, desc: "Système de pouvoir des partis." },
+            { id: 'deborsu', label: 'Deborsu', type: 'Media', intensity: 70, desc: "Journaliste vedette, vecteur de dramaturgie." },
+            { id: 'fan-club', label: 'Fan Club', type: 'Social', intensity: 50, desc: "Phénomène de groupe." },
+            { id: 'magnette', label: 'Paul Magnette', type: 'Politique', intensity: 88, desc: "Adversaire principal dans l'algorithme." },
+            { id: 'hedebouw', label: 'Raoul Hedebouw', type: 'Politique', intensity: 85, desc: "Variable populiste de gauche." },
+            { id: 'dickens', label: 'Dickens', type: 'Culture', intensity: 20, desc: "Référence littéraire inattendue (Misère sociale?)." },
+            { id: 'rednecks', label: 'Rednecks', type: 'Social', intensity: 90, desc: "Terme péjoratif importé." },
+            { id: 'go-pro', label: 'Go-Pro', type: 'Tech', intensity: 60, desc: "Surveillance ou vlogging politique." },
+            { id: 'ping-ultime', label: 'Ping Ultime', type: 'Tech', intensity: 100, desc: "Le point de non-retour." },
+            { id: 'carte-blanche', label: 'Carte Blanche', type: 'Media', intensity: 50, desc: "Opinion libre." },
+            { id: 'rigolote', label: 'Rigolote', type: 'Reaction', intensity: 20, desc: "Adjectif qualifiant la situation." },
+            { id: 'trash', label: 'TRASH', type: 'Final', intensity: 99, desc: "État final du contenu." }
+        ];
+
+        const actorData = {
+            glb: { x: 90, y: 95, size: 40, color: '#2563EB', name: 'G-L Bouchez' },
+            magnette: { x: 70, y: 80, size: 35, color: '#DC2626', name: 'P. Magnette' },
+            hedebouw: { x: 85, y: 60, size: 30, color: '#991B1B', name: 'R. Hedebouw' },
+            deborsu: { x: 60, y: 90, size: 25, color: '#D97706', name: 'C. Deborsu' }
+        };
+
+        // --- 2. Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            renderPath();
+            updateActorPlot();
+        });
+
+        // --- 3. Navigation Logic ---
+        function switchTab(tabId) {
+            // Hide all sections
+            document.querySelectorAll('section').forEach(sec => {
+                sec.classList.add('hidden-section');
+            });
+            
+            // Show target section
+            document.getElementById(`view-${tabId}`).classList.remove('hidden-section');
+            
+            // Update Nav Classes
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('nav-active', 'text-amber-600');
+                btn.classList.add('text-gray-500');
+            });
+            document.getElementById(`nav-${tabId}`).classList.add('nav-active');
+
+            // Resize plots if necessary (Plotly needs resize trigger when unhidden)
+            if (tabId === 'actors') {
+                setTimeout(() => Plotly.Plots.resize('actorsPlot'), 50);
+            }
+            
+            // Close mobile menu if open
+            document.getElementById('mobile-menu').classList.add('hidden');
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // --- 4. Chart Implementation ---
+        
+        let compositionChartInst = null;
+        let velocityChartInst = null;
+        let radarChartInst = null;
+
+        function initCharts() {
+            // --- Chart 1: Composition (Doughnut) ---
+            const ctxComp = document.getElementById('compositionChart').getContext('2d');
+            
+            // Count types
+            const typeCounts = {};
+            urlSegments.forEach(seg => {
+                typeCounts[seg.type] = (typeCounts[seg.type] || 0) + 1;
+            });
+
+            compositionChartInst = new Chart(ctxComp, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(typeCounts),
+                    datasets: [{
+                        data: Object.values(typeCounts),
+                        backgroundColor: [
+                            '#3B82F6', // Politique: Blue
+                            '#EF4444', // Buzzword: Red
+                            '#10B981', // Reaction: Green
+                            '#F59E0B', // Media: Amber
+                            '#6366F1', // Tech: Indigo
+                            '#8B5CF6', // Concept: Purple
+                            '#EC4899', // Social: Pink
+                            '#111827'  // Final: Black
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+
+            // --- Chart 2: Velocity (Line) ---
+            const ctxVel = document.getElementById('velocityChart').getContext('2d');
+            
+            // Generate data points
+            const labels = urlSegments.map(s => s.id);
+            const dataIntensity = urlSegments.map(s => s.intensity);
+
+            velocityChartInst = new Chart(ctxVel, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Intensité du Chaos',
+                        data: dataIntensity,
+                        borderColor: '#D97706',
+                        backgroundColor: 'rgba(217, 119, 6, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { display: false }, // Hide cluttered X labels
+                        y: { beginAtZero: true, max: 100 }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: (context) => urlSegments[context[0].dataIndex].label
+                            }
+                        }
+                    }
+                }
+            });
+
+            // --- Chart 3: Radar (Media) ---
+            const ctxRadar = document.getElementById('mediaRadarChart').getContext('2d');
+            radarChartInst = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Sensationnalisme', 'Véracité', 'Conflit', 'Humour', 'Vitesse'],
+                    datasets: [{
+                        label: 'RTBF/RTL (Moyenne)',
+                        data: [85, 40, 90, 20, 95],
+                        fill: true,
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: '#3B82F6',
+                        pointBackgroundColor: '#3B82F6'
+                    }, {
+                        label: 'Seuil de Tolérance',
+                        data: [50, 50, 50, 50, 50],
+                        fill: false,
+                        borderColor: '#9CA3AF',
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { display: false },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- 5. Plotly Interactive Plot ---
+        function updateActorPlot() {
+            const showGLB = document.getElementById('toggle-glb').checked;
+            const showMag = document.getElementById('toggle-magnette').checked;
+            const showHed = document.getElementById('toggle-hedebouw').checked;
+
+            const xVal = [];
+            const yVal = [];
+            const sizes = [];
+            const colors = [];
+            const text = [];
+
+            if (showGLB) {
+                xVal.push(actorData.glb.x); yVal.push(actorData.glb.y); sizes.push(actorData.glb.size); colors.push(actorData.glb.color); text.push(actorData.glb.name);
+                // Deborsu usually appears where GLB is
+                xVal.push(actorData.deborsu.x); yVal.push(actorData.deborsu.y); sizes.push(actorData.deborsu.size); colors.push(actorData.deborsu.color); text.push(actorData.deborsu.name);
+            }
+            if (showMag) {
+                xVal.push(actorData.magnette.x); yVal.push(actorData.magnette.y); sizes.push(actorData.magnette.size); colors.push(actorData.magnette.color); text.push(actorData.magnette.name);
+            }
+            if (showHed) {
+                xVal.push(actorData.hedebouw.x); yVal.push(actorData.hedebouw.y); sizes.push(actorData.hedebouw.size); colors.push(actorData.hedebouw.color); text.push(actorData.hedebouw.name);
+            }
+
+            const trace = {
+                x: xVal,
+                y: yVal,
+                mode: 'markers+text',
+                text: text,
+                textposition: 'top center',
+                marker: {
+                    size: sizes,
+                    color: colors,
+                    opacity: 0.8
+                },
+                type: 'scatter'
+            };
+
+            const layout = {
+                margin: { t: 20, r: 20, b: 40, l: 40 },
+                xaxis: { title: 'Impact Politique Réel (Est.)', range: [0, 100], zeroline: false },
+                yaxis: { title: 'Bruit Médiatique / Scandale', range: [0, 110], zeroline: false },
+                hovermode: 'closest',
+                dragmode: false,
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)'
+            };
+
+            Plotly.newPlot('actorsPlot', [trace], layout, {displayModeBar: false});
+        }
+
+        // Event listeners for checkboxes
+        document.getElementById('toggle-glb').addEventListener('change', updateActorPlot);
+        document.getElementById('toggle-magnette').addEventListener('change', updateActorPlot);
+        document.getElementById('toggle-hedebouw').addEventListener('change', updateActorPlot);
+
+
+        // --- 6. Path Renderer Logic ---
+        function renderPath() {
+            const container = document.getElementById('path-container');
+            
+            urlSegments.forEach((seg, index) => {
+                const badge = document.createElement('button');
+                
+                // Color coding based on type
+                let colorClass = "bg-gray-100 text-gray-800 border-gray-200";
+                if(seg.type === 'Politique') colorClass = "bg-blue-100 text-blue-800 border-blue-200";
+                if(seg.type === 'Media') colorClass = "bg-yellow-100 text-yellow-800 border-yellow-200";
+                if(seg.type === 'Reaction') colorClass = "bg-green-100 text-green-800 border-green-200";
+                if(seg.type === 'Final') colorClass = "bg-black text-white border-black";
+                if(seg.id === 'ping-ultime') colorClass = "bg-red-600 text-white border-red-600 animate-pulse";
+
+                badge.className = `${colorClass} px-3 py-1 rounded-full text-sm font-medium border hover:scale-105 transition transform`;
+                badge.innerText = `/${seg.id}`;
+                
+                badge.onclick = () => showPathDetails(seg);
+                
+                container.appendChild(badge);
+                
+                // Add separator
+                if (index < urlSegments.length - 1) {
+                    const sep = document.createElement('span');
+                    sep.innerText = "→";
+                    sep.className = "text-gray-300 self-center";
+                    container.appendChild(sep);
+                }
+            });
+        }
+
+        function showPathDetails(seg) {
+            const detailBox = document.getElementById('path-details');
+            document.getElementById('detail-title').innerText = seg.label;
+            document.getElementById('detail-desc').innerText = seg.desc;
+            document.getElementById('detail-type').innerText = seg.type;
+            
+            const riskSpan = document.getElementById('detail-risk');
+            riskSpan.innerText = `Intensité: ${seg.intensity}%`;
+            
+            if(seg.intensity > 80) {
+                riskSpan.className = "text-xs px-2 py-1 bg-red-100 text-red-800 border border-red-200 rounded";
+            } else {
+                riskSpan.className = "text-xs px-2 py-1 bg-green-100 text-green-800 border border-green-200 rounded";
+            }
+            
+            detailBox.classList.remove('hidden');
+            detailBox.classList.add('fade-in');
+        }
+
+    </script>
+</body>
+</html>
