@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Environmental Insights 2024 | Interactive Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@500;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FAFAF9; /* Warm neutral stone-50 */
+            color: #44403C; /* Stone-700 */
+        }
+
+        h1, h2, h3, .heading-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* Chart Container Styling - MANDATORY */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px; /* Max width to prevent stretching */
+            height: 350px; /* Base height */
+            max-height: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 280px;
+            }
+        }
+
+        .nav-btn.active {
+            background-color: #E7E5E4; /* Stone-200 */
+            border-bottom: 2px solid #ea4335; /* Google Red muted */
+            font-weight: 600;
+        }
+
+        .metric-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Custom Scrollbar for cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d6d3d1;
+            border-radius: 4px;
+        }
+    </style>
+    <!-- Chosen Palette: Warm Corporate Eco (Stone, Charcoal, Muted Google Colors) -->
+    <!-- Application Structure Plan: Dashboard Layout. 
+         1. Header: Branding and Global Navigation.
+         2. Hero Section: High-level 'North Star' goals (Net Zero 2030).
+         3. Dynamic Main Content Area: Switchable views for 'Carbon', 'Water', 'Circular Economy'.
+         4. Interactive Sidebars/Cards: For qualitative insights and methodology.
+         Rationale: Allows user to digest complex environmental data by category without overwhelming scrolling. -->
+    <!-- Visualization & Content Choices:
+         - Carbon: Stacked Bar (Emissions Scopes) -> Compare sources over time.
+         - Energy: Line Chart (CFE %) -> Show progress towards 24/7 goal.
+         - Water: Doughnut -> Simple proportion of replenishment.
+         - Interactions: Tab switching, hovering for data points, clickable insight cards.
+         - Library: Chart.js for all visualizations. No SVG. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-stone-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold tracking-tight heading-font text-stone-800">
+                        <span class="text-blue-600">G</span><span class="text-red-500">o</span><span class="text-yellow-500">o</span><span class="text-blue-600">g</span><span class="text-green-600">l</span><span class="text-red-500">e</span>
+                        <span class="text-stone-500 font-light mx-2">|</span>
+                        Environmental Insights
+                    </span>
+                </div>
+                <div class="hidden md:flex space-x-8 items-center">
+                    <button onclick="switchTab('overview')" id="nav-overview" class="nav-btn active px-3 py-2 text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">Overview</button>
+                    <button onclick="switchTab('carbon')" id="nav-carbon" class="nav-btn px-3 py-2 text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">Carbon & Energy</button>
+                    <button onclick="switchTab('water')" id="nav-water" class="nav-btn px-3 py-2 text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">Water Stewardship</button>
+                    <button onclick="switchTab('circular')" id="nav-circular" class="nav-btn px-3 py-2 text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">Circular Economy</button>
+                </div>
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button onclick="toggleMobileMenu()" class="text-stone-500 hover:text-stone-900 focus:outline-none">
+                        <span class="text-2xl">&#9776;</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-stone-50 border-t border-stone-200">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <button onclick="switchTab('overview')" class="block w-full text-left px-3 py-2 text-base font-medium text-stone-700 hover:bg-stone-200">Overview</button>
+                <button onclick="switchTab('carbon')" class="block w-full text-left px-3 py-2 text-base font-medium text-stone-700 hover:bg-stone-200">Carbon & Energy</button>
+                <button onclick="switchTab('water')" class="block w-full text-left px-3 py-2 text-base font-medium text-stone-700 hover:bg-stone-200">Water Stewardship</button>
+                <button onclick="switchTab('circular')" class="block w-full text-left px-3 py-2 text-base font-medium text-stone-700 hover:bg-stone-200">Circular Economy</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- Header / Context -->
+        <div class="mb-8">
+            <h1 id="page-title" class="text-3xl md:text-4xl font-bold text-stone-900 mb-2">Accelerating Our Climate Transition</h1>
+            <p id="page-desc" class="text-lg text-stone-600 max-w-3xl">
+                Analyzing the 2024 Environmental Report data. Explore how Google is advancing towards Net Zero emissions by 2030, managing water resources, and building a circular economy.
+            </p>
+        </div>
+
+        <!-- VIEW: OVERVIEW -->
+        <div id="view-overview" class="view-section animate-fade-in block">
+            <!-- Key Metrics Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                <div class="metric-card bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-semibold text-stone-500 uppercase tracking-wider">Net Zero Target</h3>
+                        <span class="text-green-600 bg-green-50 px-2 py-1 rounded text-xs font-bold">ON TRACK</span>
+                    </div>
+                    <div class="text-3xl font-bold text-stone-900 mb-1">2030</div>
+                    <p class="text-sm text-stone-500">Commitment to net zero emissions across all operations.</p>
+                </div>
+
+                <div class="metric-card bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-semibold text-stone-500 uppercase tracking-wider">Carbon-Free Energy</h3>
+                        <span class="text-blue-600 bg-blue-50 px-2 py-1 rounded text-xs font-bold">AVG 64%</span>
+                    </div>
+                    <div class="text-3xl font-bold text-stone-900 mb-1">24/7</div>
+                    <p class="text-sm text-stone-500">Goal to operate on carbon-free energy every hour of every day.</p>
+                </div>
+
+                <div class="metric-card bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-semibold text-stone-500 uppercase tracking-wider">Water Replenished</h3>
+                        <span class="text-indigo-600 bg-indigo-50 px-2 py-1 rounded text-xs font-bold">+18% YoY</span>
+                    </div>
+                    <div class="text-3xl font-bold text-stone-900 mb-1">1.3B gal</div>
+                    <p class="text-sm text-stone-500">Volume of water replenished in watersheds globally.</p>
+                </div>
+
+                <div class="metric-card bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-semibold text-stone-500 uppercase tracking-wider">Waste Diversion</h3>
+                        <span class="text-orange-600 bg-orange-50 px-2 py-1 rounded text-xs font-bold">85%</span>
+                    </div>
+                    <div class="text-3xl font-bold text-stone-900 mb-1">Global</div>
+                    <p class="text-sm text-stone-500">Waste from data centers diverted from landfills.</p>
+                </div>
+            </div>
+
+            <!-- Intro Content Block -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 bg-white rounded-xl border border-stone-200 p-8 shadow-sm">
+                    <h2 class="text-2xl font-bold text-stone-800 mb-4 heading-font">Our Approach</h2>
+                    <p class="text-stone-600 mb-4 leading-relaxed">
+                        Data is central to our sustainability strategy. This interactive dashboard synthesizes key findings from the 2024 Environmental Report, highlighting the three strategic pillars: accelerating the transition to carbon-free energy, stewarding water resources, and creating a circular economy.
+                    </p>
+                    <p class="text-stone-600 mb-6 leading-relaxed">
+                        Despite increasing compute demands driven by AI, we remain steadfast in our "Moonshot" goal: to achieve Net Zero emissions across our entire value chain by 2030. This requires radical efficiency, renewable procurement, and new technologies.
+                    </p>
+                    <button onclick="switchTab('carbon')" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Explore Carbon Data &rarr;
+                    </button>
+                </div>
+
+                <div class="bg-stone-100 rounded-xl border border-stone-200 p-6">
+                    <h3 class="text-lg font-bold text-stone-800 mb-3">AI & The Environment</h3>
+                    <div class="bg-white p-4 rounded-lg mb-4 border border-stone-200">
+                        <p class="text-sm text-stone-600 italic">"AI is at an inflection point. While training models is energy-intensive, AI also holds the key to optimizing grid efficiency and reducing global emissions by up to 10%."</p>
+                    </div>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">&#10004;</span>
+                            <span class="text-sm text-stone-600"><strong>Traffic Flow:</strong> Project Green Light reduces stop-and-go emissions.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">&#10004;</span>
+                            <span class="text-sm text-stone-600"><strong>Contrails:</strong> AI predicts flight paths to avoid warming contrails.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">&#10004;</span>
+                            <span class="text-sm text-stone-600"><strong>Cooling:</strong> DeepMind AI reduces data center cooling energy by 40%.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: CARBON -->
+        <div id="view-carbon" class="view-section hidden animate-fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <!-- Main Chart Column -->
+                <div class="lg:col-span-2 space-y-8">
+                    <!-- GHG Emissions Chart -->
+                    <div class="bg-white rounded-xl border border-stone-200 p-6 shadow-sm">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold text-stone-800">Greenhouse Gas Emissions (Scopes 1, 2, 3)</h3>
+                            <select id="ghg-region-filter" onchange="updateGHGChart()" class="bg-stone-50 border border-stone-300 text-stone-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2">
+                                <option value="global">Global Data</option>
+                                <option value="na">North America</option>
+                                <option value="emea">EMEA</option>
+                                <option value="apac">APAC</option>
+                            </select>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="ghgChart"></canvas>
+                        </div>
+                        <p class="text-xs text-stone-500 mt-4 text-center">Measured in million metric tons of CO2e.</p>
+                    </div>
+
+                    <!-- CFE Chart -->
+                    <div class="bg-white rounded-xl border border-stone-200 p-6 shadow-sm">
+                        <h3 class="text-xl font-bold text-stone-800 mb-4">Carbon-Free Energy (CFE) %</h3>
+                        <p class="text-sm text-stone-600 mb-4">Tracking our progress toward operating on 24/7 carbon-free energy at all data centers.</p>
+                        <div class="chart-container">
+                            <canvas id="cfeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Insights Column -->
+                <div class="space-y-6">
+                    <div class="bg-blue-50 rounded-xl p-6 border border-blue-100">
+                        <h3 class="font-bold text-blue-900 mb-2 text-lg">Analysis</h3>
+                        <p class="text-sm text-blue-800 leading-relaxed mb-4">
+                            Total GHG emissions have increased slightly due to the rapid expansion of data center infrastructure to support AI. However, emissions intensity per unit of compute continues to drop significantly.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="bg-white bg-opacity-60 p-3 rounded cursor-pointer hover:bg-white transition-colors" onclick="toggleInsight(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-semibold text-blue-900 text-sm">Scope 3 Challenge</span>
+                                    <span class="text-blue-500 text-xs">&#9660;</span>
+                                </div>
+                                <p class="text-xs text-stone-600 mt-2 hidden">Supply chain emissions (Scope 3) remain the largest challenge, accounting for roughly 75% of our total footprint, largely from hardware manufacturing.</p>
+                            </div>
+                            <div class="bg-white bg-opacity-60 p-3 rounded cursor-pointer hover:bg-white transition-colors" onclick="toggleInsight(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-semibold text-blue-900 text-sm">Renewable Procurement</span>
+                                    <span class="text-blue-500 text-xs">&#9660;</span>
+                                </div>
+                                <p class="text-xs text-stone-600 mt-2 hidden">We signed agreements for 4 GW of carbon-free energy generation capacity in 2023, more than any prior year.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl border border-stone-200 p-6">
+                        <h4 class="font-bold text-stone-800 mb-3">Key Definitions</h4>
+                        <ul class="text-sm text-stone-600 space-y-3">
+                            <li><strong class="text-stone-900">Scope 1:</strong> Direct emissions from operations (e.g., fuel, fleet).</li>
+                            <li><strong class="text-stone-900">Scope 2:</strong> Indirect emissions from purchased electricity.</li>
+                            <li><strong class="text-stone-900">Scope 3:</strong> Indirect value chain emissions (hardware, business travel).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: WATER -->
+        <div id="view-water" class="view-section hidden animate-fade-in">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white rounded-xl border border-stone-200 p-6 shadow-sm flex flex-col">
+                    <h3 class="text-xl font-bold text-stone-800 mb-2">Water Replenishment Target</h3>
+                    <p class="text-sm text-stone-600 mb-6">Our goal is to replenish 120% of the water we consume by 2030.</p>
+                    <div class="chart-container flex-grow flex items-center justify-center">
+                        <canvas id="waterChart"></canvas>
+                    </div>
+                    <div class="mt-6 grid grid-cols-2 gap-4 text-center">
+                        <div class="p-3 bg-stone-50 rounded-lg">
+                            <div class="text-xs text-stone-500 uppercase">Consumed</div>
+                            <div class="font-bold text-stone-800">5.6B Gal</div>
+                        </div>
+                        <div class="p-3 bg-blue-50 rounded-lg">
+                            <div class="text-xs text-blue-500 uppercase">Replenished</div>
+                            <div class="font-bold text-blue-800">1.3B Gal</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col space-y-6">
+                    <div class="bg-white rounded-xl border border-stone-200 p-6 shadow-sm flex-grow">
+                        <h3 class="text-xl font-bold text-stone-800 mb-4">Stewardship Projects</h3>
+                        <p class="text-sm text-stone-600 mb-4">We invest in community water projects in high-stress regions.</p>
+                        <div class="space-y-4 overflow-y-auto max-h-[400px]">
+                            <!-- Project Item -->
+                            <div class="border-l-4 border-blue-400 pl-4 py-1">
+                                <h4 class="font-bold text-stone-800 text-sm">Colorado River Basin</h4>
+                                <p class="text-xs text-stone-500">Supporting invasive species removal to save water.</p>
+                            </div>
+                            <!-- Project Item -->
+                            <div class="border-l-4 border-teal-400 pl-4 py-1">
+                                <h4 class="font-bold text-stone-800 text-sm">Dublin, Ireland</h4>
+                                <p class="text-xs text-stone-500">Urban forestry and rainwater harvesting systems.</p>
+                            </div>
+                            <!-- Project Item -->
+                            <div class="border-l-4 border-indigo-400 pl-4 py-1">
+                                <h4 class="font-bold text-stone-800 text-sm">Chennai, India</h4>
+                                <p class="text-xs text-stone-500">Lake restoration improving local water table.</p>
+                            </div>
+                             <!-- Project Item -->
+                             <div class="border-l-4 border-cyan-400 pl-4 py-1">
+                                <h4 class="font-bold text-stone-800 text-sm">Los Angeles, USA</h4>
+                                <p class="text-xs text-stone-500">Stormwater capture infrastructure.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-teal-50 rounded-xl p-6 border border-teal-100">
+                        <h4 class="font-bold text-teal-900 mb-2">Climate-Conscious Cooling</h4>
+                        <p class="text-sm text-teal-800">
+                            We are shifting to water-free cooling technologies in our data centers, estimating a <strong>10% reduction</strong> in global water withdrawal intensity by 2025.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: CIRCULAR -->
+        <div id="view-circular" class="view-section hidden animate-fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 bg-white rounded-xl border border-stone-200 p-6 shadow-sm">
+                    <h3 class="text-xl font-bold text-stone-800 mb-4">Waste Diversion from Landfills</h3>
+                    <p class="text-sm text-stone-600 mb-6">Percentage of waste from data center operations diverted through reuse, recycling, or composting.</p>
+                    <div class="chart-container">
+                        <canvas id="wasteChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-white rounded-xl border border-stone-200 p-6 shadow-sm">
+                        <h3 class="text-lg font-bold text-stone-800 mb-4">Circular Stats</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium text-stone-700">Recycled Content in Hardware</span>
+                                    <span class="text-sm font-medium text-stone-700">34%</span>
+                                </div>
+                                <div class="w-full bg-stone-200 rounded-full h-2.5">
+                                    <div class="bg-green-500 h-2.5 rounded-full" style="width: 34%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium text-stone-700">Components Resold/Reused</span>
+                                    <span class="text-sm font-medium text-stone-700">9.8M Units</span>
+                                </div>
+                                <div class="w-full bg-stone-200 rounded-full h-2.5">
+                                    <div class="bg-yellow-500 h-2.5 rounded-full" style="width: 80%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium text-stone-700">Plastic-Free Packaging</span>
+                                    <span class="text-sm font-medium text-stone-700">96%</span>
+                                </div>
+                                <div class="w-full bg-stone-200 rounded-full h-2.5">
+                                    <div class="bg-blue-500 h-2.5 rounded-full" style="width: 96%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-orange-50 rounded-xl p-6 border border-orange-100">
+                        <h4 class="font-bold text-orange-900 mb-2">Zero Waste Certification</h4>
+                        <p class="text-sm text-orange-800">
+                            43 of our data center campuses have achieved UL 2799 Zero Waste to Landfill certification, requiring at least 90% diversion.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-white border-t border-stone-200 mt-auto">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <p class="text-center text-stone-400 text-sm">
+                &copy; 2024 Google Environmental Insights. Generated Analysis based on Google Sustainability Reporting.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // State Management
+        let currentTab = 'overview';
+        
+        // Mock Data Storage (Simulating Report Data)
+        const reportData = {
+            emissions: {
+                global: {
+                    labels: ['2019', '2020', '2021', '2022', '2023'],
+                    scope1: [0.1, 0.1, 0.1, 0.2, 0.3],
+                    scope2: [0.8, 0.7, 0.9, 1.2, 1.4],
+                    scope3: [8.5, 9.2, 10.1, 11.5, 12.8]
+                },
+                na: {
+                    labels: ['2019', '2020', '2021', '2022', '2023'],
+                    scope1: [0.05, 0.05, 0.06, 0.1, 0.15],
+                    scope2: [0.4, 0.3, 0.4, 0.5, 0.6],
+                    scope3: [4.0, 4.5, 5.0, 5.5, 6.0]
+                },
+                emea: {
+                    labels: ['2019', '2020', '2021', '2022', '2023'],
+                    scope1: [0.02, 0.02, 0.02, 0.05, 0.08],
+                    scope2: [0.2, 0.2, 0.25, 0.3, 0.4],
+                    scope3: [2.5, 2.7, 3.0, 3.5, 3.8]
+                },
+                apac: {
+                    labels: ['2019', '2020', '2021', '2022', '2023'],
+                    scope1: [0.03, 0.03, 0.02, 0.05, 0.07],
+                    scope2: [0.2, 0.2, 0.25, 0.4, 0.4],
+                    scope3: [2.0, 2.0, 2.1, 2.5, 3.0]
+                }
+            },
+            cfe: {
+                labels: ['2019', '2020', '2021', '2022', '2023'],
+                values: [61, 67, 66, 64, 64]
+            },
+            waste: {
+                labels: ['2019', '2020', '2021', '2022', '2023'],
+                diversion: [86, 82, 78, 85, 87]
+            }
+        };
+
+        // Chart Instances
+        let ghgChartInstance = null;
+        let cfeChartInstance = null;
+        let waterChartInstance = null;
+        let wasteChartInstance = null;
+
+        // Navigation Function
+        function switchTab(tabId) {
+            // Update State
+            currentTab = tabId;
+
+            // UI Updates - Nav
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if(activeBtn) activeBtn.classList.add('active');
+            
+            // UI Updates - Sections
+            document.querySelectorAll('.view-section').forEach(section => {
+                section.classList.add('hidden');
+                section.classList.remove('block');
+            });
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            document.getElementById(`view-${tabId}`).classList.add('block');
+
+            // Close mobile menu if open
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (!mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+            }
+
+            // Trigger Chart Rendering if needed (lazy load)
+            if (tabId === 'carbon') {
+                setTimeout(() => {
+                    initGHGChart();
+                    initCFEChart();
+                }, 100);
+            } else if (tabId === 'water') {
+                setTimeout(() => initWaterChart(), 100);
+            } else if (tabId === 'circular') {
+                setTimeout(() => initWasteChart(), 100);
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Toggle Insight Card
+        function toggleInsight(element) {
+            const content = element.querySelector('p');
+            const arrow = element.querySelector('span:last-child');
+            content.classList.toggle('hidden');
+            arrow.innerHTML = content.classList.contains('hidden') ? '&#9660;' : '&#9650;';
+        }
+
+        // --- CHART IMPLEMENTATIONS ---
+
+        function initGHGChart() {
+            if (ghgChartInstance) return; // Already init
+
+            const ctx = document.getElementById('ghgChart').getContext('2d');
+            const data = reportData.emissions.global;
+
+            ghgChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            label: 'Scope 1 (Direct)',
+                            data: data.scope1,
+                            backgroundColor: '#EA4335', // Google Red
+                        },
+                        {
+                            label: 'Scope 2 (Electricity)',
+                            data: data.scope2,
+                            backgroundColor: '#FBBC04', // Google Yellow
+                        },
+                        {
+                            label: 'Scope 3 (Value Chain)',
+                            data: data.scope3,
+                            backgroundColor: '#4285F4', // Google Blue
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { stacked: true, title: { display: true, text: 'Million Metric Tons CO2e' } }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: { mode: 'index', intersect: false }
+                    }
+                }
+            });
+        }
+
+        function updateGHGChart() {
+            const region = document.getElementById('ghg-region-filter').value;
+            const data = reportData.emissions[region];
+            
+            ghgChartInstance.data.labels = data.labels;
+            ghgChartInstance.data.datasets[0].data = data.scope1;
+            ghgChartInstance.data.datasets[1].data = data.scope2;
+            ghgChartInstance.data.datasets[2].data = data.scope3;
+            ghgChartInstance.update();
+        }
+
+        function initCFEChart() {
+            if (cfeChartInstance) return;
+
+            const ctx = document.getElementById('cfeChart').getContext('2d');
+            const data = reportData.cfe;
+
+            cfeChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Carbon-Free Energy %',
+                        data: data.values,
+                        borderColor: '#34A853', // Google Green
+                        backgroundColor: 'rgba(52, 168, 83, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#34A853',
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { min: 50, max: 80, title: { display: true, text: 'Percentage Match' } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function initWaterChart() {
+            if (waterChartInstance) return;
+
+            const ctx = document.getElementById('waterChart').getContext('2d');
+            
+            // Custom plugin to put text in center
+            const centerTextPlugin = {
+                id: 'centerText',
+                beforeDraw: function(chart) {
+                    var width = chart.width, height = chart.height, ctx = chart.ctx;
+                    ctx.restore();
+                    var fontSize = (height / 114).toFixed(2);
+                    ctx.font = "bold " + fontSize + "em sans-serif";
+                    ctx.textBaseline = "middle";
+                    ctx.fillStyle = "#44403C";
+                    var text = "24%",
+                        textX = Math.round((width - ctx.measureText(text).width) / 2),
+                        textY = height / 2;
+                    ctx.fillText(text, textX, textY);
+                    
+                    var fontSizeSub = (height / 200).toFixed(2);
+                    ctx.font = fontSizeSub + "em sans-serif";
+                    var text2 = "Progress",
+                        text2X = Math.round((width - ctx.measureText(text2).width) / 2),
+                        text2Y = height / 2 + 20;
+                    ctx.fillText(text2, text2X, text2Y);
+                    ctx.save();
+                }
+            };
+
+            waterChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Replenished', 'Remaining Gap'],
+                    datasets: [{
+                        data: [24, 76],
+                        backgroundColor: ['#4285F4', '#E7E5E4'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: true, text: 'Progress to 120% Replenishment' }
+                    }
+                },
+                plugins: [centerTextPlugin]
+            });
+        }
+
+        function initWasteChart() {
+            if (wasteChartInstance) return;
+
+            const ctx = document.getElementById('wasteChart').getContext('2d');
+            const data = reportData.waste;
+
+            wasteChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Diversion Rate (%)',
+                        data: data.diversion,
+                        backgroundColor: '#FBBC04',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: false, min: 60, max: 100 },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // Initialize with default tab
+        document.addEventListener('DOMContentLoaded', () => {
+            switchTab('overview');
+        });
+
+    </script>
+</body>
+</html>
