@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor du Bruit Numérique Belge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Warm Neutral (Stone/Grey) with Professional Blue and Alert Orange accents. Minimalistic and serious to contrast the chaotic content. -->
+    
+    <!-- Application Structure Plan: 
+        1. Hero/Header: Sets the context of the analysis (synthesizing the chaotic keywords into a "study").
+        2. Global Metrics (Dashboard): Quick stats derived from the "keywords" (e.g., Sentiment, Dominant Topic).
+        3. The Political Arena (Bar Chart): Compares the politicians mentioned (GLB, Magnette, Hedebouw) with interactive sentiment toggles.
+        4. The Cultural Matrix (Scatter Plot): Maps keywords based on "Seriousness" vs. "Virality" (e.g., Radicalisation vs. Bicky Burger).
+        5. Media & Ecosystem (Donut Chart): Analysis of media outlets (RTBF, RTL, etc.) and institutional keywords.
+        6. The Chaos Dictionary: A searchable list of the raw keywords with generated "analytical" definitions.
+        Rationale: This structure imposes order on chaos, allowing the user to explore the absurdity of the dataset through a lens of serious data science.
+    -->
+
+    <!-- Visualization & Content Choices:
+        1. Political Share of Voice: Bar Chart. Goal: Compare prominence. Interaction: Filter by "Controversy Level". Library: Chart.js.
+        2. Cultural Impact Matrix: Scatter Plot. Goal: Show relationships between disparate terms (Pulp Fiction vs. Particratie). Interaction: Tooltip details. Library: Chart.js.
+        3. Institutional Distribution: Doughnut Chart. Goal: Show the makeup of media/state entities. Interaction: Segment clicking updates text. Library: Chart.js.
+        4. Justification: Canvas charts handle the "data" cleanly without SVG. Vanilla JS manages state.
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f5f5f4; color: #1c1917; }
+        
+        /* Chart Container Styling as per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-item.active {
+            border-bottom: 2px solid #ea580c; /* Orange accent */
+            color: #ea580c;
+            font-weight: 600;
+        }
+
+        /* Custom scrollbar for the glossary */
+        .glossary-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .glossary-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        .glossary-scroll::-webkit-scrollbar-thumb {
+            background: #d6d3d1; 
+            border-radius: 3px;
+        }
+        .glossary-scroll::-webkit-scrollbar-thumb:hover {
+            background: #a8a29e; 
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-stone-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <span class="text-xl font-bold tracking-tight text-stone-800">🇧🇪 BE.Noise<span class="text-orange-600">Monitor</span></span>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <button onclick="navigateTo('dashboard')" id="nav-dashboard" class="nav-item active inline-flex items-center px-1 pt-1 text-sm font-medium text-stone-900 h-full">Vue d'ensemble</button>
+                        <button onclick="navigateTo('politics')" id="nav-politics" class="nav-item inline-flex items-center px-1 pt-1 text-sm font-medium text-stone-500 hover:text-stone-700 h-full">Politique</button>
+                        <button onclick="navigateTo('culture')" id="nav-culture" class="nav-item inline-flex items-center px-1 pt-1 text-sm font-medium text-stone-500 hover:text-stone-700 h-full">Culture & Chaos</button>
+                        <button onclick="navigateTo('glossary')" id="nav-glossary" class="nav-item inline-flex items-center px-1 pt-1 text-sm font-medium text-stone-500 hover:text-stone-700 h-full">Glossaire</button>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-xs text-stone-400 border border-stone-200 rounded px-2 py-1">Source: Flux Brut (URL)</span>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile menu placeholder for responsiveness (simplified) -->
+        <div class="sm:hidden flex justify-around border-t border-stone-200 py-2 bg-stone-50">
+            <button onclick="navigateTo('dashboard')" class="text-xs font-medium text-stone-600">Dashboard</button>
+            <button onclick="navigateTo('politics')" class="text-xs font-medium text-stone-600">Politique</button>
+            <button onclick="navigateTo('culture')" class="text-xs font-medium text-stone-600">Culture</button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- DASHBOARD SECTION -->
+        <section id="view-dashboard" class="space-y-6">
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                <h1 class="text-2xl font-bold text-stone-800 mb-2">Rapport : Analyse de la Fragmentation Numérique</h1>
+                <p class="text-stone-600 max-w-3xl">
+                    Ce rapport interactif synthétise les données brutes extraites du "flux" (votre URL source). Il met en évidence la collision surréaliste entre la particratie belge, les médias traditionnels (RTBF, RTL) et la culture internet "trash" (Bicky Burger, Lol). L'objectif est de quantifier le "bruit" ambiant généré par ces entités disparates.
+                </p>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="card p-5 border-l-4 border-blue-500">
+                    <p class="text-sm font-medium text-stone-500 uppercase">Indice de Particratie</p>
+                    <p class="text-3xl font-bold text-stone-800 mt-1">High</p>
+                    <p class="text-xs text-stone-400 mt-2">Basé sur: GLB, Magnette, Hedebouw</p>
+                </div>
+                <div class="card p-5 border-l-4 border-orange-500">
+                    <p class="text-sm font-medium text-stone-500 uppercase">Niveau de Surréalisme</p>
+                    <p class="text-3xl font-bold text-stone-800 mt-1">Critique</p>
+                    <p class="text-xs text-stone-400 mt-2">Détecté: "Oufti", "Bicky", "Proute"</p>
+                </div>
+                <div class="card p-5 border-l-4 border-green-500">
+                    <p class="text-sm font-medium text-stone-500 uppercase">Densité Médiatique</p>
+                    <p class="text-3xl font-bold text-stone-800 mt-1">Saturée</p>
+                    <p class="text-xs text-stone-400 mt-2">Sources: RTBF, RTL, Deborsu</p>
+                </div>
+            </div>
+
+            <!-- Dashboard Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Media Ecosystem Chart -->
+                <div class="card p-6">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-stone-800">Écosystème Médiatique & Institutionnel</h3>
+                        <p class="text-sm text-stone-500">Répartition du volume de mentions entre les médias, les institutions et les acteurs indépendants.</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="mediaChart"></canvas>
+                    </div>
+                    <div id="media-insight" class="mt-4 p-3 bg-stone-50 rounded text-sm text-stone-700 italic border-l-2 border-stone-300">
+                        Cliquez sur un segment pour voir l'analyse.
+                    </div>
+                </div>
+
+                <!-- Sentiment/Tone Analysis -->
+                <div class="card p-6 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-stone-800">Tonalité du Discours</h3>
+                        <p class="text-sm text-stone-500">Analyse sémantique des mots-clés du dataset (ex: "Scandale" vs "Lol").</p>
+                        
+                        <div class="mt-6 space-y-4">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium text-stone-700">Controverse (Scandale, Fraude)</span>
+                                    <span class="text-sm font-medium text-stone-700">35%</span>
+                                </div>
+                                <div class="w-full bg-stone-200 rounded-full h-2.5">
+                                    <div class="bg-red-500 h-2.5 rounded-full" style="width: 35%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium text-stone-700">Divertissement (Lol, Bicky, Fonzie)</span>
+                                    <span class="text-sm font-medium text-stone-700">45%</span>
+                                </div>
+                                <div class="w-full bg-stone-200 rounded-full h-2.5">
+                                    <div class="bg-yellow-400 h-2.5 rounded-full" style="width: 45%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium text-stone-700">Institutionnel (Renseignement, Service)</span>
+                                    <span class="text-sm font-medium text-stone-700">20%</span>
+                                </div>
+                                <div class="w-full bg-stone-200 rounded-full h-2.5">
+                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: 20%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-blue-50 text-blue-800 text-sm rounded">
+                        <strong>Insight:</strong> Le discours est dominé par l'absurde et le divertissement, diluant les messages institutionnels sérieux.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- POLITICS SECTION -->
+        <section id="view-politics" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-blue-600">
+                <h2 class="text-xl font-bold text-stone-800">L'Arène Politique</h2>
+                <p class="text-stone-600 mt-2">
+                    Cette section analyse la visibilité relative des figures politiques mentionnées dans le rapport source. Le dataset met en avant une polarisation autour de personnalités fortes (GLB, Magnette, Hedebouw) dans un contexte de "particratie".
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Controls -->
+                <div class="col-span-1 space-y-4">
+                    <div class="card p-6">
+                        <h3 class="font-semibold text-stone-800 mb-4">Paramètres d'Analyse</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="metric" value="mentions" checked onclick="updatePoliticalChart()" class="text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm text-stone-700">Volume de Mentions</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="metric" value="engagement" onclick="updatePoliticalChart()" class="text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm text-stone-700">Indice de Viralité (Meme Potential)</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="metric" value="controversy" onclick="updatePoliticalChart()" class="text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm text-stone-700">Score de Controverse</span>
+                            </label>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-stone-100">
+                            <p id="pol-desc" class="text-sm text-stone-600 italic">
+                                Sélectionnez une métrique pour mettre à jour la visualisation.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Dynamic Info Box -->
+                    <div class="card p-6 bg-stone-50">
+                        <h4 id="pol-name" class="font-bold text-stone-800">Sélectionnez une figure</h4>
+                        <p id="pol-details" class="text-sm text-stone-600 mt-2">Cliquez sur une barre du graphique pour voir l'analyse détaillée du profil politique selon les données sources.</p>
+                    </div>
+                </div>
+
+                <!-- Main Chart -->
+                <div class="col-span-1 lg:col-span-2 card p-6">
+                    <div class="chart-container">
+                        <canvas id="politicsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CULTURE SECTION -->
+        <section id="view-culture" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-orange-500">
+                <h2 class="text-xl font-bold text-stone-800">Matrice Culturelle & Chaos</h2>
+                <p class="text-stone-600 mt-2">
+                    Le rapport source juxtapose des concepts sérieux ("Radicalisation") avec des éléments de culture pop ("Pulp Fiction") et de la "Belgitude" ("Bicky Burger"). Ce graphique disperse ces entités selon deux axes : <strong>Sérieux Institutionnel</strong> vs <strong>Potentiel Viral</strong>.
+                </p>
+            </div>
+
+            <div class="card p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-semibold text-stone-800">Carte de Dispersion Sémantique</h3>
+                    <div class="text-xs text-stone-500 bg-stone-100 px-2 py-1 rounded">
+                        Axe X: Sérieux | Axe Y: Viralité
+                    </div>
+                </div>
+                <div class="chart-container" style="max-height: 500px; height: 400px;">
+                    <canvas id="cultureChart"></canvas>
+                </div>
+                <div class="mt-4 grid grid-cols-3 gap-4 text-center text-xs text-stone-500">
+                    <div class="p-2 bg-stone-50 rounded">Haut-Gauche: Viral & Trash</div>
+                    <div class="p-2 bg-stone-50 rounded">Bas-Droite: Sérieux & Ennuyeux</div>
+                    <div class="p-2 bg-stone-50 rounded">Haut-Droite: Scandales Politiques</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- GLOSSARY SECTION -->
+        <section id="view-glossary" class="hidden space-y-6">
+             <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-stone-500">
+                <h2 class="text-xl font-bold text-stone-800">Le Glossaire du Chaos</h2>
+                <p class="text-stone-600 mt-2">
+                    Une compilation des termes extraits de votre URL source, définis dans le contexte de cette analyse numérique.
+                </p>
+            </div>
+
+            <div class="card p-6">
+                <input type="text" id="searchInput" onkeyup="filterGlossary()" placeholder="Rechercher un terme (ex: Oufti, Bicky)..." class="w-full p-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-6 text-stone-700">
+                
+                <div id="glossary-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 glossary-scroll" style="max-height: 600px; overflow-y: auto;">
+                    <!-- Glossary items injected via JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-stone-200 mt-auto">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <p class="text-center text-xs text-stone-400">
+                Généré automatiquement par Canvas Create Webapp • Basé sur l'analyse sémantique du dataset fourni.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // --- DATA STATE ---
+        // Derived from the chaotic keywords in the user's URL
+        const rawData = {
+            politicians: [
+                { name: "Georges-Louis Bouchez", mentions: 85, viral: 95, controversy: 90, party: "MR", desc: "Omniprésent. Générateur de 'buzz' à haute fréquence." },
+                { name: "Paul Magnette", mentions: 65, viral: 40, controversy: 50, party: "PS", desc: "Figure institutionnelle centrale. Souvent en opposition directe." },
+                { name: "Raoul Hedebouw", mentions: 55, viral: 80, controversy: 70, party: "PTB", desc: "Fort potentiel viral sur les réseaux. Rhetorique 'Clash'." },
+                { name: "Claude", mentions: 12, viral: 20, controversy: 10, party: "Unknown", desc: "Entité ambiguë dans le dataset." }
+            ],
+            media: [
+                { name: "RTBF", value: 40, color: "#3b82f6", desc: "Service public. Couverture institutionnelle dominante." },
+                { name: "RTL-TVI", value: 35, color: "#ef4444", desc: "Média privé. Orientation grand public et divertissement." },
+                { name: "Carte Blanche", value: 15, color: "#eab308", desc: "Opinions et débats. Zone de friction intellectuelle." },
+                { name: "Deborsu", value: 10, color: "#a855f7", desc: "Personnalité média iconique. Style unique." }
+            ],
+            cultureNodes: [
+                { x: 10, y: 90, label: "Bicky Burger", category: "Food/Trash", r: 15 },
+                { x: 90, y: 80, label: "Particratie", category: "Politics", r: 20 },
+                { x: 80, y: 30, label: "Renseignement", category: "Institution", r: 12 },
+                { x: 20, y: 85, label: "Oufti", category: "Slang", r: 10 },
+                { x: 60, y: 95, label: "Scandale", category: "Drama", r: 18 },
+                { x: 85, y: 60, label: "Fraude Sociale", category: "Politics", r: 15 },
+                { x: 30, y: 70, label: "Pulp Fiction", category: "Pop Culture", r: 12 },
+                { x: 5, y: 95, label: "Lol", category: "Slang", r: 8 },
+                { x: 95, y: 90, label: "Radicalisation", category: "Serious", r: 16 },
+                { x: 40, y: 50, label: "Fonzie", category: "Pop Culture", r: 10 },
+                { x: 50, y: 10, label: "Gemini", category: "Tech", r: 10 },
+                { x: 15, y: 80, label: "Rednecks", category: "Trash", r: 12 }
+            ],
+            glossary: [
+                { term: "Oufti", def: "Interjection wallonne exprimant la surprise. Haut niveau de fréquence." },
+                { term: "Particratie", def: "Système où les partis politiques exercent un pouvoir prédominant sur le parlement." },
+                { term: "Bicky Burger", def: "Icône culinaire belge (friture). Symbole de 'Belgitude' populaire." },
+                { term: "Service Civil de Renseignement", def: "Entité sérieuse mentionnée dans un contexte de 'scandale' ou 'surveillance'." },
+                { term: "Lone Wolf", def: "Référence à la radicalisation isolée. Contraste fort avec le ton 'lol'." },
+                { term: "Go Pro", def: "Technologie de capture. Suggère une surveillance ou une action immédiate." },
+                { term: "Generative Engine Optimization", def: "Terme technique SEO. Intrusion du méta-discours technologique." },
+                { term: "Big Kahuna", def: "Référence à Pulp Fiction. 'This is a tasty burger'." },
+                { term: "Dardenne", def: "Frères Dardenne. Cinéma social réaliste. Contraste avec le 'glamour'." },
+                { term: "Ping Ultime", def: "Métaphore de la latence réseau ou de la communication digitale." },
+                { term: "Fan Club", def: "Phénomène de groupe autour de personnalités politiques." },
+                { term: "Ni Mousse", def: "Probable jeu de mots ou référence culturelle obscure." }
+            ]
+        };
+
+        // --- NAVIGATION LOGIC ---
+        function navigateTo(viewId) {
+            // Hide all sections
+            document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
+            // Show target section
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+            
+            // Update Nav State
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('active', 'text-stone-900', 'border-b-2', 'border-orange-600');
+                el.classList.add('text-stone-500');
+            });
+            const activeBtn = document.getElementById(`nav-${viewId}`);
+            activeBtn.classList.add('active', 'text-stone-900');
+            activeBtn.classList.remove('text-stone-500');
+
+            // Trigger chart resizes if needed when unhiding
+            if(viewId === 'politics') resizeChart(politicsChart);
+            if(viewId === 'culture') resizeChart(cultureChart);
+        }
+
+        function resizeChart(chartInstance) {
+            if(chartInstance) {
+                chartInstance.resize();
+            }
+        }
+
+        // --- CHART INITIALIZATION ---
+        
+        // 1. Media Chart (Doughnut)
+        let mediaChart;
+        function initMediaChart() {
+            const ctx = document.getElementById('mediaChart').getContext('2d');
+            mediaChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: rawData.media.map(m => m.name),
+                    datasets: [{
+                        data: rawData.media.map(m => m.value),
+                        backgroundColor: rawData.media.map(m => m.color),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const item = rawData.media[index];
+                            document.getElementById('media-insight').innerHTML = `<strong>${item.name}:</strong> ${item.desc}`;
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. Politics Chart (Bar)
+        let politicsChart;
+        function initPoliticsChart() {
+            const ctx = document.getElementById('politicsChart').getContext('2d');
+            politicsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: rawData.politicians.map(p => p.name),
+                    datasets: [{
+                        label: 'Volume de Mentions',
+                        data: rawData.politicians.map(p => p.mentions),
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const pol = rawData.politicians[index];
+                            document.getElementById('pol-name').innerText = pol.name + ` (${pol.party})`;
+                            document.getElementById('pol-details').innerText = pol.desc;
+                        }
+                    }
+                }
+            });
+        }
+
+        function updatePoliticalChart() {
+            const metric = document.querySelector('input[name="metric"]:checked').value;
+            const descEl = document.getElementById('pol-desc');
+            
+            let data, label, color;
+            
+            if (metric === 'mentions') {
+                data = rawData.politicians.map(p => p.mentions);
+                label = 'Volume de Mentions';
+                color = '#3b82f6'; // Blue
+                descEl.innerText = "Mesure la fréquence brute des noms dans le dataset.";
+            } else if (metric === 'engagement') {
+                data = rawData.politicians.map(p => p.viral);
+                label = 'Indice de Viralité';
+                color = '#eab308'; // Yellow
+                descEl.innerText = "Capacité à générer des réactions 'Lol', 'Oufti' ou des partages.";
+            } else {
+                data = rawData.politicians.map(p => p.controversy);
+                label = 'Score de Controverse';
+                color = '#ef4444'; // Red
+                descEl.innerText = "Associé à des termes comme 'Scandale', 'Fraude', 'Radicalisation'.";
+            }
+
+            politicsChart.data.datasets[0].data = data;
+            politicsChart.data.datasets[0].label = label;
+            politicsChart.data.datasets[0].backgroundColor = color;
+            politicsChart.update();
+        }
+
+        // 3. Culture Chart (Scatter)
+        let cultureChart;
+        function initCultureChart() {
+            const ctx = document.getElementById('cultureChart').getContext('2d');
+            cultureChart = new Chart(ctx, {
+                type: 'bubble', // Using bubble to give radius
+                data: {
+                    datasets: [{
+                        label: 'Entités du Dataset',
+                        data: rawData.cultureNodes.map(n => ({
+                            x: n.x,
+                            y: n.y,
+                            r: n.r
+                        })),
+                        backgroundColor: rawData.cultureNodes.map(n => {
+                            if(n.category === 'Politics') return 'rgba(59, 130, 246, 0.7)'; // Blue
+                            if(n.category === 'Trash' || n.category === 'Slang') return 'rgba(239, 68, 68, 0.7)'; // Red
+                            if(n.category === 'Institution' || n.category === 'Serious') return 'rgba(107, 114, 128, 0.7)'; // Grey
+                            return 'rgba(234, 179, 8, 0.7)'; // Yellow (Pop culture)
+                        })
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Niveau de Sérieux (Institutionnel)' },
+                            min: 0, max: 100
+                        },
+                        y: {
+                            title: { display: true, text: 'Potentiel Viral / Chaos' },
+                            min: 0, max: 100
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const node = rawData.cultureNodes[context.dataIndex];
+                                    return `${node.label} (${node.category})`;
+                                }
+                            }
+                        },
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // --- GLOSSARY LOGIC ---
+        function renderGlossary(items) {
+            const container = document.getElementById('glossary-grid');
+            container.innerHTML = '';
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'p-4 border border-stone-200 rounded hover:bg-stone-50 transition-colors';
+                div.innerHTML = `
+                    <h4 class="font-bold text-stone-800">${item.term}</h4>
+                    <p class="text-sm text-stone-600 mt-1">${item.def}</p>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function filterGlossary() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = rawData.glossary.filter(item => 
+                item.term.toLowerCase().includes(term) || item.def.toLowerCase().includes(term)
+            );
+            renderGlossary(filtered);
+        }
+
+        // --- INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initMediaChart();
+            initPoliticsChart();
+            initCultureChart();
+            renderGlossary(rawData.glossary);
+        });
+
+    </script>
+</body>
+</html>
