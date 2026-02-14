@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L'Observatoire : Burger ou Proute ?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom styles for chart containers to meet strict requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fdfbf7; /* Warm neutral background */
+        }
+        .active-tab {
+            border-bottom: 3px solid #d97706; /* Amber-600 */
+            color: #d97706;
+            font-weight: bold;
+        }
+        .inactive-tab {
+            color: #78716c; /* Stone-500 */
+        }
+        .inactive-tab:hover {
+            color: #d97706;
+        }
+        /* Custom scrollbar for data lists */
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #d6d3d1;
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #a8a29e;
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals (Background) with Burger Colors (Amber/Red/Yellow) and a "Toxic Green" for Proute/Noise -->
+    <!-- Application Structure Plan: 
+         1. Header: Investigates the core question.
+         2. Dashboard Layout: Three main tabs to organize the chaos.
+            - Tab 1: "Le Bilan Calorique" (The Quantitative Data) - Charts comparing the density of "Burger" keywords vs "Proute" (Politics/Noise).
+            - Tab 2: "L'Arène Politique" (The Actors) - Analysis of the political figures mentioned (GLB, Magnette, Hedebouw) and their "Sauce" affiliation.
+            - Tab 3: "La Matrice SEO" (The Context) - Interactive explorer of the random keywords (Ponzi, Maga, Akira, etc.).
+         3. Why this structure? The source is a chaotic list of keywords. A dashboard is the best way to impose order on disorder, turning a "URL dump" into a "Scientific Study".
+    -->
+    <!-- Visualization & Content Choices:
+         - Pie Chart: To answer "Burger vs Proute" ratio immediately. Goal: Inform.
+         - Radar Chart: To compare politicians on arbitrary metrics like "Media Noise" vs "Nutritional Value". Goal: Compare.
+         - Interactive List: To process the long tail of SEO spam keywords. Goal: Organize.
+         - Justification: These visuals turn abstract text strings into distinct, comparable entities.
+         - Library: Chart.js for all charts (Canvas based). No SVG.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="text-stone-800">
+
+    <!-- Main Container -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Header Section -->
+        <header class="mb-10 text-center">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-stone-900 mb-4 tracking-tight">
+                L'Observatoire <span class="text-amber-600">Burger</span> vs <span class="text-lime-600">Proute</span>
+            </h1>
+            <p class="text-lg text-stone-600 max-w-3xl mx-auto">
+                Analyse sémantique et nutritionnelle de l'URL source. Nous tentons de répondre à la question existentielle : 
+                la particratie belge est-elle une affaire de <span class="font-bold text-amber-700">gastronomie fast-food</span> 
+                ou de <span class="font-bold text-lime-700">bruit médiatique</span> ?
+            </p>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="flex border-b border-stone-200 mb-8 justify-center space-x-8">
+            <button id="tab-bilan" class="pb-4 px-2 text-lg transition-colors duration-200 active-tab" onclick="switchTab('bilan')">
+                Le Bilan Global
+            </button>
+            <button id="tab-politique" class="pb-4 px-2 text-lg transition-colors duration-200 inactive-tab" onclick="switchTab('politique')">
+                L'Arène Politique
+            </button>
+            <button id="tab-chaos" class="pb-4 px-2 text-lg transition-colors duration-200 inactive-tab" onclick="switchTab('chaos')">
+                Le Chaos SEO
+            </button>
+        </div>
+
+        <!-- Content Area: Dynamic JS Rendering Target -->
+        <main id="app-content" class="min-h-[600px]">
+            <!-- Content injected by JS -->
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-12 pt-8 border-t border-stone-200 text-center text-stone-500 text-sm">
+            <p>Généré par l'Intelligence Artificielle de l'Observatoire. Basé sur les mots-clés de l'URL fournie.</p>
+            <p class="mt-2 text-xs">Avertissement : Ce rapport est une satire générée à partir d'une chaîne de caractères incohérente.</p>
+        </footer>
+
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- DATA STORE ---
+        // Simulating the extraction of data from the provided URL structure
+        const sourceData = {
+            keywords: [
+                { term: "George-Louis Bouchez", category: "Politique", value: 95, context: "Réseaux Sociaux" },
+                { term: "Bicky Burger", category: "Burger", value: 85, context: "Gastronomie Belge" },
+                { term: "Proute", category: "Proute", value: 100, context: "Émission de Gaz" },
+                { term: "Paul Magnette", category: "Politique", value: 70, context: "Socialisme Wallon" },
+                { term: "Big Kahuna Burger", category: "Burger", value: 90, context: "Fiction (Pulp)" },
+                { term: "Raoul Hedebouw", category: "Politique", value: 80, context: "Lutte des Classes" },
+                { term: "RTBF", category: "Média", value: 60, context: "Service Public" },
+                { term: "RTL-TVI", category: "Média", value: 65, context: "Divertissement" },
+                { term: "Oufti", category: "Expression", value: 40, context: "Liège" },
+                { term: "Radicalisation", category: "Proute", value: 75, context: "Sérieux" },
+                { term: "Scandale", category: "Proute", value: 88, context: "Clickbait" },
+                { term: "Fonzie", category: "Cool", value: 50, context: "Retro" },
+                { term: "Ponzi", category: "Finance", value: 30, context: "Arnaque" },
+                { term: "Generative Engine Optimization", category: "Tech", value: 20, context: "Méta" }
+            ],
+            analysisText: {
+                intro: "L'analyse spectrale de l'URL révèle une lutte acharnée entre la matière (Burgers) et l'antimatière intellectuelle (Proute).",
+                politics: "Les données suggèrent une corrélation directe entre la consommation de 'Bicky' et les taux de popularité dans les sondages.",
+                chaos: "Le segment 'Chaos' représente le bruit de fond d'internet : un mélange de 'MAGA', 'Akira' et de 'Fraude Sociale'."
+            }
+        };
+
+        // --- STATE MANAGEMENT ---
+        let appState = {
+            currentTab: 'bilan',
+            charts: {} // Store chart instances to destroy/update them
+        };
+
+        // --- CORE FUNCTIONS ---
+
+        function init() {
+            renderView('bilan');
+        }
+
+        function switchTab(tabId) {
+            // Update UI state
+            ['bilan', 'politique', 'chaos'].forEach(id => {
+                const el = document.getElementById(`tab-${id}`);
+                if (id === tabId) {
+                    el.classList.remove('inactive-tab');
+                    el.classList.add('active-tab');
+                } else {
+                    el.classList.add('inactive-tab');
+                    el.classList.remove('active-tab');
+                }
+            });
+
+            appState.currentTab = tabId;
+            renderView(tabId);
+        }
+
+        function renderView(viewId) {
+            const container = document.getElementById('app-content');
+            container.innerHTML = ''; // Clear content
+
+            if (viewId === 'bilan') renderBilan(container);
+            else if (viewId === 'politique') renderPolitique(container);
+            else if (viewId === 'chaos') renderChaos(container);
+        }
+
+        // --- VIEW RENDERERS ---
+
+        function renderBilan(container) {
+            // Section Intro
+            const intro = document.createElement('div');
+            intro.className = "mb-8 bg-white p-6 rounded-xl shadow-sm border border-stone-100";
+            intro.innerHTML = `
+                <h2 class="text-2xl font-bold text-stone-800 mb-2">Verdict Global : Burger ou Proute ?</h2>
+                <p class="text-stone-600 mb-4">${sourceData.analysisText.intro}</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-amber-50 p-4 rounded-lg text-center">
+                        <span class="block text-3xl font-bold text-amber-600">42%</span>
+                        <span class="text-sm text-amber-800 font-medium">Indice Burger (Substance)</span>
+                    </div>
+                    <div class="bg-lime-50 p-4 rounded-lg text-center">
+                        <span class="block text-3xl font-bold text-lime-600">58%</span>
+                        <span class="text-sm text-lime-800 font-medium">Indice Proute (Vent)</span>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg text-center">
+                        <span class="block text-3xl font-bold text-blue-600">∞</span>
+                        <span class="text-sm text-blue-800 font-medium">Niveau d'Oufti</span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(intro);
+
+            // Chart Section
+            const chartSection = document.createElement('div');
+            chartSection.className = "grid grid-cols-1 lg:grid-cols-2 gap-8";
+            
+            // Pie Chart Container
+            const pieWrapper = document.createElement('div');
+            pieWrapper.className = "bg-white p-6 rounded-xl shadow-sm border border-stone-100 flex flex-col items-center";
+            pieWrapper.innerHTML = `
+                <h3 class="text-lg font-semibold text-stone-700 mb-4">Répartition des Thèmes de l'URL</h3>
+                <div class="chart-container">
+                    <canvas id="ratioChart"></canvas>
+                </div>
+                <p class="text-xs text-stone-400 mt-4 text-center">Analyse basée sur la fréquence des mots-clés détectés.</p>
+            `;
+            
+            // Bar Chart Container
+            const barWrapper = document.createElement('div');
+            barWrapper.className = "bg-white p-6 rounded-xl shadow-sm border border-stone-100 flex flex-col items-center";
+            barWrapper.innerHTML = `
+                <h3 class="text-lg font-semibold text-stone-700 mb-4">Intensité du Buzz (Échelle de Richter)</h3>
+                <div class="chart-container">
+                    <canvas id="intensityChart"></canvas>
+                </div>
+                <p class="text-xs text-stone-400 mt-4 text-center">Comparaison de l'impact viral estimé.</p>
+            `;
+
+            chartSection.appendChild(pieWrapper);
+            chartSection.appendChild(barWrapper);
+            container.appendChild(chartSection);
+
+            // Init Charts
+            setTimeout(() => {
+                initBilanCharts();
+            }, 0);
+        }
+
+        function renderPolitique(container) {
+             // Section Intro
+            const intro = document.createElement('div');
+            intro.className = "mb-8 bg-white p-6 rounded-xl shadow-sm border border-stone-100";
+            intro.innerHTML = `
+                <h2 class="text-2xl font-bold text-stone-800 mb-2">L'Arène Politique & Gastronomique</h2>
+                <p class="text-stone-600">${sourceData.analysisText.politics} Nous avons croisé les données 'Particratie' avec les préférences 'Fast-Food' déduites du code source.</p>
+            `;
+            container.appendChild(intro);
+
+            // Layout
+            const layout = document.createElement('div');
+            layout.className = "grid grid-cols-1 lg:grid-cols-3 gap-6";
+
+            // Left Col: Interactive List
+            const listCol = document.createElement('div');
+            listCol.className = "lg:col-span-1 bg-white rounded-xl shadow-sm border border-stone-100 overflow-hidden flex flex-col";
+            listCol.innerHTML = `
+                <div class="p-4 bg-stone-50 border-b border-stone-100">
+                    <h3 class="font-bold text-stone-700">Protagonistes Détectés</h3>
+                </div>
+                <div class="p-2 overflow-y-auto custom-scroll h-96">
+                    ${['Georges-Louis Bouchez', 'Paul Magnette', 'Raoul Hedebouw'].map(name => `
+                        <button onclick="updatePolitician('${name}')" class="w-full text-left p-3 hover:bg-amber-50 rounded-lg transition-colors mb-1 group">
+                            <div class="font-medium text-stone-800 group-hover:text-amber-700">${name}</div>
+                            <div class="text-xs text-stone-500">Cliquez pour analyser</div>
+                        </button>
+                    `).join('')}
+                    <div class="p-3 mt-4 border-t border-dashed border-stone-200 text-xs text-stone-400 italic">
+                        Autres entités: RTBF, RTL-TVI, Deborsu...
+                    </div>
+                </div>
+            `;
+
+            // Right Col: Radar Chart
+            const chartCol = document.createElement('div');
+            chartCol.className = "lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-stone-100 flex flex-col";
+            chartCol.innerHTML = `
+                <h3 id="radar-title" class="text-lg font-semibold text-stone-700 mb-2 text-center">Profil : Moyenne du Secteur</h3>
+                <div class="chart-container mx-auto">
+                    <canvas id="radarChart"></canvas>
+                </div>
+                <div id="radar-desc" class="mt-4 p-4 bg-stone-50 rounded text-sm text-stone-600">
+                    Sélectionnez un protagoniste à gauche pour voir son profil "Burger vs Proute".
+                </div>
+            `;
+
+            layout.appendChild(listCol);
+            layout.appendChild(chartCol);
+            container.appendChild(layout);
+
+            // Init Default Chart
+            setTimeout(() => {
+                initRadarChart();
+            }, 0);
+        }
+
+        function renderChaos(container) {
+             // Section Intro
+             const intro = document.createElement('div');
+            intro.className = "mb-8 bg-white p-6 rounded-xl shadow-sm border border-stone-100";
+            intro.innerHTML = `
+                <h2 class="text-2xl font-bold text-stone-800 mb-2">La Matrice SEO (Le "Vrac")</h2>
+                <p class="text-stone-600">Une visualisation du désordre numérique. Ces mots-clés, trouvés en vrac dans l'URL, forment le bruit de fond de notre analyse.</p>
+            `;
+            container.appendChild(intro);
+
+            // Tag Cloud / Matrix Grid
+            const grid = document.createElement('div');
+            grid.className = "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3";
+
+            sourceData.keywords.forEach(item => {
+                const card = document.createElement('div');
+                // Color coding based on Category
+                let bgClass = "bg-stone-100 text-stone-600";
+                if(item.category === 'Burger') bgClass = "bg-amber-100 text-amber-800 border-amber-200";
+                if(item.category === 'Proute') bgClass = "bg-lime-100 text-lime-800 border-lime-200";
+                if(item.category === 'Politique') bgClass = "bg-blue-50 text-blue-800 border-blue-200";
+
+                card.className = `${bgClass} p-3 rounded-lg border text-center transition-transform transform hover:scale-105 cursor-help flex flex-col justify-center h-24`;
+                card.innerHTML = `
+                    <span class="font-bold text-sm leading-tight">${item.term}</span>
+                    <span class="text-[10px] opacity-75 mt-1 uppercase tracking-wide">${item.category}</span>
+                `;
+                card.onclick = () => alert(`Contexte: ${item.context}\nScore d'Impact: ${item.value}`);
+                grid.appendChild(card);
+            });
+
+            container.appendChild(grid);
+        }
+
+        // --- CHART INITIALIZERS ---
+
+        function initBilanCharts() {
+            // PIE CHART
+            const ctxPie = document.getElementById('ratioChart').getContext('2d');
+            
+            // Categorize data for Pie
+            const burgers = sourceData.keywords.filter(k => k.category === 'Burger').length;
+            const proute = sourceData.keywords.filter(k => ['Proute', 'Politique', 'Média'].includes(k.category)).length;
+            const other = sourceData.keywords.length - burgers - proute;
+
+            appState.charts.pie = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Burger (Substance)', 'Proute (Bruit)', 'Indéfini'],
+                    datasets: [{
+                        data: [burgers, proute, other],
+                        backgroundColor: ['#f59e0b', '#84cc16', '#d6d3d1'], // Amber, Lime, Stone
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // BAR CHART
+            const ctxBar = document.getElementById('intensityChart').getContext('2d');
+            const sorted = [...sourceData.keywords].sort((a,b) => b.value - a.value).slice(0, 6);
+
+            appState.charts.bar = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(k => k.term),
+                    datasets: [{
+                        label: 'Indice de Viralité',
+                        data: sorted.map(k => k.value),
+                        backgroundColor: sorted.map(k => k.category === 'Burger' ? '#f59e0b' : (k.category === 'Proute' ? '#84cc16' : '#94a3b8')),
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function initRadarChart() {
+            const ctxRadar = document.getElementById('radarChart').getContext('2d');
+            
+            appState.charts.radar = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Présence Média', 'Teneur en Burger', 'Teneur en Proute', 'Crédibilité', 'Style (Fonzie)'],
+                    datasets: [{
+                        label: 'Moyenne du Secteur',
+                        data: [50, 50, 50, 50, 50],
+                        fill: true,
+                        backgroundColor: 'rgba(120, 113, 108, 0.2)',
+                        borderColor: 'rgb(120, 113, 108)',
+                        pointBackgroundColor: 'rgb(120, 113, 108)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(120, 113, 108)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { display: false },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- INTERACTION LOGIC ---
+
+        window.updatePolitician = function(name) {
+            const chart = appState.charts.radar;
+            const title = document.getElementById('radar-title');
+            const desc = document.getElementById('radar-desc');
+
+            let newData = [];
+            let color = '';
+            let description = '';
+
+            if (name === 'Georges-Louis Bouchez') {
+                newData = [95, 20, 90, 40, 85]; // High Media, High Proute, High Fonzie
+                color = 'rgba(37, 99, 235, 0.5)'; // Blue
+                description = "Profil : <strong>L'Omniprésent</strong>. Score 'Fonzie' élevé. Faible teneur en burger, haute émission de gaz médiatique.";
+            } else if (name === 'Paul Magnette') {
+                newData = [80, 40, 60, 75, 30];
+                color = 'rgba(220, 38, 38, 0.5)'; // Red
+                description = "Profil : <strong>Le Théoricien</strong>. Équilibre précaire entre Burger (réalité de terrain) et Proute (concepts académiques).";
+            } else if (name === 'Raoul Hedebouw') {
+                newData = [70, 85, 40, 60, 65]; 
+                color = 'rgba(180, 0, 0, 0.5)'; // Dark Red
+                description = "Profil : <strong>Le Populaire</strong>. Teneur en Burger (Bicky) très élevée. Communication directe, faible 'Proute' rhétorique.";
+            }
+
+            // Update Chart
+            chart.data.datasets[0].label = name;
+            chart.data.datasets[0].data = newData;
+            chart.data.datasets[0].backgroundColor = color;
+            chart.data.datasets[0].borderColor = color.replace('0.5', '1');
+            chart.update();
+
+            // Update Text
+            title.textContent = `Profil Analyse : ${name}`;
+            desc.innerHTML = description;
+        };
+
+        // --- BOOTSTRAP ---
+        init();
+
+    </script>
+</body>
+</html>
