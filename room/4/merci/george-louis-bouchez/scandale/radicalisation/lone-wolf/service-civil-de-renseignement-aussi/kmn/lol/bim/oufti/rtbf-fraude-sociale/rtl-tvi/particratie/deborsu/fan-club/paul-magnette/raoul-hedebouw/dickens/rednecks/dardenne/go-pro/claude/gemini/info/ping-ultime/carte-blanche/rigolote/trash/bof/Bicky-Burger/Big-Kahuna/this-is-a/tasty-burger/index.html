@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse du Projet : Le Terrier Numérique</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Chosen Palette: Warm Neutral Ground with Belgian Tricolor Accents (Subtle) & Alarmist Red -->
+    <!-- Palette: Bg: #fdfbf7 (Isabelline), Text: #1f2937 (Gray-800), Accent: #ef4444 (Red-500), Secondary: #f59e0b (Amber-500) -->
+    
+    <style>
+        body {
+            background-color: #fdfbf7;
+            color: #1f2937;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        /* Custom Chart Container Styles */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom Scrollbar for the list */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #d1d5db; 
+            border-radius: 3px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af; 
+        }
+
+        .keyword-chip {
+            transition: all 0.2s ease;
+        }
+        .keyword-chip:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .active-chip {
+            background-color: #1f2937 !important;
+            color: white !important;
+        }
+    </style>
+
+    <!-- Application Structure Plan: 
+         1. Header: Sets the tone of a "Digital Investigation" into the chaotic URL.
+         2. The Timeline (Left Col): Visualizes the "descent" into the URL path, allowing users to select keywords.
+         3. The Dashboard (Right Col):
+            - Intro: Contextualizes the project as a mix of politics and chaos.
+            - Viz 1 (Radar): Compares the "Political Gravity" of the main actors mentioned.
+            - Viz 2 (Line): Tracks the "Absurdity Index" vs "Seriousness" across the URL path.
+            - Viz 3 (Doughnut): Distribution of themes (Media, Politics, Trash, Food).
+         4. Interaction: Clicking keywords filters the context text and highlights relevant data points.
+    -->
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navigation / Header -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <span class="text-xl font-bold tracking-tight text-gray-900">REAVEN://<span class="text-red-600">ANALYSE</span></span>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <button onclick="scrollToSection('dashboard')" class="border-red-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Tableau de Bord</button>
+                        <button onclick="scrollToSection('actors')" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Acteurs Clés</button>
+                        <button onclick="scrollToSection('timeline')" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">La Chronologie</button>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-sm text-gray-500 italic">Projet: Room 4 / Index</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Grid -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- LEFT COLUMN: The URL Path / Navigation (Interactive List) -->
+            <div class="lg:col-span-4 space-y-6">
+                <div class="bg-white rounded-lg shadow p-6 border-t-4 border-gray-800">
+                    <h2 class="text-lg font-bold text-gray-900 mb-2">Le Chemin "Room 4"</h2>
+                    <p class="text-sm text-gray-600 mb-4">
+                        Cette application décrypte la structure sémantique de l'URL fournie. Cliquez sur un segment pour analyser son contexte.
+                    </p>
+                    
+                    <div id="path-list" class="flex flex-wrap gap-2 max-h-[80vh] overflow-y-auto custom-scroll p-1">
+                        <!-- JS will populate chips here -->
+                    </div>
+                </div>
+
+                <!-- Selected Item Context Card -->
+                <div id="context-card" class="bg-amber-50 rounded-lg shadow p-6 border border-amber-200 hidden transition-all duration-300">
+                    <h3 id="context-title" class="text-lg font-bold text-gray-900 mb-1">Titre</h3>
+                    <span id="context-category" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mb-3">Catégorie</span>
+                    <p id="context-desc" class="text-sm text-gray-700">Description...</p>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Data Dashboard -->
+            <div id="dashboard" class="lg:col-span-8 space-y-8">
+                
+                <!-- Intro Section -->
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h1 class="text-2xl font-bold text-gray-900 mb-3">Analyse Syntaxique : Du Scandale au Bicky Burger</h1>
+                    <p class="text-gray-600 leading-relaxed">
+                        Le projet source semble être une archive numérique ou une satire politique complexe. La structure de l'URL (le "fil d'Ariane") raconte une histoire qui oscille entre la <strong>politique belge sérieuse</strong> (Particratie, Commission, Renseignement), les <strong>médias de masse</strong> (RTL-TVI, RTBF), et la <strong>culture populaire chaotique</strong> (Bicky Burger, Big Kahuna). Ce tableau de bord interactif visualise la tension entre ces concepts opposés.
+                    </p>
+                </div>
+
+                <!-- Visualization 1: Theme Distribution -->
+                <!-- Goal: Inform. Shows the balance of content types in the URL to establish the project's chaotic nature. -->
+                <!-- Visualization & Content Choices: Doughnut chart chosen for part-to-whole relationship of categories. -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-semibold text-gray-900">Distribution Thématique du Chaos</h2>
+                        <select id="theme-filter" class="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-1">
+                            <option value="all">Tous les segments</option>
+                            <option value="weighted">Pondéré par "Impact"</option>
+                        </select>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-4">Répartition des segments de l'URL par catégorie sémantique.</p>
+                    
+                    <div class="chart-container">
+                        <canvas id="distributionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Visualization 2: The Emotional Rollercoaster -->
+                <!-- Goal: Change. Shows how the tone of the keywords shifts as one goes deeper into the URL structure. -->
+                <!-- Visualization & Content Choices: Line chart to show progression over "time" (depth in URL). -->
+                <div id="timeline" class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-2">Sismographe de l'Intensité</h2>
+                    <p class="text-sm text-gray-500 mb-6">
+                        Analyse de la profondeur de l'URL (X) par rapport à l'indice de "Sérieux" vs "Absurde" (Y). Notez la chute brutale vers le "Trash" vers la fin du chemin.
+                    </p>
+                    
+                    <div class="chart-container">
+                        <canvas id="intensityChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Visualization 3: Political/Media Actors Radar -->
+                <!-- Goal: Compare. Pits the main named entities against each other on abstract metrics derived from the context. -->
+                <!-- Visualization & Content Choices: Radar chart is ideal for multi-variable comparison of entities. -->
+                <div id="actors" class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-2">Radar d'Influence : Acteurs Clés</h2>
+                    <p class="text-sm text-gray-500 mb-6">
+                        Comparaison des figures centrales mentionnées (GLB, Magnette, Hedebouw) selon les axes sémantiques détectés dans le projet.
+                    </p>
+                    
+                    <div class="chart-container">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                    
+                    <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                        <div class="p-3 bg-blue-50 rounded border border-blue-100 cursor-pointer hover:bg-blue-100 transition" onclick="highlightActor(0)">
+                            <div class="font-bold text-blue-800">GLB</div>
+                            <div class="text-xs text-blue-600">Omniprésence</div>
+                        </div>
+                        <div class="p-3 bg-red-50 rounded border border-red-100 cursor-pointer hover:bg-red-100 transition" onclick="highlightActor(1)">
+                            <div class="font-bold text-red-800">Magnette</div>
+                            <div class="text-xs text-red-600">Institutionnel</div>
+                        </div>
+                        <div class="p-3 bg-red-50 rounded border border-red-100 cursor-pointer hover:bg-red-100 transition" onclick="highlightActor(2)">
+                            <div class="font-bold text-red-900">Hedebouw</div>
+                            <div class="text-xs text-red-700">Contestation</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detail Section: The "Keywords" Grid -->
+                <!-- Goal: Organize. A structured view of the most baffling terms found. -->
+                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-400">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Glossaire du "Belgian Bizarre"</h2>
+                    <p class="text-sm text-gray-600 mb-4">Les termes les plus énigmatiques du chemin d'accès expliqués.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="border rounded p-3 hover:bg-gray-50">
+                            <h4 class="font-bold text-gray-800">Oufti</h4>
+                            <p class="text-sm text-gray-600">Exclamation liégeoise de surprise. Indique un moment de choc dans la chronologie.</p>
+                        </div>
+                        <div class="border rounded p-3 hover:bg-gray-50">
+                            <h4 class="font-bold text-gray-800">Bicky Burger</h4>
+                            <p class="text-sm text-gray-600">Icône de la friture belge. Représente le retour à la réalité crue après le scandale politique.</p>
+                        </div>
+                        <div class="border rounded p-3 hover:bg-gray-50">
+                            <h4 class="font-bold text-gray-800">Big Kahuna</h4>
+                            <p class="text-sm text-gray-600">Référence à Pulp Fiction. Suggère une fictionnalisation ou une influence américaine ("Global").</p>
+                        </div>
+                        <div class="border rounded p-3 hover:bg-gray-50">
+                            <h4 class="font-bold text-gray-800">Ping Ultime</h4>
+                            <p class="text-sm text-gray-600">Terme technique suggérant la fin de la communication ou le test final du réseau.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-auto py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-sm text-gray-400">
+                Généré par Canvas Create Webapp • Basé sur l'analyse sémantique de l'URL source
+            </p>
+            <p class="text-xs text-gray-500 mt-2">
+                Note : Cette application est une interprétation visuelle et interactive basée sur les métadonnées fournies.
+            </p>
+        </div>
+    </footer>
+
+    <!-- LOGIC -->
+    <script>
+        // --- DATASET: Extracted from the provided URL path ---
+        const urlSegments = [
+            { id: 1, text: "george-louis-bouchez", cat: "Politique", mood: 80, desc: "Président du MR. Figure centrale et polarisante." },
+            { id: 2, text: "scandale", cat: "Concept", mood: 90, desc: "Le déclencheur narratif. Suggère une révélation." },
+            { id: 3, text: "radicalisation", cat: "Société", mood: 85, desc: "Thématique sécuritaire lourde." },
+            { id: 4, text: "lone-wolf", cat: "Société", mood: 75, desc: "Théorie du loup solitaire dans le terrorisme." },
+            { id: 5, text: "service-renseignement", cat: "Institution", mood: 60, desc: "Implication des services de l'État." },
+            { id: 6, text: "kmn", cat: "Argot", mood: 40, desc: "'Kill Me Now'? Expression de désespoir face à l'info." },
+            { id: 7, text: "lol", cat: "Argot", mood: 20, desc: "Rire nerveux ou ironique." },
+            { id: 8, text: "bim", cat: "Argot", mood: 50, desc: "Impact direct. Révélation soudaine." },
+            { id: 9, text: "oufti", cat: "Culture Belge", mood: 60, desc: "Surprise totale (Liège)." },
+            { id: 10, text: "rtbf-fraude-sociale", cat: "Média", mood: 85, desc: "Accusation envers le service public." },
+            { id: 11, text: "rtl-tvi", cat: "Média", mood: 50, desc: "Le concurrent privé. Mention neutre." },
+            { id: 12, text: "particratie", cat: "Politique", mood: 95, desc: "Critique du pouvoir des partis en Belgique." },
+            { id: 13, text: "deborsu", cat: "Média", mood: 60, desc: "Journaliste vedette (RTL/RTBF). Style provocateur." },
+            { id: 14, text: "fan-club", cat: "Société", mood: 30, desc: "Phénomène de groupe ou dérision." },
+            { id: 15, text: "paul-magnette", cat: "Politique", mood: 80, desc: "Président du PS. Rival idéologique." },
+            { id: 16, text: "raoul-hedebouw", cat: "Politique", mood: 80, desc: "Porte-parole PTB. La voix de la gauche radicale." },
+            { id: 17, text: "dickens", cat: "Culture", mood: 40, desc: "Charles Dickens? Misère sociale ou littérature?" },
+            { id: 18, text: "rednecks", cat: "Société", mood: 50, desc: "Terme péjoratif. Fossé culturel." },
+            { id: 19, text: "go-pro", cat: "Tech", mood: 40, desc: "Surveillance ou action filmée." },
+            { id: 20, text: "claude", cat: "Inconnu", mood: 30, desc: "Personnage mystère ou référence IA?" },
+            { id: 21, text: "gemini", cat: "Tech", mood: 50, desc: "Référence possible à l'IA ou constellation." },
+            { id: 22, text: "ping-ultime", cat: "Tech", mood: 60, desc: "Test de connexion final." },
+            { id: 23, text: "carte-blanche", cat: "Média", mood: 70, desc: "Opinion libre publiée dans la presse." },
+            { id: 24, text: "rigolote", cat: "Humeur", mood: 20, desc: "Ton léger, peut-être sarcastique." },
+            { id: 25, text: "trash", cat: "Humeur", mood: 90, desc: "Contenu poubelle ou scandaleux." },
+            { id: 26, text: "bof", cat: "Humeur", mood: 10, desc: "Indifférence totale." },
+            { id: 27, text: "Bicky-Burger", cat: "Culture Belge", mood: 45, desc: "Symbole de la 'Belgitude' populaire." },
+            { id: 28, text: "Big-Kahuna", cat: "Culture", mood: 55, desc: "Référence Tarantino. Fictionnalisation." }
+        ];
+
+        // --- STATE MANAGEMENT ---
+        let currentFilter = 'all';
+        let activeSegmentId = null;
+
+        // --- DOM ELEMENTS ---
+        const pathListEl = document.getElementById('path-list');
+        const contextCardEl = document.getElementById('context-card');
+        const contextTitleEl = document.getElementById('context-title');
+        const contextCatEl = document.getElementById('context-category');
+        const contextDescEl = document.getElementById('context-desc');
+
+        // --- INITIALIZATION ---
+        function init() {
+            renderPathList();
+            renderCharts();
+        }
+
+        // --- RENDER PATH LIST ---
+        function renderPathList() {
+            pathListEl.innerHTML = '';
+            urlSegments.forEach(seg => {
+                const chip = document.createElement('button');
+                chip.className = `keyword-chip px-3 py-1 text-sm font-medium rounded-full bg-gray-100 text-gray-700 border border-gray-200`;
+                chip.textContent = "/" + seg.text;
+                chip.onclick = () => selectSegment(seg, chip);
+                pathListEl.appendChild(chip);
+            });
+        }
+
+        // --- INTERACTION: Select Segment ---
+        function selectSegment(segment, element) {
+            // Update UI State
+            document.querySelectorAll('.keyword-chip').forEach(c => c.classList.remove('active-chip'));
+            element.classList.add('active-chip');
+            activeSegmentId = segment.id;
+
+            // Show Context Card
+            contextCardEl.classList.remove('hidden');
+            contextTitleEl.textContent = segment.text.toUpperCase().replace(/-/g, ' ');
+            contextCatEl.textContent = segment.cat;
+            contextDescEl.textContent = segment.desc;
+
+            // Color code category badge
+            const catColors = {
+                'Politique': 'bg-blue-100 text-blue-800',
+                'Média': 'bg-purple-100 text-purple-800',
+                'Culture Belge': 'bg-yellow-100 text-yellow-800',
+                'Argot': 'bg-green-100 text-green-800',
+                'Société': 'bg-red-100 text-red-800'
+            };
+            contextCatEl.className = `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mb-3 ${catColors[segment.cat] || 'bg-gray-100 text-gray-800'}`;
+            
+            // Scroll to card on mobile
+            if (window.innerWidth < 1024) {
+                contextCardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        // --- SCROLL HELPER ---
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- CHARTS ---
+        function renderCharts() {
+            
+            // 1. DISTRIBUTION CHART (Doughnut)
+            // Logic: Group by Category
+            const categories = {};
+            urlSegments.forEach(s => {
+                categories[s.cat] = (categories[s.cat] || 0) + 1;
+            });
+
+            const ctxDist = document.getElementById('distributionChart').getContext('2d');
+            new Chart(ctxDist, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categories),
+                    datasets: [{
+                        data: Object.values(categories),
+                        backgroundColor: [
+                            '#3b82f6', // blue (Politique)
+                            '#ef4444', // red (Société/Scandale)
+                            '#a855f7', // purple (Média)
+                            '#f59e0b', // amber (Culture)
+                            '#10b981', // green (Argot)
+                            '#6b7280', // gray (Other)
+                            '#ec4899', // pink
+                            '#6366f1'  // indigo
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+
+            // 2. INTENSITY LINE CHART
+            // Logic: Plot 'Mood/Seriousness' score over the index (depth in URL)
+            const ctxInt = document.getElementById('intensityChart').getContext('2d');
+            new Chart(ctxInt, {
+                type: 'line',
+                data: {
+                    labels: urlSegments.map(s => s.text.substring(0, 8) + '...'),
+                    datasets: [{
+                        label: 'Indice de Gravité / Intensité',
+                        data: urlSegments.map(s => s.mood),
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 3,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: 'Intensité (0=Bof, 100=Scandale)' }
+                        },
+                        x: {
+                            display: false // Hide messy x labels, rely on tooltip
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: (context) => urlSegments[context[0].dataIndex].text
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 3. ACTORS RADAR CHART
+            // Logic: Manual scoring of the 3 politicians mentioned based on generic attributes implied by the context
+            const ctxRad = document.getElementById('radarChart').getContext('2d');
+            window.actorChart = new Chart(ctxRad, {
+                type: 'radar',
+                data: {
+                    labels: ['Présence Média', 'Controverse', 'Ancrage Local', 'Impact "Mème"', 'Sérieux Institutionnel'],
+                    datasets: [
+                        {
+                            label: 'G.L. Bouchez',
+                            data: [95, 90, 60, 85, 70],
+                            borderColor: '#3b82f6', // Blue
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        },
+                        {
+                            label: 'Paul Magnette',
+                            data: [75, 50, 85, 40, 90],
+                            borderColor: '#ef4444', // Red
+                            backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                            hidden: false
+                        },
+                        {
+                            label: 'Raoul Hedebouw',
+                            data: [80, 60, 75, 90, 50],
+                            borderColor: '#b91c1c', // Dark Red
+                            backgroundColor: 'rgba(185, 28, 28, 0.2)',
+                            hidden: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { display: true },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- HELPER: Highlight Actor on Radar ---
+        function highlightActor(index) {
+            const chart = window.actorChart;
+            // Toggle visibility logic or highlight
+            chart.data.datasets.forEach((ds, i) => {
+                if (i === index) {
+                    ds.backgroundColor = ds.backgroundColor.replace('0.2', '0.6');
+                    ds.borderWidth = 3;
+                } else {
+                    ds.backgroundColor = ds.backgroundColor.replace('0.6', '0.2');
+                    ds.borderWidth = 1;
+                }
+            });
+            chart.update();
+        }
+
+        // Start
+        window.addEventListener('DOMContentLoaded', init);
+
+    </script>
+    
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</body>
+</html>
