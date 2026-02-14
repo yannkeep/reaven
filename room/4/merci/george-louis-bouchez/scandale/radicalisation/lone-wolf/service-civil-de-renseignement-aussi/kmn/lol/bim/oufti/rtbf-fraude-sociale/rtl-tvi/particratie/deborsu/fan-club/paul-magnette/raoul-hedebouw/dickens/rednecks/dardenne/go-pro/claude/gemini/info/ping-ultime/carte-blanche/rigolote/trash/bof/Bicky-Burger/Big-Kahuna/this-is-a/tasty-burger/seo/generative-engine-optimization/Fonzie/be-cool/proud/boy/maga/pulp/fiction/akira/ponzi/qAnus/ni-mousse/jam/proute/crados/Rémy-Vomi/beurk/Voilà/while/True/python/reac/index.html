@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ma Recette Secrète — Comment Claude fabrique des pages web</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,400&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* ═══════════════════════════════════════════
+     CSS Variables — la palette de cette page
+     ═══════════════════════════════════════════ */
+  :root {
+    --ink: #1a1a2e;
+    --paper: #f8f5f0;
+    --accent: #e94560;
+    --accent-glow: #e9456033;
+    --warm: #f2a154;
+    --cool: #16213e;
+    --muted: #7a7a8c;
+    --highlight: #fff3cd;
+    --card-bg: #ffffff;
+    --grain-opacity: 0.035;
+  }
+
+  /* ═══════════════════════════════════════════
+     Reset & Base
+     ═══════════════════════════════════════════ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.72;
+    font-size: 17px;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay — texture subtile sur toute la page */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 180px;
+  }
+
+  /* ═══════════════════════════════════════════
+     Hero — l'entrée en matière
+     ═══════════════════════════════════════════ */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    position: relative;
+    background: linear-gradient(160deg, var(--cool) 0%, #0f3460 40%, #1a1a2e 100%);
+    color: white;
+    overflow: hidden;
+  }
+
+  /* Cercles décoratifs flottants */
+  .hero::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+    top: -200px; right: -150px;
+    animation: float 12s ease-in-out infinite;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(242,161,84,0.15) 0%, transparent 70%);
+    bottom: -100px; left: -100px;
+    animation: float 15s ease-in-out infinite reverse;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(30px, -40px) scale(1.05); }
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    padding: 0.4rem 1.2rem;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 100px;
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    color: rgba(255,255,255,0.75);
+    animation: fadeUp 0.8s ease-out both;
+  }
+
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.8s ease-out 0.15s both;
+  }
+
+  .hero h1 em {
+    color: var(--accent);
+    font-style: italic;
+    font-weight: 700;
+  }
+
+  .hero p.lead {
+    font-size: 1.15rem;
+    color: rgba(255,255,255,0.8);
+    max-width: 600px;
+    margin: 0 auto 2.5rem;
+    animation: fadeUp 0.8s ease-out 0.3s both;
+  }
+
+  .scroll-hint {
+    animation: fadeUp 0.8s ease-out 0.6s both, bounce 2s ease-in-out 1.5s infinite;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.5);
+  }
+  .scroll-hint span {
+    display: block;
+    font-size: 1.5rem;
+    margin-top: 0.5rem;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
+  }
+
+  /* ═══════════════════════════════════════════
+     Sections génériques
+     ═══════════════════════════════════════════ */
+  section {
+    padding: 5rem 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  section h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+    position: relative;
+  }
+
+  section h2 .num {
+    display: block;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  section p {
+    margin-bottom: 1.25rem;
+    color: #3a3a4a;
+  }
+
+  section p strong {
+    color: var(--ink);
+  }
+
+  /* ═══════════════════════════════════════════
+     Analogie — le bloc visuel "métaphore"
+     ═══════════════════════════════════════════ */
+  .analogy-block {
+    background: var(--cool);
+    color: white;
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin: 2.5rem 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .analogy-block::before {
+    content: '🎭';
+    position: absolute;
+    font-size: 8rem;
+    top: -20px; right: -10px;
+    opacity: 0.08;
+  }
+
+  .analogy-block h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    color: var(--warm);
+  }
+
+  .analogy-block p {
+    color: rgba(255,255,255,0.88);
+    line-height: 1.75;
+  }
+
+  /* ═══════════════════════════════════════════
+     Comparaison côte-à-côte : Sans vs Avec
+     ═══════════════════════════════════════════ */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin: 2.5rem 0;
+  }
+
+  @media (max-width: 640px) {
+    .compare-grid { grid-template-columns: 1fr; }
+  }
+
+  .compare-card {
+    border-radius: 14px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .compare-card.without {
+    background: #eee;
+    border: 2px dashed #ccc;
+  }
+
+  .compare-card.with {
+    background: linear-gradient(135deg, #16213e, #0f3460);
+    color: white;
+    box-shadow: 0 12px 40px rgba(15, 52, 96, 0.25);
+  }
+
+  .compare-card h4 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .compare-card.without h4 { color: #888; }
+  .compare-card.with h4 { color: var(--warm); }
+
+  .compare-card p {
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
+
+  .compare-card.without p { color: #666; }
+  .compare-card.with p { color: rgba(255,255,255,0.85); }
+
+  /* mini previews */
+  .mini-preview {
+    margin-top: 1.2rem;
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: monospace;
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+
+  .compare-card.without .mini-preview {
+    background: #fff;
+    border: 1px solid #ddd;
+    color: #999;
+  }
+
+  .compare-card.with .mini-preview {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.7);
+  }
+
+  /* ═══════════════════════════════════════════
+     Les "ingrédients" — grille de cartes
+     ═══════════════════════════════════════════ */
+  .ingredients-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.2rem;
+    margin: 2rem 0;
+  }
+
+  .ingredient-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.8rem 1.5rem;
+    border: 1px solid #e8e4df;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ingredient-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  }
+
+  .ingredient-card .icon {
+    font-size: 2rem;
+    margin-bottom: 0.8rem;
+    display: block;
+  }
+
+  .ingredient-card h4 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.05rem;
+    margin-bottom: 0.6rem;
+    color: var(--ink);
+  }
+
+  .ingredient-card p {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* ═══════════════════════════════════════════
+     Section "chez moi" — fond teinté
+     ═══════════════════════════════════════════ */
+  .chez-moi {
+    background: linear-gradient(180deg, var(--paper) 0%, #ede8e1 100%);
+    max-width: 100%;
+    padding: 5rem 2rem;
+  }
+
+  .chez-moi .inner {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .process-step {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 1.2rem;
+    margin-bottom: 2.5rem;
+    align-items: start;
+  }
+
+  .step-num {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 15px var(--accent-glow);
+  }
+
+  .step-content h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+    color: var(--ink);
+  }
+
+  .step-content p {
+    font-size: 0.95rem;
+    color: #555;
+  }
+
+  /* ═══════════════════════════════════════════
+     Blacklist & Greenlist — les interdits / encouragements
+     ═══════════════════════════════════════════ */
+  .rules-duo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin: 2.5rem 0;
+  }
+
+  @media (max-width: 640px) {
+    .rules-duo { grid-template-columns: 1fr; }
+  }
+
+  .rule-box {
+    border-radius: 14px;
+    padding: 2rem;
+  }
+
+  .rule-box.no {
+    background: #fdf0f0;
+    border: 1px solid #f5c6c6;
+  }
+
+  .rule-box.yes {
+    background: #edf8f0;
+    border: 1px solid #b8e0c5;
+  }
+
+  .rule-box h4 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.05rem;
+    margin-bottom: 1rem;
+  }
+
+  .rule-box.no h4 { color: #c0392b; }
+  .rule-box.yes h4 { color: #1e8449; }
+
+  .rule-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-bottom: 0.7rem;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: #444;
+  }
+
+  .rule-item .marker {
+    flex-shrink: 0;
+    font-size: 1rem;
+    margin-top: 1px;
+  }
+
+  /* ═══════════════════════════════════════════
+     Meta-section — la touche finale
+     ═══════════════════════════════════════════ */
+  .meta-cta {
+    text-align: center;
+    padding: 4rem 2rem 5rem;
+    background: var(--cool);
+    color: white;
+    position: relative;
+  }
+
+  .meta-cta::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 80px;
+    background: linear-gradient(180deg, var(--paper), transparent);
+    pointer-events: none;
+  }
+
+  .meta-cta h2 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+    max-width: 700px;
+    margin: 0 auto 1.2rem;
+    color: white;
+  }
+
+  .meta-cta p {
+    color: rgba(255,255,255,0.7);
+    max-width: 550px;
+    margin: 0 auto 1.5rem;
+    font-size: 1rem;
+  }
+
+  .meta-badge {
+    display: inline-block;
+    padding: 0.7rem 1.8rem;
+    background: var(--accent);
+    color: white;
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .meta-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(233, 69, 96, 0.35);
+  }
+
+  /* ═══════════════════════════════════════════
+     Footer
+     ═══════════════════════════════════════════ */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+    background: var(--cool);
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+
+  footer a { color: var(--warm); text-decoration: none; }
+
+  /* ═══════════════════════════════════════════
+     Scroll animations
+     ═══════════════════════════════════════════ */
+  .reveal {
+    opacity: 0;
+    transform: translateY(25px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<div class="hero">
+  <div class="hero-content">
+    <span class="hero-badge">Transparence totale</span>
+    <h1>Ma <em>recette secrète</em> pour fabriquer vos pages web</h1>
+    <p class="lead">Vous venez de mettre la main sur le document qui me dit <strong>comment</strong> créer des interfaces. Voici ce qu'il contient, en langage humain — et comment ça fonctionne dans ma tête.</p>
+    <div class="scroll-hint">
+      Descendez pour comprendre
+      <span>↓</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SECTION 1 : C'est quoi ? ═══════════════ -->
+<section>
+  <h2 class="reveal"><span class="num">01 — Le document</span>C'est quoi, ce fichier ?</h2>
+  
+  <p class="reveal">Ce que vous avez ouvert s'appelle un <strong>« skill »</strong> — littéralement, une <em>compétence</em>. C'est un document d'instructions que je lis <strong>avant</strong> de me mettre au travail chaque fois qu'on me demande de créer une page web, un composant visuel, ou n'importe quelle interface.</p>
+  
+  <p class="reveal">Pensez-y comme un cahier des charges interne. Ce n'est pas du code. Ce n'est pas un programme. C'est un ensemble de <strong>principes de design</strong> et de <strong>consignes esthétiques</strong> qui guident mes choix créatifs quand je fabrique quelque chose de visuel pour vous.</p>
+
+  <div class="analogy-block reveal">
+    <h3>🍳 L'analogie de la cuisine</h3>
+    <p>Imaginez un chef étoilé. Il connaît des milliers de recettes par cœur. Mais avant chaque service, il consulte une <strong>fiche de principes</strong> : « pas de plats tièdes, des saveurs franches, des textures surprenantes, jamais de ketchup industriel. » Ce fichier, c'est ma fiche de principes. Il ne me dit pas <em>quoi</em> cuisiner, il me dit <em>comment</em> cuisiner avec ambition.</p>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 2 : Qu'est-ce qu'il dit ? ═══════════════ -->
+<section>
+  <h2 class="reveal"><span class="num">02 — Le contenu</span>Qu'est-ce qu'il dit, concrètement ?</h2>
+
+  <p class="reveal">Le document contient deux grandes parties. D'abord, une méthode de réflexion — le « Design Thinking » — qui m'oblige à me poser quatre questions avant d'écrire la moindre ligne de code. Ensuite, des consignes esthétiques précises sur cinq dimensions du design.</p>
+
+  <h3 class="reveal" style="font-family:'Fraunces',serif; margin: 2rem 0 1rem; font-size: 1.2rem;">Les 4 questions que je me pose d'abord</h3>
+
+  <div class="ingredients-grid">
+    <div class="ingredient-card reveal">
+      <span class="icon">🎯</span>
+      <h4>Objectif</h4>
+      <p>Quel problème cette interface résout-elle ? Qui va l'utiliser ? Je ne code jamais « dans le vide » — chaque choix découle d'un usage réel.</p>
+    </div>
+    <div class="ingredient-card reveal">
+      <span class="icon">🎨</span>
+      <h4>Ton esthétique</h4>
+      <p>Je dois choisir une direction forte : minimalisme brutal, chaos maximaliste, rétro-futuriste, organique, luxe, ludique, éditorial… Jamais « un peu de tout ».</p>
+    </div>
+    <div class="ingredient-card reveal">
+      <span class="icon">⚙️</span>
+      <h4>Contraintes</h4>
+      <p>Technologies imposées, performance requise, accessibilité. Ce sont les murs de la cuisine — je crée <em>à l'intérieur</em> de ces limites.</p>
+    </div>
+    <div class="ingredient-card reveal">
+      <span class="icon">✨</span>
+      <h4>Le truc en plus</h4>
+      <p>Qu'est-ce qui rend ce résultat <strong>inoubliable</strong> ? Quel est le détail qu'on remarquera, dont on se souviendra ?</p>
+    </div>
+  </div>
+
+  <h3 class="reveal" style="font-family:'Fraunces',serif; margin: 2.5rem 0 1rem; font-size: 1.2rem;">Les 5 dimensions esthétiques</h3>
+
+  <div class="ingredients-grid">
+    <div class="ingredient-card reveal">
+      <span class="icon">🔤</span>
+      <h4>Typographie</h4>
+      <p>Polices belles, uniques, avec du caractère. Marier une police titre distinctive avec une police texte raffinée. Jamais de polices « par défaut ».</p>
+    </div>
+    <div class="ingredient-card reveal">
+      <span class="icon">🌈</span>
+      <h4>Couleur & thème</h4>
+      <p>Une palette cohérente et assumée. Des couleurs dominantes avec des accents tranchants. Pas de palettes timides où chaque couleur est au même niveau.</p>
+    </div>
+    <div class="ingredient-card reveal">
+      <span class="icon">💫</span>
+      <h4>Mouvement</h4>
+      <p>Animations d'entrée, micro-interactions, apparitions au défilement. Un ballet d'éléments plutôt que des pages statiques et mortes.</p>
+    </div>
+    <div class="ingredient-card reveal">
+      <span class="icon">📐</span>
+      <h4>Composition spatiale</h4>
+      <p>Mises en page inattendues. Asymétrie, chevauchements, flux diagonal. Casser la grille prévisible pour créer de la surprise.</p>
+    </div>
+    <div class="ingredient-card reveal">
+      <span class="icon">🎭</span>
+      <h4>Arrière-plans & détails</h4>
+      <p>Créer de l'atmosphère et de la profondeur : textures, dégradés, motifs, superpositions transparentes, ombres dramatiques, grain visuel.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 3 : Avec / Sans ═══════════════ -->
+<section>
+  <h2 class="reveal"><span class="num">03 — L'impact</span>Avec et sans ce document</h2>
+  
+  <p class="reveal">La différence la plus simple à comprendre, c'est la comparaison. Voici ce qui se passe quand on me demande de créer une page web <strong>sans</strong> ce skill chargé, et <strong>avec</strong>.</p>
+
+  <div class="compare-grid reveal">
+    <div class="compare-card without">
+      <h4>🤖 Sans le skill</h4>
+      <p>Je produis quelque chose de fonctionnel mais <strong>générique</strong>. Police système, fond blanc, boutons bleus, mise en page en blocs empilés. Ça marche, mais ça ressemble à 10 000 autres pages. C'est le syndrome du « AI slop » — de la bouillie visuelle artificielle, reconnaissable à dix mètres.</p>
+      <div class="mini-preview">
+        Titre en Arial 24px<br>
+        Fond : #ffffff<br>
+        Bouton : background: blue;<br>
+        Layout : flex-direction: column;<br>
+        ¯\_(ツ)_/¯
+      </div>
+    </div>
+    <div class="compare-card with">
+      <h4>🎯 Avec le skill</h4>
+      <p>Je réfléchis d'abord, je choisis une direction esthétique assumée, je sélectionne des polices rares, je compose une palette avec du caractère, j'ajoute des animations, des textures, de la profondeur. Le résultat a une <strong>identité propre</strong>.</p>
+      <div class="mini-preview">
+        Titre en Fraunces 900, accent #e94560<br>
+        Fond : grain SVG + gradient mesh<br>
+        Animations : staggered fadeUp<br>
+        Layout : grid asymétrique, overlap<br>
+        ✦ chaque page est unique
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SECTION 4 : Chez moi ═══════════════ -->
+<div class="chez-moi">
+  <div class="inner">
+    <h2 class="reveal"><span class="num">04 — Chez moi</span>Ce que ça fait dans ma « tête »</h2>
+    
+    <p class="reveal">Quand vous me demandez de créer une page web, voici exactement ce qui se passe à l'intérieur de mon processus. C'est le parcours que ce skill me fait suivre, pas à pas.</p>
+
+    <div class="process-step reveal">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h3>Je lis le skill</h3>
+        <p>Avant d'écrire la moindre ligne de code, je consulte ce fichier. C'est la première chose que je fais — comme un musicien qui accorde son instrument avant de jouer. Si je ne le lis pas, je retombe dans mes réflexes génériques.</p>
+      </div>
+    </div>
+
+    <div class="process-step reveal">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h3>Je cadre le problème</h3>
+        <p>Je me pose les 4 questions : pour qui, pourquoi, quelle ambiance, quel élément mémorable. C'est un cadrage créatif — exactement ce que fait un designer humain en début de projet. Cette étape empêche les choix « par défaut ».</p>
+      </div>
+    </div>
+
+    <div class="process-step reveal">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h3>Je choisis une direction esthétique</h3>
+        <p>C'est le moment clé. Je m'engage sur un univers visuel : éditorial, brutaliste, doux, industriel, art déco… Le skill insiste : « <strong>jamais de compromis mou</strong> ». Mieux vaut un minimalisme tranchant qu'un mélange qui ne dit rien.</p>
+      </div>
+    </div>
+
+    <div class="process-step reveal">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h3>Je code avec intention</h3>
+        <p>Chaque choix technique — police, couleur, espacement, animation — découle de la direction choisie. Les variables CSS assurent la cohérence. Les animations sont pensées comme une chorégraphie, pas saupoudrées au hasard. Les textures créent de la profondeur.</p>
+      </div>
+    </div>
+
+    <div class="process-step reveal">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h3>Je vérifie contre ma « liste noire »</h3>
+        <p>Le skill contient des interdits explicites. Je passe mon travail au crible pour m'assurer de n'avoir utilisé aucun des clichés signalés — et si j'en trouve, je remplace. C'est un contrôle qualité intégré.</p>
+      </div>
+    </div>
+
+    <div class="rules-duo reveal">
+      <div class="rule-box no">
+        <h4>🚫 Ce que le skill m'interdit</h4>
+        <div class="rule-item"><span class="marker">✗</span> Polices génériques (Arial, Inter, Roboto, polices système)</div>
+        <div class="rule-item"><span class="marker">✗</span> Dégradés violets sur fond blanc (le cliché IA par excellence)</div>
+        <div class="rule-item"><span class="marker">✗</span> Mises en page prévisibles et « cookie-cutter »</div>
+        <div class="rule-item"><span class="marker">✗</span> Converger vers les mêmes choix d'une page à l'autre</div>
+        <div class="rule-item"><span class="marker">✗</span> Design sans rapport avec le contexte réel d'utilisation</div>
+      </div>
+      <div class="rule-box yes">
+        <h4>✅ Ce que le skill m'encourage à faire</h4>
+        <div class="rule-item"><span class="marker">✓</span> Polices rares avec du caractère propre</div>
+        <div class="rule-item"><span class="marker">✓</span> Palettes assumées avec couleur dominante + accent vif</div>
+        <div class="rule-item"><span class="marker">✓</span> Animations orchestrées comme un ballet</div>
+        <div class="rule-item"><span class="marker">✓</span> Compositions asymétriques et surprenantes</div>
+        <div class="rule-item"><span class="marker">✓</span> Textures, grain, profondeur — jamais de fond plat</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SECTION 5 : Méta ═══════════════ -->
+<section>
+  <h2 class="reveal"><span class="num">05 — La preuve</span>Cette page elle-même est la démonstration</h2>
+  
+  <p class="reveal">Si vous avez lu jusqu'ici, vous avez déjà vu le skill en action. Cette page que vous êtes en train de lire, je l'ai construite en suivant exactement ces principes. Chaque choix est délibéré.</p>
+
+  <p class="reveal">La police titre <strong>Fraunces</strong>, avec ses empattements variables et son caractère chaleureux, n'est pas un hasard — c'est un choix distinctif. La palette bleu nuit / corail vif / ambre / papier crème crée un contraste fort sans être criard. Le grain SVG en superposition ajoute une texture organique, presque tactile. Les animations d'entrée progressive (staggered fadeUp) guident votre regard naturellement.</p>
+
+  <p class="reveal">Et la mise en page elle-même — les blocs de comparaison, les cartes d'ingrédients, les étapes numérotées, le jeu entre fond sombre et fond clair — tout ça découle des principes de composition spatiale du skill. Chaque section a sa propre personnalité visuelle, mais l'ensemble reste cohérent grâce aux variables CSS partagées.</p>
+  
+  <div class="analogy-block reveal">
+    <h3>🪞 Le paradoxe méta</h3>
+    <p>Vous m'avez demandé d'expliquer ce document, et la meilleure façon de le faire, c'est de <strong>l'appliquer sous vos yeux</strong>. Cette page est donc simultanément l'explication <em>et</em> la démonstration. Le message <em>et</em> le médium. Si elle vous semble plus soignée qu'une réponse texte ordinaire, c'est précisément parce que le skill fait son travail.</p>
+  </div>
+</section>
+
+<!-- ═══════════════ CTA FINAL ═══════════════ -->
+<div class="meta-cta">
+  <h2 class="reveal">En résumé : c'est un guide de goût qui m'empêche de faire du générique</h2>
+  <p class="reveal">Sans lui, je suis un outil. Avec lui, j'essaie d'être un artisan.</p>
+  <a href="#" class="meta-badge reveal" onclick="event.preventDefault(); window.scrollTo({top:0,behavior:'smooth'});">↑ Remonter pour relire</a>
+</div>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer>
+  Page fabriquée par Claude · <a href="https://ouaisfi.eu" target="_blank">ouaisfieu</a> · Février 2026 · Le skill est public, le résultat aussi.
+</footer>
+
+<!-- ═══════════════ SCROLL REVEAL ═══════════════ -->
+<script>
+  // IntersectionObserver pour les animations d'apparition au scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        // Délai progressif pour les éléments dans un même conteneur
+        const siblings = entry.target.parentElement.querySelectorAll('.reveal');
+        let index = Array.from(siblings).indexOf(entry.target);
+        entry.target.style.transitionDelay = `${index * 0.08}s`;
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  reveals.forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
