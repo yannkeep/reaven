@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="fr-BE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TÉLÉTEXTE CITOYEN — ouaisfieu · Page 100</title>
+<meta name="description" content="Le Télétexte citoyen belge : toute l'intelligence citoyenne de ouaisfieu au format d'accès public le plus nostalgique de Belgique. Navigable. Interactif. Zéro tracking.">
+<meta name="theme-color" content="#000000">
+
+<style>
+  /* ═══════════════════════════════════════════════════════
+     TELETEXT AUTHENTIC RENDERING ENGINE
+     Inspired by Belgian RTBF/RTL-TVI Teletext (1980-2020)
+     ═══════════════════════════════════════════════════════ */
+
+  @font-face {
+    font-family: 'TeletextBlock';
+    src: local('Courier New'), local('Lucida Console'), local('monospace');
+  }
+
+  :root {
+    --tt-black: #000000;
+    --tt-red: #ff0000;
+    --tt-green: #00ff00;
+    --tt-yellow: #ffff00;
+    --tt-blue: #0000ff;
+    --tt-magenta: #ff00ff;
+    --tt-cyan: #00ffff;
+    --tt-white: #ffffff;
+    --tt-bg: #000000;
+    --tt-font: 'Courier New', 'Lucida Console', 'Consolas', monospace;
+    --tt-glow: 0 0 8px rgba(255,255,255,0.15);
+    --scanline-opacity: 0.04;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: #111;
+    overflow: hidden;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--tt-font);
+  }
+
+  /* ═══ CRT MONITOR FRAME ═══ */
+  .crt-frame {
+    width: min(98vw, 820px);
+    aspect-ratio: 4/3;
+    background: #1a1a1a;
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow:
+      0 0 0 4px #333,
+      0 0 0 8px #222,
+      0 20px 60px rgba(0,0,0,0.8),
+      inset 0 0 40px rgba(0,0,0,0.5);
+    position: relative;
+  }
+
+  /* ═══ CRT SCREEN ═══ */
+  .crt-screen {
+    width: 100%;
+    height: 100%;
+    background: var(--tt-black);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Scanlines */
+  .crt-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,var(--scanline-opacity)) 2px,
+      rgba(0,0,0,var(--scanline-opacity)) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* CRT curvature + vignette */
+  .crt-screen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(0,0,0,0.35) 100%);
+    pointer-events: none;
+    z-index: 101;
+    border-radius: 10px;
+  }
+
+  /* Screen reflection */
+  .crt-reflection {
+    position: absolute;
+    top: 5%;
+    left: 10%;
+    width: 60%;
+    height: 30%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.03), transparent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 102;
+  }
+
+  /* ═══ TELETEXT CONTENT AREA ═══ */
+  .tt-content {
+    width: 100%;
+    height: 100%;
+    padding: 2% 3%;
+    display: flex;
+    flex-direction: column;
+    font-size: clamp(10px, 1.85vw, 16px);
+    line-height: 1.45;
+    color: var(--tt-white);
+    position: relative;
+    z-index: 10;
+  }
+
+  /* ═══ HEADER BAR ═══ */
+  .tt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.2em 0.5em;
+    background: var(--tt-blue);
+    color: var(--tt-yellow);
+    font-weight: bold;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.4em;
+    flex-shrink: 0;
+    border-radius: 2px;
+  }
+
+  .tt-header-left { }
+  .tt-header-right { font-size: 0.85em; }
+
+  /* ═══ BODY ═══ */
+  .tt-body {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .tt-page {
+    display: none;
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .tt-page::-webkit-scrollbar { display: none; }
+  .tt-page.active { display: block; }
+
+  /* ═══ FOOTER / FASTEXT BAR ═══ */
+  .tt-footer {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    margin-top: 0.4em;
+    flex-shrink: 0;
+  }
+
+  .tt-fast {
+    text-align: center;
+    padding: 0.15em 0;
+    font-weight: bold;
+    font-size: 0.85em;
+    cursor: pointer;
+    border: none;
+    font-family: var(--tt-font);
+    transition: filter 0.15s;
+    border-radius: 1px;
+  }
+
+  .tt-fast:hover { filter: brightness(1.3); }
+  .tt-fast:active { filter: brightness(0.8); }
+
+  .tt-fast-red { background: var(--tt-red); color: var(--tt-white); }
+  .tt-fast-green { background: var(--tt-green); color: var(--tt-black); }
+  .tt-fast-yellow { background: var(--tt-yellow); color: var(--tt-black); }
+  .tt-fast-cyan { background: var(--tt-cyan); color: var(--tt-black); }
+
+  /* ═══ TELETEXT TEXT STYLING ═══ */
+  .r { color: var(--tt-red); }
+  .g { color: var(--tt-green); }
+  .y { color: var(--tt-yellow); }
+  .b { color: var(--tt-blue); }
+  .m { color: var(--tt-magenta); }
+  .c { color: var(--tt-cyan); }
+  .w { color: var(--tt-white); }
+
+  .bg-r { background: var(--tt-red); color: var(--tt-white); }
+  .bg-g { background: var(--tt-green); color: var(--tt-black); }
+  .bg-y { background: var(--tt-yellow); color: var(--tt-black); }
+  .bg-b { background: var(--tt-blue); color: var(--tt-white); }
+  .bg-m { background: var(--tt-magenta); color: var(--tt-white); }
+  .bg-c { background: var(--tt-cyan); color: var(--tt-black); }
+  .bg-w { background: var(--tt-white); color: var(--tt-black); }
+
+  .tt-title {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin: 0.3em 0;
+    text-shadow: var(--tt-glow);
+  }
+
+  .tt-sep {
+    color: var(--tt-cyan);
+    margin: 0.2em 0;
+    opacity: 0.6;
+    font-size: 0.9em;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .tt-line {
+    margin: 0.15em 0;
+    font-size: 0.92em;
+  }
+
+  .tt-block {
+    display: inline;
+    padding: 0 0.3em;
+  }
+
+  .tt-blink {
+    animation: tt-flash 1s step-end infinite;
+  }
+
+  @keyframes tt-flash {
+    0%, 49% { visibility: visible; }
+    50%, 100% { visibility: hidden; }
+  }
+
+  .tt-dbl {
+    font-size: 1.4em;
+    font-weight: bold;
+    line-height: 1.2;
+    text-shadow: var(--tt-glow);
+  }
+
+  .tt-link {
+    color: var(--tt-cyan);
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  .tt-link:hover { color: var(--tt-yellow); }
+
+  .tt-table {
+    margin: 0.3em 0;
+    font-size: 0.88em;
+  }
+
+  .tt-table-row {
+    display: flex;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 0.1em 0;
+  }
+
+  .tt-table-row:hover { background: rgba(255,255,255,0.03); }
+
+  .tt-table-key {
+    min-width: 40%;
+    color: var(--tt-cyan);
+  }
+
+  .tt-table-val {
+    color: var(--tt-yellow);
+  }
+
+  /* ═══ NAVIGATION INPUT ═══ */
+  .tt-nav-input {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: rgba(0,0,255,0.8);
+    color: var(--tt-yellow);
+    font-family: var(--tt-font);
+    font-size: 0.8em;
+    padding: 0.2em 0.5em;
+    border: none;
+    width: 4em;
+    text-align: center;
+    outline: none;
+    z-index: 200;
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .tt-nav-input:focus { opacity: 1; }
+
+  /* ═══ BLOCK GRAPHICS (mosaic chars) ═══ */
+  .tt-mosaic {
+    font-size: 0.7em;
+    line-height: 1;
+    letter-spacing: 0;
+    color: var(--tt-green);
+  }
+
+  .tt-box {
+    border: 1px solid;
+    padding: 0.3em 0.5em;
+    margin: 0.2em 0;
+    border-radius: 0;
+  }
+
+  .tt-box-r { border-color: var(--tt-red); }
+  .tt-box-g { border-color: var(--tt-green); }
+  .tt-box-y { border-color: var(--tt-yellow); }
+  .tt-box-c { border-color: var(--tt-cyan); }
+  .tt-box-m { border-color: var(--tt-magenta); }
+
+  /* ═══ PAGE TURN ANIMATION ═══ */
+  .tt-page-transition {
+    position: absolute;
+    inset: 0;
+    background: var(--tt-black);
+    z-index: 50;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: var(--tt-white);
+    font-size: 1.2em;
+  }
+
+  .tt-page-transition.active {
+    display: flex;
+    animation: page-flash 0.25s ease-out forwards;
+  }
+
+  @keyframes page-flash {
+    0% { opacity: 1; }
+    100% { opacity: 0; display: none; }
+  }
+
+  /* ═══ CONTROLS HINT (mobile) ═══ */
+  .controls-hint {
+    position: absolute;
+    bottom: -30px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: var(--tt-font);
+    font-size: 11px;
+    color: #555;
+  }
+
+  /* ═══ RESPONSIVE ═══ */
+  @media (max-width: 500px) {
+    .crt-frame { border-radius: 8px; padding: 8px; }
+    .tt-content { font-size: 9px; padding: 2% 2%; }
+  }
+
+  @media (max-height: 500px) {
+    .crt-frame { aspect-ratio: auto; height: 96vh; }
+  }
+</style>
+</head>
+<body>
+
+<div class="crt-frame">
+  <div class="crt-screen">
+    <div class="crt-reflection"></div>
+    <div class="tt-page-transition" id="transition"></div>
+
+    <div class="tt-content">
+
+      <!-- ═══ HEADER ═══ -->
+      <div class="tt-header">
+        <span class="tt-header-left">OUAISFIEU TÉLÉTEXTE</span>
+        <span class="tt-header-right">P.<span id="pageNum">100</span> <span id="clock"></span></span>
+      </div>
+
+      <!-- ═══ BODY ═══ -->
+      <div class="tt-body">
+
+        <!-- ════════ PAGE 100: INDEX ════════ -->
+        <div class="tt-page active" data-page="100">
+          <div class="tt-dbl c">TÉLÉTEXTE CITOYEN BELGE</div>
+          <div class="tt-dbl y">▓▓ ouaisfieu ▓▓</div>
+          <div class="tt-sep">════════════════════════════════════════</div>
+
+          <div class="tt-line w">Le service d'information publique</div>
+          <div class="tt-line w">que la particratie ne veut pas que</div>
+          <div class="tt-line w">vous lisiez. <span class="r tt-blink">ACCÈS LIBRE</span></div>
+
+          <div class="tt-sep">────────────────────────────────────────</div>
+
+          <div class="tt-line"><span class="y">101</span> <span class="tt-link w" onclick="goTo(101)">INFO FLASH ─ Ce que les JT ne disent pas</span></div>
+          <div class="tt-line"><span class="y">110</span> <span class="tt-link w" onclick="goTo(110)">L'ARCHIPEL ─ Architecture du projet</span></div>
+          <div class="tt-line"><span class="y">120</span> <span class="tt-link w" onclick="goTo(120)">CHIFFRES ─ Les nombres qui cognent</span></div>
+          <div class="tt-line"><span class="y">130</span> <span class="tt-link w" onclick="goTo(130)">STRATÉGIE ─ Les Trois Guerres Civiques</span></div>
+          <div class="tt-line"><span class="y">140</span> <span class="tt-link w" onclick="goTo(140)">FORK·HACK·SPREAD ─ Mode de propagation</span></div>
+          <div class="tt-line"><span class="y">150</span> <span class="tt-link w" onclick="goTo(150)">BUDGET ─ L'Équation Obscène</span></div>
+          <div class="tt-line"><span class="y">160</span> <span class="tt-link w" onclick="goTo(160)">PARCOURS ─ De pigeon à opérateur</span></div>
+          <div class="tt-line"><span class="y">170</span> <span class="tt-link w" onclick="goTo(170)">GLOSSAIRE ─ Lexique citoyen</span></div>
+          <div class="tt-line"><span class="y">199</span> <span class="tt-link w" onclick="goTo(199)">CRÉDITS ─ Colophon &amp; Licences</span></div>
+
+          <div class="tt-sep">────────────────────────────────────────</div>
+
+          <div class="tt-line"><span class="g">▶ Naviguez avec les touches</span> <span class="y">← →</span> <span class="g">ou cliquez les</span></div>
+          <div class="tt-line"><span class="g">&nbsp;&nbsp;boutons FastText en bas de l'écran.</span></div>
+          <div class="tt-line"><span class="g">▶ Tapez un numéro de page avec le clavier.</span></div>
+
+          <div class="tt-sep">════════════════════════════════════════</div>
+          <div class="tt-line c" style="font-size:0.75em">ouaisfi.eu · CC BY-NC-SA 4.0 · Zéro tracking · Zéro pub</div>
+          <div class="tt-line m" style="font-size:0.7em">« Ceci n'est pas un télétexte. » — Magritte, probablement.</div>
+        </div>
+
+        <!-- ════════ PAGE 101: INFO FLASH ════════ -->
+        <div class="tt-page" data-page="101">
+          <div class="tt-dbl r tt-blink">█ INFO FLASH █</div>
+          <div class="tt-title y">CE QUE LES JT NE DISENT PAS</div>
+          <div class="tt-sep">════════════════════════════════════════</div>
+
+          <div class="tt-box tt-box-r">
+            <span class="r">▸ ALERTE :</span> <span class="w">9 000+ décisions de justice</span><br>
+            <span class="w">&nbsp;&nbsp;ignorées par l'État belge.</span><br>
+            <span class="y">&nbsp;&nbsp;Source : Conseil d'État, rapports annuels</span>
+          </div>
+
+          <div class="tt-box tt-box-r">
+            <span class="r">▸ ALERTE :</span> <span class="w">978 000 personnes en invalidité</span><br>
+            <span class="w">&nbsp;&nbsp;de longue durée. Le discours officiel</span><br>
+            <span class="w">&nbsp;&nbsp;les appelle « profiteurs ». La réalité</span><br>
+            <span class="w">&nbsp;&nbsp;les appelle victimes d'un système.</span><br>
+            <span class="y">&nbsp;&nbsp;Source : ONEM / INAMI</span>
+          </div>
+
+          <div class="tt-box tt-box-r">
+            <span class="r">▸ ALERTE :</span> <span class="w">La coalition Arizona fait peser</span><br>
+            <span class="w">&nbsp;&nbsp;93% de l'effort budgétaire sur les</span><br>
+            <span class="w">&nbsp;&nbsp;citoyens ordinaires. 7% sur les</span><br>
+            <span class="w">&nbsp;&nbsp;patrimoines et revenus du capital.</span><br>
+            <span class="y">&nbsp;&nbsp;Source : Bureau du Plan</span>
+          </div>
+
+          <div class="tt-box tt-box-y">
+            <span class="y">▸ RAPPEL :</span> <span class="w">L'Article 42 de la Constitution</span><br>
+            <span class="w">&nbsp;&nbsp;dit que les parlementaires « repré-</span><br>
+            <span class="w">&nbsp;&nbsp;sentent la Nation ». Dans la pratique,</span><br>
+            <span class="w">&nbsp;&nbsp;ils représentent leur président de</span><br>
+            <span class="w">&nbsp;&nbsp;parti. Ils sont </span><span class="c">6</span><span class="w">. Pas élus à ce poste.</span>
+          </div>
+
+          <div class="tt-sep">────────────────────────────────────────</div>
+          <div class="tt-line m" style="font-size:0.8em">Ces faits sont vérifiables. La source est citée.</div>
+          <div class="tt-line m" style="font-size:0.8em">L'indignation seule ne suffit pas. La documentation, oui.</div>
+        </div>
+
+        <!-- ════════ PAGE 110: ARCHIPEL ════════ -->
+        <div class="tt-page" data-page="110">
+          <div class="tt-dbl c">ARCHIPEL NUMÉRIQUE</div>
+          <div class="tt-title y">Architecture de la contre-institution</div>
+          <div class="tt-sep">════════════════════════════════════════</div>
+
+          <div class="tt-line g">3 générateurs statiques · 0€ hébergement</div>
+          <div class="tt-line g">GitHub Pages · 100% open source</div>
+
+          <div class="tt-sep">────────────────────────────────────────</div>
+
+          <div class="tt-table">
+            <div class="tt-table-row"><span class="tt-table-key">LE HUB</span><span class="tt-table-val">ouaisfi.eu</span></div>
+            <div class="tt-line" style="font-size:0.82em">&nbsp;&nbsp;<span class="w">Grav CMS · Portail central · Navigation</span></div>
+
+            <div class="tt-table-row"><span class="tt-table-key">L'ÉDITORIAL</span><span class="tt-table-val">dl.ouaisfi.eu</span></div>
+            <div class="tt-line" style="font-size:0.82em">&nbsp;&nbsp;<span class="w">Hugo · Publications longues · 11·60 bis</span></div>
+
+            <div class="tt-table-row"><span class="tt-table-key">LA DOC</span><span class="tt-table-val">ouaisfieu.github.io</span></div>
+            <div class="tt-line" style="font-size:0.82em">&nbsp;&nbsp;<span class="w">Jekyll · DOCTech · BXL2030 · Dossiers</span></div>
+
+            <div class="tt-table-row"><span class="tt-table-key">LE TERRIER</span><span class="tt-table-val">yannkeep.github.io/reaven</span></div>
+            <div class="tt-line" style="font-size:0.82em">&nbsp;&nbsp;<span class="w">HTML brut · Labos · Easter eggs · SEO/GEO</span></div>
+          </div>
+
+          <div class="tt-sep">────────────────────────────────────────</div>
+
+          <div class="tt-line"><span class="c">SATELLITES :</span></div>
+          <div class="tt-line" style="font-size:0.85em"><span class="w">DOCTech</span> <span class="y">·</span> <span class="w">BXL2030</span> <span class="y">·</span> <span class="w">BXL2042</span> <span class="y">·</span> <span class="w">EARL</span></div>
+          <div class="tt-line" style="font-size:0.85em"><span class="w">11·60 bis</span> <span class="y">·</span> <span class="w">Biologia</span> <span class="y">·</span> <span class="w">GPTPardi</span> <span class="y">·</span> <span class="w">Dossiers</span></div>
+
+          <div class="tt-sep">────────────────────────────────────────</div>
+
+          <div class="tt-box tt-box-g">
+            <span class="g">PRINCIPE CLÉ :</span> <span class="w">Tout fonctionne hors-</span><br>
+            <span class="w">ligne sur clé USB. Aucun serveur. Aucun</span><br>
+            <span class="w">point de défaillance. La décentralisa-</span><br>
+            <span class="w">tion n'est pas technique — elle est</span><br>
+            <span class="g">politique.</span>
+          </div>
+        </div>
+
+        <!-- ════════ PAGE 120: CHIFFRES ════════ -->
+        <div class="tt-page" data-page="120">
+          <div class="tt-dbl y">LES NOMBRES QUI COGNENT</div>
+          <div class="tt-sep">════════════════════════════════════════</div>
+
+          <div class="tt-table">
+            <div class="tt-table-row"><span class="tt-table-key r" style="min-width:30%">978 000</span><span class="tt-table-val w">Personnes en invalidité LT</span></div>
+            <div class="tt-table-row"><span class="tt-table-key r" style="min-width:30%">9 000+</span><span class="tt-table-val w">Décisions de justice ignorées</span></div>
+            <div class="tt-table-row"><span class="tt-table-key r" style="min-width:30%">21 Mrd€</span><span class="tt-table-val w">Coût annuel inactivité forcée</span></div>
+            <div class="tt-table-row"><span class="tt-table-key r" style="min-width:30%">2,1 M</span><span class="tt-table-val w">Belges en risque de pauvreté</span></div>
+            <div class="tt-table-row"><span class="tt-table-key r" style="min-width:30%">40 Mrd€</span><span class="tt-table-val w">Déficit projeté 2030</span></div>
+            <div class="tt-table-row"><span class="tt-table-key r" style="min-width:30%">93%</span><span class="tt-table-val w">Effort budgétaire sur citoyens</span></div>
+            <div class="tt-table-row"><span class="tt-table-key r" style="min-width:30%">7%</span><span class="tt-table-val w">Effort sur patrimoines/capital</span></div>
+            <div class="tt-table-row"><span class="tt-table-key r" style="min-width:30%">6</span><span class="tt-table-val w">Présidents de parti qui décident</span></div>
+            <div class="tt-table-row"><span class="tt-table-key r" style="min-width:30%">0</span><span class="tt-table-val w">…élus par le peuple à ce poste</span></div>
+          </div>
+
+          <div class="tt-sep">────────────────────────────────────────</div>
+
+          <div class="tt-line c">ET EN FACE :</div>
+          <div class="tt-table">
+            <div class="tt-table-row"><span class="tt-table-key g" style="min-width:30%">29 €</span><span class="tt-table-val w">Budget mensuel ouaisfieu</span></div>
+            <div class="tt-table-row"><span class="tt-table-key g" style="min-width:30%">870 €</span><span class="tt-table-val w">Total sur 2,5 ans</span></div>
+            <div class="tt-table-row"><span class="tt-table-key g" style="min-width:30%">0 €</span><span class="tt-table-val w">Coût d'hébergement</span></div>
+            <div class="tt-table-row"><span class="tt-table-key g" style="min-width:30%">70+</span><span class="tt-table-val w">Analyses documentées</span></div>
+            <div class="tt-table-row"><span class="tt-table-key g" style="min-width:30%">∞</span><span class="tt-table-val w">Potentiel de réplication</span></div>
+          </div>
+
+          <div class="tt-sep">────────────────────────────────────────</div>
+          <div class="tt-line m" style="font-size:0.78em">Sources : Bureau du Plan, ONEM, INAMI, Conseil d'État,</div>
+          <div class="tt-line m" style="font-size:0.78em">Eurostat, Cour des comptes. Vérifiez vous-même.</div>
+        </div>
+
+        <!-- ════════ PAGE 130: TROIS GUERRES ════════ -->
+        <div class="tt-page" data-page="130">
+          <div class="tt-dbl r">TROIS GUERRES CIVIQUES</div>
+          <div class="tt-title y">Doctrine stratégique ouaisfieu</div>
+          <div class="tt-sep">════════════════════════════════════════</div>
+
+          <div class="tt-line w" style="font-size:0.82em">Adaptées de la doctrine militaire chinoise</div>
+          <div class="tt-line w" style="font-size:0.82em">au contexte de résistance civique belge.</div>
+
+          <div class="tt-sep">────────────────────────────────────────</div>
+
+          <div class="tt-box tt-box-c">
+            <span class="c tt-dbl" style="font-size:1.1em">I · GUERRE NARRATIVE</span><br>
+            <span class="w">Contrôler le récit par l'OSINT citoyen</span><br>
+            <span class="w">et les contre-narratifs factuels. Ne pas</span><br>
+            <span class="w">combattre le mensonge — le documenter.</span><br>
+            <span class="y">Armes : DOCTech, BXL2030, dossiers</span>
+          </div>
+
+          <div class="tt-box tt-box-m">
+            <span class="m tt-dbl" style="font-size:1.1em">II · DÉ-SIDÉRATION</span><br>
+            <span class="w">Restaurer la capacité de penser du</span><br>
+            <span class="w">citoyen sidéré. Éducation populaire,</span><br>
+            <span class="w">ateliers-débats, parcours DICS.</span><br>
+            <span class="y">Armes : EARL, formations, VPA</span>
+          </div>
+
+          <div class="tt-box tt-box-y">
+            <span class="y tt-dbl" style="font-size:1.1em">III · GUERRE JURIDIQUE</span><br>
+            <span class="w">Lawfare citoyen. Saturation judiciaire.</span><br>
+            <span class="w">Pression constitutionnelle. Lobbying</span><br>
+            <span class="w">citoyen organisé. Forcer le droit.</span><br>
+            <span class="y">Armes : recours, plaidoyers, CPAS</span>
+          </div>
+
+          <div class="tt-sep">────────────────────────────────────────</div>
+          <div class="tt-line g" style="font-size:0.8em">« Ne combattez pas le système sur son terrain.</div>
+          <div class="tt-line g" style="font-size:0.8em">&nbsp;&nbsp;Changez le terrain. »</div>
+        </div>
+
+        <!-- ════════ PAGE 140: FORK·HACK·SPREAD ════════ -->
+        <div class="tt-page" data-page="140">
+          <div class="tt-dbl g">FORK · HACK · SPREAD</div>
+          <div class="tt-title y">Le protocole de propagation</div>
+          <div class="tt-sep">════════════════════════════════════════</div>
+
+          <div class="tt-box tt-box-g">
+            <span class="g tt-dbl" style="font-size:1.1em">① FORK — Copiez tout</span><br><br>
+            <span class="c">$ git clone ouaisfieu</span><br>
+            <span class="c">$ cp -r ouaisfieu /media/USB/</span><br>
+            <span class="c">$ # double-cliquez index.html</span><br><br>
+            <span class="w">CC BY-NC-SA 4.0. Tout est libre.</span>
+          </div>
+
+          <div class="tt-box tt-box-y">
+            <span class="y tt-dbl" style="font-size:1.1em">② HACK — Adaptez</span><br><br>
+            <span class="w">Données = objets JavaScript</span><br>
+            <span class="w">Style &nbsp;&nbsp;= variables CSS :root</span><br>
+            <span class="w">Contenu = traduisez, localisez,</span><br>
+            <span class="w">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ajoutez vos données.</span>
+          </div>
+
+          <div class="tt-box tt-box-r">
+            <span class="r tt-dbl" style="font-size:1.1em">③ SPREAD — Diffusez</span><br><br>
+            <span class="w">UN lien. UN module. PAS 17 d'un coup.</span><br>
+            <span class="w">Choisissez celui qui répond au</span><br>
+            <span class="w">problème de votre interlocuteur.</span><br>
+            <span class="y">Le contenu fait le travail tout seul.</span>
+          </div>
+
+          <div class="tt-sep">────────────────────────────────────────</div>
+          <div class="tt-line c" style="font-size:0.82em">while (injustice.exists()) {</div>
+          <div class="tt-line c" style="font-size:0.82em">&nbsp;&nbsp;fork(); hack(); spread();</div>
+          <div class="tt-line c" style="font-size:0.82em">}</div>
+        </div>
+
+        <!-- ════════ PAGE 150: BUDGET ════════ -->
+        <div class="tt-page" data-page="150">
+          <div class="tt-dbl y">L'ÉQUATION OBSCÈNE</div>
+          <div class="tt-sep">════════════════════════════════════════</div>
+
+          <div class="tt-line w">&nbsp;</div>
+          <div class="tt-line w" style="text-align:center">
+            <span class="r tt-dbl" style="font-size:1.6em">21 000 000 000 €</span>
+          </div>
+          <div class="tt-line w" style="text-align:center; font-size:0.82em">
+            Coût annuel de l'inactivité forcée
+          </div>
+
+          <div class="tt-line w">&nbsp;</div>
+          <div class="tt-line w" style="text-align:center"><span class="m">versus</span></div>
+          <div class="tt-line w">&nbsp;</div>
+
+          <div class="tt-line w" style="text-align:center">
+            <span class="g tt-dbl" style="font-size:1.6em">870 €</span>
+          </div>
+          <div class="tt-line w" style="text-align:center; font-size:0.82em">
+            Budget total ouaisfieu (2,5 ans)
+          </div>
+
+          <div class="tt-sep">════════════════════════════════════════</div>
+
+          <div class="tt-line w" style="font-size:0.88em">
+            Avec <span class="g">870€</span>, un citoyen documente ce que
+          </div>
+          <div class="tt-line w" style="font-size:0.88em">
+            <span class="r">21 milliards</span> n'arrivent pas à résoudre.
+          </div>
+
+          <div class="tt-line w">&nbsp;</div>
+
+          <div class="tt-line w" style="font-size:0.88em">
+            Le problème n'est pas le budget.
+          </div>
+          <div class="tt-line y" style="font-size:0.88em">
+            Le problème, c'est la volonté.
+          </div>
+
+          <div class="tt-sep">────────────────────────────────────────</div>
+
+          <div class="tt-box tt-box-m">
+            <span class="m">VENTILATION :</span><br>
+            <span class="w">Claude Pro &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ~20€/mois</span><br>
+            <span class="w">Nom de domaine &nbsp;&nbsp;&nbsp;: ~9€/an</span><br>
+            <span class="w">Hébergement &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 0€ (GitHub Pages)</span><br>
+            <span class="w">Tracking &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 0€ (n'existe pas)</span><br>
+            <span class="w">Publicité &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 0€ (n'existe pas)</span><br>
+            <span class="w">Compromis &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 0€ (n'existe pas)</span>
+          </div>
+        </div>
+
+        <!-- ════════ PAGE 160: PARCOURS ════════ -->
+        <div class="tt-page" data-page="160">
+          <div class="tt-dbl g">DE PIGEON À OPÉRATEUR</div>
+          <div class="tt-title y">Le parcours d'émancipation DICS</div>
+          <div class="tt-sep">════════════════════════════════════════</div>
+
+          <div class="tt-line w" style="font-size:0.82em">Pyramide DICS : Data → Info → Connaissance → Sagesse</div>
+
+          <div class="tt-sep">────────────────────────────────────────</div>
+
+          <div class="tt-box tt-box-c">
+            <span class="c">NIVEAU 0 — OBSERVER</span><br>
+            <span class="w">Tu découvres que quelque chose ne va</span><br>
+            <span class="w">pas. L'indignation est là mais tu ne</span><br>
+            <span class="w">sais pas quoi en faire.</span><br>
+            <span class="y">→ DOCTech, BXL2030, 11·60 bis</span>
+          </div>
+
+          <div class="tt-box tt-box-g">
+            <span class="g">NIVEAU 1 — DOCUMENTER</span><br>
+            <span class="w">Tu commences à vérifier, croiser les</span><br>
+            <span class="w">sources. Tu passes du « je pense que »</span><br>
+            <span class="w">au « les chiffres montrent que ».</span><br>
+            <span class="y">→ EARL, dossiers, OSINT</span>
+          </div>
+
+          <div class="tt-box tt-box-y">
+            <span class="y">NIVEAU 2 — S'OUTILLER</span><br>
+            <span class="w">Tu apprends les outils : recours,</span><br>
+            <span class="w">plaidoyers, analyse budgétaire,</span><br>
+            <span class="w">recherche en sources ouvertes.</span><br>
+            <span class="y">→ formations CCPLC, ateliers VPA</span>
+          </div>
+
+          <div class="tt-box tt-box-r">
+            <span class="r">NIVEAU 3 — AGIR</span><br>
+            <span class="w">Tu Fork·Hack·Spread. Tu formes</span><br>
+            <span class="w">d'autres citoyens. Tu deviens un nœud</span><br>
+            <span class="w">du réseau. Tu es un opérateur.</span><br>
+            <span class="g">→ Fork · Hack · Spread · Répéter</span>
+          </div>
+        </div>
+
+        <!-- ════════ PAGE 170: GLOSSAIRE ════════ -->
+        <div class="tt-page" data-page="170">
+          <div class="tt-dbl c">LEXIQUE CITOYEN</div>
+          <div class="tt-sep">════════════════════════════════════════</div>
+
+          <div class="tt-table">
+            <div class="tt-table-row"><span class="tt-table-key">Particratie</span><span class="tt-table-val w">Régime où les partis contrôlent tout</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">Pilarisation</span><span class="tt-table-val w">Division société en piliers idéologiques</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">DICS</span><span class="tt-table-val w">Data→Info→Connaissance→Sagesse</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">VPA</span><span class="tt-table-val w">Voir-Penser-Agir (éducation populaire)</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">OSINT</span><span class="tt-table-val w">Open Source Intelligence (renseignement ouvert)</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">GEO</span><span class="tt-table-val w">Generative Engine Optimization</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">CCPLC</span><span class="tt-table-val w">Collectif Citoyen Participation Libre</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">Lead-dexing</span><span class="tt-table-val w">Fiches sur personnalités publiques</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">Fork</span><span class="tt-table-val w">Copier intégralement un projet libre</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">Arizona</span><span class="tt-table-val w">Coalition gouvernementale fédérale 2025+</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">Lawfare</span><span class="tt-table-val w">Utilisation stratégique du droit</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">DOCTech</span><span class="tt-table-val w">Document d'Ordre Citoyen & Technique</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">EARL</span><span class="tt-table-val w">Documentation intelligence citoyenne</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">Fieu/Fiew</span><span class="tt-table-val w">« Gars » en bruxellois/wallon</span></div>
+          </div>
+
+          <div class="tt-sep">────────────────────────────────────────</div>
+          <div class="tt-line m" style="font-size:0.78em">« ouaisfieu » = « ouais fieu » = « ouais gars »</div>
+          <div class="tt-line m" style="font-size:0.78em">Le ton de celui qui a compris et qui t'explique.</div>
+        </div>
+
+        <!-- ════════ PAGE 199: CRÉDITS ════════ -->
+        <div class="tt-page" data-page="199">
+          <div class="tt-dbl m">COLOPHON &amp; CRÉDITS</div>
+          <div class="tt-sep">════════════════════════════════════════</div>
+
+          <div class="tt-line w">Ce télétexte citoyen est une production</div>
+          <div class="tt-line c">ouaisfieu · contre-institution numérique</div>
+
+          <div class="tt-sep">────────────────────────────────────────</div>
+
+          <div class="tt-table">
+            <div class="tt-table-row"><span class="tt-table-key">Projet</span><span class="tt-table-val">ouaisfieu</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">Type</span><span class="tt-table-val">Contre-institution numérique</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">Licence</span><span class="tt-table-val">CC BY-NC-SA 4.0</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">Tracking</span><span class="tt-table-val">Aucun. Zéro. Nada.</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">Cookies</span><span class="tt-table-val">Uniquement des spéculoos</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">Budget</span><span class="tt-table-val">29€/mois</span></div>
+            <div class="tt-table-row"><span class="tt-table-key">Co-créa</span><span class="tt-table-val">Un humain + Claude (Anthropic)</span></div>
+          </div>
+
+          <div class="tt-sep">────────────────────────────────────────</div>
+
+          <div class="tt-line c">LIENS :</div>
+          <div class="tt-line w" style="font-size:0.85em">Hub &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ouaisfi.eu</div>
+          <div class="tt-line w" style="font-size:0.85em">Doc &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ouaisfieu.github.io</div>
+          <div class="tt-line w" style="font-size:0.85em">Éditorial : dl.ouaisfi.eu</div>
+          <div class="tt-line w" style="font-size:0.85em">Terrier &nbsp;&nbsp;: yannkeep.github.io/reaven</div>
+
+          <div class="tt-sep">════════════════════════════════════════</div>
+
+          <div class="tt-line y" style="font-size:0.82em">Le Télétexte est mort. Vive le Télétexte.</div>
+          <div class="tt-line w">&nbsp;</div>
+          <div class="tt-line g" style="font-size:0.78em">Ce format est un hommage au service d'accès</div>
+          <div class="tt-line g" style="font-size:0.78em">public à l'information le plus démocratique</div>
+          <div class="tt-line g" style="font-size:0.78em">jamais inventé. Pas de login. Pas de compte.</div>
+          <div class="tt-line g" style="font-size:0.78em">Pas de tracking. Juste des pages et des faits.</div>
+          <div class="tt-line w">&nbsp;</div>
+          <div class="tt-line m" style="font-size:0.72em">Fork · Hack · Spread — tenn' Ambar-metta</div>
+        </div>
+
+      </div><!-- /tt-body -->
+
+      <!-- ═══ FASTEXT NAVIGATION BAR ═══ -->
+      <div class="tt-footer">
+        <button class="tt-fast tt-fast-red" id="fastRed" onclick="fastNav('red')">◀ PRÉC.</button>
+        <button class="tt-fast tt-fast-green" id="fastGreen" onclick="fastNav('green')">INDEX 100</button>
+        <button class="tt-fast tt-fast-yellow" id="fastYellow" onclick="fastNav('yellow')">SUIV. ▶</button>
+        <button class="tt-fast tt-fast-cyan" id="fastCyan" onclick="fastNav('cyan')">CRÉDITS</button>
+      </div>
+
+    </div><!-- /tt-content -->
+  </div><!-- /crt-screen -->
+
+  <div class="controls-hint">
+    ← → naviguer &nbsp;·&nbsp; tapez un nº de page &nbsp;·&nbsp; cliquez les liens
+  </div>
+</div>
+
+<script>
+  // ═══════════════════════════════════════════════
+  // TELETEXT ENGINE — Navigation & Clock
+  // ═══════════════════════════════════════════════
+
+  const pages = [100, 101, 110, 120, 130, 140, 150, 160, 170, 199];
+  let currentIndex = 0;
+  let inputBuffer = '';
+  let inputTimeout = null;
+
+  function goTo(pageNum) {
+    const idx = pages.indexOf(pageNum);
+    if (idx === -1) return;
+    currentIndex = idx;
+    showPage();
+  }
+
+  function showPage() {
+    // Flash transition
+    const trans = document.getElementById('transition');
+    trans.classList.add('active');
+    setTimeout(() => trans.classList.remove('active'), 250);
+
+    // Hide all, show current
+    document.querySelectorAll('.tt-page').forEach(p => p.classList.remove('active'));
+    const target = document.querySelector(`[data-page="${pages[currentIndex]}"]`);
+    if (target) target.classList.add('active');
+
+    // Update page number
+    document.getElementById('pageNum').textContent = pages[currentIndex];
+
+    // Update FastText labels
+    updateFastText();
+  }
+
+  function updateFastText() {
+    const prevIdx = currentIndex > 0 ? currentIndex - 1 : pages.length - 1;
+    const nextIdx = currentIndex < pages.length - 1 ? currentIndex + 1 : 0;
+    document.getElementById('fastRed').textContent = `◀ P.${pages[prevIdx]}`;
+    document.getElementById('fastYellow').textContent = `P.${pages[nextIdx]} ▶`;
+  }
+
+  function fastNav(color) {
+    switch(color) {
+      case 'red':
+        currentIndex = currentIndex > 0 ? currentIndex - 1 : pages.length - 1;
+        break;
+      case 'green':
+        currentIndex = 0; // INDEX
+        break;
+      case 'yellow':
+        currentIndex = currentIndex < pages.length - 1 ? currentIndex + 1 : 0;
+        break;
+      case 'cyan':
+        currentIndex = pages.length - 1; // CRÉDITS
+        break;
+    }
+    showPage();
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      fastNav('red');
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      fastNav('yellow');
+    } else if (e.key >= '0' && e.key <= '9') {
+      inputBuffer += e.key;
+      clearTimeout(inputTimeout);
+      inputTimeout = setTimeout(() => {
+        const num = parseInt(inputBuffer);
+        if (pages.includes(num)) goTo(num);
+        inputBuffer = '';
+      }, 800);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      fastNav('green');
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      fastNav('cyan');
+    }
+  });
+
+  // Touch swipe (mobile)
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
+  document.addEventListener('touchend', e => {
+    const diff = e.changedTouches[0].screenX - touchStartX;
+    if (Math.abs(diff) > 60) {
+      diff > 0 ? fastNav('red') : fastNav('yellow');
+    }
+  });
+
+  // Clock
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+  updateFastText();
+
+  // Console easter egg
+  console.log('%c📺 TÉLÉTEXTE CITOYEN BELGE — ouaisfieu', 'color: #ffff00; background: #0000ff; font-size: 16px; padding: 4px 12px; font-weight: bold');
+  console.log('%cLe Télétexte est mort. Vive le Télétexte.', 'color: #00ffff; font-size: 12px');
+  console.log('%cPages disponibles : ' + pages.join(', '), 'color: #00ff00; font-size: 11px');
+  console.log('%c« Ceci n\'est pas un télétexte. » — Magritte, probablement.', 'color: #ff00ff; font-size: 11px; font-style: italic');
+</script>
+
+</body>
+</html>
