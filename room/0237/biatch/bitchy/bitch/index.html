@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="fr-BE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3615 OUAISFIEU — Minitel Citoyen</title>
+<meta name="description" content="3615 OUAISFIEU — Le service Minitel citoyen belge. Intelligence citoyenne sur écran ambre. Le proto-internet au service de la démocratie. Connexion en cours...">
+<meta name="theme-color" content="#1a1200">
+
+<style>
+  /* ═══════════════════════════════════════════════════════
+     MINITEL 3615 AUTHENTIC RENDERING ENGINE
+     Alcatel Telic 1 / Philips Minitel 1B aesthetic
+     Amber phosphor monochrome · 40×25 character grid
+     ═══════════════════════════════════════════════════════ */
+
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --m-black: #1a1200;
+    --m-dark: #2a1f00;
+    --m-amber: #ffb000;
+    --m-amber-dim: #8a6000;
+    --m-amber-bright: #ffd060;
+    --m-amber-glow: rgba(255,176,0,0.15);
+    --m-amber-hot: #ffe090;
+    --m-green: #00cc44;
+    --m-inverse-bg: var(--m-amber);
+    --m-inverse-fg: var(--m-black);
+    --m-font: 'Share Tech Mono', 'Courier New', monospace;
+    --m-phosphor: 0 0 4px rgba(255,176,0,0.6), 0 0 12px rgba(255,176,0,0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: #0a0800;
+    overflow: hidden;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--m-font);
+    gap: 0;
+  }
+
+  /* ═══ MINITEL CASING ═══ */
+  .minitel-case {
+    width: min(96vw, 680px);
+    background: linear-gradient(175deg, #c8b890, #a89870 40%, #8a7850 80%, #6a5830);
+    border-radius: 16px 16px 8px 8px;
+    padding: 14px 14px 10px;
+    box-shadow:
+      0 8px 40px rgba(0,0,0,0.7),
+      inset 0 1px 0 rgba(255,255,255,0.2),
+      inset 0 -2px 0 rgba(0,0,0,0.3);
+    position: relative;
+  }
+
+  /* Brand label */
+  .minitel-brand {
+    position: absolute;
+    top: 4px;
+    right: 16px;
+    font-size: 9px;
+    color: #5a4a30;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+  }
+
+  /* ═══ SCREEN BEZEL ═══ */
+  .minitel-bezel {
+    background: #222;
+    border-radius: 10px;
+    padding: 8px;
+    box-shadow:
+      inset 0 2px 8px rgba(0,0,0,0.8),
+      0 1px 0 rgba(255,255,255,0.1);
+  }
+
+  /* ═══ SCREEN ═══ */
+  .minitel-screen {
+    background: var(--m-black);
+    border-radius: 6px;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Phosphor afterglow */
+  .minitel-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 40%, rgba(255,176,0,0.04), transparent 70%);
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* Scanlines */
+  .minitel-screen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 101;
+  }
+
+  /* ═══ CONTENT AREA ═══ */
+  .m-content {
+    width: 100%;
+    height: 100%;
+    padding: 3% 4%;
+    color: var(--m-amber);
+    font-size: clamp(9px, 1.7vw, 15px);
+    line-height: 1.5;
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ═══ STATUS BAR (top) ═══ */
+  .m-status {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+    color: var(--m-amber-dim);
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid var(--m-amber-dim);
+    margin-bottom: 0.5em;
+    flex-shrink: 0;
+  }
+
+  /* ═══ PAGES ═══ */
+  .m-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+  }
+  .m-body::-webkit-scrollbar { display: none; }
+
+  .m-page { display: none; }
+  .m-page.active { display: block; }
+
+  /* ═══ TYPOGRAPHY ═══ */
+  .m-title {
+    font-size: 1.3em;
+    color: var(--m-amber-bright);
+    text-shadow: var(--m-phosphor);
+    text-align: center;
+    margin: 0.3em 0;
+    letter-spacing: 0.1em;
+  }
+
+  .m-subtitle {
+    text-align: center;
+    font-size: 0.85em;
+    color: var(--m-amber-dim);
+    margin-bottom: 0.5em;
+  }
+
+  .m-sep {
+    color: var(--m-amber-dim);
+    text-align: center;
+    margin: 0.3em 0;
+    overflow: hidden;
+    white-space: nowrap;
+    opacity: 0.5;
+  }
+
+  .m-line {
+    margin: 0.15em 0;
+  }
+
+  .m-dim { color: var(--m-amber-dim); }
+  .m-bright { color: var(--m-amber-bright); text-shadow: var(--m-phosphor); }
+  .m-hot { color: var(--m-amber-hot); text-shadow: var(--m-phosphor); }
+  .m-green { color: var(--m-green); text-shadow: 0 0 4px rgba(0,204,68,0.4); }
+
+  .m-inverse {
+    background: var(--m-amber);
+    color: var(--m-black);
+    padding: 0 0.3em;
+    font-weight: bold;
+  }
+
+  .m-blink {
+    animation: m-flash 1.2s step-end infinite;
+  }
+  @keyframes m-flash {
+    0%, 59% { visibility: visible; }
+    60%, 100% { visibility: hidden; }
+  }
+
+  .m-box {
+    border: 1px solid var(--m-amber-dim);
+    padding: 0.4em 0.6em;
+    margin: 0.4em 0;
+  }
+
+  .m-box-bright { border-color: var(--m-amber); }
+
+  .m-dbl {
+    font-size: 1.5em;
+    text-shadow: var(--m-phosphor);
+    letter-spacing: 0.08em;
+  }
+
+  .m-cursor {
+    display: inline-block;
+    width: 0.6em;
+    height: 1.1em;
+    background: var(--m-amber);
+    animation: m-cursor-blink 0.8s step-end infinite;
+    vertical-align: text-bottom;
+  }
+  @keyframes m-cursor-blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+
+  /* Menu items */
+  .m-menu-item {
+    display: flex;
+    gap: 0.8em;
+    margin: 0.2em 0;
+    cursor: pointer;
+    padding: 0.1em 0.2em;
+    transition: background 0.1s;
+  }
+  .m-menu-item:hover {
+    background: rgba(255,176,0,0.08);
+  }
+
+  .m-menu-key {
+    color: var(--m-amber-bright);
+    min-width: 2.5em;
+    text-align: right;
+    font-weight: bold;
+  }
+
+  .m-menu-label { color: var(--m-amber); }
+
+  /* Table */
+  .m-table-row {
+    display: flex;
+    padding: 0.1em 0;
+    border-bottom: 1px solid rgba(255,176,0,0.06);
+  }
+  .m-table-key {
+    min-width: 42%;
+    color: var(--m-amber-bright);
+    font-size: 0.92em;
+  }
+  .m-table-val {
+    color: var(--m-amber);
+    font-size: 0.92em;
+  }
+
+  /* ═══ FUNCTION KEYS BAR ═══ */
+  .m-funcbar {
+    margin-top: 0.4em;
+    flex-shrink: 0;
+    border-top: 1px solid var(--m-amber-dim);
+    padding-top: 0.3em;
+    font-size: 0.75em;
+    color: var(--m-amber-dim);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.2em;
+  }
+
+  .m-func {
+    cursor: pointer;
+    padding: 0.1em 0.4em;
+    border: 1px solid var(--m-amber-dim);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .m-func:hover {
+    background: var(--m-amber);
+    color: var(--m-black);
+    border-color: var(--m-amber);
+  }
+  .m-func:active {
+    background: var(--m-amber-bright);
+  }
+
+  /* ═══ PHYSICAL KEYBOARD STRIP ═══ */
+  .minitel-keyboard {
+    margin-top: 6px;
+    padding: 8px 4px 4px;
+    background: linear-gradient(to bottom, #6a5830, #5a4820);
+    border-radius: 0 0 8px 8px;
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+    flex-wrap: wrap;
+  }
+
+  .phys-key {
+    width: clamp(22px, 4vw, 36px);
+    height: clamp(16px, 2.5vw, 24px);
+    background: linear-gradient(to bottom, #4a4040, #333030);
+    border: 1px solid #555;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: Arial, sans-serif;
+    font-size: clamp(6px, 1vw, 9px);
+    color: #aaa;
+    cursor: pointer;
+    box-shadow: 0 2px 0 #222;
+    transition: all 0.1s;
+    user-select: none;
+  }
+  .phys-key:active {
+    box-shadow: 0 0 0 #222;
+    transform: translateY(2px);
+    background: #333;
+  }
+  .phys-key.key-special {
+    background: linear-gradient(to bottom, #5a4a30, #3a3020);
+    color: #d4a857;
+    border-color: #6a5830;
+    font-weight: bold;
+  }
+  .phys-key.key-wide { width: clamp(44px, 8vw, 72px); }
+  .phys-key.key-xwide { width: clamp(66px, 12vw, 108px); }
+
+  /* ═══ CONNECTION OVERLAY ═══ */
+  .m-connect-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--m-black);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--m-amber);
+    font-family: var(--m-font);
+    font-size: clamp(10px, 1.8vw, 15px);
+    text-align: center;
+    padding: 2rem;
+    border-radius: 6px;
+  }
+
+  .m-connect-overlay.hidden { display: none; }
+
+  .m-connect-line {
+    margin: 0.2em 0;
+    opacity: 0;
+    animation: connect-appear 0.3s ease-out forwards;
+  }
+
+  @keyframes connect-appear {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .m-modem-sound {
+    color: var(--m-amber-dim);
+    font-size: 0.7em;
+    letter-spacing: 0.3em;
+    margin: 0.5em 0;
+  }
+
+  /* ═══ RESPONSIVE ═══ */
+  @media (max-width: 450px) {
+    .minitel-case { padding: 8px 8px 6px; border-radius: 10px 10px 6px 6px; }
+    .minitel-bezel { padding: 5px; }
+    .m-content { padding: 2% 3%; }
+    .minitel-keyboard { padding: 4px 2px 2px; gap: 2px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="minitel-case">
+  <div class="minitel-brand">OUAISFIEU · BELGIQUE</div>
+
+  <div class="minitel-bezel">
+    <div class="minitel-screen">
+
+      <!-- CONNECTION SEQUENCE -->
+      <div class="m-connect-overlay" id="connectOverlay">
+        <div class="m-connect-line" style="animation-delay:0.3s">FRANCE TÉLÉCOM — TRANSPAC</div>
+        <div class="m-connect-line" style="animation-delay:0.8s; font-size:0.8em; color:var(--m-amber-dim)">Ha non pardon, on est en Belgique.</div>
+        <div class="m-connect-line" style="animation-delay:1.6s">BELGACOM — RTT REGIE</div>
+        <div class="m-connect-line" style="animation-delay:2.2s; font-size:0.8em; color:var(--m-amber-dim)">Ha non ça non plus ça n'existe plus.</div>
+        <div class="m-connect-line m-modem-sound" style="animation-delay:3s">
+          ♪ biiip — crrrr — kshhhhh — bzzzt ♪
+        </div>
+        <div class="m-connect-line" style="animation-delay:3.8s">CONNEXION ÉTABLIE</div>
+        <div class="m-connect-line" style="animation-delay:4.4s">1200/75 bauds <span class="m-dim">· vitesse d'un escargot motivé</span></div>
+        <div class="m-connect-line m-blink" style="animation-delay:5.2s; color:var(--m-amber-bright)">
+          3615 OUAISFIEU
+        </div>
+        <div class="m-connect-line" style="animation-delay:5.8s; font-size:0.75em; color:var(--m-amber-dim)">
+          Appuyez sur CONNEXION/FIN ou cliquez pour entrer
+        </div>
+      </div>
+
+      <div class="m-content" id="mainContent" style="display:none">
+
+        <!-- STATUS BAR -->
+        <div class="m-status">
+          <span>3615 OUAISFIEU</span>
+          <span id="mClock"></span>
+          <span>P.<span id="mPageNum">00</span></span>
+        </div>
+
+        <!-- BODY -->
+        <div class="m-body">
+
+          <!-- ════════ PAGE 00: SOMMAIRE ════════ -->
+          <div class="m-page active" data-mpage="00">
+            <div class="m-dbl m-bright" style="text-align:center">▌3615 OUAISFIEU▐</div>
+            <div class="m-subtitle">Service Minitel Citoyen Belge</div>
+            <div class="m-sep">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+
+            <div class="m-line m-dim" style="text-align:center;font-size:0.82em">
+              Contre-institution numérique
+            </div>
+            <div class="m-line m-dim" style="text-align:center;font-size:0.82em">
+              Belgique · CC BY-NC-SA 4.0
+            </div>
+
+            <div class="m-sep">──────────────────────────────────</div>
+
+            <div class="m-line m-bright" style="text-align:center;font-size:0.9em">
+              ▸ SERVICES DISPONIBLES ◂
+            </div>
+
+            <div class="m-sep">──────────────────────────────────</div>
+
+            <div class="m-menu-item" onclick="mGoTo('01')"><span class="m-menu-key">01</span><span class="m-menu-label">KIOSK &nbsp;&nbsp;&nbsp;Actualités citoyennes</span></div>
+            <div class="m-menu-item" onclick="mGoTo('02')"><span class="m-menu-key">02</span><span class="m-menu-label">ANNUAIRE &nbsp;L'archipel numérique</span></div>
+            <div class="m-menu-item" onclick="mGoTo('03')"><span class="m-menu-key">03</span><span class="m-menu-label">DOSSIERS &nbsp;Particratie &amp; chiffres</span></div>
+            <div class="m-menu-item" onclick="mGoTo('04')"><span class="m-menu-key">04</span><span class="m-menu-label">DOCTRINE &nbsp;Les Trois Guerres</span></div>
+            <div class="m-menu-item" onclick="mGoTo('05')"><span class="m-menu-key">05</span><span class="m-menu-label">MESSAGERIE &nbsp;Fork·Hack·Spread</span></div>
+            <div class="m-menu-item" onclick="mGoTo('06')"><span class="m-menu-key">06</span><span class="m-menu-label">HOROSCOPE &nbsp;Prédictions politiques</span></div>
+            <div class="m-menu-item" onclick="mGoTo('07')"><span class="m-menu-key">07</span><span class="m-menu-label">JEUX &nbsp;&nbsp;&nbsp;&nbsp;Le Quiz du Pigeon</span></div>
+            <div class="m-menu-item" onclick="mGoTo('99')"><span class="m-menu-key">99</span><span class="m-menu-label">AIDE &nbsp;&nbsp;&nbsp;&nbsp;À propos &amp; navigation</span></div>
+
+            <div class="m-sep">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+
+            <div class="m-line m-dim" style="font-size:0.78em;text-align:center">
+              Tapez un nº de service + ENVOI
+            </div>
+            <div class="m-line m-dim" style="font-size:0.78em;text-align:center">
+              GUIDE = aide · SOMMAIRE = retour · FIN = déconnexion
+            </div>
+            <div class="m-line m-dim" style="font-size:0.7em;text-align:center;margin-top:0.5em">
+              Coût : 0,00 F/min · parce que l'info citoyenne est un droit
+            </div>
+          </div>
+
+          <!-- ════════ PAGE 01: KIOSK ════════ -->
+          <div class="m-page" data-mpage="01">
+            <div class="m-title">▌ KIOSK CITOYEN ▐</div>
+            <div class="m-subtitle">Actualités que les JT oublient</div>
+            <div class="m-sep">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+
+            <div class="m-box m-box-bright">
+              <span class="m-bright m-blink">▸ FLASH ◂</span><br>
+              <span class="m-hot">9 000+</span> décisions de justice<br>
+              ignorées par l'État belge.<br>
+              <span class="m-dim">Source : Conseil d'État</span>
+            </div>
+
+            <div class="m-box">
+              <span class="m-bright">▸ SOCIAL</span><br>
+              <span class="m-hot">978 000</span> personnes en invalidité<br>
+              longue durée. Coût annuel :<br>
+              <span class="m-hot">21 milliards €</span>.<br>
+              Le JT les appelle « profiteurs ».<br>
+              <span class="m-dim">Source : ONEM / INAMI</span>
+            </div>
+
+            <div class="m-box">
+              <span class="m-bright">▸ BUDGET ARIZONA</span><br>
+              <span class="m-hot">93%</span> de l'effort budgétaire<br>
+              sur les citoyens ordinaires.<br>
+              <span class="m-hot">7%</span> sur les patrimoines.<br>
+              C'est un transfert de richesse<br>
+              <span class="m-bright">à l'envers</span>.<br>
+              <span class="m-dim">Source : Bureau du Plan</span>
+            </div>
+
+            <div class="m-box">
+              <span class="m-bright">▸ CONSTITUTIONNEL</span><br>
+              Article 42 : les parlementaires<br>
+              « représentent la Nation ».<br>
+              Réalité : ils représentent leur<br>
+              président de parti. Ils sont <span class="m-hot">6</span>.<br>
+              Aucun n'est élu à ce poste.
+            </div>
+          </div>
+
+          <!-- ════════ PAGE 02: ANNUAIRE ════════ -->
+          <div class="m-page" data-mpage="02">
+            <div class="m-title">▌ ANNUAIRE ▐</div>
+            <div class="m-subtitle">L'archipel numérique ouaisfieu</div>
+            <div class="m-sep">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+
+            <div class="m-line m-bright">3 générateurs · 0€ hébergement</div>
+            <div class="m-sep">──────────────────────────────────</div>
+
+            <div class="m-box">
+              <span class="m-inverse"> LE HUB </span> ouaisfi.eu<br>
+              <span class="m-dim">Grav CMS · Portail · Navigation</span>
+            </div>
+            <div class="m-box">
+              <span class="m-inverse"> ÉDITORIAL </span> dl.ouaisfi.eu<br>
+              <span class="m-dim">Hugo · 11·60 bis · Biologia · EARL</span>
+            </div>
+            <div class="m-box">
+              <span class="m-inverse"> DOCBASE </span> ouaisfieu.github.io<br>
+              <span class="m-dim">Jekyll · DOCTech · BXL2030 · Dossiers</span>
+            </div>
+            <div class="m-box">
+              <span class="m-inverse"> TERRIER </span> yannkeep.github.io/reaven<br>
+              <span class="m-dim">HTML brut · Labs · Easter eggs</span>
+            </div>
+
+            <div class="m-sep">──────────────────────────────────</div>
+
+            <div class="m-line m-dim" style="font-size:0.82em">
+              SATELLITES : DOCTech · BXL2030 · BXL2042
+            </div>
+            <div class="m-line m-dim" style="font-size:0.82em">
+              EARL · 11·60 bis · Biologia · GPTPardi
+            </div>
+
+            <div class="m-sep">──────────────────────────────────</div>
+
+            <div class="m-line" style="font-size:0.85em">
+              <span class="m-bright">NOTE :</span> Tout fonctionne hors-ligne
+            </div>
+            <div class="m-line" style="font-size:0.85em">
+              sur clé USB. Le Minitel avait besoin
+            </div>
+            <div class="m-line" style="font-size:0.85em">
+              d'une ligne téléphonique. Pas nous.
+            </div>
+          </div>
+
+          <!-- ════════ PAGE 03: DOSSIERS ════════ -->
+          <div class="m-page" data-mpage="03">
+            <div class="m-title">▌ DOSSIERS ▐</div>
+            <div class="m-subtitle">Particratie — Anatomie du système</div>
+            <div class="m-sep">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+
+            <div class="m-line m-bright">QU'EST-CE QUE LA PARTICRATIE ?</div>
+            <div class="m-sep">──────────────────────────────────</div>
+
+            <div class="m-line">Un régime où les présidents de</div>
+            <div class="m-line">partis concentrent le pouvoir</div>
+            <div class="m-line">réel. La Constitution dit une</div>
+            <div class="m-line">chose. La pratique en fait une</div>
+            <div class="m-line">autre. <span class="m-bright">Systématiquement.</span></div>
+
+            <div class="m-sep">──────────────────────────────────</div>
+            <div class="m-line m-bright">LES CHIFFRES :</div>
+
+            <div class="m-table-row"><span class="m-table-key">Décideurs réels</span><span class="m-table-val m-hot">6 présidents</span></div>
+            <div class="m-table-row"><span class="m-table-key">Élus à ce poste</span><span class="m-table-val m-hot">0</span></div>
+            <div class="m-table-row"><span class="m-table-key">Décisions ignorées</span><span class="m-table-val m-hot">9 000+</span></div>
+            <div class="m-table-row"><span class="m-table-key">Invalidités LT</span><span class="m-table-val m-hot">978 000</span></div>
+            <div class="m-table-row"><span class="m-table-key">Coût inactivité</span><span class="m-table-val m-hot">21 Mrd€/an</span></div>
+            <div class="m-table-row"><span class="m-table-key">Effort citoyen</span><span class="m-table-val m-hot">93%</span></div>
+            <div class="m-table-row"><span class="m-table-key">Effort patrimoine</span><span class="m-table-val m-hot">7%</span></div>
+            <div class="m-table-row"><span class="m-table-key">Risque pauvreté</span><span class="m-table-val m-hot">2,1 millions</span></div>
+
+            <div class="m-sep">──────────────────────────────────</div>
+            <div class="m-line m-dim" style="font-size:0.78em">
+              « La Belgique n'est pas une dictature.
+            </div>
+            <div class="m-line m-dim" style="font-size:0.78em">
+              &nbsp;&nbsp;C'est pire — une dystopie douce. »
+            </div>
+          </div>
+
+          <!-- ════════ PAGE 04: DOCTRINE ════════ -->
+          <div class="m-page" data-mpage="04">
+            <div class="m-title">▌ DOCTRINE ▐</div>
+            <div class="m-subtitle">Les Trois Guerres Civiques</div>
+            <div class="m-sep">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+
+            <div class="m-line m-dim" style="font-size:0.82em">
+              Adaptées de la doctrine chinoise
+            </div>
+            <div class="m-line m-dim" style="font-size:0.82em">
+              au contexte civique belge.
+            </div>
+
+            <div class="m-sep">──────────────────────────────────</div>
+
+            <div class="m-box m-box-bright">
+              <span class="m-inverse"> I </span> <span class="m-bright">GUERRE NARRATIVE</span><br>
+              Contrôler le récit par l'OSINT<br>
+              citoyen et les contre-narratifs<br>
+              factuels. Documenter, pas combattre.<br>
+              <span class="m-dim">→ DOCTech, BXL2030, dossiers</span>
+            </div>
+
+            <div class="m-box m-box-bright">
+              <span class="m-inverse"> II </span> <span class="m-bright">DÉ-SIDÉRATION</span><br>
+              Restaurer la capacité de penser<br>
+              du citoyen sidéré. Éducation<br>
+              populaire, ateliers, parcours DICS.<br>
+              <span class="m-dim">→ EARL, formations, méthode VPA</span>
+            </div>
+
+            <div class="m-box m-box-bright">
+              <span class="m-inverse"> III </span> <span class="m-bright">GUERRE JURIDIQUE</span><br>
+              Lawfare citoyen. Saturation<br>
+              judiciaire. Pression constitution-<br>
+              nelle. Forcer le droit existant.<br>
+              <span class="m-dim">→ recours, plaidoyers, CPAS</span>
+            </div>
+
+            <div class="m-sep">──────────────────────────────────</div>
+            <div class="m-line m-dim" style="font-size:0.82em">
+              « Ne combattez pas le système sur
+            </div>
+            <div class="m-line m-dim" style="font-size:0.82em">
+              &nbsp;&nbsp;son terrain. Changez le terrain. »
+            </div>
+          </div>
+
+          <!-- ════════ PAGE 05: MESSAGERIE ════════ -->
+          <div class="m-page" data-mpage="05">
+            <div class="m-title">▌ MESSAGERIE ▐</div>
+            <div class="m-subtitle">Protocole Fork · Hack · Spread</div>
+            <div class="m-sep">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+
+            <div class="m-line m-dim" style="font-size:0.85em;text-align:center">
+              Le Minitel 3615 était un système fermé.
+            </div>
+            <div class="m-line m-dim" style="font-size:0.85em;text-align:center">
+              ouaisfieu est son exact opposé.
+            </div>
+
+            <div class="m-sep">──────────────────────────────────</div>
+
+            <div class="m-box m-box-bright">
+              <span class="m-inverse"> FORK </span> <span class="m-bright">COPIEZ TOUT</span><br><br>
+              <span class="m-hot">$ git clone ouaisfieu</span><br>
+              <span class="m-hot">$ cp *.html /USB/</span><br><br>
+              CC BY-NC-SA 4.0. Tout est libre.<br>
+              Le Minitel facturait à la minute.<br>
+              Nous, c'est <span class="m-green">gratuit. Pour toujours.</span>
+            </div>
+
+            <div class="m-box m-box-bright">
+              <span class="m-inverse"> HACK </span> <span class="m-bright">ADAPTEZ</span><br><br>
+              Données &nbsp;= objets JavaScript<br>
+              Style &nbsp;&nbsp;&nbsp;= variables CSS :root<br>
+              Contenu &nbsp;= traduisez, localisez<br><br>
+              Le Minitel interdisait de modifier<br>
+              quoi que ce soit. <span class="m-green">Nous, on insiste.</span>
+            </div>
+
+            <div class="m-box m-box-bright">
+              <span class="m-inverse"> SPREAD </span> <span class="m-bright">DIFFUSEZ</span><br><br>
+              UN module. UN lien. PAS 17 d'un<br>
+              coup. Le contenu fait le travail.<br><br>
+              Le Minitel était centralisé.<br>
+              ouaisfieu est <span class="m-green">partout ou nulle part.</span>
+            </div>
+          </div>
+
+          <!-- ════════ PAGE 06: HOROSCOPE ════════ -->
+          <div class="m-page" data-mpage="06">
+            <div class="m-title">▌ HOROSCOPE ▐</div>
+            <div class="m-subtitle">Prédictions politiques belges 2026</div>
+            <div class="m-sep">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+
+            <div class="m-line m-dim" style="font-size:0.82em;text-align:center">
+              Aussi fiable que le vrai horoscope
+            </div>
+            <div class="m-line m-dim" style="font-size:0.82em;text-align:center">
+              du 3615 — c'est-à-dire plus que le JT.
+            </div>
+
+            <div class="m-sep">──────────────────────────────────</div>
+
+            <div class="m-box">
+              <span class="m-bright">♈ BÉLIER (MR)</span><br>
+              Foncez tête baissée vers les<br>
+              coupes budgétaires. Saturne vous<br>
+              rappelle que 93% c'est beaucoup.
+            </div>
+            <div class="m-box">
+              <span class="m-bright">♊ GÉMEAUX (PS/ECOLO)</span><br>
+              Votre double discours habituel<br>
+              sera mis à l'épreuve par Mercure<br>
+              en opposition. Les citoyens lisent<br>
+              les budgets maintenant.
+            </div>
+            <div class="m-box">
+              <span class="m-bright">♏ SCORPION (N-VA)</span><br>
+              Votre plan secret est moins secret<br>
+              que vous le pensez. L'OSINT citoyen<br>
+              est en phase ascendante.
+            </div>
+            <div class="m-box">
+              <span class="m-bright">♒ VERSEAU (OUAISFIEU)</span><br>
+              Jupiter entre dans votre maison<br>
+              du savoir. Budget : toujours 29€.<br>
+              Impact : <span class="m-hot">disproportionné</span>.
+            </div>
+
+            <div class="m-sep">──────────────────────────────────</div>
+            <div class="m-line m-dim" style="font-size:0.72em;text-align:center">
+              Cet horoscope est une satire. Comme le budget Arizona.
+            </div>
+          </div>
+
+          <!-- ════════ PAGE 07: QUIZ DU PIGEON ════════ -->
+          <div class="m-page" data-mpage="07">
+            <div class="m-title">▌ QUIZ DU PIGEON ▐</div>
+            <div class="m-subtitle">Testez votre niveau de pigeonitude</div>
+            <div class="m-sep">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+
+            <div class="m-line m-bright" id="quizQuestion">
+              Combien de présidents de parti<br>
+              décident vraiment en Belgique ?
+            </div>
+
+            <div class="m-sep">──────────────────────────────────</div>
+
+            <div class="m-menu-item" onclick="quizAnswer(this, false)"><span class="m-menu-key">A</span><span class="m-menu-label">11 — un par parti représenté</span></div>
+            <div class="m-menu-item" onclick="quizAnswer(this, false)"><span class="m-menu-key">B</span><span class="m-menu-label">150 — les députés, comme prévu</span></div>
+            <div class="m-menu-item" onclick="quizAnswer(this, true)"><span class="m-menu-key">C</span><span class="m-menu-label">6 — les vrais patrons du pays</span></div>
+            <div class="m-menu-item" onclick="quizAnswer(this, false)"><span class="m-menu-key">D</span><span class="m-menu-label">1 — le Roi, évidemment</span></div>
+
+            <div class="m-sep">──────────────────────────────────</div>
+
+            <div class="m-box" id="quizResult" style="display:none">
+              <span class="m-bright" id="quizResultText"></span>
+            </div>
+
+            <div class="m-line m-dim" style="font-size:0.78em;margin-top:0.5em">
+              Score : votre niveau d'émancipation
+            </div>
+            <div class="m-line m-dim" style="font-size:0.78em">
+              est calculé en temps réel.
+            </div>
+            <div class="m-line m-dim" style="font-size:0.78em">
+              (Non, c'est faux. Il n'y a pas de
+            </div>
+            <div class="m-line m-dim" style="font-size:0.78em">
+              tracking. On est ouaisfieu, pas Google.)
+            </div>
+          </div>
+
+          <!-- ════════ PAGE 99: AIDE ════════ -->
+          <div class="m-page" data-mpage="99">
+            <div class="m-title">▌ AIDE ▐</div>
+            <div class="m-subtitle">À propos du 3615 OUAISFIEU</div>
+            <div class="m-sep">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+
+            <div class="m-line m-bright">POURQUOI UN MINITEL ?</div>
+            <div class="m-sep">──────────────────────────────────</div>
+
+            <div class="m-line">Le Minitel (1982-2012) était le</div>
+            <div class="m-line">proto-internet francophone. Un</div>
+            <div class="m-line">terminal dans chaque foyer pour</div>
+            <div class="m-line">accéder à l'information. La Belgique</div>
+            <div class="m-line">l'a connu via les lignes françaises.</div>
+
+            <div class="m-line">&nbsp;</div>
+
+            <div class="m-line"><span class="m-bright">L'IRONIE :</span> Le Minitel était un</div>
+            <div class="m-line">jardin fermé de France Télécom.</div>
+            <div class="m-line">Centralisé. Facturé à la minute.</div>
+            <div class="m-line">Contrôlé. ouaisfieu est son exact</div>
+            <div class="m-line"><span class="m-hot">opposé philosophique</span> : ouvert,</div>
+            <div class="m-line">gratuit, décentralisé, forkable.</div>
+
+            <div class="m-sep">──────────────────────────────────</div>
+            <div class="m-line m-bright">NAVIGATION :</div>
+            <div class="m-line m-dim" style="font-size:0.88em">← → &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Page précédente/suivante</div>
+            <div class="m-line m-dim" style="font-size:0.88em">Chiffres &nbsp;Tapez un nº de service</div>
+            <div class="m-line m-dim" style="font-size:0.88em">Cliquez &nbsp;&nbsp;Les touches en bas</div>
+            <div class="m-line m-dim" style="font-size:0.88em">Swipe &nbsp;&nbsp;&nbsp;Sur mobile</div>
+
+            <div class="m-sep">──────────────────────────────────</div>
+
+            <div class="m-table-row"><span class="m-table-key">Projet</span><span class="m-table-val">ouaisfieu</span></div>
+            <div class="m-table-row"><span class="m-table-key">Type</span><span class="m-table-val">Contre-institution</span></div>
+            <div class="m-table-row"><span class="m-table-key">Licence</span><span class="m-table-val">CC BY-NC-SA 4.0</span></div>
+            <div class="m-table-row"><span class="m-table-key">Budget</span><span class="m-table-val">29€/mois</span></div>
+            <div class="m-table-row"><span class="m-table-key">Tracking</span><span class="m-table-val">Néant absolu</span></div>
+            <div class="m-table-row"><span class="m-table-key">Cookies</span><span class="m-table-val">Spéculoos only</span></div>
+            <div class="m-table-row"><span class="m-table-key">Co-création</span><span class="m-table-val">Humain + Claude</span></div>
+            <div class="m-table-row"><span class="m-table-key">Minitel</span><span class="m-table-val">Mort, mais ressuscité</span></div>
+
+            <div class="m-sep">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+            <div class="m-line m-dim" style="font-size:0.72em;text-align:center">
+              Le Minitel est mort. Vive le Minitel citoyen.
+            </div>
+            <div class="m-line m-dim" style="font-size:0.72em;text-align:center">
+              Fork · Hack · Spread — tenn' Ambar-metta
+            </div>
+          </div>
+
+        </div><!-- /m-body -->
+
+        <!-- FUNCTION KEYS -->
+        <div class="m-funcbar">
+          <span class="m-func" onclick="mGoTo('00')">SOMMAIRE</span>
+          <span class="m-func" onclick="mPrev()">◀ RETOUR</span>
+          <span class="m-func" onclick="mNext()">SUITE ▶</span>
+          <span class="m-func" onclick="mGoTo('99')">GUIDE</span>
+          <span class="m-func" onclick="mRepeat()">RÉPÉTIT°</span>
+          <span class="m-func" onclick="mDisconnect()">CONNEXION/FIN</span>
+        </div>
+
+      </div><!-- /m-content -->
+
+    </div><!-- /minitel-screen -->
+  </div><!-- /minitel-bezel -->
+
+  <!-- PHYSICAL KEYBOARD (decorative + functional) -->
+  <div class="minitel-keyboard">
+    <div class="phys-key key-special key-wide" onclick="mGoTo('00')">SOMM</div>
+    <div class="phys-key">A</div><div class="phys-key">Z</div><div class="phys-key">E</div><div class="phys-key">R</div><div class="phys-key">T</div><div class="phys-key">Y</div><div class="phys-key">U</div><div class="phys-key">I</div><div class="phys-key">O</div><div class="phys-key">P</div>
+    <div class="phys-key key-special key-wide" onclick="mGoTo('99')">GUIDE</div>
+    <div class="phys-key">Q</div><div class="phys-key">S</div><div class="phys-key">D</div><div class="phys-key">F</div><div class="phys-key">G</div><div class="phys-key">H</div><div class="phys-key">J</div><div class="phys-key">K</div><div class="phys-key">L</div><div class="phys-key">M</div>
+    <div class="phys-key key-special key-wide" onclick="mPrev()">RETOUR</div>
+    <div class="phys-key key-special key-wide" onclick="mNext()">SUITE</div>
+    <div class="phys-key key-special key-xwide" onclick="mDisconnect()">CONNEXION/FIN</div>
+    <div class="phys-key key-special key-wide" onclick="mNext()">ENVOI</div>
+  </div>
+</div>
+
+<script>
+  // ═══════════════════════════════════════
+  // MINITEL ENGINE
+  // ═══════════════════════════════════════
+
+  const mPages = ['00','01','02','03','04','05','06','07','99'];
+  let mCurrentIndex = 0;
+  let mInputBuffer = '';
+  let mInputTimeout = null;
+  let connected = false;
+
+  // Connection sequence
+  const overlay = document.getElementById('connectOverlay');
+  const mainContent = document.getElementById('mainContent');
+
+  function connect() {
+    overlay.classList.add('hidden');
+    mainContent.style.display = 'flex';
+    connected = true;
+  }
+
+  // Click or key to skip connection
+  overlay.addEventListener('click', connect);
+  document.addEventListener('keydown', (e) => {
+    if (!connected) { connect(); return; }
+    handleKey(e);
+  });
+
+  // Auto-connect after 6.5s
+  setTimeout(connect, 6500);
+
+  function mGoTo(pageId) {
+    const idx = mPages.indexOf(pageId);
+    if (idx === -1) return;
+    mCurrentIndex = idx;
+    mShowPage();
+  }
+
+  function mPrev() {
+    mCurrentIndex = mCurrentIndex > 0 ? mCurrentIndex - 1 : mPages.length - 1;
+    mShowPage();
+  }
+
+  function mNext() {
+    mCurrentIndex = mCurrentIndex < mPages.length - 1 ? mCurrentIndex + 1 : 0;
+    mShowPage();
+  }
+
+  function mRepeat() { mShowPage(); }
+
+  function mDisconnect() {
+    mainContent.style.display = 'none';
+    overlay.classList.remove('hidden');
+    connected = false;
+    // Re-enable auto-connect
+    setTimeout(() => { if (!connected) connect(); }, 6500);
+  }
+
+  function mShowPage() {
+    document.querySelectorAll('.m-page').forEach(p => p.classList.remove('active'));
+    const target = document.querySelector(`[data-mpage="${mPages[mCurrentIndex]}"]`);
+    if (target) target.classList.add('active');
+    document.getElementById('mPageNum').textContent = mPages[mCurrentIndex];
+
+    // Scroll to top
+    document.querySelector('.m-body').scrollTop = 0;
+  }
+
+  function handleKey(e) {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); mPrev(); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); mNext(); }
+    else if (e.key === 'Home') { e.preventDefault(); mGoTo('00'); }
+    else if (e.key === 'End') { e.preventDefault(); mGoTo('99'); }
+    else if (e.key >= '0' && e.key <= '9') {
+      mInputBuffer += e.key;
+      clearTimeout(mInputTimeout);
+      mInputTimeout = setTimeout(() => {
+        const padded = mInputBuffer.padStart(2, '0');
+        if (mPages.includes(padded)) mGoTo(padded);
+        mInputBuffer = '';
+      }, 600);
+    } else if (e.key === 'Enter') {
+      const padded = mInputBuffer.padStart(2, '0');
+      if (mPages.includes(padded)) mGoTo(padded);
+      mInputBuffer = '';
+    }
+  }
+
+  // Touch swipe
+  let mTouchX = 0;
+  document.addEventListener('touchstart', e => { mTouchX = e.changedTouches[0].screenX; });
+  document.addEventListener('touchend', e => {
+    if (!connected) { connect(); return; }
+    const diff = e.changedTouches[0].screenX - mTouchX;
+    if (Math.abs(diff) > 60) diff > 0 ? mPrev() : mNext();
+  });
+
+  // Clock
+  function mUpdateClock() {
+    const now = new Date();
+    document.getElementById('mClock').textContent =
+      String(now.getHours()).padStart(2,'0') + ':' +
+      String(now.getMinutes()).padStart(2,'0');
+  }
+  setInterval(mUpdateClock, 10000);
+  mUpdateClock();
+
+  // Quiz
+  function quizAnswer(el, correct) {
+    const result = document.getElementById('quizResult');
+    const text = document.getElementById('quizResultText');
+    result.style.display = 'block';
+
+    if (correct) {
+      text.innerHTML = '✓ BONNE RÉPONSE.<br>6 présidents de parti.<br>Aucun élu à ce poste par le peuple.<br>Bienvenue hors de la matrice.<br><br><span class="m-dim">Niveau : OPÉRATEUR</span>';
+    } else {
+      text.innerHTML = '✗ PERDU. La réponse est C : 6.<br>Six personnes non élues à ce poste<br>décident de la politique belge.<br>C\'est documenté. C\'est vérifiable.<br><br><span class="m-dim">Niveau : PIGEON (mais en voie<br>d\'émancipation — tu es ici).</span>';
+    }
+
+    // Disable other answers
+    document.querySelectorAll('[data-mpage="07"] .m-menu-item').forEach(item => {
+      item.style.pointerEvents = 'none';
+      if (item !== el) item.style.opacity = '0.3';
+    });
+  }
+
+  // Console
+  console.log('%c📟 3615 OUAISFIEU — Minitel Citoyen Belge', 'color: #ffb000; background: #1a1200; font-size: 16px; padding: 4px 12px; font-weight: bold');
+  console.log('%cConnexion : 1200/75 bauds · vitesse d\'un escargot motivé', 'color: #8a6000; font-size: 11px');
+  console.log('%cCoût : 0,00 F/min — parce que l\'info citoyenne est un droit', 'color: #ffb000; font-size: 11px');
+  console.log('%cLe Minitel est mort. Vive le Minitel citoyen.', 'color: #ffd060; font-size: 12px; font-style: italic');
+</script>
+
+</body>
+</html>
