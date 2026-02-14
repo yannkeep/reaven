@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Observatoire Info ou Intox : Analyse de l'Écosystème Belge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Warm Neutral Background (Orange-50) with Slate text. Accents: Blue (Info), Red (Intox/Scandal), Gold (Highlight). -->
+    <!-- Application Structure Plan: 
+         1. Header: Narrative introduction setting the stage ("Info ou Intox?").
+         2. Dashboard Controls: Global filters for the analysis (Media vs. Politics vs. Society).
+         3. 'Le Radar de la Particratie': Interactive Radar Chart comparing key figures (GLB, Magnette, Hedebouw) found in the source on metrics like "Impact Médiatique" vs "Pouvoir Réel".
+         4. 'Analyse Sémantique des Médias': Bar chart comparing editorial focus (RTBF, RTL, Rossel) on sensitive themes (Fraude, Radicalisation, etc.).
+         5. 'La Matrice des Polémiques': Interactive bubble chart visualizing the specific keywords from the URL (Lone Wolf, Fan Club, Deborsu) mapped by "Viralité" vs "Crédibilité".
+         6. 'Fact-Check Simulator': An interactive list/game element to categorize concepts.
+         Rationale: This structure breaks down the chaotic list of URL keywords into structured, analytical categories (Actors, Channels, Topics), allowing the user to make sense of the 'noise'.
+    -->
+    <!-- Visualization & Content Choices:
+         - Radar Chart: Goal -> Compare multi-dimensional profiles of politicians. Viz -> Chart.js Radar. Interaction -> Toggle datasets. Justification -> Best for showing balance/skew in attributes.
+         - Bar Chart: Goal -> Compare media outlets on specific themes. Viz -> Chart.js Bar. Interaction -> Filter by Outlet. Justification -> Clear comparison of quantities.
+         - Bubble Chart: Goal -> Map the chaos of the URL keywords. Viz -> Chart.js Bubble. Interaction -> Tooltips with context. Justification -> Shows 3 dimensions (Virality, Credibility, Impact) of disparate terms.
+         - Cards/Grid: Goal -> Textual synthesis. Viz -> Tailwind Grid. Interaction -> Hover effects.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fff7ed; /* orange-50 */
+            color: #334155; /* slate-700 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s ease-in-out;
+        }
+        .card-shadow:hover {
+            transform: translateY(-2px);
+        }
+        .btn-toggle {
+            transition: all 0.3s ease;
+        }
+        .btn-toggle.active {
+            background-color: #0f172a; /* slate-900 */
+            color: white;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Navigation / Header -->
+    <header class="bg-slate-900 text-orange-50 p-6 shadow-lg">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-4 md:mb-0 text-center md:text-left">
+                <h1 class="text-3xl font-bold tracking-tight">OBSERVATOIRE <span class="text-yellow-500">INFO</span> OU <span class="text-red-500">INTOX</span></h1>
+                <p class="text-slate-400 text-sm mt-1">Analyse de l'écosystème médiatico-politique belge</p>
+            </div>
+            <nav class="flex space-x-4">
+                <button onclick="scrollToSection('politics')" class="hover:text-yellow-500 transition-colors">Particratie</button>
+                <button onclick="scrollToSection('media')" class="hover:text-yellow-500 transition-colors">Médias</button>
+                <button onclick="scrollToSection('society')" class="hover:text-yellow-500 transition-colors">Société</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto w-full p-4 md:p-8 space-y-12">
+
+        <!-- Introduction Section -->
+        <section class="bg-white rounded-xl p-8 card-shadow border-l-4 border-yellow-500">
+            <h2 class="text-2xl font-bold mb-4 text-slate-800">Le Contexte : Une toile complexe</h2>
+            <p class="text-lg leading-relaxed mb-4">
+                Ce tableau de bord interactif synthétise les données fragmentées recueillies sur le web belge. Il explore les liens entre <strong>figures politiques</strong> (Bouchez, Magnette, Hedebouw), <strong>groupes médiatiques</strong> (RTBF, RTL, Rossel), et <strong>phénomènes sociétaux</strong> (Radicalisation, Fraude, Particratie). 
+            </p>
+            <p class="text-slate-600">
+                Utilisez les visualisations ci-dessous pour distinguer l'information structurelle ("Info") du bruit médiatique ("Intox"). Les données simulent l'intensité des débats actuels en Belgique francophone.
+            </p>
+        </section>
+
+        <!-- Section 1: La Particratie (Radar Chart) -->
+        <section id="politics" class="space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-end border-b border-slate-200 pb-2">
+                <div class="max-w-2xl">
+                    <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <span class="text-3xl">🏛️</span> La Particratie au Microscope
+                    </h2>
+                    <p class="mt-2 text-slate-600">
+                        Cette section compare les profils des trois figures politiques majeures identifiées dans le rapport (GLB, Paul Magnette, Raoul Hedebouw). Le graphique radar permet de visualiser leurs stratégies respectives : misent-ils sur la présence médiatique, le pouvoir institutionnel, ou l'engagement populiste ?
+                    </p>
+                </div>
+                <div class="mt-4 md:mt-0 space-x-2">
+                    <button class="btn-toggle active px-4 py-2 rounded-lg border border-slate-300 text-sm font-semibold" onclick="toggleDataset('GLB', this)">GLB (MR)</button>
+                    <button class="btn-toggle active px-4 py-2 rounded-lg border border-slate-300 text-sm font-semibold" onclick="toggleDataset('Magnette', this)">Magnette (PS)</button>
+                    <button class="btn-toggle active px-4 py-2 rounded-lg border border-slate-300 text-sm font-semibold" onclick="toggleDataset('Hedebouw', this)">Hedebouw (PTB)</button>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <div class="chart-container">
+                    <canvas id="politicsRadar"></canvas>
+                </div>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-sm text-slate-500">
+                    <div class="p-2 bg-slate-50 rounded"><strong>Présence Médiatique :</strong> Fréquence d'apparition (TV/Radio)</div>
+                    <div class="p-2 bg-slate-50 rounded"><strong>Viralité "Clash" :</strong> Taux d'engagement sur les polémiques</div>
+                    <div class="p-2 bg-slate-50 rounded"><strong>Pouvoir Réel :</strong> Influence sur les décisions législatives</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Les Médias (Bar Chart) -->
+        <section id="media" class="space-y-6">
+            <div class="border-b border-slate-200 pb-2">
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="text-3xl">📺</span> L'Angle Médiatique : Traitement de l'Info
+                </h2>
+                <p class="mt-2 text-slate-600">
+                    Analyse comparative du traitement des sujets sensibles ("Scandale", "Fraude Sociale", "Radicalisation") par les différents acteurs médiatiques (RTBF, RTL-TVI, Groupe Rossel) et institutionnels (Bureau du Plan). Observez les divergences de priorités éditoriales.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Controls Side -->
+                <div class="lg:col-span-1 bg-white p-6 rounded-xl card-shadow flex flex-col justify-center space-y-4">
+                    <h3 class="font-bold text-lg">Filtrer par Thème</h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center space-x-3 cursor-pointer p-2 hover:bg-slate-50 rounded">
+                            <input type="radio" name="mediaTheme" value="all" checked onchange="updateMediaChart('all')" class="form-radio text-blue-600">
+                            <span>Vue d'ensemble</span>
+                        </label>
+                        <label class="flex items-center space-x-3 cursor-pointer p-2 hover:bg-slate-50 rounded">
+                            <input type="radio" name="mediaTheme" value="scandale" onchange="updateMediaChart('scandale')" class="form-radio text-red-500">
+                            <span class="text-red-600 font-medium">Scandales & Polémiques</span>
+                        </label>
+                        <label class="flex items-center space-x-3 cursor-pointer p-2 hover:bg-slate-50 rounded">
+                            <input type="radio" name="mediaTheme" value="societe" onchange="updateMediaChart('societe')" class="form-radio text-green-500">
+                            <span>Société (Fraude, Radicalisation)</span>
+                        </label>
+                    </div>
+                    <div class="mt-6 p-4 bg-orange-50 rounded-lg text-sm italic border border-orange-200">
+                        "Christophe Deborsu et son fan-club génèrent un pic d'audience significatif le dimanche midi."
+                    </div>
+                </div>
+
+                <!-- Chart Side -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl card-shadow">
+                    <div class="chart-container">
+                        <canvas id="mediaBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Matrice des Mots-Clés (Bubble Chart) -->
+        <section id="society" class="space-y-6">
+            <div class="border-b border-slate-200 pb-2">
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="text-3xl">🕸️</span> La Matrice du Buzz : Info vs Intox
+                </h2>
+                <p class="mt-2 text-slate-600">
+                    Cette matrice cartographie les mots-clés extraits du rapport (URL) selon deux axes : leur <strong>Sérieux Institutionnel</strong> (axe X) et leur <strong>Potentiel Viral/Émotionnel</strong> (axe Y). La taille des bulles représente le volume de bruit généré.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl card-shadow relative">
+                <div class="absolute top-6 right-6 z-10 bg-white/90 p-2 rounded shadow text-xs">
+                    <span class="inline-block w-3 h-3 rounded-full bg-blue-500 mr-1"></span> Institutionnel
+                    <span class="inline-block w-3 h-3 rounded-full bg-red-500 mr-1 ml-2"></span> Polémique
+                    <span class="inline-block w-3 h-3 rounded-full bg-yellow-500 mr-1 ml-2"></span> Médias
+                </div>
+                <div class="chart-container">
+                    <canvas id="buzzBubbleChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Interactive "Dictionary" Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+                <!-- Dynamic cards generated by JS -->
+                <div class="bg-white p-4 rounded-lg card-shadow border-t-4 border-slate-500">
+                    <h4 class="font-bold">Bureau du Plan</h4>
+                    <p class="text-xs text-slate-500 mt-1">Organisme officiel</p>
+                    <div class="mt-2 text-sm">Référence économique, souvent citée pour valider ou invalider les programmes.</div>
+                </div>
+                <div class="bg-white p-4 rounded-lg card-shadow border-t-4 border-red-500">
+                    <h4 class="font-bold">Lone Wolf</h4>
+                    <p class="text-xs text-slate-500 mt-1">Sécurité</p>
+                    <div class="mt-2 text-sm">Concept lié à la radicalisation, difficile à détecter par le renseignement.</div>
+                </div>
+                <div class="bg-white p-4 rounded-lg card-shadow border-t-4 border-yellow-500">
+                    <h4 class="font-bold">Deborsu Fan Club</h4>
+                    <p class="text-xs text-slate-500 mt-1">Divertissement Pol</p>
+                    <div class="mt-2 text-sm">Phénomène médiatique mêlant politique et spectacle dominical.</div>
+                </div>
+                <div class="bg-white p-4 rounded-lg card-shadow border-t-4 border-blue-500">
+                    <h4 class="font-bold">Service Civil</h4>
+                    <p class="text-xs text-slate-500 mt-1">Institution</p>
+                    <div class="mt-2 text-sm">Proposition récurrente pour renouer le lien citoyen-état.</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p>&copy; 2024 Observatoire Info/Intox. Basé sur l'analyse sémantique du rapport source.</p>
+            <p class="text-xs mt-2 text-slate-600">Données simulées à des fins de démonstration d'interface.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- State Management ---
+        const state = {
+            politics: {
+                glb: true,
+                magnette: true,
+                hedebouw: true
+            },
+            currentMediaFilter: 'all'
+        };
+
+        // --- Data Definitions ---
+        
+        // Data for Radar Chart (Politics)
+        const politicsData = {
+            labels: ['Présence Média', 'Agressivité/Clash', 'Pouvoir Réel', 'Popularité Digitale', 'Crédibilité Eco.'],
+            datasets: [
+                {
+                    label: 'G.L. Bouchez (MR)',
+                    data: [95, 90, 60, 85, 50],
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)', // Blue
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                    hidden: false
+                },
+                {
+                    label: 'P. Magnette (PS)',
+                    data: [75, 50, 90, 60, 70],
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)', // Red
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                    pointBackgroundColor: 'rgba(239, 68, 68, 1)',
+                    hidden: false
+                },
+                {
+                    label: 'R. Hedebouw (PTB)',
+                    data: [80, 85, 20, 95, 40],
+                    backgroundColor: 'rgba(168, 85, 247, 0.2)', // Purple
+                    borderColor: 'rgba(168, 85, 247, 1)',
+                    pointBackgroundColor: 'rgba(168, 85, 247, 1)',
+                    hidden: false
+                }
+            ]
+        };
+
+        // Data for Bar Chart (Media)
+        // Structures: RTBF, RTL, Rossel
+        const mediaBaseData = {
+            scandale: [30, 85, 45], // High for RTL
+            societe: [80, 60, 50],  // High for RTBF (docs)
+            politique: [70, 50, 90] // High for Rossel (Analysis)
+        };
+
+        // Data for Bubble Chart (Buzz Matrix)
+        // x: Seriousness (0-100), y: Virality (0-100), r: Volume
+        const buzzData = [
+            { x: 90, y: 20, r: 15, label: 'Bureau du Plan', type: 'Institution' },
+            { x: 80, y: 30, r: 10, label: 'Service Civil', type: 'Institution' },
+            { x: 20, y: 95, r: 25, label: 'Scandale', type: 'Polemics' },
+            { x: 40, y: 80, r: 20, label: 'Fraude Sociale', type: 'Polemics' },
+            { x: 30, y: 85, r: 18, label: 'Radicalisation', type: 'Polemics' },
+            { x: 10, y: 90, r: 12, label: 'Lone Wolf', type: 'Polemics' },
+            { x: 50, y: 60, r: 22, label: 'Deborsu', type: 'Media' },
+            { x: 60, y: 50, r: 30, label: 'RTL-TVI', type: 'Media' },
+            { x: 70, y: 40, r: 25, label: 'RTBF', type: 'Media' },
+            { x: 10, y: 60, r: 15, label: 'Oufti / LOL', type: 'Noise' },
+            { x: 85, y: 10, r: 8,  label: 'Suicide (Stats)', type: 'Society' }
+        ];
+
+        // --- Chart Initialization ---
+
+        let politicsChart, mediaChart, buzzChart;
+
+        function initCharts() {
+            // 1. Radar Chart Configuration
+            const ctxPolitics = document.getElementById('politicsRadar').getContext('2d');
+            politicsChart = new Chart(ctxPolitics, {
+                type: 'radar',
+                data: politicsData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: '#cbd5e1' },
+                            grid: { color: '#e2e8f0' },
+                            pointLabels: {
+                                font: { size: 12, family: 'Segoe UI' },
+                                color: '#475569'
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // 2. Bar Chart Configuration
+            const ctxMedia = document.getElementById('mediaBarChart').getContext('2d');
+            mediaChart = new Chart(ctxMedia, {
+                type: 'bar',
+                data: {
+                    labels: ['RTBF (Public)', 'RTL-TVI (Privé)', 'Groupe Rossel (Presse)'],
+                    datasets: [{
+                        label: 'Indice de couverture global',
+                        data: [
+                            mediaBaseData.scandale[0] + mediaBaseData.societe[0] + mediaBaseData.politique[0],
+                            mediaBaseData.scandale[1] + mediaBaseData.societe[1] + mediaBaseData.politique[1],
+                            mediaBaseData.scandale[2] + mediaBaseData.societe[2] + mediaBaseData.politique[2]
+                        ],
+                        backgroundColor: ['#3b82f6', '#f59e0b', '#64748b'],
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Score d'intensité: ${context.raw}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 3. Bubble Chart Configuration
+            const ctxBuzz = document.getElementById('buzzBubbleChart').getContext('2d');
+            buzzChart = new Chart(ctxBuzz, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: 'Mots-clés',
+                        data: buzzData,
+                        backgroundColor: (context) => {
+                            const type = context.raw?.type;
+                            if (type === 'Institution') return 'rgba(59, 130, 246, 0.7)'; // Blue
+                            if (type === 'Polemics') return 'rgba(239, 68, 68, 0.7)';    // Red
+                            if (type === 'Media') return 'rgba(234, 179, 8, 0.7)';       // Yellow
+                            return 'rgba(148, 163, 184, 0.7)'; // Slate
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Sérieux / Institutionnel (+)' },
+                            min: 0, max: 100,
+                            grid: { color: '#f1f5f9' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Viralité / Émotion (+)' },
+                            min: 0, max: 100,
+                            grid: { color: '#f1f5f9' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.raw.label} (Vol: ${context.raw.r})`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Interaction Logic ---
+
+        // Toggle Radar Datasets
+        function toggleDataset(name, btn) {
+            let index = -1;
+            if (name === 'GLB') index = 0;
+            else if (name === 'Magnette') index = 1;
+            else if (name === 'Hedebouw') index = 2;
+
+            if (index !== -1) {
+                const meta = politicsChart.getDatasetMeta(index);
+                meta.hidden = meta.hidden === null ? !politicsChart.data.datasets[index].hidden : null;
+                politicsChart.update();
+                
+                // Visual feedback on button
+                btn.classList.toggle('active');
+                btn.classList.toggle('bg-slate-100');
+                btn.classList.toggle('text-slate-800');
+            }
+        }
+
+        // Update Media Bar Chart
+        function updateMediaChart(filter) {
+            let newData = [];
+            let label = "";
+
+            if (filter === 'all') {
+                // Sum average for simulation
+                newData = [
+                    (mediaBaseData.scandale[0] + mediaBaseData.societe[0] + mediaBaseData.politique[0])/3,
+                    (mediaBaseData.scandale[1] + mediaBaseData.societe[1] + mediaBaseData.politique[1])/3,
+                    (mediaBaseData.scandale[2] + mediaBaseData.societe[2] + mediaBaseData.politique[2])/3
+                ];
+                label = "Indice Global";
+            } else if (filter === 'scandale') {
+                newData = mediaBaseData.scandale;
+                label = "Indice Scandale & Buzz";
+            } else if (filter === 'societe') {
+                newData = mediaBaseData.societe;
+                label = "Indice Sujets de Société";
+            }
+
+            mediaChart.data.datasets[0].data = newData;
+            mediaChart.data.datasets[0].label = label;
+            mediaChart.update();
+        }
+
+        // Scroll Helper
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Initialize on Load
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+        });
+
+    </script>
+</body>
+</html>
