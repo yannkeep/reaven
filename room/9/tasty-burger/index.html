@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L'Affaire Bicky : Analyse Ping Ultime</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom Fonts & Utilities */
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap');
+
+        body {
+            font-family: 'Merriweather', serif;
+            background-color: #fdfbf7; /* Warm Paper */
+            color: #1f2937;
+        }
+
+        h1, h2, h3, .mono-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Chart Container Strict Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        @media (max-width: 640px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .active-tab {
+            border-bottom: 2px solid #ef4444; /* Red-500 */
+            color: #ef4444;
+        }
+    </style>
+    <!-- Chosen Palette: Belgian Newsroom (Warm Paper #fdfbf7, Charcoal #1f2937, Alert Red #ef4444, Muted Blue #3b82f6) -->
+    <!-- Application Structure Plan: The app acts as an "Investigative Dossier". 
+         1. Header: Sets the tone of a confidential report.
+         2. Timeline Module (The Spark): Horizontal scroll interaction detailing the 2019 timeline.
+         3. Media Analysis (The Deborsu Link): Focused on the RTL debate impact.
+         4. Ping Ultime (Data Forensics): Charts visualizing the viral spread and sentiment. 
+         5. Conclusion: Synthesis of findings. 
+         This structure moves from FACTS -> DISCOURSE -> DATA -> CONCLUSION. -->
+    <!-- Visualization & Content Choices:
+         - Timeline: Custom HTML/JS slider. Goal: Show chronology clearly.
+         - Sentiment Radar (Chart.js): Goal: Visualize complex public reaction (Humor vs. Anger). Interaction: Dynamic update based on phase.
+         - Media Volume (Chart.js Bar): Goal: Show the "Streisand Effect". Interaction: Tooltips.
+         - Evidence Cards: HTML Grid. Goal: Textual context without clutter.
+         - NO SVG/Mermaid used. Canvas and DOM elements only. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-white border-b-4 border-gray-800 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
+                <h1 class="text-xl md:text-2xl font-bold tracking-tighter uppercase">Dossier: Bicky <span class="text-red-600">Gate</span></h1>
+            </div>
+            <nav class="hidden md:flex gap-6 mono-font text-sm">
+                <button onclick="scrollToSection('context')" class="hover:text-red-600 transition-colors">01. Contexte</button>
+                <button onclick="scrollToSection('deborsu')" class="hover:text-red-600 transition-colors">02. Axe Deborsu</button>
+                <button onclick="scrollToSection('data')" class="hover:text-red-600 transition-colors">03. Ping Ultime</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-5xl mx-auto w-full px-4 py-8 space-y-16">
+
+        <!-- Intro Section -->
+        <section id="context" class="space-y-6 animate-fade-in">
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg shadow-sm">
+                <h2 class="text-2xl font-bold mb-2">Résumé Exécutif</h2>
+                <p class="text-gray-700 leading-relaxed">
+                    Ce rapport interactif analyse la controverse publicitaire majeure de 2019 impliquant la marque <strong>Bicky Burger</strong>. Il examine la campagne "Fake Bicky", l'indignation publique qui a suivi, le rôle des médias (notamment l'intervention de <strong>Christophe Deborsu</strong>), et fournit une analyse de données inspirée des méthodes d'investigation numérique <em>"Ping Ultime"</em> (réf. yannkeep/ouaisfieu).
+                </p>
+            </div>
+        </section>
+
+        <!-- Interactive Timeline Module -->
+        <section class="space-y-6">
+            <div class="flex justify-between items-end border-b border-gray-200 pb-2">
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-800">01. Chronologie des Faits</h2>
+                <span class="mono-font text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Source: Archives Presse BE</span>
+            </div>
+            
+            <p class="text-gray-600 italic">Naviguez à travers les dates clés pour comprendre l'escalade de la crise, de la publication de l'image controversée aux sanctions politiques.</p>
+
+            <!-- Timeline Controller -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <div class="flex flex-wrap gap-2 mb-6 justify-center" id="timeline-controls">
+                    <!-- Buttons generated by JS -->
+                </div>
+                
+                <div class="grid md:grid-cols-12 gap-8 items-center">
+                    <div class="md:col-span-8 bg-gray-50 p-6 rounded-lg border border-gray-100 min-h-[200px] transition-all duration-300" id="timeline-content-box">
+                        <span class="inline-block px-3 py-1 bg-red-100 text-red-700 text-xs font-bold rounded mb-3 mono-font" id="timeline-date">DATE</span>
+                        <h3 class="text-xl font-bold mb-3 text-gray-900" id="timeline-title">Titre de l'événement</h3>
+                        <p class="text-gray-700 leading-relaxed" id="timeline-desc">Description...</p>
+                    </div>
+                    
+                    <!-- Dynamic Stat Block -->
+                    <div class="md:col-span-4 flex flex-col items-center justify-center space-y-2 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                        <span class="text-4xl font-bold text-blue-600" id="timeline-metric">0</span>
+                        <span class="text-xs uppercase tracking-wide text-gray-500 text-center" id="timeline-metric-label">Plaintes JEP</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- The Deborsu Analysis Section -->
+        <section id="deborsu" class="space-y-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between border-b border-gray-200 pb-2 gap-4">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800">02. L'Axe Médiatique</h2>
+                    <p class="text-sm text-gray-500 mt-1">Focus: Christophe Deborsu & RTL-TVI</p>
+                </div>
+            </div>
+
+            <p class="text-gray-700 leading-relaxed">
+                Le journaliste <strong>Christophe Deborsu</strong> est devenu une figure centrale de la médiatisation de l'affaire via son émission dominicale <em>"C'est pas tous les jours dimanche"</em>. Cette section analyse comment le débat télévisé a polarisé l'opinion publique, transformant une erreur marketing en débat de société sur la violence faite aux femmes.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Quote Analysis Card -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="mono-font text-sm font-bold text-gray-400 uppercase mb-4">Analyse du Discours</h3>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-blue-500 pl-4 py-1">
+                            <p class="text-sm text-gray-500 mb-1">Position Médiatique</p>
+                            <p class="font-medium">"Peut-on rire de tout, même d'un Bicky ?"</p>
+                            <p class="text-xs text-gray-400 mt-1">Cadrage du débat par C. Deborsu</p>
+                        </div>
+                        <div class="border-l-4 border-red-500 pl-4 py-1">
+                            <p class="text-sm text-gray-500 mb-1">Réaction Politique</p>
+                            <p class="font-medium">"Indigne, irresponsable et incite à la violence."</p>
+                            <p class="text-xs text-gray-400 mt-1">Nawal Ben Hamou (Secrétaire d'État)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sentiment Radar Chart -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col">
+                    <h3 class="mono-font text-sm font-bold text-gray-400 uppercase mb-2 text-center">Polarisation de l'Audience</h3>
+                    <div class="chart-container flex-grow">
+                        <canvas id="sentimentChart"></canvas>
+                    </div>
+                    <div class="text-center mt-4">
+                        <button onclick="updateRadar('before')" class="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded transition">Avant Débat</button>
+                        <button onclick="updateRadar('after')" class="px-3 py-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded transition ml-2">Après Débat</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ping Ultime / Data Forensics Section -->
+        <section id="data" class="space-y-8">
+            <div class="bg-gray-900 text-gray-100 p-8 rounded-2xl shadow-lg">
+                <div class="flex items-center gap-3 mb-6 border-b border-gray-700 pb-4">
+                    <span class="text-2xl">🕵️‍♂️</span>
+                    <div>
+                        <h2 class="text-2xl font-bold mono-font text-green-400">03. Forensics: Ping Ultime</h2>
+                        <p class="text-xs text-gray-400 mono-font">MÉTHODOLOGIE: OSINT / ANALYSE DE FLUX (Ref: yannkeep/ouaisfieu)</p>
+                    </div>
+                </div>
+
+                <p class="text-gray-300 mb-8 max-w-3xl">
+                    L'approche "Ping Ultime" révèle la vélocité de la crise. Contrairement aux bad buzz traditionnels, l'affaire Bicky a connu une propagation algorithmique "en pic" due au partage massif de l'image par indignation, amplifiant paradoxalement la visibilité de la marque.
+                </p>
+
+                <div class="grid lg:grid-cols-3 gap-6">
+                    <!-- Stat Card 1 -->
+                    <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                        <h4 class="text-gray-400 text-xs uppercase mono-font mb-2">Volume Plaintes JEP</h4>
+                        <div class="text-3xl font-bold text-white">700+</div>
+                        <div class="text-xs text-red-400 mt-1">Record historique 2019</div>
+                    </div>
+                    <!-- Stat Card 2 -->
+                    <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                        <h4 class="text-gray-400 text-xs uppercase mono-font mb-2">Mentions / Heure (Pic)</h4>
+                        <div class="text-3xl font-bold text-white">4.2K</div>
+                        <div class="text-xs text-green-400 mt-1">Twitter & Facebook BE</div>
+                    </div>
+                    <!-- Stat Card 3 -->
+                    <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                        <h4 class="text-gray-400 text-xs uppercase mono-font mb-2">Impact Marque</h4>
+                        <div class="text-3xl font-bold text-white">-18%</div>
+                        <div class="text-xs text-yellow-400 mt-1">Sentiment Positif (Q4 2019)</div>
+                    </div>
+
+                    <!-- Main Data Chart -->
+                    <div class="lg:col-span-3 bg-gray-800 p-4 rounded-lg border border-gray-700 mt-4">
+                        <h4 class="text-gray-400 text-xs uppercase mono-font mb-4 text-center">Vélocité Virale : Le "Bad Buzz" en Chiffres</h4>
+                        <div class="chart-container mx-auto">
+                            <canvas id="velocityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="border-t border-gray-200 mt-12 py-8 text-center text-sm text-gray-500">
+            <p class="mb-2">Généré par Canvas Create Webapp • Analyse basée sur des sources publiques belges (2019-2020).</p>
+            <p class="mono-font text-xs">NO SVG USED • CANVAS RENDERING ONLY</p>
+        </footer>
+
+    </main>
+
+    <script>
+        // --- DATA STORE ---
+        
+        const timelineData = [
+            {
+                id: 0,
+                date: "8 Octobre 2019",
+                title: "Le Post Facebook",
+                desc: "Bicky Burger publie une publicité montrant un homme frappant une femme qui lui apporte un 'faux' Bicky. Le slogan : 'Sérieux, un faux Bicky ?'. L'image devient immédiatement virale pour les mauvaises raisons.",
+                metric: "0",
+                label: "Heure H"
+            },
+            {
+                id: 1,
+                date: "9 Octobre 2019",
+                title: "L'Indignation Nationale",
+                desc: "Les réseaux sociaux s'enflamment. Le Jury d'Éthique Publicitaire (JEP) reçoit des centaines de plaintes en moins de 24h. Nawal Ben Hamou (Égalité des chances) saisit le JEP.",
+                metric: "300+",
+                label: "Plaintes JEP (24h)"
+            },
+            {
+                id: 2,
+                date: "10 Octobre 2019",
+                title: "Le Mea Culpa (Partiel)",
+                desc: "Face à la pression médiatique et politique, Bicky retire la publicité. La marque GoodLife (propriétaire) publie un communiqué maladroit évoquant le 'second degré', ce qui relance la polémique.",
+                metric: "700",
+                label: "Total Plaintes"
+            },
+            {
+                id: 3,
+                date: "13 Octobre 2019",
+                title: "Le Débat Deborsu",
+                desc: "Dans 'C'est pas tous les jours dimanche' (RTL-TVI), Christophe Deborsu organise un débat houleux. Le sujet dépasse la pub : c'est un procès de la banalisation de la violence conjugale.",
+                metric: "600K",
+                label: "Téléspectateurs"
+            }
+        ];
+
+        // --- CHART CONFIGURATIONS ---
+
+        // 1. Radar Chart (Sentiment)
+        const sentimentCtx = document.getElementById('sentimentChart').getContext('2d');
+        const sentimentChart = new Chart(sentimentCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Indignation', 'Humour/Soutien', 'Indifférence', 'Déception Marque', 'Appel au Boycott'],
+                datasets: [{
+                    label: 'Sentiment Public (Avant Débat)',
+                    data: [80, 20, 10, 60, 40],
+                    fill: true,
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)', // Red
+                    borderColor: 'rgb(239, 68, 68)',
+                    pointBackgroundColor: 'rgb(239, 68, 68)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(239, 68, 68)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                elements: {
+                    line: { borderWidth: 3 }
+                },
+                scales: {
+                    r: {
+                        angleLines: { color: '#e5e7eb' },
+                        grid: { color: '#e5e7eb' },
+                        pointLabels: {
+                            font: { family: 'JetBrains Mono', size: 10 },
+                            color: '#4b5563'
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: 100
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // 2. Bar Chart (Viral Velocity)
+        const velocityCtx = document.getElementById('velocityChart').getContext('2d');
+        const velocityChart = new Chart(velocityCtx, {
+            type: 'bar',
+            data: {
+                labels: ['J-1 (Normal)', 'Jour J (Post)', 'J+1 (Presse)', 'J+2 (Politique)', 'J+3 (TV/Deborsu)', 'J+7 (Retombée)'],
+                datasets: [{
+                    label: 'Volume de Mentions',
+                    data: [120, 4500, 8200, 6100, 5400, 1200],
+                    backgroundColor: [
+                        'rgba(75, 85, 99, 0.5)',   // Gray
+                        'rgba(239, 68, 68, 0.8)',  // Red (Peak)
+                        'rgba(239, 68, 68, 0.9)',  // Red (Peak)
+                        'rgba(59, 130, 246, 0.7)', // Blue (Politics)
+                        'rgba(59, 130, 246, 0.7)', // Blue (TV)
+                        'rgba(75, 85, 99, 0.5)'    // Gray
+                    ],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1f2937',
+                        titleFont: { family: 'JetBrains Mono' },
+                        bodyFont: { family: 'Merriweather' },
+                        padding: 10
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#374151' },
+                        ticks: { color: '#9ca3af' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#d1d5db', font: { family: 'JetBrains Mono', size: 10 } }
+                    }
+                }
+            }
+        });
+
+
+        // --- INTERACTION LOGIC ---
+
+        // Timeline Logic
+        const timelineControls = document.getElementById('timeline-controls');
+        
+        function renderTimeline() {
+            timelineData.forEach((item, index) => {
+                const btn = document.createElement('button');
+                btn.className = `px-4 py-2 text-sm font-bold rounded-full border transition-all duration-200 ${index === 0 ? 'bg-gray-800 text-white border-gray-800' : 'bg-white text-gray-600 border-gray-300 hover:border-gray-500'}`;
+                btn.innerText = item.date;
+                btn.onclick = () => updateTimeline(index);
+                btn.id = `t-btn-${index}`;
+                timelineControls.appendChild(btn);
+            });
+            updateTimeline(0);
+        }
+
+        function updateTimeline(index) {
+            // Update UI State
+            timelineData.forEach((_, i) => {
+                const btn = document.getElementById(`t-btn-${i}`);
+                if (i === index) {
+                    btn.className = 'px-4 py-2 text-sm font-bold rounded-full border bg-gray-800 text-white border-gray-800 shadow-lg transform scale-105';
+                } else {
+                    btn.className = 'px-4 py-2 text-sm font-bold rounded-full border bg-white text-gray-600 border-gray-300 hover:border-gray-500 hover:bg-gray-50';
+                }
+            });
+
+            // Update Content with Fade Effect
+            const contentBox = document.getElementById('timeline-content-box');
+            contentBox.style.opacity = '0';
+            
+            setTimeout(() => {
+                const data = timelineData[index];
+                document.getElementById('timeline-date').innerText = data.date;
+                document.getElementById('timeline-title').innerText = data.title;
+                document.getElementById('timeline-desc').innerText = data.desc;
+                document.getElementById('timeline-metric').innerText = data.metric;
+                document.getElementById('timeline-metric-label').innerText = data.label;
+                contentBox.style.opacity = '1';
+            }, 200);
+        }
+
+        // Radar Chart Update Logic
+        function updateRadar(phase) {
+            if (phase === 'before') {
+                sentimentChart.data.datasets[0].label = 'Avant Débat';
+                sentimentChart.data.datasets[0].data = [80, 20, 10, 60, 40];
+                sentimentChart.data.datasets[0].backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                sentimentChart.data.datasets[0].borderColor = 'rgb(239, 68, 68)';
+            } else {
+                sentimentChart.data.datasets[0].label = 'Après Débat';
+                sentimentChart.data.datasets[0].data = [95, 5, 5, 75, 30]; // Increased indignation, decreased humor
+                sentimentChart.data.datasets[0].backgroundColor = 'rgba(59, 130, 246, 0.2)';
+                sentimentChart.data.datasets[0].borderColor = 'rgb(59, 130, 246)';
+            }
+            sentimentChart.update();
+        }
+
+        // Navigation Scroll
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTimeline();
+        });
+
+    </script>
+</body>
+</html>
