@@ -1,0 +1,89 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CASINO DÉMOCRATIQUE</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Passion+One:wght@400;700;900&family=Space+Mono&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:#0c0014;color:#fef08a;font-family:'Space Mono',monospace;display:flex;flex-direction:column;align-items:center;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(168,85,247,0.15),transparent 60%),radial-gradient(ellipse at 80% 100%,rgba(220,38,38,0.1),transparent 50%);pointer-events:none}
+.neon{text-shadow:0 0 7px #fef08a,0 0 10px #fef08a,0 0 21px #fef08a,0 0 42px #a855f7,0 0 82px #a855f7}
+h1{font-family:'Passion One',sans-serif;font-size:clamp(2rem,8vw,4.5rem);text-align:center;padding:24px 16px 0;letter-spacing:.08em;text-transform:uppercase;line-height:1}
+.sub{font-size:.75rem;color:#a78bfa;text-align:center;margin:6px 0 20px;letter-spacing:.2em;text-transform:uppercase}
+.machine{background:linear-gradient(135deg,#1a0025,#0f0020);border:2px solid rgba(168,85,247,0.5);border-radius:20px;padding:20px;max-width:400px;width:90%;box-shadow:0 0 40px rgba(168,85,247,0.2),inset 0 0 30px rgba(0,0,0,0.5)}
+.reels{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
+.reel{width:100px;height:100px;background:#0a000f;border:2px solid rgba(168,85,247,0.4);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2.4rem;overflow:hidden;position:relative}
+.reel.spinning .reel-inner{animation:spin .15s linear infinite}
+@keyframes spin{0%{transform:translateY(0)}100%{transform:translateY(-100px)}}
+.reel-inner{transition:none}
+.pull{display:block;width:100%;padding:14px;margin-top:8px;background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;border:none;border-radius:12px;font-family:'Passion One',sans-serif;font-size:1.4rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .15s}
+.pull:hover{transform:scale(1.03);box-shadow:0 0 20px rgba(220,38,38,0.5)}
+.pull:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.result{min-height:80px;margin-top:12px;padding:12px;border-radius:10px;text-align:center;font-size:.8rem;line-height:1.6;color:#e5e7eb}
+.result.lose{border:1px solid rgba(220,38,38,0.4);background:rgba(220,38,38,0.08)}
+.result.info{border:1px solid rgba(168,85,247,0.4);background:rgba(168,85,247,0.08)}
+.stats{display:flex;justify-content:space-around;margin-top:16px;padding-top:12px;border-top:1px solid rgba(168,85,247,0.2)}
+.stat{text-align:center}
+.stat .n{font-family:'Passion One',sans-serif;font-size:1.8rem;color:#dc2626}
+.stat .l{font-size:.6rem;color:#a78bfa;text-transform:uppercase;letter-spacing:.15em}
+.marquee{width:100%;overflow:hidden;margin-top:20px;padding:8px 0;border-top:1px solid rgba(168,85,247,0.2);border-bottom:1px solid rgba(168,85,247,0.2)}
+.marquee-inner{display:flex;gap:40px;animation:scroll 30s linear infinite;white-space:nowrap;font-size:.65rem;color:#a78bfa;letter-spacing:.1em}
+@keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.fine{max-width:400px;width:90%;margin:20px auto;font-size:.6rem;color:rgba(167,139,250,0.4);text-align:center;line-height:1.5;padding:0 10px}
+a.back{display:inline-block;padding:4px 10px;border:1px solid #a78bfa;color:#fef08a;text-decoration:none;font-size:.7rem;margin:12px 0}
+a.back:hover{background:rgba(168,85,247,0.1)}
+</style></head><body>
+<h1 class="neon">Casino Démocratique</h1>
+<div class="sub">La maison gagne toujours · Depuis 1831</div>
+<a href="./" class="back">← War Room</a>
+<div class="machine">
+<div class="reels">
+<div class="reel" id="r1"><span class="reel-inner">🏛️</span></div>
+<div class="reel" id="r2"><span class="reel-inner">🎭</span></div>
+<div class="reel" id="r3"><span class="reel-inner">💸</span></div>
+</div>
+<button class="pull" id="pullBtn" onclick="spin()">VOTER</button>
+<div class="result info" id="result">Tentez votre chance dans la démocratie belge.<br>Appuyez sur VOTER pour jouer.</div>
+<div class="stats">
+<div class="stat"><div class="n" id="tries">0</div><div class="l">Votes</div></div>
+<div class="stat"><div class="n" id="wins">0</div><div class="l">Victoires citoyennes</div></div>
+<div class="stat"><div class="n" id="house">0</div><div class="l">Victoires partis</div></div>
+</div>
+</div>
+<div class="marquee"><div class="marquee-inner" id="marquee"></div></div>
+<div class="fine">* Les probabilités de ce jeu reflètent fidèlement celles de la démocratie belge. Art. 42 de la Constitution : « Les membres des Chambres représentent la Nation, et non uniquement ceux qui les ont élus. » En pratique, les présidents de parti décident. Le vote d'un adhérent de parti compte plus que celui d'un électeur. Taux d'absentéisme moyen en commissions parlementaires : 30%. Recommandations citoyennes contraignantes adoptées : 0. Vous avez perdu.</div>
+<script>
+const symbols=['🏛️','💰','🎭','📜','⚖️','🔒','💸','🐍','👔','🎪'];
+const combos=[
+{s:['💰','💰','💰'],t:'JACKPOT PARTICRATIQUE — Les 5 familles contrôlent 95% de la presse francophone. Magnette : 410 000€/an. Bouchez : 278 000€/an. Le casino tourne.',c:'lose'},
+{s:['🏛️','🔒','🏛️'],t:'ARTICLE 42 ACTIVÉ — Vos élus représentent la Nation, pas vous. Mandat impératif interdit. Aucun mécanisme de révocation. Revenez dans 5 ans.',c:'lose'},
+{s:['💸','💸','💸'],t:'EFFETS RETOUR — 7,9 milliards promis. Bureau du Plan : « fantaisie ». BNB : « pas réaliste ». Vous payez la différence.',c:'lose'},
+{s:['🎭','🎭','🎭'],t:'REVOLVING DOORS — 103 journalistes devenus communicants politiques. Lahbib : RTBF → Ministre → Commissaire. Sans jamais être élue.',c:'lose'},
+{s:['📜','📜','📜'],t:'ARTICLE 23 VIOLÉ — Droit à la dignité humaine. 9 000+ jugements non exécutés par l\'État. L\'État est hors-la-loi. Mais c\'est vous le suspect.',c:'lose'},
+{s:['⚖️','⚖️','⚖️'],t:'STANDSTILL CONSTITUTIONNEL — La Cour interdit de réduire les droits sociaux. Le gouvernement le fait quand même. Délai de recours : 6 mois. Mais qui a les moyens ?',c:'lose'},
+{s:['🐍','🐍','🐍'],t:'PILARISATION ACTIVÉE — Du berceau au tombeau, vous êtes dans un pilier. Mutuelle, syndicat, école, journal : même réseau. Sortir = disparaître.',c:'lose'},
+{s:['👔','👔','👔'],t:'NOMINATION CLÉ D\'HONDT — Poste technique ? Non : clé politique. Compétence optionnelle. Allégeance obligatoire. Bienvenue en Belgique.',c:'lose'},
+{s:['🎪','🎪','🎪'],t:'613 JOURS SANS GOUVERNEMENT — Record mondial. Et rien n\'a changé. Personne n\'a été puni. Le casino reste ouvert.',c:'lose'},
+{s:['🔒','🔒','🔒'],t:'CONCENTRATION MÉDIATIQUE — Fusion Rossel-IPM : 1 seul groupe pour toute la presse francophone. DPG + Mediahuis côté flamand. 5 familles. Zéro pluralisme.',c:'lose'},
+];
+const facts=['184 000 exclusions chômage programmées','Déficit 40 Md€ en 2030','93% de l\'effort sur la sécu sociale','7% sur les patrimoines','978 000 en inactivité contrainte','1M€/heure de maintien dans la précarité','Taux d\'emploi cible : 80% — réaliste : 74,7%','Note Fitch dégradée A+','Charge intérêts : 21 Md€/an en 2030','40% des Belges en vulnérabilité numérique','50% de non-recours aux aides sociales','30% d\'absentéisme en commission parlementaire','0 recommandation citoyenne contraignante adoptée','Belgique : 69/100 au CPI anticorruption','48 journaux en 1960 → 15 en 2016','3-4% du PIB en impact climatique d\'ici 2042'];
+let tries=0,wins=0,house=0;
+const marqueeEl=document.getElementById('marquee');
+marqueeEl.innerHTML=facts.concat(facts).map(f=>'<span>⚠ '+f+'</span>').join('');
+
+function spin(){
+const btn=document.getElementById('pullBtn');btn.disabled=true;
+const reels=[document.getElementById('r1'),document.getElementById('r2'),document.getElementById('r3')];
+reels.forEach(r=>r.classList.add('spinning'));
+const combo=combos[Math.floor(Math.random()*combos.length)];
+let done=0;
+reels.forEach((r,i)=>{
+setTimeout(()=>{r.classList.remove('spinning');r.querySelector('.reel-inner').textContent=combo.s[i];done++;
+if(done===3){
+tries++;house++;
+document.getElementById('tries').textContent=tries;
+document.getElementById('wins').textContent=wins;
+document.getElementById('house').textContent=house;
+const res=document.getElementById('result');
+res.className='result lose';res.innerHTML='<strong>PERDU.</strong><br>'+combo.t;
+btn.disabled=false;
+}},600+i*400)})
+}
+</script></body></html>

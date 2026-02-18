@@ -1,0 +1,102 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RADIO RÉSISTANCE · FM 66.6</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Space+Mono:wght@400;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:linear-gradient(180deg,#0a0a0a 0%,#1a0a1a 100%);color:#22c55e;font-family:'Space Mono',monospace;font-size:.82rem;display:flex;flex-direction:column;align-items:center;overflow-x:hidden}
+.dial{width:90%;max-width:500px;margin:20px auto 0;padding:20px;background:linear-gradient(135deg,#1a1a2e,#0f0f1f);border:2px solid rgba(34,197,94,0.3);border-radius:20px;box-shadow:0 0 40px rgba(34,197,94,0.08),inset 0 2px 4px rgba(255,255,255,0.03)}
+h1{font-family:'Bungee Shade',cursive;font-size:clamp(1.2rem,5vw,2rem);text-align:center;color:#22c55e;text-shadow:0 0 10px rgba(34,197,94,0.5)}
+.freq{text-align:center;font-size:.65rem;color:#4ade80;letter-spacing:.3em;margin:4px 0 12px}
+.wave-box{height:60px;background:#0a0a14;border-radius:8px;border:1px solid rgba(34,197,94,0.15);overflow:hidden;margin:8px 0;position:relative}
+canvas{width:100%;height:100%}
+.on-air{display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0}
+.on-air .dot{width:10px;height:10px;border-radius:50%;background:#dc2626;box-shadow:0 0 8px #dc2626;animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+.on-air span{font-size:.7rem;color:#dc2626;letter-spacing:.3em;text-transform:uppercase}
+.now-playing{text-align:center;padding:8px;background:rgba(34,197,94,0.05);border-radius:8px;border:1px solid rgba(34,197,94,0.1);margin:8px 0}
+.now-playing .label{font-size:.6rem;color:#4ade80;letter-spacing:.2em;text-transform:uppercase}
+.now-playing .title{font-size:.9rem;color:#fff;margin:4px 0}
+.now-playing .src{font-size:.6rem;color:#6b7280}
+.controls{display:flex;justify-content:center;gap:12px;margin:10px 0}
+.btn{width:40px;height:40px;border-radius:50%;border:2px solid rgba(34,197,94,0.4);background:rgba(10,10,20,0.8);color:#22c55e;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.btn:hover{border-color:#22c55e;box-shadow:0 0 12px rgba(34,197,94,0.3)}
+.btn.active{background:rgba(34,197,94,0.15)}
+a.back{display:inline-block;padding:4px 10px;border:1px solid rgba(34,197,94,0.3);color:#22c55e;text-decoration:none;font-size:.7rem;margin:12px 0}
+.ticker{width:90%;max-width:500px;overflow:hidden;border-top:1px solid rgba(34,197,94,0.15);border-bottom:1px solid rgba(34,197,94,0.15);padding:6px 0;margin:12px 0}
+.ticker-inner{display:flex;gap:40px;animation:tickscroll 60s linear infinite;white-space:nowrap;font-size:.65rem;color:#4ade80}
+@keyframes tickscroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.playlist{width:90%;max-width:500px;margin:0 auto 20px}
+.playlist h2{font-size:.8rem;color:#4ade80;letter-spacing:.15em;margin-bottom:8px;text-transform:uppercase}
+.track{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-bottom:1px solid rgba(34,197,94,0.08);cursor:pointer;transition:background .15s}
+.track:hover{background:rgba(34,197,94,0.05)}
+.track.active{background:rgba(34,197,94,0.1);border-left:2px solid #22c55e}
+.track .t-name{font-size:.78rem;color:#e5e7eb}
+.track .t-dur{font-size:.65rem;color:#6b7280}
+footer{padding:12px;font-size:.6rem;color:#374151;text-align:center}
+footer a{color:#22c55e}
+</style></head><body>
+<a href="./" class="back">← War Room</a>
+<div class="dial">
+<h1>RADIO RÉSISTANCE</h1>
+<div class="freq">FM 66.6 · FRÉQUENCE INTERDITE · BRUXELLES</div>
+<div class="wave-box"><canvas id="waveCanvas"></canvas></div>
+<div class="on-air"><div class="dot"></div><span>On Air</span></div>
+<div class="now-playing">
+<div class="label">En cours de diffusion</div>
+<div class="title" id="nowTitle">Chargement...</div>
+<div class="src" id="nowSrc">—</div>
+</div>
+<div class="controls">
+<button class="btn" onclick="prev()">⏮</button>
+<button class="btn active" id="playBtn" onclick="togglePlay()">▶</button>
+<button class="btn" onclick="next()">⏭</button>
+</div>
+</div>
+<div class="ticker"><div class="ticker-inner" id="ticker"></div></div>
+<div class="playlist">
+<h2>Programme du jour</h2>
+<div id="tracks"></div>
+</div>
+<footer>RADIO RÉSISTANCE FM 66.6 · ouaisfieu × CCPLC · <a href="https://ouaisfi.eu" target="_blank">ouaisfi.eu</a> · Émission pirate d'intelligence civile</footer>
+<script>
+const broadcasts=[
+{name:"Flash info : 184 000 exclusions programmées",src:"Bureau du Plan, jan-juil 2026-2027",dur:"3:22",text:"Le budget Arizona prévoit l'exclusion de 184 000 personnes du chômage d'ici juillet 2027. Vague 1 : 30 122 personnes en janvier 2026. Les CPAS sont déjà saturés avec 240 ETP manquants."},
+{name:"Décryptage : Les 7,9 milliards fantômes",src:"BfP, BNB, Denktank Minerva",dur:"5:47",text:"Le gouvernement mise sur 7,9 milliards d'effets retour. Le Bureau du Plan projette un taux d'emploi de 74,7%, loin des 80% nécessaires. Geert Peersman (UGent) : 'jamais vu une estimation aussi excessive'."},
+{name:"Portrait : Les 5 familles médiatiques",src:"Médor, CRISP, EUI",dur:"4:15",text:"Hurbain (Rossel), Le Hodey (IPM), Van Thillo (DPG), Leysen (Mediahuis). Fusion Rossel-IPM = 95% de la presse francophone sous un seul groupe. 48 journaux en 1960 → 15 en 2016."},
+{name:"Enquête : 9 000 jugements ignorés",src:"IFDH, Cour constitutionnelle",dur:"6:30",text:"L'État belge refuse d'exécuter plus de 9 000 jugements. Fedasil condamné 7 000 fois pour l'accueil. Klimaatzaak : condamné pour inaction climatique. Pensions parlementaires illégales depuis 2014."},
+{name:"Édito : L'Article 42, piège constitutionnel",src:"Constitution belge, CRISP, Maddens (KU Leuven)",dur:"4:58",text:"Les élus représentent la Nation, pas les électeurs. Mandat impératif interdit. Mais les présidents de parti décident tout. 30% d'absentéisme en commission. Le citoyen n'a aucun levier."},
+{name:"Chronique : L'Oracle 2042",src:"BfP, CEV, Eurostat, FPB/Cerac",dur:"7:12",text:"En 2042 : dette 145-165% PIB, charge intérêts 35-45 Md€/an, ratio dépendance 41%, impact climat 3-4% PIB. La convergence des crises est inévitable. L'alternative existe : fiscalité capital, économie contributive."},
+{name:"Tutoriel : Fork·Hack·Spread",src:"Projet ouaisfieu, CC BY-NC",dur:"3:45",text:"Comment forker un outil d'intelligence civile en 3 étapes. Git clone, adapter les données locales, former d'autres. Budget : 29€/mois. Tracking : 0. Infrastructure : statique pur. Censurable : non."},
+{name:"Témoignage : Le non-recours aux droits",src:"KBS, SPP Intégration sociale",dur:"5:20",text:"50% des personnes éligibles ne réclament pas leurs aides. 37 à 76% de non-recours au RIS. 67 à 88% pour l'allocation de chauffage. 40% des Belges en vulnérabilité numérique. Le système exclut ceux qu'il prétend aider."},
+];
+const facts=['184 000 exclusions programmées','7,9 Md€ d\'effets retour fantômes','Déficit 40 Md€ en 2030','93% effort sur sécu sociale','5 familles = tous les médias','9 000 jugements ignorés','Article 42 : aucun levier citoyen','29€/mois de budget','0 tracking','70+ dossiers produits','978 000 en inactivité contrainte','1M€/heure de précarité maintenue','50% de non-recours aux aides','Note Fitch dégradée A+','613 jours sans gouvernement (record mondial)'];
+document.getElementById('ticker').innerHTML=facts.concat(facts).map(f=>'<span>⚡ '+f+' </span>').join('');
+
+let current=0,playing=true;
+const tracksEl=document.getElementById('tracks');
+broadcasts.forEach((b,i)=>{
+const d=document.createElement('div');d.className='track'+(i===0?' active':'');d.dataset.idx=i;
+d.innerHTML=`<span class="t-name">${b.name}</span><span class="t-dur">${b.dur}</span>`;
+d.onclick=()=>{current=i;update()};tracksEl.appendChild(d);
+});
+function update(){
+document.querySelectorAll('.track').forEach((t,i)=>t.classList.toggle('active',i===current));
+document.getElementById('nowTitle').textContent=broadcasts[current].name;
+document.getElementById('nowSrc').textContent=broadcasts[current].src;
+}
+function next(){current=(current+1)%broadcasts.length;update()}
+function prev(){current=(current-1+broadcasts.length)%broadcasts.length;update()}
+function togglePlay(){playing=!playing;document.getElementById('playBtn').textContent=playing?'⏸':'▶'}
+update();setInterval(()=>{if(playing)next()},8000);
+
+// Waveform
+const canvas=document.getElementById('waveCanvas');const ctx=canvas.getContext('2d');
+function resizeCanvas(){canvas.width=canvas.parentElement.clientWidth;canvas.height=60}
+resizeCanvas();window.addEventListener('resize',resizeCanvas);
+let phase=0;
+function drawWave(){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.strokeStyle='#22c55e';ctx.lineWidth=1.5;ctx.shadowColor='#22c55e';ctx.shadowBlur=4;
+const bars=60;const w=canvas.width/bars;
+for(let i=0;i<bars;i++){const h=playing?(Math.sin(phase+i*0.3)*15+Math.random()*10+5):3;
+ctx.fillStyle=`rgba(34,197,94,${playing?0.6:0.15})`;ctx.fillRect(i*w+1,canvas.height/2-h/2,w-2,h)}
+phase+=0.08;requestAnimationFrame(drawWave)}
+drawWave();
+</script></body></html>

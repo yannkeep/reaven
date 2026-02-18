@@ -1,0 +1,148 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LE LABYRINTHE ADMINISTRATIF</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:#0f0f0f;color:#a3e635;font-family:'VT323',monospace;font-size:1.1rem;display:flex;flex-direction:column;align-items:center;padding:16px}
+h1{font-family:'Press Start 2P',monospace;font-size:clamp(.8rem,3vw,1.2rem);text-align:center;color:#a3e635;text-shadow:0 0 8px rgba(163,230,53,0.4);margin-bottom:4px;letter-spacing:.05em}
+.sub{font-size:.7rem;color:#65a30d;text-align:center;margin-bottom:12px;font-family:'Press Start 2P',monospace}
+a.back{display:inline-block;padding:4px 10px;border:1px solid #65a30d;color:#a3e635;text-decoration:none;font-size:.8rem;margin-bottom:12px}
+.game{max-width:600px;width:100%;background:#111;border:2px solid #65a30d;border-radius:4px;padding:16px;box-shadow:0 0 20px rgba(163,230,53,0.08)}
+.scene{min-height:200px}
+.scene p{margin-bottom:10px;line-height:1.5}
+.scene .hl{color:#fef08a}
+.scene .red{color:#dc2626}
+.scene .stat{color:#38bdf8;font-size:.85rem}
+.choices{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.choice{display:block;width:100%;padding:10px 12px;background:#1a1a1a;border:1px solid #65a30d;color:#a3e635;font-family:'VT323',monospace;font-size:1rem;cursor:pointer;text-align:left;transition:all .15s;border-radius:2px}
+.choice:hover{background:#222;border-color:#a3e635;box-shadow:0 0 8px rgba(163,230,53,0.2)}
+.hud{display:flex;justify-content:space-between;margin-bottom:10px;padding:6px 8px;background:#0a0a0a;border:1px solid #333;border-radius:2px;font-size:.85rem}
+.hud .label{color:#65a30d}
+.hud .val{color:#fef08a}
+#restartBtn{display:none;margin-top:10px}
+</style></head><body>
+<h1>LE LABYRINTHE ADMINISTRATIF</h1>
+<div class="sub">Un jeu dont tu es la victime</div>
+<a href="./" class="back">← War Room</a>
+<div class="game">
+<div class="hud">
+<span><span class="label">DIGNITÉ : </span><span class="val" id="hp">100</span>%</span>
+<span><span class="label">DROITS : </span><span class="val" id="rights">7</span>/7</span>
+<span><span class="label">ÉTAPE : </span><span class="val" id="step">1</span></span>
+</div>
+<div class="scene" id="scene"></div>
+<div class="choices" id="choices"></div>
+<button class="choice" id="restartBtn" onclick="go('start')">↻ RECOMMENCER</button>
+</div>
+<script>
+let hp=100,rights=7,step=0;
+const scenes={
+start:{
+text:`Tu es citoyen·ne belge. Tu as perdu ton emploi il y a 26 mois. Le budget Arizona vient d'entrer en vigueur.\n\n<span class="stat">SITUATION : Chômeur·se de longue durée (>24 mois)</span>\n<span class="stat">LOCALISATION : Bruxelles</span>\n<span class="stat">STATUT : Cible de la vague 1</span>\n\nUn courrier de l'ONEM arrive. Tu es exclu·e du chômage à partir du 1er janvier 2026. Tu fais partie des <span class="hl">30 122 premiers exclus</span>.\n\nQue fais-tu ?`,
+choices:[
+{text:"→ Aller au CPAS demander le RIS",go:"cpas"},
+{text:"→ Chercher un emploi via Actiris",go:"actiris"},
+{text:"→ Contester la décision au tribunal",go:"tribunal"},
+]},
+cpas:{
+text:`Tu te rends au CPAS. La file d'attente fait le tour du bâtiment. Les <span class="hl">240 ETP manquants</span> dans les CPAS bruxellois se font sentir.\n\nAprès 3h d'attente, on t'informe que le délai légal de 30 jours pour traiter ta demande est devenu <span class="red">intenable</span>. Le surcoût estimé pour le CPAS bruxellois : <span class="hl">80 millions €</span>.\n\nTon dossier est en attente. Pendant ce temps, tu n'as aucun revenu.\n\n<span class="stat">DIGNITÉ : -15%</span>`,
+choices:[
+{text:"→ Attendre (pas le choix)",go:"attente",hp:-15},
+{text:"→ Demander une aide d'urgence alimentaire",go:"food",hp:-10},
+]},
+actiris:{
+text:`Tu te connectes au site d'Actiris. Le système de profilage algorithmique t'a classé·e en catégorie « éloigné du marché de l'emploi ».\n\nOn te propose :\n- Un stage non-rémunéré de 3 mois\n- Une formation de 6 semaines en « compétences numériques de base »\n\n<span class="stat">Rappel : 40% des Belges sont en vulnérabilité numérique. Le site d'Actiris est entièrement en ligne.</span>\n\nL'OCDE conclut que rendre les allocations plus dégressives n'a <span class="red">AUCUN EFFET MESURABLE</span> sur les transitions vers l'emploi.`,
+choices:[
+{text:"→ Accepter le stage non-rémunéré",go:"stage",hp:-20},
+{text:"→ Aller au CPAS à la place",go:"cpas"},
+{text:"→ Essayer de contester",go:"tribunal"},
+]},
+tribunal:{
+text:`Tu contactes un avocat via l'aide juridique (accessible via ton statut BIM). Le recours portera sur l'<span class="hl">Article 23</span> de la Constitution et le principe de <span class="hl">standstill</span>.\n\nProblème : le délai de traitement moyen est de 8 à 18 mois. Pendant ce temps, tu n'as aucun revenu.\n\nL'État belge a déjà <span class="red">9 000+ jugements non exécutés</span> à son actif. Même si tu gagnes...\n\n<span class="stat">DROITS : -1 (accès effectif à la justice)</span>`,
+choices:[
+{text:"→ Lancer le recours quand même",go:"recours",rights:-1},
+{text:"→ Abandonner et aller au CPAS",go:"cpas",hp:-10},
+]},
+attente:{
+text:`3 semaines passent. Toujours pas de réponse du CPAS.\n\nTu as perdu ton statut BIM (Bénéficiaire d'Intervention Majorée). Conséquence en cascade :\n- Perte des tarifs sociaux énergie\n- Fin du tarif réduit transports\n- Hausse du ticket modérateur santé\n\n<span class="stat">C'est l'effet domino documenté par le projet Ouaisfieu :</span>\n<span class="red">Perte BIM → perte tarifs énergie → renoncement chauffage → dégradation santé → coût futur multiplié</span>\n\n<span class="stat">DROITS : -2</span>`,
+choices:[
+{text:"→ Renoncer aux soins médicaux pour économiser",go:"renoncement",rights:-2,hp:-15},
+{text:"→ Aller à une association d'aide",go:"asbl",rights:-1},
+]},
+food:{
+text:`Tu te rends dans une épicerie sociale. Elle est débordée depuis janvier 2026.\n\n<span class="stat">58% des étudiants belges déclarent être en insécurité alimentaire.</span>\n<span class="stat">2,1 millions de Belges sont en risque de pauvreté (18,3% AROPE).</span>\n\nTu obtiens un colis alimentaire pour une semaine. Le bénévole te dit que les stocks s'épuisent plus vite que d'habitude depuis les exclusions.\n\n<span class="stat">DIGNITÉ : -10%</span>`,
+choices:[
+{text:"→ Retourner attendre la réponse du CPAS",go:"attente",hp:-5},
+{text:"→ Chercher un travail au noir",go:"noir"},
+]},
+stage:{
+text:`Tu fais un stage non-rémunéré pendant 3 mois. Tu travailles 38h/semaine sans être payé·e.\n\nÀ la fin, l'entreprise ne t'engage pas. Statistiquement, seule une minorité de stages débouchent sur un emploi. Mais tu as contribué à faire monter le « taux d'activation » dans les statistiques du gouvernement.\n\n<span class="stat">Le paradoxe central : la Belgique dépense 21-24 Md€/an pour maintenir l'inactivité contrainte, tout en refusant une taxe sur les patrimoines (17 Md€).</span>\n\n<span class="stat">DIGNITÉ : -20% · DROITS : -1</span>`,
+choices:[
+{text:"→ Retour à la case CPAS",go:"cpas",rights:-1},
+{text:"→ Craquer. Consulter un médecin.",go:"medecin",hp:-10},
+]},
+recours:{
+text:`Ton avocat dépose le recours. Le tribunal du travail traitera ton dossier dans 8 à 18 mois.\n\nEn attendant, tu découvres que même en cas de victoire, l'État pourrait ne pas exécuter le jugement. Il a un historique de <span class="red">9 000+ non-exécutions</span>.\n\nL'IFDH (octobre 2025) parle d'une « <span class="red">érosion préoccupante de l'État de droit</span> ».\n\nPendant ce temps, tu survis comment ?`,
+choices:[
+{text:"→ CPAS en urgence",go:"cpas",hp:-10},
+{text:"→ S'informer et se battre autrement",go:"eveil"},
+]},
+renoncement:{
+text:`Tu renonces aux soins. Tu n'es pas seul·e : <span class="hl">50% des personnes éligibles</span> ne réclament pas leurs aides sociales. Le non-recours au RIS est estimé entre <span class="red">37% et 76%</span>.\n\nTu fais partie du chiffre invisible. Tu n'existes plus dans les statistiques.\n\n<span class="stat">549 996 personnes sont en invalidité en Belgique. Tu te demandes combien de temps avant d'en faire partie.</span>\n\n<span class="stat">DIGNITÉ : -15% · DROITS : -2</span>`,
+choices:[
+{text:"→ Se résigner",go:"fin_mauvaise"},
+{text:"→ Chercher de l'aide, s'informer",go:"eveil"},
+]},
+asbl:{
+text:`Une association d'éducation permanente t'accueille. On t'explique tes droits. On t'aide à remplir les formulaires. On te montre les chiffres réels.\n\nTu découvres que <span class="hl">l'alternative existe</span> :\n- Taxe patrimoines : 4,7 à 10 Md€\n- Économie contributive : transformer l'inactivité en contribution valorisée\n- Recours constitutionnel massif sur l'Article 23\n\nTu n'es pas le problème. Le système est conçu pour te faire croire que tu l'es.`,
+choices:[
+{text:"→ S'informer davantage",go:"eveil"},
+]},
+noir:{
+text:`Tu trouves du travail non-déclaré. C'est précaire, mal payé, sans protection.\n\nSi tu es contrôlé·e, tu risques :\n- Amende\n- Radiation du CPAS\n- Poursuites\n\n<span class="stat">Le paradoxe : l'État te pousse hors du système légal puis te punit d'en être sorti.</span>\n\nLe documentaire « Sans boulot : tous fraudeurs ? » de RTL-TVI te qualifiera de fraudeur·se.\n\n<span class="stat">DIGNITÉ : -20%</span>`,
+choices:[
+{text:"→ Accepter la situation",go:"fin_mauvaise",hp:-20},
+{text:"→ Décider de comprendre le système",go:"eveil"},
+]},
+medecin:{
+text:`Le médecin diagnostique un épuisement sévère. Tu rejoins les <span class="hl">549 996 personnes</span> en invalidité en Belgique.\n\nDoucement, tu passes de « chômeur·se » à « malade de longue durée ». Les réformes Arizona prévoient un quadruplement des sanctions pour les invalides.\n\n<span class="stat">Tu n'as pas changé de case. Tu as changé de couloir dans le même labyrinthe.</span>`,
+choices:[
+{text:"→ Se résigner",go:"fin_mauvaise"},
+{text:"→ S'informer, résister",go:"eveil"},
+]},
+eveil:{
+text:`<span class="hl">※ ÉVEIL ※</span>\n\nTu découvres qu'il existe un autre chemin. Pas une sortie du labyrinthe — mais la carte du labyrinthe.\n\n<span class="hl">VOIR</span> : Collecter les données brutes (DIKW)\n<span class="hl">PENSER</span> : Comprendre les mécanismes (pilarisation, particratie, concentration médiatique)\n<span class="hl">AGIR</span> : Recours juridique, pression municipale, éducation permanente\n\nTu n'es pas seul·e. 三种公民战法 — Trois Guerres Civiques.\nSurveiller · Éveiller · Contraindre.\n\n<span class="stat">Fork · Hack · Spread</span>\n<span class="stat">ouaisfi.eu · 29€/mois · 0 tracking · tout forkable</span>`,
+choices:[
+{text:"→ Entrer dans la War Room",go:"redirect_war"},
+]},
+fin_mauvaise:{
+text:`<span class="red">⬛ FIN ⬛</span>\n\nTu fais partie des statistiques invisibles. Le système a fonctionné exactement comme prévu.\n\n<span class="stat">Coût de ton maintien en inactivité : ~21 500€/an</span>\n<span class="stat">Taxe patrimoines bloquée : rapporterait 4,7 à 10 Md€/an</span>\n<span class="stat">Budget Arizona : 93% sur toi, 7% sur le capital</span>\n\nMais il existe un autre chemin...`,
+choices:[
+{text:"→ Recommencer avec la connaissance",go:"start"},
+{text:"→ Aller vers l'éveil",go:"eveil"},
+]},
+redirect_war:{text:'Redirection vers la War Room...',choices:[]},
+};
+function go(id){
+if(id==='redirect_war'){window.location.href='./';return}
+const s=scenes[id];if(!s)return;step++;
+document.getElementById('step').textContent=step;
+const sceneEl=document.getElementById('scene');
+const choicesEl=document.getElementById('choices');
+sceneEl.innerHTML=s.text.replace(/\n/g,'<br>');
+choicesEl.innerHTML='';
+s.choices.forEach(c=>{
+const btn=document.createElement('button');btn.className='choice';btn.textContent=c.text;
+btn.onclick=()=>{
+if(c.hp)hp=Math.max(0,hp+c.hp);
+if(c.rights)rights=Math.max(0,rights+c.rights);
+document.getElementById('hp').textContent=hp;
+document.getElementById('rights').textContent=rights;
+go(c.go);
+};choicesEl.appendChild(btn);
+});
+if(!s.choices.length)document.getElementById('restartBtn').style.display='block';
+else document.getElementById('restartBtn').style.display='none';
+window.scrollTo(0,0);
+}
+go('start');
+</script></body></html>

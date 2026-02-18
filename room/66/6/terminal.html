@@ -1,0 +1,240 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TERMINAL · Intelligence Civile</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:#000;color:#22c55e;font-family:'Courier New',monospace;font-size:14px;padding:0}
+.term{padding:12px;max-width:800px;margin:0 auto;min-height:100vh}
+.line{margin-bottom:2px;line-height:1.5;word-wrap:break-word}
+.line.sys{color:#6b7280}
+.line.err{color:#dc2626}
+.line.warn{color:#f97316}
+.line.info{color:#38bdf8}
+.line.hl{color:#fef08a}
+.prompt{display:flex;gap:0;align-items:flex-start;margin-top:4px}
+.prompt span{color:#a855f7;white-space:pre}
+#input{background:none;border:none;color:#22c55e;font-family:inherit;font-size:inherit;outline:none;flex:1;caret-color:#22c55e}
+.cursor{display:inline-block;width:8px;height:14px;background:#22c55e;animation:blink 1s step-end infinite;vertical-align:text-bottom}
+@keyframes blink{50%{opacity:0}}
+a{color:#38bdf8;text-decoration:none}a:hover{text-decoration:underline}
+</style></head><body>
+<div class="term" id="term">
+<div class="line sys">╔══════════════════════════════════════════════════╗</div>
+<div class="line sys">║  TERMINAL D'INTELLIGENCE CIVILE · ouaisfieu v2.0 ║</div>
+<div class="line sys">║  Fork·Hack·Spread · CC BY-NC · 29€/mois          ║</div>
+<div class="line sys">╚══════════════════════════════════════════════════╝</div>
+<div class="line sys">[boot] Chargement base de données citoyenne...</div>
+<div class="line sys">[boot] 70+ dossiers indexés · 11 plateformes · 0 tracking</div>
+<div class="line sys">[boot] Connecté à dl.ouaisfi.eu/usba/</div>
+<div class="line">&nbsp;</div>
+<div class="line">Tape <span style="color:#fef08a">help</span> pour voir les commandes disponibles.</div>
+<div class="line">&nbsp;</div>
+</div>
+<div class="prompt" id="promptLine">
+<span>citizen@ouaisfieu:~$ </span>
+<input type="text" id="input" autofocus autocomplete="off" spellcheck="false">
+</div>
+<script>
+const term=document.getElementById('term'),input=document.getElementById('input');
+const cmds={
+help:{fn:()=>[
+{t:'Commandes disponibles :',c:'hl'},
+{t:'  arizona      — Chiffres clés du budget Arizona',c:''},
+{t:'  particratie  — Anatomie du système partisan belge',c:''},
+{t:'  medias       — Concentration médiatique',c:''},
+{t:'  exclusions   — Vagues d\'exclusions chômage',c:''},
+{t:'  art23        — Article 23 de la Constitution',c:''},
+{t:'  art42        — Le paradoxe de l\'Article 42',c:''},
+{t:'  osint        — Boîte à outils OSINT citoyenne',c:''},
+{t:'  dikw         — Pyramide DIKW expliquée',c:''},
+{t:'  guerres      — Les Trois Guerres Civiques',c:''},
+{t:'  fork         — Fork·Hack·Spread',c:''},
+{t:'  who          — Qui sont-ils ?',c:''},
+{t:'  stats        — Statistiques du projet',c:''},
+{t:'  clear        — Effacer l\'écran',c:''},
+{t:'  exit         — Retour war room',c:''},
+]},
+arizona:{fn:()=>[
+{t:'══ BUDGET ARIZONA 2025-2029 ══',c:'warn'},
+{t:'Ajustement promis     : 9,2 Md€ d\'ici 2029',c:''},
+{t:'Effets retour espérés : 7,9 Md€ (qualifiés de "conte de fées")',c:'err'},
+{t:'Déficit projeté 2030  : 40 Md€ (6,5% PIB)',c:'err'},
+{t:'Charge intérêts 2030  : 21 Md€/an',c:'err'},
+{t:'Dette projetée 2030   : 119% PIB',c:'warn'},
+{t:'Effort sur sécu soc.  : 93%',c:'err'},
+{t:'Effort sur patrimoines: 7%',c:'hl'},
+{t:'Note Fitch            : dégradée A+ (1ère fois 10 ans)',c:'warn'},
+{t:'Taux emploi cible     : 80% — BfP projette 74,7%',c:'err'},
+{t:'',c:'sys'},{t:'Sources : Bureau du Plan, BNB, Fitch, Comité de monitoring',c:'sys'},
+]},
+exclusions:{fn:()=>[
+{t:'══ VAGUES D\'EXCLUSIONS CHÔMAGE ══',c:'warn'},
+{t:'Vague 1 (jan 2026) : 30 122 personnes (>20 ans inoccupation)',c:'err'},
+{t:'Vague 2 (mars 2026): ~43 000 (8-20 ans)',c:'err'},
+{t:'Vague 3 (avr 2026) : ~47 000 (2-8 ans)',c:'err'},
+{t:'Vague 4 (juil 2027): reste → total ~184 000',c:'err'},
+{t:'',c:''},
+{t:'Transfert CPAS bruxellois : +12,7% bénéficiaires RIS',c:'warn'},
+{t:'Surcoût estimé : 80 millions €',c:'warn'},
+{t:'240 ETP manquants dans les CPAS',c:'err'},
+{t:'',c:'sys'},{t:'L\'OCDE conclut : rendre les allocations plus dégressives',c:'sys'},
+{t:'n\'a AUCUN EFFET MESURABLE sur les transitions vers l\'emploi.',c:'hl'},
+]},
+particratie:{fn:()=>[
+{t:'══ PARTICRATIE BELGE ══',c:'warn'},
+{t:'Définition : système où les partis (et leurs présidents)',c:''},
+{t:'déterminent les choix politiques plus que les institutions.',c:''},
+{t:'',c:''},{t:'Rémunérations annuelles :',c:'info'},
+{t:'  Magnette (PS)      : ~410 000€',c:''},
+{t:'  Prévot (Engagés)   : ~337 000€',c:''},
+{t:'  Bouchez (MR)       : ~278 000€',c:''},
+{t:'',c:''},{t:'Revolving doors :',c:'info'},
+{t:'  103 journalistes FR → communication politique (1995-2017)',c:'warn'},
+{t:'  Lahbib : RTBF → Ministre → Commissaire (jamais élue)',c:'warn'},
+{t:'  De Croo → PNUD. Michel → Conseil européen.',c:''},
+{t:'',c:''},{t:'Nominations : clé d\'Hondt, pas compétence.',c:'err'},
+{t:'Absentéisme parlementaire : 30% en commissions.',c:'err'},
+{t:'CPI anticorruption : 69/100 (Danemark : 90).',c:'warn'},
+]},
+medias:{fn:()=>[
+{t:'══ CONCENTRATION MÉDIATIQUE ══',c:'warn'},
+{t:'5 familles contrôlent quasi tous les médias belges.',c:'err'},
+{t:'',c:''},{t:'FR : Rossel (Hurbain) = Le Soir, SudInfo, 50% RTL',c:''},
+{t:'FR : IPM (Le Hodey) = La Libre, DH, L\'Avenir, LN24',c:''},
+{t:'FUSION ROSSEL-IPM (2025) → 95% presse FR = 1 groupe',c:'err'},
+{t:'',c:''},{t:'NL : DPG (Van Thillo) = VTM, HLN, De Morgen, 50% RTL',c:''},
+{t:'NL : Mediahuis (Leysen) = De Standaard, Het Nieuwsblad',c:''},
+{t:'',c:''},{t:'Board DPG : Davignon, Verhofstadt, De Geest (VOKA)',c:'warn'},
+{t:'48 journaux en 1960 → 15 en 2016.',c:''},
+{t:'GAFAM captent ~70% des revenus pub numériques.',c:''},
+]},
+art23:{fn:()=>[
+{t:'══ ARTICLE 23 — CONSTITUTION BELGE ══',c:'hl'},
+{t:'"Chacun a le droit de mener une vie conforme',c:'info'},
+{t:' à la dignité humaine."',c:'info'},
+{t:'',c:''},{t:'Inclut : emploi, logement, santé, sécurité sociale,',c:''},
+{t:'aide juridique, environnement sain, épanouissement culturel.',c:''},
+{t:'',c:''},{t:'Principe de STANDSTILL :',c:'warn'},
+{t:'→ Interdit de réduire significativement le niveau de',c:'warn'},
+{t:'  protection sans justification d\'intérêt général.',c:'warn'},
+{t:'',c:''},{t:'VIOLATIONS DOCUMENTÉES :',c:'err'},
+{t:'  9 000+ jugements non exécutés par l\'État belge',c:'err'},
+{t:'  184 000 exclusions chômage programmées',c:'err'},
+{t:'  549 996 invalides sous pression croissante',c:'err'},
+{t:'  50% de non-recours aux aides sociales',c:'err'},
+]},
+art42:{fn:()=>[
+{t:'══ ARTICLE 42 — LE PARADOXE ══',c:'hl'},
+{t:'"Les membres des Chambres représentent la Nation,',c:'info'},
+{t:' et non uniquement ceux qui les ont élus."',c:'info'},
+{t:'',c:''},{t:'EN THÉORIE : mandat impératif interdit.',c:''},
+{t:'  → L\'élu ne peut être révoqué par les électeurs.',c:''},
+{t:'  → Aucun mécanisme de redevabilité constitutionnel.',c:''},
+{t:'',c:''},{t:'EN PRATIQUE : discipline de parti totale.',c:'err'},
+{t:'  → Les présidents de parti décident.',c:'err'},
+{t:'  → Les députés exécutent la consigne.',c:'err'},
+{t:'  → Le vote d\'un adhérent > le vote d\'un électeur.',c:'err'},
+{t:'',c:''},{t:'Résultat : le citoyen n\'a aucun levier.',c:'warn'},
+{t:'  Ni par la Constitution, ni par la pratique.',c:'warn'},
+]},
+guerres:{fn:()=>[
+{t:'══ 三种公民战法 — TROIS GUERRES CIVIQUES ══',c:'hl'},
+{t:'Doctrine de résistance démocratique adaptée pour la société civile.',c:''},
+{t:'',c:''},{t:'GUERRE I : LE RÉCIT (Surveiller)',c:'info'},
+{t:'  Contre-narratif factuel. Chaque affirmation sourcée.',c:''},
+{t:'  Arme : documentation, OSINT, fact-checking.',c:''},
+{t:'',c:''},{t:'GUERRE II : LA DÉ-SIDÉRATION (Éveiller)',c:'warn'},
+{t:'  Briser l\'impuissance apprise. Rendre visible l\'invisible.',c:''},
+{t:'  Arme : éducation permanente, ateliers, gamification.',c:''},
+{t:'',c:''},{t:'GUERRE III : LE DROIT (Contraindre)',c:'err'},
+{t:'  Saturation juridique. Recours constitutionnels.',c:''},
+{t:'  Arme : Art.23, CEDH, pression municipale, CPAS.',c:''},
+]},
+dikw:{fn:()=>[
+{t:'══ PYRAMIDE DIKW ══',c:'hl'},
+{t:'',c:''},{t:'  ╱ SAGESSE ╲   → Savoir pourquoi agir',c:'warn'},
+{t:' ╱ CONNAISSANCE╲  → Comprendre les liens',c:'info'},
+{t:'╱  INFORMATION  ╲ → Contextualiser les données',c:''},
+{t:'╱    DONNÉES     ╲→ Collecter les faits bruts',c:'sys'},
+{t:'',c:''},{t:'Appliquée au parcours BROL :',c:'hl'},
+{t:'  /usba/         → Données (chiffres bruts)',c:'sys'},
+{t:'  /usba/1/2/     → Information (décryptage)',c:''},
+{t:'  /usba/1/2/3/   → Connaissance (stratégie)',c:'info'},
+{t:'  /usba/.../9/   → Sagesse (méthodologie)',c:'warn'},
+{t:'  /usba/.../9/9/ → Action (missions)',c:'err'},
+{t:'  /usba/.../999/ → Réplication (transmission)',c:'hl'},
+]},
+fork:{fn:()=>[
+{t:'══ FORK · HACK · SPREAD ══',c:'hl'},
+{t:'',c:''},{t:'FORK  : Copier l\'outil. Le rendre sien.',c:'info'},
+{t:'HACK  : L\'adapter à son contexte local.',c:'warn'},
+{t:'SPREAD: Le propager. Former d\'autres.',c:'err'},
+{t:'',c:''},{t:'Principes non-négociables :',c:'hl'},
+{t:'  • Zéro tracking, zéro cookie, zéro pub',c:''},
+{t:'  • Budget max : 29€/mois',c:''},
+{t:'  • Infrastructure statique pure',c:''},
+{t:'  • Licence CC BY-NC',c:''},
+{t:'  • Tout outil forkable, même par qui nous combat',c:''},
+{t:'  • Tout contre-récit plus sourcé que le récit combattu',c:''},
+]},
+osint:{fn:()=>[
+{t:'══ BOÎTE À OUTILS OSINT CITOYENNE ══',c:'hl'},
+{t:'',c:''},{t:'SOURCES INSTITUTIONNELLES :',c:'info'},
+{t:'  Bureau du Plan    : plan.be',c:''},
+{t:'  BNB              : nbb.be',c:''},
+{t:'  Statbel           : statbel.fgov.be',c:''},
+{t:'  Moniteur belge    : ejustice.just.fgov.be',c:''},
+{t:'  Cour constitution.: const-court.be',c:''},
+{t:'',c:''},{t:'ANALYSE POLITIQUE :',c:'info'},
+{t:'  CRISP             : crisp.be (Courrier hebdomadaire)',c:''},
+{t:'  Hindriks/UCLouvain: rapports parlementaires',c:''},
+{t:'  GERFA             : politisation fonction publique',c:''},
+{t:'',c:''},{t:'OUTILS :',c:'info'},
+{t:'  Transparencia.be  : lobbying (limité)',c:''},
+{t:'  Cumuleo.be        : mandats et cumuls',c:''},
+{t:'  LaFabrique.be     : suivi parlementaire',c:''},
+]},
+who:{fn:()=>[
+{t:'══ QUI SONT-ILS ? ══',c:'warn'},
+{t:'',c:''},{t:'PRÉSIDENTS QUI GOUVERNENT :',c:'info'},
+{t:'  De Wever (N-VA) — PM, ancien bourgmestre Anvers',c:''},
+{t:'  Bouchez (MR) — prés. parti, sénateur, multi-casquettes',c:''},
+{t:'  Magnette (PS) — prés. PS + bourgmestre Charleroi',c:''},
+{t:'  Prévot (Engagés) — prés. parti',c:''},
+{t:'',c:''},{t:'REVOLVING DOORS :',c:'err'},
+{t:'  Michel → Conseil européen',c:''},
+{t:'  De Croo → PNUD',c:''},
+{t:'  Van Rompuy → Conseil européen',c:''},
+{t:'  Reynders → Commissaire Justice (20 ans au gouv.)',c:''},
+{t:'  Lahbib → Commissaire (jamais élue)',c:''},
+{t:'',c:''},{t:'MÉDIAS :',c:'err'},
+{t:'  Hurbain (Rossel), Le Hodey (IPM), Van Thillo (DPG)',c:''},
+{t:'  Board DPG : Davignon, Verhofstadt, De Geest',c:''},
+]},
+stats:{fn:()=>[
+{t:'══ STATISTIQUES OUAISFIEU ══',c:'hl'},
+{t:'  Dossiers produits     : 70+',c:''},
+{t:'  Plateformes actives   : 11',c:''},
+{t:'  Budget mensuel        : 29€',c:'info'},
+{t:'  Tracking              : 0',c:'info'},
+{t:'  Cookies               : 0',c:'info'},
+{t:'  Licence               : CC BY-NC',c:''},
+{t:'  Méthodologie          : VPA (Voir·Penser·Agir)',c:''},
+{t:'  Framework             : DIKW + Trois Guerres Civiques',c:''},
+{t:'  Collectif             : CCPLC',c:''},
+{t:'  Statut visé           : Éducation Permanente FWB',c:'warn'},
+{t:'  Moratoire             : 2026-2028 (budget FWB)',c:'err'},
+]},
+clear:{fn:()=>{term.innerHTML='';return[]}},
+exit:{fn:()=>{window.location.href='./';return[{t:'Déconnexion...',c:'sys'}]}},
+};
+input.addEventListener('keydown',e=>{
+if(e.key!=='Enter')return;
+const cmd=input.value.trim().toLowerCase();input.value='';
+const pLine=document.createElement('div');pLine.className='line';pLine.innerHTML='<span style="color:#a855f7">citizen@ouaisfieu:~$ </span>'+cmd;term.appendChild(pLine);
+if(!cmd)return;
+if(cmds[cmd]){const lines=cmds[cmd].fn();if(lines)lines.forEach(l=>{const d=document.createElement('div');d.className='line'+(l.c?' '+l.c:'');d.textContent=l.t;term.appendChild(d)})}
+else{const d=document.createElement('div');d.className='line err';d.textContent='Commande inconnue : '+cmd+'. Tape "help" pour la liste.';term.appendChild(d)}
+term.appendChild(document.createElement('div')).className='line';
+window.scrollTo(0,document.body.scrollHeight);
+});
+input.focus();document.addEventListener('click',()=>input.focus());
+</script></body></html>
