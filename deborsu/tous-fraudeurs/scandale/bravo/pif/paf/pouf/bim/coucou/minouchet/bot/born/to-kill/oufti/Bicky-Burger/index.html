@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enquête : Tous Fraudeurs ? - Analyse Interactive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #F5F5F4; /* Stone-100 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        /* Custom scrollbar for text panels */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #d6d3d1;
+            border-radius: 3px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #a8a29e;
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals (Stone/Greige) with Semantic Accents (Teal for Social, Rose/Red for Fiscal) -->
+    <!-- Application Structure Plan: 
+         1. Hero Section: Sets the context of the "Tous Fraudeurs" investigation.
+         2. The Great Discrepancy (Macro View): A toggle-able chart comparing the absolute volumes of Fiscal vs. Social fraud to visualize the 1:100 ratio.
+         3. Mechanisms & Taxonomy (Micro View): Interactive cards detailing specific fraud types referenced in the report (VAT, Domiciliation, Offshore), allowing users to filter by category.
+         4. Impact Simulator (Synthesis): A calculator allowing users to convert "Lost Money" into "Public Services" (hospitals, schools) to make the abstract numbers concrete.
+         5. Perception vs Reality: A section dedicated to the media coverage bias mentioned in the report.
+    -->
+    <!-- Visualization & Content Choices:
+         - Comparison Chart: Bar chart with Log/Linear toggle. Linear proves the point (social fraud is invisible next to fiscal), Log allows comparing the data points.
+         - Fraud Composition: Donut chart to show the breakdown of Fiscal fraud sources.
+         - Interaction: Javascript-driven state updates for charts and the calculator to keep the user engaged without page reloads.
+         - Justification: NO SVG/Mermaid used. Standard Canvas (Chart.js) used for performance and responsiveness.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="text-stone-800 antialiased selection:bg-rose-200 selection:text-rose-900">
+
+    <!-- Navigation / Header -->
+    <header class="bg-white border-b border-stone-200 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-stone-900 text-white flex items-center justify-center rounded font-bold">F</div>
+                    <span class="font-bold text-xl tracking-tight">Analyse<span class="text-rose-600">Fraude</span></span>
+                </div>
+                <nav class="hidden md:flex space-x-8 text-sm font-medium">
+                    <a href="#comparatif" class="text-stone-500 hover:text-stone-900 transition-colors">Le Comparatif</a>
+                    <a href="#mecanismes" class="text-stone-500 hover:text-stone-900 transition-colors">Mécanismes</a>
+                    <a href="#impact" class="text-stone-500 hover:text-stone-900 transition-colors">Impact Réel</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16">
+
+        <!-- Intro Section -->
+        <section class="text-center max-w-3xl mx-auto space-y-6">
+            <span class="inline-block py-1 px-3 rounded-full bg-stone-200 text-stone-600 text-xs font-semibold uppercase tracking-wider">Rapport Source : Enquête "Tous Fraudeurs ?"</span>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-stone-900 tracking-tight leading-tight">
+                Le Mythe de l'Égalité <br>devant la Fraude
+            </h1>
+            <p class="text-lg text-stone-600 leading-relaxed">
+                Cette interface interactive synthétise les données de l'enquête comparant la fraude sociale et la fraude fiscale en Belgique. 
+                Explorez les chiffres pour comprendre la disproportion massive entre la perception publique et la réalité économique.
+            </p>
+        </section>
+
+        <!-- Section 1: The Great Discrepancy -->
+        <section id="comparatif" class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 md:p-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Text Context -->
+                <div class="lg:col-span-1 space-y-4">
+                    <h2 class="text-2xl font-bold text-stone-900">Le Fossé des Milliards</h2>
+                    <p class="text-stone-600 text-sm leading-relaxed">
+                        L'enquête met en lumière un déséquilibre structurel. Alors que la fraude sociale (chômage, CPAS) attire l'attention médiatique et politique, elle représente une goutte d'eau comparée à l'océan de la fraude fiscale.
+                    </p>
+                    <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r">
+                        <p class="text-xs text-amber-800 font-medium">💡 Astuce d'interaction</p>
+                        <p class="text-xs text-amber-700 mt-1">Utilisez le bouton ci-dessous pour changer l'échelle du graphique. L'échelle logarithmique permet de voir les deux barres, l'échelle linéaire montre la réalité brute.</p>
+                    </div>
+                    
+                    <div class="pt-4">
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" id="scaleToggle" class="sr-only peer">
+                            <div class="w-14 h-7 bg-stone-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-rose-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-stone-800"></div>
+                            <span class="text-sm font-medium text-stone-900" id="scaleLabel">Vue Logarithmique (Comparaison)</span>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 pt-4">
+                        <div class="bg-teal-50 p-3 rounded-lg border border-teal-100">
+                            <div class="text-teal-600 text-xs font-bold uppercase">Fraude Sociale</div>
+                            <div class="text-2xl font-bold text-teal-900">~0.2 Md€</div>
+                        </div>
+                        <div class="bg-rose-50 p-3 rounded-lg border border-rose-100">
+                            <div class="text-rose-600 text-xs font-bold uppercase">Fraude Fiscale</div>
+                            <div class="text-3xl font-bold text-rose-900">~30 Md€</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Visualization -->
+                <div class="lg:col-span-2 flex flex-col justify-center bg-stone-50 rounded-xl p-4">
+                    <div class="chart-container">
+                        <canvas id="comparisonChart"></canvas>
+                    </div>
+                    <p class="text-center text-xs text-stone-400 mt-2">Source: Estimations croisées (Secrétariat d'État / Rapports universitaires)</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Mechanisms Analysis -->
+        <section id="mecanismes">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-stone-900">Anatomie des Mécanismes</h2>
+                <p class="text-stone-600 max-w-2xl">Cliquez sur les cartes pour analyser les différences techniques et de complexité entre les fraudes "du pauvre" et les fraudes "du riche".</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Card 1 -->
+                <button onclick="updateDetail('social1')" class="text-left bg-white p-5 rounded-xl shadow-sm border border-stone-200 hover:border-teal-400 hover:shadow-md transition-all group">
+                    <div class="text-2xl mb-2">🏠</div>
+                    <h3 class="font-bold text-stone-900 group-hover:text-teal-600">Domiciliation</h3>
+                    <p class="text-xs text-stone-500 mt-1">Fraude Sociale</p>
+                </button>
+
+                <!-- Card 2 -->
+                <button onclick="updateDetail('social2')" class="text-left bg-white p-5 rounded-xl shadow-sm border border-stone-200 hover:border-teal-400 hover:shadow-md transition-all group">
+                    <div class="text-2xl mb-2">🛠️</div>
+                    <h3 class="font-bold text-stone-900 group-hover:text-teal-600">Travail au Noir</h3>
+                    <p class="text-xs text-stone-500 mt-1">Mixte (Social/Fiscal)</p>
+                </button>
+
+                <!-- Card 3 -->
+                <button onclick="updateDetail('fiscal1')" class="text-left bg-white p-5 rounded-xl shadow-sm border border-stone-200 hover:border-rose-400 hover:shadow-md transition-all group">
+                    <div class="text-2xl mb-2">🔄</div>
+                    <h3 class="font-bold text-stone-900 group-hover:text-rose-600">Carrousel TVA</h3>
+                    <p class="text-xs text-stone-500 mt-1">Grande Fraude Fiscale</p>
+                </button>
+
+                <!-- Card 4 -->
+                <button onclick="updateDetail('fiscal2')" class="text-left bg-white p-5 rounded-xl shadow-sm border border-stone-200 hover:border-rose-400 hover:shadow-md transition-all group">
+                    <div class="text-2xl mb-2">🌴</div>
+                    <h3 class="font-bold text-stone-900 group-hover:text-rose-600">Paradis Fiscaux</h3>
+                    <p class="text-xs text-stone-500 mt-1">Évasion Fiscale</p>
+                </button>
+            </div>
+
+            <!-- Dynamic Detail Panel -->
+            <div id="detailPanel" class="mt-6 bg-stone-800 text-stone-100 rounded-xl p-6 md:p-8 transition-all duration-300">
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="flex-1">
+                        <h3 id="detailTitle" class="text-2xl font-bold text-white mb-2">Sélectionnez un mécanisme</h3>
+                        <p id="detailDesc" class="text-stone-300 leading-relaxed">
+                            Les mécanismes de fraude varient considérablement en complexité. Là où la fraude sociale est souvent une stratégie de survie facile à détecter, la fraude fiscale majeure nécessite des ingénieurs financiers et reste opaque.
+                        </p>
+                    </div>
+                    <div class="md:w-1/3 bg-stone-700/50 rounded-lg p-4 border border-stone-600">
+                        <div class="text-xs text-stone-400 uppercase font-bold tracking-wider mb-2">Impact Estimé</div>
+                        <div id="detailImpact" class="text-2xl font-mono text-white">--</div>
+                        <div class="w-full bg-stone-600 h-2 mt-3 rounded-full overflow-hidden">
+                            <div id="detailBar" class="bg-stone-400 h-full w-0 transition-all duration-500"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Economic Impact Simulator -->
+        <section id="impact" class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+            <div class="p-6 md:p-8 border-b border-stone-100">
+                <h2 class="text-2xl font-bold text-stone-900">Que faire avec l'argent perdu ?</h2>
+                <p class="text-stone-600 mt-2">
+                    Si l'État récupérait une fraction de la fraude fiscale estimée (30 Milliards €), l'impact sur les services publics serait immédiat. Utilisez le curseur pour simuler un taux de récupération.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2">
+                <!-- Controls -->
+                <div class="p-6 md:p-8 bg-stone-50 flex flex-col justify-center space-y-8">
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <label class="font-bold text-stone-700">Taux de récupération</label>
+                            <span id="recoveryPercentDisplay" class="font-mono font-bold text-rose-600">10%</span>
+                        </div>
+                        <input type="range" id="recoverySlider" min="1" max="100" value="10" class="w-full h-2 bg-stone-300 rounded-lg appearance-none cursor-pointer accent-rose-600">
+                        <div class="flex justify-between text-xs text-stone-400 mt-2">
+                            <span>1%</span>
+                            <span>Objectif Réaliste (15%)</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="text-sm text-stone-500 uppercase tracking-wide">Montant Récupéré</div>
+                        <div id="recoveredAmountDisplay" class="text-4xl font-extrabold text-stone-900 mt-1">3.0 Md€</div>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div class="p-6 md:p-8 bg-white grid grid-cols-1 gap-6 content-center">
+                    <!-- Result Item 1 -->
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl">🏥</div>
+                        <div>
+                            <div id="hospitalsCount" class="text-xl font-bold text-stone-900">10</div>
+                            <div class="text-sm text-stone-500">Nouveaux Hôpitaux Modernes</div>
+                        </div>
+                    </div>
+                    <!-- Result Item 2 -->
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-2xl">🎓</div>
+                        <div>
+                            <div id="teachersCount" class="text-xl font-bold text-stone-900">60,000</div>
+                            <div class="text-sm text-stone-500">Salaires d'Enseignants (1 an)</div>
+                        </div>
+                    </div>
+                    <!-- Result Item 3 -->
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-2xl">🚆</div>
+                        <div>
+                            <div id="trainsCount" class="text-xl font-bold text-stone-900">300</div>
+                            <div class="text-sm text-stone-500">km de Lignes TGV</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center text-stone-400 text-sm py-8 border-t border-stone-200">
+            <p>© Visualisation basée sur l'enquête journalistique "Tous Fraudeurs".</p>
+            <p class="mt-2">Les données sont des ordres de grandeur basés sur les rapports disponibles (OCDE, SPF Finances).</p>
+        </footer>
+
+    </main>
+
+    <script>
+        // Data Store
+        const appData = {
+            comparison: {
+                labels: ['Fraude Sociale', 'Fraude Fiscale'],
+                values: [200000000, 30000000000], // In Euros
+                colors: ['#0d9488', '#e11d48'] // Teal-600, Rose-600
+            },
+            details: {
+                social1: {
+                    title: "Domiciliation Fictive",
+                    desc: "Consiste à s'inscrire officiellement à une adresse différente de sa résidence réelle (souvent chez un proche ou une boîte aux lettres) pour bénéficier de taux d'allocations 'isolé' plus élevés. Bien que fréquente, les montants individuels sont faibles.",
+                    impact: "Faible",
+                    barLevel: "10%",
+                    color: "bg-teal-500"
+                },
+                social2: {
+                    title: "Travail au Noir (Social)",
+                    desc: "Travailler sans être déclaré tout en percevant des allocations de chômage. C'est une double fraude : perte de cotisations pour l'État et perception indue d'aides. Très visible socialement (Horeca, Construction).",
+                    impact: "Moyen",
+                    barLevel: "40%",
+                    color: "bg-amber-500"
+                },
+                fiscal1: {
+                    title: "Carrousel TVA",
+                    desc: "Mécanisme complexe impliquant des sociétés écrans dans plusieurs pays de l'UE pour se faire rembourser indûment de la TVA jamais payée. Nécessite une organisation criminelle structurée. Les pertes se comptent en milliards.",
+                    impact: "Massif",
+                    barLevel: "90%",
+                    color: "bg-rose-600"
+                },
+                fiscal2: {
+                    title: "Paradis Fiscaux & Offshore",
+                    desc: "Utilisation de montages juridiques complexes pour localiser les bénéfices dans des juridictions à imposition nulle ou faible. Souvent légal en apparence ('optimisation'), mais flirtant avec l'évasion illégale.",
+                    impact: "Extrême",
+                    barLevel: "100%",
+                    color: "bg-rose-700"
+                }
+            },
+            impactCosts: {
+                hospital: 300000000, // 300 Million per hospital
+                teacher: 50000,      // 50k per teacher/year
+                rail: 10000000       // 10 Million per km
+            }
+        };
+
+        // --- Chart 1: Comparison ---
+        const ctxComparison = document.getElementById('comparisonChart').getContext('2d');
+        
+        const comparisonChart = new Chart(ctxComparison, {
+            type: 'bar',
+            data: {
+                labels: appData.comparison.labels,
+                datasets: [{
+                    label: 'Montant Estimé (€)',
+                    data: appData.comparison.values,
+                    backgroundColor: appData.comparison.colors,
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y', // Horizontal bar chart for better label reading
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.x !== null) {
+                                    // Format currency
+                                    label += new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR', maximumSignificantDigits: 3 }).format(context.parsed.x);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'logarithmic', // Start with logarithmic to see both
+                        grid: { display: false },
+                        ticks: {
+                            callback: function(value, index, values) {
+                                return Number(value).toLocaleString('fr-BE', {notation: "compact"});
+                            }
+                        }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Toggle Logic for Chart 1
+        const scaleToggle = document.getElementById('scaleToggle');
+        const scaleLabel = document.getElementById('scaleLabel');
+
+        scaleToggle.addEventListener('change', function() {
+            if (this.checked) {
+                // Switch to Linear (The Reality Check)
+                comparisonChart.options.scales.x.type = 'linear';
+                scaleLabel.textContent = "Vue Linéaire (La Réalité)";
+                scaleLabel.classList.add("text-rose-600");
+            } else {
+                // Switch back to Logarithmic
+                comparisonChart.options.scales.x.type = 'logarithmic';
+                scaleLabel.textContent = "Vue Logarithmique (Comparaison)";
+                scaleLabel.classList.remove("text-rose-600");
+            }
+            comparisonChart.update();
+        });
+
+        // --- Interaction: Detail Panel ---
+        function updateDetail(key) {
+            const data = appData.details[key];
+            const panel = document.getElementById('detailPanel');
+            const title = document.getElementById('detailTitle');
+            const desc = document.getElementById('detailDesc');
+            const impact = document.getElementById('detailImpact');
+            const bar = document.getElementById('detailBar');
+
+            // Fade text out slightly
+            panel.classList.add('opacity-90');
+            
+            setTimeout(() => {
+                title.textContent = data.title;
+                desc.textContent = data.desc;
+                impact.textContent = data.impact;
+                
+                // Reset bar classes and set new ones
+                bar.className = `h-full transition-all duration-500 ${data.color}`;
+                bar.style.width = data.barLevel;
+                
+                panel.classList.remove('opacity-90');
+            }, 150);
+        }
+
+        // --- Interaction: Impact Simulator ---
+        const slider = document.getElementById('recoverySlider');
+        const percentDisplay = document.getElementById('recoveryPercentDisplay');
+        const amountDisplay = document.getElementById('recoveredAmountDisplay');
+        const hospitalsCount = document.getElementById('hospitalsCount');
+        const teachersCount = document.getElementById('teachersCount');
+        const trainsCount = document.getElementById('trainsCount');
+
+        function updateImpact() {
+            const percent = parseInt(slider.value);
+            const totalFraud = 30000000000; // 30 Billion
+            const recovered = totalFraud * (percent / 100);
+
+            // Update Text
+            percentDisplay.textContent = percent + "%";
+            amountDisplay.textContent = (recovered / 1000000000).toFixed(1) + " Md€";
+
+            // Update Counters with animation effect (simplified)
+            hospitalsCount.textContent = Math.floor(recovered / appData.impactCosts.hospital);
+            teachersCount.textContent = new Intl.NumberFormat('fr-BE').format(Math.floor(recovered / appData.impactCosts.teacher));
+            trainsCount.textContent = new Intl.NumberFormat('fr-BE').format(Math.floor(recovered / appData.impactCosts.rail));
+        }
+
+        slider.addEventListener('input', updateImpact);
+        
+        // Init
+        updateImpact(); // Set initial values
+
+    </script>
+</body>
+</html>
