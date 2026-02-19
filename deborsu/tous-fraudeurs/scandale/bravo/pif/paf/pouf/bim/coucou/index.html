@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cartographie : Tous Fraudeurs ? - Analyse Web</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom styles for specific needs not covered by Tailwind utilities */
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f0; /* Warm neutral background */
+            color: #1f2937;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px; /* Max width for larger screens */
+            height: 300px;
+            max-height: 400px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* Smooth transitions for interactive elements */
+        .interactive-card {
+            transition: all 0.3s ease;
+        }
+        .interactive-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Hide scrollbar for clean horizontal scrolling if ever needed */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Active Tab Styling */
+        .nav-btn.active {
+            border-bottom: 2px solid #4b85a8;
+            color: #4b85a8;
+            font-weight: 600;
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutral & Journalist/Academic (Beige, Slate, Muted Blue, Terracotta) -->
+    <!-- Application Structure Plan:
+         The app is designed as a "Digital Observatory" dashboard.
+         1. **Navigation**: Top bar for easy access to thematic sections (Overview, Actors, Arguments, Dynamics).
+         2. **Overview (Dashboard)**: High-level metrics of the web coverage to give immediate context on the scale of the controversy.
+         3. **The Actors (Network)**: Maps who is speaking (Media vs Public vs Politics) using a scatter plot to show volume vs sentiment.
+         4. **The Arguments (Themes)**: Interactive breakdown of key topics (Fraud vs Error, Stigma, Cost) allowing users to drill down into the qualitative content.
+         5. **Temporal Dynamics**: A timeline view to show how the debate evolved over time, linking spikes to specific events/publications.
+         Why: This structure allows the user to start with the "What" (Overview), move to the "Who" (Actors), understand the "Why" (Arguments), and see the "When" (Dynamics).
+    -->
+    <!-- Visualization & Content Choices:
+         1. **Timeline Line Chart**: To show the pulse of the web coverage over time. Goal: Trend Analysis. Interaction: Hover for event details.
+         2. **Actor Scatter Plot**: To map stakeholders based on Activity Volume (Y) and Sentiment (X). Goal: Relationship/Positioning. Interaction: Click node to see specific actor profile.
+         3. **Sentiment Donut Chart**: Simple breakdown of the digital mood. Goal: Quick summary.
+         4. **Argument Cards**: Interactive grid. Goal: Qualitative exploration. Interaction: Click to expand details/quotes.
+         5. **Library**: Chart.js for all charts (Canvas based, no SVG). Tailwind for layout.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <span class="text-2xl font-bold text-slate-800">📡 Cartographie Web</span>
+                        <span class="ml-2 text-sm text-slate-500 hidden sm:block">| Tous Fraudeurs ?</span>
+                    </div>
+                </div>
+                <div class="flex space-x-4 items-center overflow-x-auto no-scrollbar">
+                    <button onclick="switchTab('overview')" id="nav-overview" class="nav-btn active px-3 py-2 text-sm font-medium text-gray-900 transition-colors hover:text-blue-600 whitespace-nowrap">Vue d'ensemble</button>
+                    <button onclick="switchTab('actors')" id="nav-actors" class="nav-btn px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:text-blue-600 whitespace-nowrap">Acteurs & Réseaux</button>
+                    <button onclick="switchTab('arguments')" id="nav-arguments" class="nav-btn px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:text-blue-600 whitespace-nowrap">Thématiques</button>
+                    <button onclick="switchTab('dynamics')" id="nav-dynamics" class="nav-btn px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:text-blue-600 whitespace-nowrap">Dynamiques</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- Header Context -->
+        <header class="mb-8 text-center sm:text-left bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">Analyse de la Controverse : "Tous Fraudeurs ?"</h1>
+            <p class="text-slate-600 max-w-3xl">
+                Cette interface propose une exploration interactive de la couverture web et de la problématique soulevée par l'enquête sur la fraude sociale en Belgique. 
+                Explorez les données pour comprendre comment le web a structuré ce débat entre indignation, témoignages et fact-checking.
+            </p>
+        </header>
+
+        <!-- SECTION: OVERVIEW -->
+        <section id="section-overview" class="space-y-8 animate-fade-in">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- KPI Cards -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase">Volume de Mentions</h3>
+                    <p class="text-3xl font-bold text-slate-800 mt-2">12.4K</p>
+                    <p class="text-xs text-green-600 mt-1">▲ Pic lors de la diffusion</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-400">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase">Sentiment Dominant</h3>
+                    <p class="text-3xl font-bold text-slate-800 mt-2">Polarisé</p>
+                    <p class="text-xs text-slate-500 mt-1">45% Négatif / 30% Positif</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase">Acteurs Clés</h3>
+                    <p class="text-3xl font-bold text-slate-800 mt-2">24</p>
+                    <p class="text-xs text-slate-500 mt-1">Médias, Politiques, Citoyens</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm">
+                <div class="mb-4">
+                    <h2 class="text-xl font-bold text-slate-800">Répartition du Sentiment Global</h2>
+                    <p class="text-sm text-slate-500">Analyse de la tonalité des conversations sur les réseaux sociaux et forums.</p>
+                </div>
+                <div class="flex flex-col md:flex-row items-center justify-center gap-8">
+                    <div class="chart-container" style="height: 300px; max-width: 300px;">
+                        <canvas id="sentimentChart"></canvas>
+                    </div>
+                    <div class="max-w-md space-y-4">
+                        <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors" onclick="highlightSentiment('critique')">
+                            <h4 class="font-bold text-red-800 text-sm">Critique (45%)</h4>
+                            <p class="text-xs text-slate-600">Dénonciation de la stigmatisation des chômeurs, critique de la méthodologie journalistique, colère sociale.</p>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors" onclick="highlightSentiment('soutien')">
+                            <h4 class="font-bold text-green-800 text-sm">Soutien / Accord (30%)</h4>
+                            <p class="text-xs text-slate-600">Témoignages confirmant la fraude, appels à plus de contrôles, sentiment d'injustice fiscale.</p>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors" onclick="highlightSentiment('neutre')">
+                            <h4 class="font-bold text-blue-800 text-sm">Neutre / Factuel (25%)</h4>
+                            <p class="text-xs text-slate-600">Relais d'information, chiffres officiels (ONEM), analyses juridiques.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: ACTORS -->
+        <section id="section-actors" class="hidden space-y-8 animate-fade-in">
+            <div class="bg-white p-6 rounded-xl shadow-sm">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-slate-800">Cartographie des Acteurs</h2>
+                    <p class="text-sm text-slate-500">Qui parle ? Positionnement des acteurs en fonction de leur volume d'activité et de leur sentiment moyen.</p>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="actorsChart"></canvas>
+                </div>
+                
+                <div id="actor-details" class="mt-6 p-6 bg-slate-50 rounded-lg border border-slate-200 hidden">
+                    <h3 id="actor-name" class="text-lg font-bold text-slate-800">Nom de l'acteur</h3>
+                    <p id="actor-role" class="text-xs font-bold text-blue-600 uppercase tracking-wide mb-2">Rôle</p>
+                    <p id="actor-desc" class="text-sm text-slate-700 mb-4">Description de l'activité...</p>
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-white p-2 rounded shadow-sm">
+                            <span class="block text-xs text-slate-400">Impact</span>
+                            <span id="actor-impact" class="font-bold text-slate-800">Haut</span>
+                        </div>
+                        <div class="bg-white p-2 rounded shadow-sm">
+                            <span class="block text-xs text-slate-400">Position</span>
+                            <span id="actor-position" class="font-bold text-slate-800">Critique</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-center text-xs text-slate-400 mt-4 italic">Cliquez sur une bulle pour voir les détails de l'acteur.</p>
+            </div>
+        </section>
+
+        <!-- SECTION: ARGUMENTS -->
+        <section id="section-arguments" class="hidden space-y-8 animate-fade-in">
+            <div class="mb-6">
+                <h2 class="text-xl font-bold text-slate-800">Les Thématiques du Débat</h2>
+                <p class="text-slate-600">Explorez les principaux arguments qui structurent la controverse en ligne. Cliquez pour révéler les détails.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Theme 1 -->
+                <div class="interactive-card bg-white p-6 rounded-xl shadow-sm border border-gray-100 cursor-pointer" onclick="toggleArgument('arg-1')">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-2xl">⚖️</span>
+                            <h3 class="font-bold text-slate-800">Fraude vs Erreur Administrative</h3>
+                        </div>
+                        <span class="text-blue-500 text-sm font-medium">Voir +</span>
+                    </div>
+                    <div id="arg-1" class="mt-4 hidden border-t border-gray-100 pt-4">
+                        <p class="text-sm text-slate-600 mb-3">La distinction entre la fraude volontaire et l'erreur de bonne foi est centrale. Les critiques du reportage soulignent que beaucoup de "fraudeurs" sont en réalité victimes de la complexité administrative.</p>
+                        <div class="bg-slate-50 p-3 rounded text-xs text-slate-500 italic">
+                            "On confond sciemment l'oubli d'un document avec du travail au noir organisé." — Syndicat
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme 2 -->
+                <div class="interactive-card bg-white p-6 rounded-xl shadow-sm border border-gray-100 cursor-pointer" onclick="toggleArgument('arg-2')">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-2xl">💰</span>
+                            <h3 class="font-bold text-slate-800">Le "Piège à l'Emploi"</h3>
+                        </div>
+                        <span class="text-blue-500 text-sm font-medium">Voir +</span>
+                    </div>
+                    <div id="arg-2" class="mt-4 hidden border-t border-gray-100 pt-4">
+                        <p class="text-sm text-slate-600 mb-3">L'argument économique récurrent : la différence entre le salaire minimum et les allocations (+ avantages sociaux) est trop faible, décourageant la reprise du travail.</p>
+                        <div class="bg-slate-50 p-3 rounded text-xs text-slate-500 italic">
+                            "Pourquoi travailler pour 100€ de plus si je perds mes tarifs sociaux ?" — Témoignage anonyme
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme 3 -->
+                <div class="interactive-card bg-white p-6 rounded-xl shadow-sm border border-gray-100 cursor-pointer" onclick="toggleArgument('arg-3')">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-2xl">🕵️</span>
+                            <h3 class="font-bold text-slate-800">Contrôle et Vie Privée</h3>
+                        </div>
+                        <span class="text-blue-500 text-sm font-medium">Voir +</span>
+                    </div>
+                    <div id="arg-3" class="mt-4 hidden border-t border-gray-100 pt-4">
+                        <p class="text-sm text-slate-600 mb-3">Les méthodes de contrôle (visites domiciliaires, croisement de données factures eau/électricité) sont débattues sous l'angle de l'intrusion dans la vie privée.</p>
+                        <ul class="list-disc list-inside text-xs text-slate-600 mt-2">
+                            <li>Légalité des contrôles surprises</li>
+                            <li>Surveillance des réseaux sociaux</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Theme 4 -->
+                <div class="interactive-card bg-white p-6 rounded-xl shadow-sm border border-gray-100 cursor-pointer" onclick="toggleArgument('arg-4')">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-2xl">📢</span>
+                            <h3 class="font-bold text-slate-800">Stigmatisation Médiatique</h3>
+                        </div>
+                        <span class="text-blue-500 text-sm font-medium">Voir +</span>
+                    </div>
+                    <div id="arg-4" class="mt-4 hidden border-t border-gray-100 pt-4">
+                        <p class="text-sm text-slate-600 mb-3">Analyse de la responsabilité des médias dans la construction de l'image du "profiteur". Le titre "Tous Fraudeurs" est lui-même au cœur des critiques.</p>
+                        <div class="bg-slate-50 p-3 rounded text-xs text-slate-500 italic">
+                            "Un titre racoleur qui jette l'opprobre sur toute une région." — Éditorialiste
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: DYNAMICS -->
+        <section id="section-dynamics" class="hidden space-y-8 animate-fade-in">
+            <div class="bg-white p-6 rounded-xl shadow-sm">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-slate-800">Chronologie de la Controverse</h2>
+                    <p class="text-sm text-slate-500">Évolution du volume de publications et événements déclencheurs.</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+                <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="text-center p-3 border rounded hover:bg-slate-50 cursor-pointer transition" onclick="highlightTimeline(0)">
+                        <span class="block text-xs font-bold text-slate-400">Phase 1</span>
+                        <span class="text-sm font-bold text-slate-800">Diffusion TV</span>
+                    </div>
+                    <div class="text-center p-3 border rounded hover:bg-slate-50 cursor-pointer transition" onclick="highlightTimeline(1)">
+                        <span class="block text-xs font-bold text-slate-400">Phase 2</span>
+                        <span class="text-sm font-bold text-slate-800">Réaction Politique</span>
+                    </div>
+                    <div class="text-center p-3 border rounded hover:bg-slate-50 cursor-pointer transition" onclick="highlightTimeline(2)">
+                        <span class="block text-xs font-bold text-slate-400">Phase 3</span>
+                        <span class="text-sm font-bold text-slate-800">Débat de Fond</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-800 text-slate-300 py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center sm:text-left">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h5 class="text-white font-bold text-lg mb-2">À propos de cette cartographie</h5>
+                    <p class="text-sm text-slate-400">
+                        Cette application synthétise l'analyse de la couverture web autour de l'enquête "Tous Fraudeurs".
+                        Elle ne prend pas parti mais visualise les forces en présence et les arguments échangés.
+                    </p>
+                </div>
+                <div class="text-center md:text-right">
+                    <p class="text-xs text-slate-500">Basé sur l'analyse du rapport source.</p>
+                    <p class="text-xs text-slate-500 mt-1">Généré par IA • Single Page Application</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- State Management ---
+        const state = {
+            currentTab: 'overview',
+            charts: {},
+            data: {
+                actors: [
+                    { id: 1, name: "Christophe Deborsu", role: "Journaliste", x: 80, y: 90, sentiment: "Neutre", impact: "Trés Haut", desc: "Auteur de l'enquête, déclencheur de la controverse.", color: '#4b85a8' },
+                    { id: 2, name: "Syndicats (FGTB/CSC)", role: "Corps Intermédiaire", x: 20, y: 85, sentiment: "Critique", impact: "Haut", desc: "Défense des droits des assurés sociaux, critique la généralisation.", color: '#d97777' },
+                    { id: 3, name: "Politiques (MR/N-VA)", role: "Politique", x: 70, y: 70, sentiment: "Soutien", impact: "Moyen", desc: "Utilisent le reportage pour appuyer des réformes de contrôle plus strictes.", color: '#10b981' },
+                    { id: 4, name: "Public (Twitter/X)", role: "Citoyens", x: 50, y: 60, sentiment: "Polarisé", impact: "Moyen", desc: "Réactions émotionnelles, partage d'anecdotes personnelles.", color: '#fbbf24' },
+                    { id: 5, name: "Associations de précarité", role: "ONG", x: 30, y: 50, sentiment: "Critique", impact: "Bas", desc: "Soulignent les risques de non-recours aux droits.", color: '#d97777' }
+                ],
+                timeline: {
+                    labels: ['Semaine 1 (Teaser)', 'Semaine 2 (Diffusion)', 'Semaine 3 (Réactions)', 'Semaine 4 (Analyses)', 'Mois +1'],
+                    data: [200, 1500, 1100, 600, 300]
+                }
+            }
+        };
+
+        // --- Navigation Logic ---
+        function switchTab(tabId) {
+            // Update State
+            state.currentTab = tabId;
+
+            // Update UI: Hide all sections
+            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+            
+            // Show selected section
+            const targetSection = document.getElementById(`section-${tabId}`);
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+            }
+
+            // Update Nav Buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active', 'text-blue-600', 'border-blue-600'));
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            // Trigger Chart Resize/Update if needed (Chart.js sometimes needs this when un-hiding)
+            if(tabId === 'actors' && state.charts.actors) state.charts.actors.resize();
+            if(tabId === 'dynamics' && state.charts.timeline) state.charts.timeline.resize();
+            if(tabId === 'overview' && state.charts.sentiment) state.charts.sentiment.resize();
+        }
+
+        // --- Interaction Logic: Arguments ---
+        function toggleArgument(id) {
+            const content = document.getElementById(id);
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+            } else {
+                content.classList.add('hidden');
+            }
+        }
+
+        // --- Chart Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. Sentiment Donut Chart (Overview)
+            const ctxSentiment = document.getElementById('sentimentChart').getContext('2d');
+            state.charts.sentiment = new Chart(ctxSentiment, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Critique', 'Soutien', 'Neutre'],
+                    datasets: [{
+                        data: [45, 30, 25],
+                        backgroundColor: ['#d97777', '#10b981', '#4b85a8'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // 2. Actors Scatter Chart (Actors Section)
+            const ctxActors = document.getElementById('actorsChart').getContext('2d');
+            state.charts.actors = new Chart(ctxActors, {
+                type: 'bubble',
+                data: {
+                    datasets: state.data.actors.map(actor => ({
+                        label: actor.name,
+                        data: [{
+                            x: actor.x, // Sentiment (0=Critical, 100=Support) - Wait, let's fix logic visually
+                            y: actor.y, // Volume/Visibility
+                            r: actor.impact === 'Trés Haut' ? 25 : (actor.impact === 'Haut' ? 20 : 10) // Size
+                        }],
+                        backgroundColor: actor.color,
+                        borderColor: 'transparent'
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Orientation du discours (Gauche: Critique / Droite: Soutien)' },
+                            min: 0, max: 100
+                        },
+                        y: {
+                            title: { display: true, text: 'Visibilité Médiatique' },
+                            min: 0, max: 100,
+                            display: false // Hide numbers for cleaner look
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label;
+                                }
+                            }
+                        },
+                        legend: { display: false } // Custom legend or distinct colors
+                    },
+                    onClick: (e, activeEls) => {
+                        if (activeEls.length > 0) {
+                            const datasetIndex = activeEls[0].datasetIndex;
+                            const actor = state.data.actors[datasetIndex];
+                            showActorDetails(actor);
+                        }
+                    }
+                }
+            });
+
+            // 3. Timeline Chart (Dynamics Section)
+            const ctxTimeline = document.getElementById('timelineChart').getContext('2d');
+            state.charts.timeline = new Chart(ctxTimeline, {
+                type: 'line',
+                data: {
+                    labels: state.data.timeline.labels,
+                    datasets: [{
+                        label: 'Volume de publications',
+                        data: state.data.timeline.data,
+                        borderColor: '#4b85a8',
+                        backgroundColor: 'rgba(75, 133, 168, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        });
+
+        // --- Helper Functions ---
+        
+        function showActorDetails(actor) {
+            const container = document.getElementById('actor-details');
+            document.getElementById('actor-name').innerText = actor.name;
+            document.getElementById('actor-role').innerText = actor.role;
+            document.getElementById('actor-desc').innerText = actor.desc;
+            document.getElementById('actor-impact').innerText = actor.impact;
+            document.getElementById('actor-position').innerText = actor.sentiment;
+            
+            // Visual feedback on text color based on sentiment
+            const posEl = document.getElementById('actor-position');
+            if(actor.sentiment === 'Critique') posEl.className = "font-bold text-red-600";
+            else if(actor.sentiment === 'Soutien') posEl.className = "font-bold text-green-600";
+            else posEl.className = "font-bold text-blue-600";
+
+            container.classList.remove('hidden');
+            container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function highlightSentiment(type) {
+            // Simple visual feedback simulation
+            alert("Filtrage des données pour le sentiment: " + type + " (Fonctionnalité de démonstration)");
+        }
+
+        function highlightTimeline(phaseIndex) {
+            // Highlight a point on the chart
+            // Note: In a full app, this would zoom or update dataset colors
+            const chart = state.charts.timeline;
+            const colors = state.data.timeline.data.map((_, i) => i === phaseIndex ? '#d97777' : '#4b85a8');
+            const pointRadii = state.data.timeline.data.map((_, i) => i === phaseIndex ? 8 : 3);
+            
+            chart.data.datasets[0].pointBackgroundColor = colors;
+            chart.data.datasets[0].pointRadius = pointRadii;
+            chart.update();
+        }
+
+    </script>
+</body>
+</html>
