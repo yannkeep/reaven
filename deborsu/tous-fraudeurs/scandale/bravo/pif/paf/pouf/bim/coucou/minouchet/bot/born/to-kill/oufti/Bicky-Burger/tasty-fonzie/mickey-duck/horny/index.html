@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport d'Alerte : @yannkeep | GitHub Pages</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f4; /* Warm neutral - Stone 100 */
+            color: #1c1917; /* Stone 900 */
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%; 
+            height: 300px;
+            max-height: 350px;
+            margin: 0 auto;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e7e5e4;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #a8a29e;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #78716c;
+        }
+
+        .btn-interact {
+            transition: all 0.2s ease;
+        }
+        .btn-interact:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .btn-interact:active {
+            transform: translateY(0);
+        }
+
+        /* Audio Player Visualizer Animation */
+        .bar {
+            width: 4px;
+            background: #ea580c; /* Orange 600 */
+            animation: equalize 1s infinite;
+            border-radius: 2px;
+        }
+        .bar:nth-child(1) { animation-delay: -0.2s; height: 10px; }
+        .bar:nth-child(2) { animation-delay: -0.4s; height: 15px; }
+        .bar:nth-child(3) { animation-delay: -0.6s; height: 20px; }
+        .bar:nth-child(4) { animation-delay: -0.8s; height: 12px; }
+        .bar:nth-child(5) { animation-delay: -1.0s; height: 18px; }
+
+        .playing .bar {
+            animation-play-state: running;
+        }
+        .paused .bar {
+            animation-play-state: paused;
+            height: 4px !important;
+            transition: height 0.3s ease;
+        }
+
+        @keyframes equalize {
+            0% { height: 8px; }
+            50% { height: 24px; }
+            100% { height: 8px; }
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals (Stone) with Orange/Indigo Accents for data clarity and alerts. -->
+    <!-- Application Structure Plan:
+         1. Header & Audio Briefing: Immediate access to the core request (audio report) and high-level status.
+         2. Executive Dashboard (KPIs): Quick numeric overview of the footprint.
+         3. Temporal Analysis (Line Chart): To understand when the activity occurred.
+         4. Ecosystem Breakdown (Donut + List): Detailed view of the specific repositories found.
+         5. Risk Assessment: Contextual text and specific findings regarding data exposure.
+         Rationale: This structure moves from high-level summary (Audio/KPIs) to specific evidence (Charts/Lists) to actionable analysis (Risk), allowing the user to verify the "Alert" nature of the report.
+    -->
+    <!-- Visualization & Content Choices:
+         - Audio Player: JS Web Speech API to synthesize the report text. Fulfills the "audio report" requirement without external files.
+         - Line Chart (Chart.js): Shows deployment frequency over time. Goal: Identify activity spikes.
+         - Doughnut Chart (Chart.js): Shows language distribution. Goal: Technical profiling.
+         - Interactive Table: Lists found URLs with status indicators. Goal: Direct verification of findings.
+         - Risk Meter (HTML/CSS): Visual bar for threat level.
+         - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. Unicode icons used instead.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased min-h-screen pb-12">
+
+    <!-- Navbar -->
+    <nav class="bg-stone-900 text-stone-50 py-4 shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">⚡</span>
+                <div>
+                    <h1 class="font-bold text-lg tracking-wide">OSINT / ALERT</h1>
+                    <p class="text-xs text-stone-400">Rapport ID: YK-GH-2024-082</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 text-sm">
+                <span class="hidden md:inline text-stone-400">Cible: </span>
+                <span class="bg-stone-800 px-3 py-1 rounded-full text-orange-400 font-mono">@yannkeep</span>
+                <span class="bg-green-900 text-green-100 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Statut: Actif</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- SECTION 1: AUDIO BRIEFING (Integrated) -->
+        <div class="col-span-1 lg:col-span-12">
+            <div class="glass-panel rounded-xl p-6 border-l-4 border-orange-500 relative overflow-hidden">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <h2 class="text-xl font-bold text-stone-800">🎙️ Rapport Audio Intégré</h2>
+                            <span class="bg-orange-100 text-orange-800 text-xs px-2 py-0.5 rounded border border-orange-200">Synthèse Vocale</span>
+                        </div>
+                        <p class="text-stone-600 text-sm leading-relaxed">
+                            Écoutez le résumé exécutif de l'analyse concernant la présence de <strong>yannkeep</strong> sur GitHub Pages. Ce rapport audio détaille les anomalies détectées et le profil technique.
+                        </p>
+                    </div>
+                    
+                    <!-- Player Controls -->
+                    <div class="bg-stone-100 p-4 rounded-lg w-full md:w-auto flex items-center gap-4 shadow-inner">
+                        <button id="playBtn" class="btn-interact w-12 h-12 rounded-full bg-stone-900 text-white flex items-center justify-center text-xl shadow-lg hover:bg-orange-600 focus:outline-none">
+                            ▶
+                        </button>
+                        <div class="flex flex-col gap-1 min-w-[200px]">
+                            <div class="flex justify-between text-xs text-stone-500 font-mono">
+                                <span id="audioStatus">Prêt à lire</span>
+                                <span id="audioTime">00:00 / 01:15</span>
+                            </div>
+                            <div class="h-2 bg-stone-300 rounded-full overflow-hidden w-full relative">
+                                <div id="progressBar" class="h-full bg-orange-500 w-0 transition-all duration-300"></div>
+                            </div>
+                        </div>
+                        <!-- Visualizer -->
+                        <div id="visualizer" class="flex items-end gap-1 h-6 paused">
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: INTRO & KPIS -->
+        <div class="col-span-1 lg:col-span-8 space-y-6">
+            <div class="glass-panel rounded-xl p-6">
+                <h3 class="text-lg font-bold text-stone-800 mb-2 border-b border-stone-100 pb-2">Résumé de la Surveillance</h3>
+                <p class="text-stone-600 mb-4">
+                    Cette section présente les indicateurs clés de performance (KPI) extraits de l'analyse des dépôts publics. L'objectif est de quantifier l'exposition numérique de la cible sur l'infrastructure GitHub Pages. Les données indiquent une activité récente modérée avec un focus sur le développement web front-end.
+                </p>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                    <div class="bg-stone-50 p-4 rounded-lg border border-stone-200 text-center">
+                        <div class="text-3xl font-bold text-stone-800" id="stat-repos">0</div>
+                        <div class="text-xs text-stone-500 uppercase tracking-wide mt-1">Dépôts Indexés</div>
+                    </div>
+                    <div class="bg-stone-50 p-4 rounded-lg border border-stone-200 text-center">
+                        <div class="text-3xl font-bold text-indigo-600" id="stat-pages">0</div>
+                        <div class="text-xs text-stone-500 uppercase tracking-wide mt-1">Pages Actives</div>
+                    </div>
+                    <div class="bg-stone-50 p-4 rounded-lg border border-stone-200 text-center">
+                        <div class="text-3xl font-bold text-stone-800" id="stat-commits">0</div>
+                        <div class="text-xs text-stone-500 uppercase tracking-wide mt-1">Commits (30j)</div>
+                    </div>
+                    <div class="bg-stone-50 p-4 rounded-lg border border-stone-200 text-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-orange-50 opacity-50"></div>
+                        <div class="text-3xl font-bold text-orange-600 relative z-10">MOYEN</div>
+                        <div class="text-xs text-stone-500 uppercase tracking-wide mt-1 relative z-10">Niveau Risque</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TIMELINE CHART -->
+            <div class="glass-panel rounded-xl p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-stone-800">📉 Chronologie d'Activité</h3>
+                    <select id="timelineFilter" class="text-sm bg-stone-100 border-none rounded px-3 py-1 cursor-pointer hover:bg-stone-200">
+                        <option value="all">6 derniers mois</option>
+                        <option value="q4">Q4 2024</option>
+                        <option value="q1">Q1 2025</option>
+                    </select>
+                </div>
+                <p class="text-sm text-stone-500 mb-4">
+                    Visualisation de la fréquence des déploiements (commits) sur la branche `gh-pages` ou `main`. Les pics indiquent des phases de développement intensif ou de mises à jour de contenu.
+                </p>
+                <div class="chart-container">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: TECH PROFILE & RISK -->
+        <div class="col-span-1 lg:col-span-4 space-y-6">
+            <!-- RISK CARD -->
+            <div class="bg-stone-900 text-white rounded-xl p-6 shadow-xl">
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    ⚠️ Analyse de Risque
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1 text-stone-400">
+                            <span>Exposition Données Personnelles</span>
+                            <span class="text-orange-400">Détecté</span>
+                        </div>
+                        <div class="w-full bg-stone-700 rounded-full h-2">
+                            <div class="bg-orange-500 h-2 rounded-full" style="width: 65%"></div>
+                        </div>
+                        <p class="text-xs text-stone-400 mt-2 italic">
+                            Email personnel trouvé dans `package.json` sur le dépôt `portfolio-v1`.
+                        </p>
+                    </div>
+                    <hr class="border-stone-700">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1 text-stone-400">
+                            <span>Sécurité Configuration</span>
+                            <span class="text-green-400">Sécurisé</span>
+                        </div>
+                        <div class="w-full bg-stone-700 rounded-full h-2">
+                            <div class="bg-green-500 h-2 rounded-full" style="width: 90%"></div>
+                        </div>
+                        <p class="text-xs text-stone-400 mt-2 italic">
+                            Usage correct de HTTPS forcé sur tous les domaines.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TECH STACK CHART -->
+            <div class="glass-panel rounded-xl p-6">
+                <h3 class="text-lg font-bold text-stone-800 mb-2">💻 Stack Technique</h3>
+                <p class="text-sm text-stone-500 mb-4">Répartition des langages détectés dans les dépôts publics associés à @yannkeep.</p>
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="langChart"></canvas>
+                </div>
+                <div class="mt-4 flex flex-wrap gap-2 justify-center">
+                    <span class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">HTML/CSS</span>
+                    <span class="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded">JavaScript</span>
+                    <span class="text-xs px-2 py-1 bg-red-100 text-red-800 rounded">Jekyll</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 4: DETAILED FINDINGS TABLE -->
+        <div class="col-span-1 lg:col-span-12 mb-12">
+            <div class="glass-panel rounded-xl p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-stone-800">📂 Détails des Dépôts Détectés</h3>
+                        <p class="text-sm text-stone-500">Liste exhaustive des points de terminaison GitHub Pages identifiés lors de l'analyse.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="filterTable('all')" class="px-4 py-2 text-sm bg-stone-200 hover:bg-stone-300 rounded-lg transition-colors focus:ring-2 focus:ring-stone-400 font-medium">Tout</button>
+                        <button onclick="filterTable('live')" class="px-4 py-2 text-sm bg-emerald-100 text-emerald-800 hover:bg-emerald-200 rounded-lg transition-colors focus:ring-2 focus:ring-emerald-400 font-medium">En Ligne</button>
+                        <button onclick="filterTable('archived')" class="px-4 py-2 text-sm bg-stone-100 text-stone-600 hover:bg-stone-200 rounded-lg transition-colors focus:ring-2 focus:ring-stone-400 font-medium">Archivé</button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-stone-200">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-stone-500 uppercase bg-stone-100">
+                            <tr>
+                                <th class="px-6 py-3">Nom du Dépôt</th>
+                                <th class="px-6 py-3">URL Détectée</th>
+                                <th class="px-6 py-3">Dernière Mise à Jour</th>
+                                <th class="px-6 py-3">Statut</th>
+                                <th class="px-6 py-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="repoTableBody" class="divide-y divide-stone-200 bg-white">
+                            <!-- Rows injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-stone-100 border-t border-stone-200 mt-auto py-8 text-center text-xs text-stone-500">
+        <p>Généré automatiquement par le système de surveillance OSINT • Données simulées pour démonstration.</p>
+        <p class="mt-2">Confidentiel - Usage Interne Uniquement</p>
+    </footer>
+
+    <!-- JavaScript Implementation -->
+    <script>
+        // --- DATA STORE ---
+        // Simulated data derived from the "source report" context
+        const reportData = {
+            user: "yannkeep",
+            summary: {
+                repos: 5,
+                pages: 3,
+                commits_30d: 12,
+                risk_level: "Medium"
+            },
+            timeline: {
+                labels: ['Sep', 'Oct', 'Nov', 'Déc', 'Jan', 'Fév'],
+                data: [2, 8, 15, 5, 1, 12]
+            },
+            languages: {
+                labels: ['HTML', 'JavaScript', 'CSS', 'Ruby (Jekyll)', 'Autre'],
+                data: [35, 30, 20, 10, 5]
+            },
+            repositories: [
+                {
+                    name: "yannkeep.github.io",
+                    url: "https://yannkeep.github.io",
+                    date: "2025-02-15",
+                    status: "live",
+                    desc: "Portfolio principal"
+                },
+                {
+                    name: "react-todo-app",
+                    url: "https://yannkeep.github.io/react-todo-app",
+                    date: "2024-11-20",
+                    status: "live",
+                    desc: "Application de démonstration"
+                },
+                {
+                    name: "legacy-blog",
+                    url: "https://yannkeep.github.io/legacy-blog",
+                    date: "2023-08-10",
+                    status: "archived",
+                    desc: "Ancien blog personnel (404 potentiel)"
+                },
+                {
+                    name: "test-deploy",
+                    url: "https://yannkeep.github.io/test-deploy",
+                    date: "2024-12-05",
+                    status: "archived",
+                    desc: "Test technique temporaire"
+                },
+                {
+                    name: "weather-widget",
+                    url: "https://yannkeep.github.io/weather-widget",
+                    date: "2025-01-10",
+                    status: "live",
+                    desc: "Widget météo API"
+                }
+            ],
+            // Script for the TTS Audio Report
+            audioScript: "Rapport de surveillance pour l'utilisateur Yann Keep. Analyse des résultats GitHub Pages. Cinq dépôts ont été identifiés, dont trois sont actuellement en ligne. L'activité de déploiement montre un pic significatif en novembre deux mille vingt-quatre, suivi d'une reprise en février. Attention, une adresse email personnelle a été détectée dans l'historique des commits du dépôt Portfolio version 1, ce qui constitue un risque modéré de confidentialité. Le profil technique est principalement orienté front-end avec une forte utilisation de HTML et JavaScript. Fin du rapport."
+        };
+
+        // --- DOM ELEMENTS ---
+        const playBtn = document.getElementById('playBtn');
+        const progressBar = document.getElementById('progressBar');
+        const visualizer = document.getElementById('visualizer');
+        const audioStatus = document.getElementById('audioStatus');
+        
+        // --- AUDIO IMPLEMENTATION (Web Speech API) ---
+        let isPlaying = false;
+        const synth = window.speechSynthesis;
+        let utterance = new SpeechSynthesisUtterance(reportData.audioScript);
+        utterance.lang = 'fr-FR';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+
+        // Reset functionality when speech ends
+        utterance.onend = function() {
+            isPlaying = false;
+            playBtn.innerHTML = "▶";
+            visualizer.classList.add('paused');
+            visualizer.classList.remove('playing');
+            progressBar.style.width = '100%';
+            audioStatus.innerText = "Lecture terminée";
+            setTimeout(() => { progressBar.style.width = '0%'; audioStatus.innerText = "Prêt à lire"; }, 2000);
+        };
+
+        // Progress bar simulation (since Speech API doesn't give precise progress)
+        let progressInterval;
+        function simulateProgress() {
+            let width = 0;
+            clearInterval(progressInterval);
+            progressInterval = setInterval(() => {
+                if(!isPlaying) { clearInterval(progressInterval); return; }
+                width += 0.5;
+                if(width >= 100) width = 100;
+                progressBar.style.width = width + '%';
+            }, 300); // Approximate duration match
+        }
+
+        playBtn.addEventListener('click', () => {
+            if (synth.speaking && isPlaying) {
+                // Pause (Cancel effectively for this API simplicity)
+                synth.cancel();
+                isPlaying = false;
+                playBtn.innerHTML = "▶";
+                visualizer.classList.add('paused');
+                visualizer.classList.remove('playing');
+                audioStatus.innerText = "Arrêté";
+                clearInterval(progressInterval);
+            } else {
+                // Play
+                synth.cancel(); // Clear any queued
+                synth.speak(utterance);
+                isPlaying = true;
+                playBtn.innerHTML = "⏸";
+                visualizer.classList.remove('paused');
+                visualizer.classList.add('playing');
+                audioStatus.innerText = "Lecture en cours...";
+                progressBar.style.width = '0%';
+                simulateProgress();
+            }
+        });
+
+        // --- UI INITIALIZATION ---
+        
+        // 1. Fill KPIs
+        document.getElementById('stat-repos').innerText = reportData.summary.repos;
+        document.getElementById('stat-pages').innerText = reportData.summary.pages;
+        document.getElementById('stat-commits').innerText = reportData.summary.commits_30d;
+
+        // 2. Charts Configuration (Chart.js)
+        
+        // Timeline Chart
+        const ctxTimeline = document.getElementById('activityChart').getContext('2d');
+        const activityChart = new Chart(ctxTimeline, {
+            type: 'line',
+            data: {
+                labels: reportData.timeline.labels,
+                datasets: [{
+                    label: 'Déploiements',
+                    data: reportData.timeline.data,
+                    borderColor: '#ea580c', // Orange 600
+                    backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#ea580c',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: '#1c1917',
+                        titleColor: '#fff',
+                        bodyColor: '#d6d3d1'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { borderDash: [2, 4], color: '#e7e5e4' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Language Donut Chart
+        const ctxLang = document.getElementById('langChart').getContext('2d');
+        const langChart = new Chart(ctxLang, {
+            type: 'doughnut',
+            data: {
+                labels: reportData.languages.labels,
+                datasets: [{
+                    data: reportData.languages.data,
+                    backgroundColor: [
+                        '#3b82f6', // Blue
+                        '#eab308', // Yellow
+                        '#06b6d4', // Cyan
+                        '#ef4444', // Red
+                        '#a8a29e'  // Grey
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 10,
+                            font: { size: 11 }
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+
+        // 3. Table Population
+        const tableBody = document.getElementById('repoTableBody');
+
+        function renderTable(filter) {
+            tableBody.innerHTML = '';
+            
+            const filteredData = reportData.repositories.filter(repo => {
+                if (filter === 'all') return true;
+                return repo.status === filter;
+            });
+
+            filteredData.forEach(repo => {
+                const statusBadge = repo.status === 'live' 
+                    ? `<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">● En Ligne</span>`
+                    : `<span class="px-2 py-1 text-xs font-semibold rounded-full bg-stone-100 text-stone-500">○ Archivé</span>`;
+
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-stone-50 transition-colors border-b border-stone-100 last:border-0';
+                row.innerHTML = `
+                    <td class="px-6 py-4 font-medium text-stone-900 flex items-center gap-2">
+                        <span class="text-stone-400">📂</span> ${repo.name}
+                    </td>
+                    <td class="px-6 py-4 text-stone-500 font-mono text-xs">
+                        <a href="${repo.url}" target="_blank" class="hover:text-blue-600 hover:underline transition-colors truncate block max-w-[200px]">${repo.url}</a>
+                    </td>
+                    <td class="px-6 py-4 text-stone-500">${repo.date}</td>
+                    <td class="px-6 py-4">${statusBadge}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button class="text-stone-400 hover:text-stone-800 transition-colors" title="Détails">⋮</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Initialize Table
+        renderTable('all');
+
+        // Filter Function exposed to window
+        window.filterTable = function(type) {
+            renderTable(type);
+        };
+
+        // Timeline Filter interaction (Visual only for demo)
+        document.getElementById('timelineFilter').addEventListener('change', (e) => {
+            // Update chart data based on simulated logic
+            if(e.target.value === 'q1') {
+                activityChart.data.datasets[0].data = [5, 1, 12];
+                activityChart.data.labels = ['Déc', 'Jan', 'Fév'];
+            } else if (e.target.value === 'q4') {
+                activityChart.data.datasets[0].data = [2, 8, 15];
+                activityChart.data.labels = ['Sep', 'Oct', 'Nov'];
+            } else {
+                activityChart.data.datasets[0].data = [2, 8, 15, 5, 1, 12];
+                activityChart.data.labels = ['Sep', 'Oct', 'Nov', 'Déc', 'Jan', 'Fév'];
+            }
+            activityChart.update();
+        });
+
+    </script>
+</body>
+</html>
