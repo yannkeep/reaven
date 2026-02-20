@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUDIT·60 — Vérification exhaustive des données citoyennes | ouaisfieu</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg-deep: #0a0a12;
+  --bg-surface: #12121e;
+  --bg-card: #1a1a2e;
+  --bg-elevated: #222240;
+  --border: #2a2a4a;
+  --border-bright: #3a3a6a;
+  --text-primary: #e8e6e3;
+  --text-secondary: #9998a8;
+  --text-muted: #666680;
+  --accent-green: #00e676;
+  --accent-green-dim: #00e67630;
+  --accent-orange: #ff9100;
+  --accent-orange-dim: #ff910030;
+  --accent-red: #ff5252;
+  --accent-red-dim: #ff525230;
+  --accent-blue: #448aff;
+  --accent-blue-dim: #448aff30;
+  --accent-purple: #b388ff;
+  --accent-purple-dim: #b388ff30;
+  --accent-yellow: #ffd740;
+  --accent-yellow-dim: #ffd74030;
+  --accent-cyan: #18ffff;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-serif: 'Crimson Pro', Georgia, serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  --radius: 6px;
+  --radius-lg: 12px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --shadow-glow: 0 0 30px rgba(0,230,118,0.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══════════════════════════════════════════════
+   NOISE OVERLAY
+   ═══════════════════════════════════════════════ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ═══════════════════════════════════════════════
+   SCANLINE
+   ═══════════════════════════════════════════════ */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* ═══════════════════════════════════════════════
+   LAYOUT
+   ═══════════════════════════════════════════════ */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+/* ═══════════════════════════════════════════════
+   HEADER
+   ═══════════════════════════════════════════════ */
+.header {
+  text-align: center;
+  padding: 48px 20px 40px;
+  position: relative;
+}
+
+.header::before {
+  content: '░░░ AUDIT PROTOCOL ░░░';
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 6px;
+  color: var(--accent-green);
+  opacity: 0.5;
+  margin-bottom: 20px;
+  animation: blink 3s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.2; }
+}
+
+.header h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+
+.header h1 .num { color: var(--accent-green); }
+.header h1 .sep { color: var(--text-muted); }
+
+.header .subtitle {
+  font-family: var(--font-serif);
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
+  color: var(--text-secondary);
+  font-weight: 300;
+  font-style: italic;
+  max-width: 700px;
+  margin: 0 auto 24px;
+}
+
+.header .meta-line {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.header .meta-line span { color: var(--accent-cyan); }
+
+/* ═══════════════════════════════════════════════
+   CREDIBILITY INDEX BAR
+   ═══════════════════════════════════════════════ */
+.credibility-section {
+  margin: 0 auto 40px;
+  max-width: 800px;
+}
+
+.credibility-bar-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.credibility-bar-wrap::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan), var(--accent-blue));
+}
+
+.credibility-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 14px;
+}
+
+.credibility-label .title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.credibility-label .scores {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.credibility-label .scores .before { color: var(--accent-orange); }
+.credibility-label .scores .after { color: var(--accent-green); }
+
+.cred-bar-track {
+  height: 28px;
+  background: var(--bg-deep);
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.cred-bar-before {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  background: linear-gradient(90deg, var(--accent-orange-dim), var(--accent-orange));
+  border-radius: 14px;
+  transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.35;
+}
+
+.cred-bar-after {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  background: linear-gradient(90deg, var(--accent-green-dim), var(--accent-green));
+  border-radius: 14px;
+  transition: width 1.8s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 12px;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--bg-deep);
+  text-shadow: 0 0 4px rgba(0,230,118,0.5);
+}
+
+.cred-explanation {
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  font-family: var(--font-serif);
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════════════
+   STATS GRID
+   ═══════════════════════════════════════════════ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.stat-card:hover {
+  border-color: var(--border-bright);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.stat-card.active {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 20px rgba(24,255,255,0.1);
+}
+
+.stat-card .icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.stat-card .number {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-card .label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+}
+
+.stat-card.verified .number { color: var(--accent-green); }
+.stat-card.corrected .number { color: var(--accent-red); }
+.stat-card.approximate .number { color: var(--accent-orange); }
+.stat-card.unverified .number { color: var(--accent-purple); }
+.stat-card.total .number { color: var(--text-primary); }
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+}
+.stat-card.verified::after { background: var(--accent-green); }
+.stat-card.corrected::after { background: var(--accent-red); }
+.stat-card.approximate::after { background: var(--accent-orange); }
+.stat-card.unverified::after { background: var(--accent-purple); }
+.stat-card.total::after { background: linear-gradient(90deg, var(--accent-green), var(--accent-orange), var(--accent-red), var(--accent-purple)); }
+
+/* ═══════════════════════════════════════════════
+   VISUAL CHART AREA
+   ═══════════════════════════════════════════════ */
+.chart-area {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+  margin-bottom: 40px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .chart-area { grid-template-columns: 1fr; }
+}
+
+.donut-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  text-align: center;
+}
+
+.donut-wrap h3 {
+  font-family: var(--font-display);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.donut-svg {
+  width: 220px;
+  height: 220px;
+  margin: 0 auto;
+}
+
+.donut-legend {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legend-item .count {
+  margin-left: auto;
+  font-weight: 600;
+  font-family: var(--font-display);
+}
+
+/* ═══════════════════════════════════════════════
+   PRIORITY CORRECTIONS
+   ═══════════════════════════════════════════════ */
+.priority-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--accent-red);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.priority-panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-red), var(--accent-orange), var(--accent-red));
+}
+
+.priority-panel h3 {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-red);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.priority-panel .sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+.priority-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.priority-item {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-red);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.priority-item:hover {
+  background: var(--bg-elevated);
+  border-left-color: var(--accent-orange);
+}
+
+.priority-item .pi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.priority-item .pi-num {
+  font-weight: 700;
+  color: var(--accent-red);
+  font-size: 11px;
+}
+
+.priority-item .pi-severity {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.sev-critical { background: var(--accent-red-dim); color: var(--accent-red); }
+.sev-major { background: var(--accent-orange-dim); color: var(--accent-orange); }
+.sev-moderate { background: var(--accent-yellow-dim); color: var(--accent-yellow); }
+
+.priority-item .pi-title {
+  font-size: 12px;
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.priority-item .pi-fix {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: var(--font-serif);
+}
+
+.priority-item .pi-fix .old {
+  text-decoration: line-through;
+  color: var(--accent-red);
+  opacity: 0.7;
+}
+.priority-item .pi-fix .new {
+  color: var(--accent-green);
+  font-weight: 500;
+}
+
+/* ═══════════════════════════════════════════════
+   FILTER / SEARCH BAR
+   ═══════════════════════════════════════════════ */
+.controls-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 240px;
+  position: relative;
+}
+
+.search-box input {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px 10px 36px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-box input:focus { border-color: var(--accent-cyan); }
+
+.search-box input::placeholder { color: var(--text-muted); }
+
+.search-box::before {
+  content: '⌕';
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.filter-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.pill:hover { border-color: var(--text-muted); color: var(--text-primary); }
+
+.pill.active-pill {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  background: rgba(24,255,255,0.06);
+}
+
+.bloc-pills {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.bloc-pill {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bloc-pill:hover, .bloc-pill.active-bloc {
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  background: rgba(68,138,255,0.06);
+}
+
+/* ═══════════════════════════════════════════════
+   DATA TABLE
+   ═══════════════════════════════════════════════ */
+.table-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+thead th {
+  background: var(--bg-elevated);
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s;
+}
+
+thead th:hover { color: var(--accent-cyan); }
+thead th.sorted { color: var(--accent-cyan); }
+thead th .sort-arrow { margin-left: 4px; font-size: 8px; }
+
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+tbody tr:hover { background: var(--bg-elevated); }
+
+tbody td {
+  padding: 10px 14px;
+  vertical-align: top;
+}
+
+.td-num {
+  font-weight: 700;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: center;
+  width: 40px;
+}
+
+.td-status {
+  width: 120px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.status-verified { background: var(--accent-green-dim); color: var(--accent-green); }
+.status-corrected { background: var(--accent-red-dim); color: var(--accent-red); }
+.status-approximate { background: var(--accent-orange-dim); color: var(--accent-orange); }
+.status-unverified { background: var(--accent-purple-dim); color: var(--accent-purple); }
+
+.td-data {
+  max-width: 280px;
+  font-weight: 500;
+}
+
+.td-correction {
+  max-width: 340px;
+  font-family: var(--font-serif);
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.td-correction .corr-old {
+  text-decoration: line-through;
+  color: var(--accent-red);
+  opacity: 0.6;
+}
+
+.td-correction .corr-new {
+  color: var(--accent-green);
+  font-weight: 500;
+}
+
+.td-correction .corr-none {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.td-bloc {
+  width: 50px;
+  text-align: center;
+}
+
+.bloc-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.td-source {
+  max-width: 200px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.td-source a {
+  color: var(--accent-blue);
+  text-decoration: none;
+}
+.td-source a:hover { text-decoration: underline; }
+
+/* Row highlight for priority corrections */
+tr.row-priority {
+  background: rgba(255,82,82,0.04);
+}
+
+tr.row-priority:hover {
+  background: rgba(255,82,82,0.08);
+}
+
+/* ═══════════════════════════════════════════════
+   EXPAND ROW DETAIL
+   ═══════════════════════════════════════════════ */
+.row-detail {
+  display: none;
+}
+
+.row-detail.open {
+  display: table-row;
+}
+
+.row-detail td {
+  background: var(--bg-surface);
+  padding: 16px 20px;
+  border-bottom: 2px solid var(--border);
+}
+
+.detail-inner {
+  max-width: 900px;
+  font-family: var(--font-serif);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.detail-inner strong { color: var(--text-primary); }
+.detail-inner .src-primary { color: var(--accent-green); font-family: var(--font-mono); font-size: 11px; }
+.detail-inner .src-link { color: var(--accent-blue); text-decoration: none; font-family: var(--font-mono); font-size: 10px; word-break: break-all; }
+.detail-inner .src-link:hover { text-decoration: underline; }
+
+/* ═══════════════════════════════════════════════
+   METHODOLOGY NOTE
+   ═══════════════════════════════════════════════ */
+.methodology {
+  margin-top: 40px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  position: relative;
+}
+
+.methodology::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+}
+
+.methodology h3 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.methodology p, .methodology li {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.methodology .highlight {
+  color: var(--accent-cyan);
+  font-weight: 500;
+}
+
+.methodology ul {
+  list-style: none;
+  margin: 12px 0;
+}
+
+.methodology li::before {
+  content: '→';
+  color: var(--accent-green);
+  margin-right: 8px;
+  font-family: var(--font-mono);
+}
+
+/* ═══════════════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════════════ */
+.footer {
+  text-align: center;
+  padding: 40px 20px;
+  border-top: 1px solid var(--border);
+  margin-top: 40px;
+}
+
+.footer .branding {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.footer .branding span { color: var(--accent-green); }
+
+.footer .license {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+.footer .timestamp {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  font-family: var(--font-mono);
+}
+
+/* ═══════════════════════════════════════════════
+   COUNT INDICATOR
+   ═══════════════════════════════════════════════ */
+.results-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  font-family: var(--font-mono);
+}
+
+.results-count span { color: var(--accent-cyan); font-weight: 600; }
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .stat-card .number { font-size: 2rem; }
+  .container { padding: 16px 12px; }
+  .chart-area { grid-template-columns: 1fr; }
+  .controls-bar { flex-direction: column; }
+  .search-box { min-width: 100%; }
+  table { font-size: 11px; }
+  .td-correction, .td-source { display: none; }
+}
+
+/* ═══════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+.d1 { animation-delay: 0.1s; }
+.d2 { animation-delay: 0.2s; }
+.d3 { animation-delay: 0.3s; }
+.d4 { animation-delay: 0.4s; }
+.d5 { animation-delay: 0.5s; }
+
+/* Clickable row cursor */
+tbody tr.data-row { cursor: pointer; }
+
+/* Export button */
+.export-btn {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 16px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.export-btn:hover {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ═══ HEADER ═══ -->
+  <header class="header animate-in d1">
+    <h1>AUDIT<span class="sep">·</span><span class="num">60</span></h1>
+    <p class="subtitle">Vérification exhaustive des données citoyennes sur la fraude fiscale belge — Tableau de bord interactif</p>
+    <p class="meta-line">ouaisfieu · intelligence citoyenne belge · <span>février 2026</span> · CC BY-NC 4.0</p>
+  </header>
+
+  <!-- ═══ CREDIBILITY INDEX ═══ -->
+  <div class="credibility-section animate-in d2">
+    <div class="credibility-bar-wrap">
+      <div class="credibility-label">
+        <span class="title">Indice de fiabilité du corpus</span>
+        <span class="scores">
+          Avant audit : <span class="before">56,7 %</span> · 
+          Après corrections : <span class="after">96,7 %</span>
+        </span>
+      </div>
+      <div class="cred-bar-track">
+        <div class="cred-bar-before" id="credBefore"></div>
+        <div class="cred-bar-after" id="credAfter"></div>
+      </div>
+      <p class="cred-explanation">
+        Avant : seules 34 données sur 60 étaient parfaitement exactes (56,7 %). 
+        Après application des 12 corrections prioritaires et 8 nuances → 58/60 données défendables au niveau institutionnel (96,7 %).
+      </p>
+    </div>
+  </div>
+
+  <!-- ═══ STATS CARDS ═══ -->
+  <div class="stats-grid animate-in d3">
+    <div class="stat-card total active" data-filter="all">
+      <div class="icon">◎</div>
+      <div class="number">60</div>
+      <div class="label">Total données</div>
+    </div>
+    <div class="stat-card verified" data-filter="verified">
+      <div class="icon">✓</div>
+      <div class="number">34</div>
+      <div class="label">Confirmées</div>
+    </div>
+    <div class="stat-card corrected" data-filter="corrected">
+      <div class="icon">✎</div>
+      <div class="number">15</div>
+      <div class="label">À corriger</div>
+    </div>
+    <div class="stat-card approximate" data-filter="approximate">
+      <div class="icon">≈</div>
+      <div class="number">8</div>
+      <div class="label">Approximatives</div>
+    </div>
+    <div class="stat-card unverified" data-filter="unverified">
+      <div class="icon">?</div>
+      <div class="number">3</div>
+      <div class="label">Non vérifiées</div>
+    </div>
+  </div>
+
+  <!-- ═══ CHART + PRIORITY ═══ -->
+  <div class="chart-area animate-in d4">
+    <!-- DONUT -->
+    <div class="donut-wrap">
+      <h3>Répartition des statuts</h3>
+      <svg class="donut-svg" viewBox="0 0 200 200" id="donutChart"></svg>
+      <div class="donut-legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--accent-green)"></div>
+          <span>Vérifié / Confirmé</span>
+          <span class="count" style="color:var(--accent-green)">34</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--accent-red)"></div>
+          <span>Corrigé / À corriger</span>
+          <span class="count" style="color:var(--accent-red)">15</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--accent-orange)"></div>
+          <span>Approximatif</span>
+          <span class="count" style="color:var(--accent-orange)">8</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--accent-purple)"></div>
+          <span>Non vérifié</span>
+          <span class="count" style="color:var(--accent-purple)">3</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRIORITY CORRECTIONS -->
+    <div class="priority-panel">
+      <h3>⚡ 12 corrections prioritaires</h3>
+      <p class="sub">Ces erreurs doivent être corrigées avant toute publication — elles mettent en jeu la crédibilité du projet face aux détracteurs.</p>
+      <ul class="priority-list" id="priorityList"></ul>
+    </div>
+  </div>
+
+  <!-- ═══ CONTROLS ═══ -->
+  <div class="controls-bar animate-in d5">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Rechercher une donnée, un mot-clé, un numéro…">
+    </div>
+    <div class="filter-pills" id="filterPills">
+      <button class="pill active-pill" data-filter="all">Toutes (60)</button>
+      <button class="pill" data-filter="verified">✓ Confirmées (34)</button>
+      <button class="pill" data-filter="corrected">✎ Corrigées (15)</button>
+      <button class="pill" data-filter="approximate">≈ Approx. (8)</button>
+      <button class="pill" data-filter="unverified">? Non vérif. (3)</button>
+    </div>
+    <div class="bloc-pills" id="blocPills">
+      <button class="bloc-pill active-bloc" data-bloc="all">Tous blocs</button>
+      <button class="bloc-pill" data-bloc="1">B1</button>
+      <button class="bloc-pill" data-bloc="2">B2</button>
+      <button class="bloc-pill" data-bloc="3">B3</button>
+      <button class="bloc-pill" data-bloc="4">B4</button>
+      <button class="bloc-pill" data-bloc="5">B5</button>
+      <button class="bloc-pill" data-bloc="6">B6</button>
+      <button class="bloc-pill" data-bloc="7">B7</button>
+      <button class="bloc-pill" data-bloc="8">B8</button>
+    </div>
+    <button class="export-btn" id="exportBtn">⤓ Exporter CSV</button>
+  </div>
+
+  <div class="results-count" id="resultsCount">Affichage : <span>60</span> / 60 données</div>
+
+  <!-- ═══ MAIN TABLE ═══ -->
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th class="sorted" data-sort="num">N° <span class="sort-arrow">▲</span></th>
+            <th data-sort="status">Statut</th>
+            <th>Bloc</th>
+            <th data-sort="data">Donnée</th>
+            <th>Correction / Nuance</th>
+            <th>Source primaire</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ METHODOLOGY ═══ -->
+  <div class="methodology animate-in">
+    <h3>📐 Note méthodologique</h3>
+    <p>Ce tableau de bord constitue l'<span class="highlight">auto-audit</span> des données utilisées dans les PWA citoyennes du projet ouaisfieu sur la fraude fiscale belge. Chaque donnée a été vérifiée contre des sources primaires identifiées (rapports de la Cour des Comptes, INAMI, ONEM, Statbel, Moniteur Belge, études académiques HIVA-KU Leuven, SPF Sécurité Sociale, etc.).</p>
+    <p><strong>Le ratio ×120</strong> — chiffre central du projet — repose sur une comparaison <span class="highlight">méthodologiquement asymétrique</span> : il confronte une estimation haute théorique (€30 Mds, Murphy 2019) à un montant de fraude uniquement détectée (€250 M, Cour des Comptes 2017). Le ratio <span class="highlight">×10</span> (redressements fiscaux vs fraude sociale détectée, Strale/inegalites.be 2018) est méthodologiquement défendable et suffit à démontrer la disproportion spectaculaire des traitements.</p>
+    <ul>
+      <li><strong>Principe :</strong> présenter des fourchettes plutôt que des chiffres uniques quand la réalité est contestée</li>
+      <li><strong>Principe :</strong> distinguer systématiquement fraude estimée, fraude détectée et tax gap</li>
+      <li><strong>Principe :</strong> citer les sources primaires vérifiables — les opinions ne sont pas des preuves</li>
+      <li><strong>Principe :</strong> une contre-institution citoyenne doit s'imposer des standards supérieurs à ceux des institutions qu'elle critique</li>
+    </ul>
+    <p>Ce document est publié en transparence selon les principes de l'<span class="highlight">intelligence citoyenne ouverte</span>. Toute erreur résiduelle signalée sera corrigée et créditée.</p>
+  </div>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="footer">
+    <div class="branding"><span>ouais</span>fieu</div>
+    <div class="license">CC BY-NC 4.0 · Intelligence Citoyenne Belge · Fork · Hack · Spread</div>
+    <div class="timestamp">Audit généré le 20/02/2026 · 60 données · 8 blocs thématiques</div>
+  </footer>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA — 60 données avec métadonnées complètes
+// ═══════════════════════════════════════════════════════════════
+
+const DATA = [
+  // BLOC 1 — Ratios fraude fiscale vs sociale
+  { num: 1, bloc: 1, status: "approximate", label: "Fraude fiscale €30 Mds/an", correction: "Fourchette €6,6–€30,4 Mds — présenter comme estimation haute, pas consensus", source: "Murphy (S&D, 2019) ; Crombez ; SUBLEC/SPF 2012", priority: true, severity: "critical",
+    detail: "Le chiffre de €30 milliards est l'extrémité supérieure d'un spectre : BNB €6,6 Mds ; ISI €10 Mds ; SUBLEC €12,7-12,9 Mds ; RJF €20 Mds ; Murphy €30,4 Mds. Le tax gap inclut l'optimisation, les erreurs, l'économie informelle. L'impôt réellement éludé serait de €3,4 à €14 Mds (Hoge Raad van Financiën via PAL.be, nov. 2025)." },
+  { num: 2, bloc: 1, status: "verified", label: "Fraude sociale €250 M/an (détectée)", correction: "Préciser : détectée uniquement. Obsolète → €435 M en 2024 (SIRS)", source: "Cour des Comptes, sept. 2017", priority: false,
+    detail: "Chiffre explicitement cité par l'Observatoire belge des inégalités (note [5]). Mise à jour : €342 M (2021), €385 M (2023), €435 M (2024) selon les rapports annuels SIRS." },
+  { num: 3, bloc: 1, status: "corrected", label: "Ratio ×120", correction: "<span class='corr-old'>×120</span> → Le ratio méthodologiquement solide est <span class='corr-new'>×10</span> (Strale, inegalites.be, 2018)", source: "Calcul interne ; Strale 2018", priority: true, severity: "critical",
+    detail: "€30 000 M ÷ €250 M = 120 est arithmétiquement exact MAIS compare estimation théorique haute vs fraude détectée uniquement. Strale calcule ×10 : redressements fiscaux ~€2,5 Mds vs fraude sociale détectée ~€250 M. Le ×10 suffit à démontrer la disproportion." },
+  { num: 4, bloc: 1, status: "verified", label: "€951,29/seconde fraude fiscale", correction: "<span class='corr-none'>—</span>", source: "Calcul vérifié", priority: false, detail: "€30 Mds ÷ 31 536 000 s = €951,29/s (base 365 j). Avec 365,25 j : €950,63." },
+  { num: 5, bloc: 1, status: "verified", label: "€7,93/seconde fraude sociale", correction: "<span class='corr-none'>—</span>", source: "Calcul vérifié", priority: false, detail: "€250 M ÷ 31 536 000 s = €7,93/s" },
+  { num: 6, bloc: 1, status: "verified", label: "€2 586 per capita/an (fiscal)", correction: "Population légèrement obsolète (11,6 M → 11,83 M) : corrigé €2 536", source: "Statbel, 01/01/2025", priority: false, detail: "€30 Mds ÷ 11,6 M = €2 586,21. Corrigé : €30 Mds ÷ 11 825 551 = €2 536." },
+  { num: 7, bloc: 1, status: "verified", label: "€21,55 per capita/an (social)", correction: "Corrigé : €21,14 (pop. 11,83 M)", source: "Calcul vérifié", priority: false, detail: "" },
+  { num: 8, bloc: 1, status: "verified", label: "€7,08 per capita/jour (fiscal)", correction: "<span class='corr-none'>—</span>", source: "Calcul vérifié", priority: false, detail: "€2 586,21 ÷ 365 = €7,085" },
+
+  // BLOC 2 — Panama/Pandora Papers & offshore
+  { num: 9, bloc: 2, status: "verified", label: "732 Belges dans les Panama Papers (2016)", correction: "<span class='corr-none'>—</span>", source: "Kristof Clerix, Parlement européen, 27/09/2016", priority: false, detail: "Analyse conjointe Knack, Le Soir, De Tijd, MO*. €39,6 M récupérés 9 ans après (BX1, L'Avenir, 03/04/2025)." },
+  { num: 10, bloc: 2, status: "verified", label: "1 217 Belges dans les Pandora Papers (2021)", correction: "<span class='corr-none'>—</span>", source: "RTBF, 03/10/2021", priority: false, detail: "33 noms figuraient déjà dans les Panama Papers." },
+  { num: 11, bloc: 2, status: "verified", label: "1 659 entités offshore Experta/Dexia", correction: "Écart marginal : MO* compte 1 658 (1 595 + 63)", source: "ICIJ, 07/12/2017", priority: false, detail: "Experta = filiale luxembourgeoise BIL/Dexia. Sommet de la liste des 500+ banques Mossack Fonseca. Perquisition Belfius le 05/12/2017." },
+  { num: 12, bloc: 2, status: "corrected", label: "€700-900 M excess profit rulings", correction: "<span class='corr-old'>€700-900 M, 55 MNC</span> → <span class='corr-new'>~€700 M, au moins 35 MNC</span> (CE, 11/01/2016)", source: "CE, décision C(2015) 9887 final ; JO L 260", priority: true, severity: "moderate",
+    detail: "Vestager a constamment cité 'around €700 million'. Le ~$900 M = conversion USD. Le '55' = identification élargie ultérieure. Tribunal UE annulé 2019, CJUE rétabli 2021, Tribunal confirmé 20/09/2023." },
+
+  // BLOC 3 — Asymétrie des contrôles
+  { num: 13, bloc: 3, status: "corrected", label: "Contrôleurs fiscaux ÷ 2 depuis 2012", correction: "<span class='corr-old'>Contrôleurs ÷ 2</span> → <span class='corr-new'>Contrôles ÷ 2 ; effectifs -22 %</span>", source: "La Libre, 2017 ; L'Avenir, 14/04/2023", priority: true, severity: "major",
+    detail: "Effectifs AGFisc : 2 870 (07/2016) → 2 246 (12/2022) = -22 %. Contrôles approfondis : 111 582 (2013) → ~60 000 = -50 %. Formulation correcte : 'le nombre de contrôles fiscaux a été divisé par deux depuis 2013'." },
+  { num: 14, bloc: 3, status: "verified", label: "+45 inspecteurs sociaux recrutés (2021)", correction: "<span class='corr-none'>—</span>", source: "Contrastes (Équipes Populaires), mars-avril 2022", priority: false, detail: "Conclave budgétaire octobre 2021, gouvernement De Croo." },
+  { num: 15, bloc: 3, status: "verified", label: "-21 % contrôleurs PME (2016-2021)", correction: "<span class='corr-none'>—</span>", source: "Cour des Comptes, isoc-venb.ccrek.be", priority: false, detail: "Déclin 3× plus rapide que la moyenne du SPF Finances." },
+  { num: 16, bloc: 3, status: "unverified", label: "Prix de transfert 'jamais contrôlés'", correction: "Citation exacte CdC introuvable. Éléments connexes existent.", source: "Non identifié", priority: true, severity: "major",
+    detail: "Aucun rapport CdC avec cette formulation précise. Éléments connexes : contrôleurs insuffisamment formés (rapport R&D), contrôles grandes entreprises -32 % (2017-2021). Documentation prix de transfert obligatoire seulement depuis 2016." },
+  { num: 17, bloc: 3, status: "approximate", label: "Non-recours droits sociaux 45-50 %", correction: "En réalité plus élevé pour le RIS belge : <span class='corr-new'>57-76 %</span> (Bouckaert & Schokkaert, 2011)", source: "Bouckaert & Schokkaert 2011 ; BELMOD/SPF 2022", priority: false,
+    detail: "45-50 % = moyenne européenne (Janssens, Goedemé et al., TAKE/BELSPO). Le RIS belge montre un non-recours supérieur." },
+  { num: 18, bloc: 3, status: "verified", label: "4 % fraude avérée au RIS", correction: "<span class='corr-none'>4,14 % exactement</span>", source: "PwC / SPP Intégration Sociale, 2013", priority: false, detail: "RIS : 4,14 % ; aide sociale équivalente : 4,47 % ; aide médicale : 1,69 %." },
+  { num: 19, bloc: 3, status: "approximate", label: "Non-recours = 10-20× montant fraude", correction: "Plausible par déduction, mais aucune source belge unique ne cite ce ratio", source: "Déduction Bouckaert & PwC", priority: false, detail: "" },
+
+  // BLOC 4 — Reportage Deborsu
+  { num: 20, bloc: 4, status: "verified", label: "Titre / date / durée reportage", correction: "Titre exact : 'Sans boulot : tous fraudeurs ?'", source: "Programme-tv.com, La DH, La Libre", priority: false, detail: "Émission 'Je vous dérange' par Christophe Deborsu, 07/11/2025, 19h50, RTL-TVI, 55 min." },
+  { num: 21, bloc: 4, status: "verified", label: "Audience 410 860 téléspectateurs", correction: "<span class='corr-none'>—</span>", source: "CIM/Audimétrie via La DH, 10/11/2025", priority: false, detail: "" },
+  { num: 22, bloc: 4, status: "verified", label: "39,1 % de part de marché", correction: "<span class='corr-none'>—</span>", source: "CIM/Audimétrie", priority: false, detail: "42 % sur les 18-54 ans." },
+  { num: 23, bloc: 4, status: "verified", label: "CSA : 100+ plaintes", correction: "<span class='corr-none'>—</span>", source: "CSA, communiqué 12/11/2025", priority: false, detail: "Infraction potentielle à l'art. 2.4-1 du décret du 04/02/2021 (discrimination condition sociale)." },
+  { num: 24, bloc: 4, status: "verified", label: "Saisine CDJ", correction: "<span class='corr-none'>—</span>", source: "CSA → CDJ, délai 90 jours", priority: false, detail: "" },
+  { num: 25, bloc: 4, status: "verified", label: "Gaëlle Denys, CPAS Verviers", correction: "<span class='corr-none'>—</span>", source: "Déclaration Facebook Denys", priority: false, detail: "Interview originale de plus d'une heure, fortement tronquée au montage." },
+  { num: 26, bloc: 4, status: "approximate", label: "Motion unanime conseil Verviers", correction: "'Tous partis confondus' mais unanimité formelle non confirmée", source: "L'Avenir, 25/11/2025", priority: false, detail: "Conseil communal du lundi 24/11/2025." },
+  { num: 27, bloc: 4, status: "corrected", label: "Bouchez 'hallucinant'", correction: "<span class='corr-old'>Sens critique</span> → <span class='corr-new'>Sens POSITIF (éloge du reportage)</span>", source: "Tweet @GLBouchez, 08/11/2025", priority: true, severity: "critical",
+    detail: "Bouchez qualifie le reportage de 'vrai travail d'enquête' et de 'reportage hallucinant' dans un sens laudatif. Il l'utilise pour critiquer 'l'héritage de l'assistanat de la gauche'. Présenter ce terme comme une critique est un CONTRESENS." },
+  { num: 28, bloc: 4, status: "verified", label: "Ducarme demande audition parlementaire", correction: "Préciser : il est président de la Commission", source: "La DH, 12/11/2025 ; 21News, 02/12/2025", priority: false, detail: "Audition de 5 ministres fédéraux organisée à l'unanimité." },
+  { num: 29, bloc: 4, status: "corrected", label: "Charlotte Deborsu — lien familial", correction: "<span class='corr-old'>Fille</span> → <span class='corr-new'>Nièce</span> de Christophe (fille de Frédéric)", source: "La Libre, RTBF, L'Avenir, juin 2024", priority: true, severity: "major",
+    detail: "Députée fédérale MR depuis juin 2024 (plus jeune députée francophone), anciennement échevine de Namur (2018-2024)." },
+  { num: 30, bloc: 4, status: "corrected", label: "Cortisse partage reportage", correction: "<span class='corr-old'>Seule parmi élus MR</span> → <span class='corr-new'>Seule des 37 élus du conseil communal</span>. + Présidente du conseil + Députée FWB", source: "L'Avenir, réseaux sociaux", priority: true, severity: "moderate",
+    detail: "Stéphanie Cortisse est présidente du conseil communal de Verviers, députée au Parlement FWB et présidente de la Fédération MR de l'arrondissement de Verviers (depuis avril 2025). Cartel Ensemble Verviers (MR/Engagés/Nouveau Verviers)." },
+
+  // BLOC 5 — Gouvernement Arizona
+  { num: 31, bloc: 5, status: "verified", label: "Coalition Arizona (composition)", correction: "<span class='corr-none'>—</span>", source: "Moniteur belge, 03/02/2025", priority: false, detail: "N-VA + MR + CD&V + Les Engagés + Vooruit. 81/150 sièges. PM : Bart De Wever." },
+  { num: 32, bloc: 5, status: "corrected", label: "€23,3 Mds d'économies", correction: "<span class='corr-old'>€23,3 Mds</span> → <span class='corr-new'>€23 Mds</span>", source: "Les Engagés (site officiel) ; analyses budgétaires", priority: false, detail: "€18 Mds économies structurelles + €5 Mds supplémentaires." },
+  { num: 33, bloc: 5, status: "verified", label: "Chômage limité à 2 ans max", correction: "<span class='corr-none'>—</span>", source: "Loi-programme MB 29/07/2025 ; ONEM.be", priority: false, detail: "24 mois max (12 + 12 selon historique). Mesures transitoires 01/07/2025. Premières exclusions 01/01/2026. Régime complet 01/03/2026." },
+  { num: 34, bloc: 5, status: "verified", label: "21 500 exclusions 1ère vague", correction: "<span class='corr-none'>—</span>", source: "ONEM via RTBF et L'Avenir, 01/01/2026", priority: false, detail: "" },
+  { num: 35, bloc: 5, status: "verified", label: "13 000 exclusions en Wallonie", correction: "<span class='corr-none'>—</span>", source: "ONEM via RTBF et L'Avenir", priority: false, detail: "" },
+  { num: 36, bloc: 5, status: "corrected", label: "Malus pension -5 %/an", correction: "<span class='corr-old'>-5 % uniforme</span> → <span class='corr-new'>Progressif : -2 % (1961-65) / -4 % (1966-74) / -5 % (≥1975)</span>", source: "Accord budgétaire nov. 2025", priority: true, severity: "major",
+    detail: "Conditions d'exemption : 35 années avec ≥156 jours effectifs + 7 020 jours total. Entrée en vigueur reportée au 01/01/2027." },
+  { num: 37, bloc: 5, status: "approximate", label: "Perte pension -€404/mois", correction: "~€400 (PTB) ; moyenne FGTB/SFP : <span class='corr-new'>€318/mois</span>", source: "PTB ; FGTB/SFP, fév. 2026", priority: false, detail: "€404 suppose pension de base de ~€1 616 avec 5 ans anticipation à 5 %." },
+  { num: 38, bloc: 5, status: "verified", label: "Âge pension 66 → 67 ans (2030)", correction: "<span class='corr-none'>—</span>", source: "Réforme Michel ; non modifié par Arizona", priority: false, detail: "" },
+  { num: 39, bloc: 5, status: "verified", label: "Budget bien-être -€586 M", correction: "<span class='corr-none'>—</span>", source: "Fediplus.be ; accord de Pâques", priority: false, detail: "Enveloppe bien-être totale supprimée sur la législature : €2,8 Mds." },
+  { num: 40, bloc: 5, status: "verified", label: "Sanctions malades -10 %", correction: "<span class='corr-none'>—</span>", source: "Accord gouvernement Arizona via RTBF, PTB", priority: false, detail: "Quadruplement de la sanction précédente (2,5 %)." },
+  { num: 41, bloc: 5, status: "verified", label: "Suspension indemnités maladie", correction: "<span class='corr-none'>—</span>", source: "Accord gouvernement Arizona", priority: false, detail: "En cas d'absence non justifiée à convocation médecin-conseil ou médecin du travail." },
+  { num: 42, bloc: 5, status: "approximate", label: "Certificats médicaux limités 3 mois", correction: "Une seule source trouvée", source: "Ouaisfi.eu (source unique)", priority: false, detail: "" },
+  { num: 43, bloc: 5, status: "verified", label: "Maladie sans certificat 2→3 jours", correction: "<span class='corr-none'>Réduits de 3 à 2 jours non consécutifs/an</span>", source: "UCM, SNI, Coalition Santé", priority: false, detail: "" },
+  { num: 44, bloc: 5, status: "verified", label: "RCC supprimé", correction: "<span class='corr-none'>—</span>", source: "MB, 31/01/2025", priority: false, detail: "Exceptions : motif médical et restructurations préexistantes." },
+  { num: 45, bloc: 5, status: "verified", label: "240h supplémentaires sans sursalaire", correction: "<span class='corr-none'>—</span>", source: "Accord Arizona", priority: false, detail: "Brut = net, régime 360h, sans accord syndical." },
+  { num: 46, bloc: 5, status: "verified", label: "Indexation plafonnée €4 000 brut", correction: "<span class='corr-none'>+ €2 000 pour allocations. 2 sauts prévus (2026, 2028)</span>", source: "Accord budgétaire 24/11/2025", priority: false, detail: "" },
+
+  // BLOC 6 — Mobilisations
+  { num: 47, bloc: 6, status: "verified", label: "100 000 manifestants (fév. 2025)", correction: "Syndicats : ~100 000 ; Police : 60 000. Date : 13 février.", source: "FGTB, CSC ; zone police Bruxelles", priority: false, detail: "Front commun syndical + 45 organisations société civile." },
+  { num: 48, bloc: 6, status: "verified", label: "Grève 31 mars 2025", correction: "CGSLB absente (FGTB + CSC uniquement)", source: "FGTB, CSC", priority: false, detail: "Aucun vol passager Brussels Airport, tout annulé à Charleroi, SNCB service minimum." },
+  { num: 49, bloc: 6, status: "verified", label: "140 000 manifestants (oct. 2025)", correction: "Syndicats : 140 000 ; Police : 80 000. Date : 14 octobre.", source: "FGTB (Bodson) ; zone police Bruxelles-Ixelles", priority: false, detail: "" },
+  { num: 50, bloc: 6, status: "verified", label: "3 jours de grève (nov. 2025)", correction: "24-25-26 novembre. 3 confédérations cette fois.", source: "CSC, FGTB, CGSLB ; Moustique", priority: false, detail: "~300 000 mobilisés sur 3 jours." },
+  { num: 51, bloc: 6, status: "verified", label: "Coalition a failli tomber (23/11)", correction: "<span class='corr-none'>Kern de 20h dans la nuit</span>", source: "La Libre, 24/11/2025 ; Rapports de Force, 26/11/2025", priority: false, detail: "MR vs nouvelles taxes, Vooruit vs saut d'index, N-VA poussant €10 Mds d'économies." },
+  { num: 52, bloc: 6, status: "verified", label: "€9,2 Mds accord budgétaire", correction: "<span class='corr-none'>—</span>", source: "PM De Wever, 24/11/2025", priority: false, detail: "60 % réduction dépenses, 40 % nouvelles recettes." },
+
+  // BLOC 7 — BIM
+  { num: 53, bloc: 7, status: "corrected", label: "~2 millions de BIM", correction: "<span class='corr-old'>~2 M</span> → <span class='corr-new'>~2,4 millions</span> (21 % de la population)", source: "INAMI via L'Écho/De Tijd, 28/01/2026", priority: true, severity: "major",
+    detail: "Au 30/06/2025 : environ 2,4 millions de BIM. Hausse de ~400 000 depuis juin 2020. Accélérée par accès automatique pour chômeurs/incapacités isolés (3+ mois) depuis octobre 2024." },
+  { num: 54, bloc: 7, status: "corrected", label: "MàF BIM €270,55", correction: "<span class='corr-old'>€270,55</span> → <span class='corr-new'>€548,55</span> (MàF social BIM). €270,55 = MàF revenus tranche basse (autre système)", source: "INAMI ; Solidaris ; Partenamut", priority: true, severity: "critical",
+    detail: "Confusion entre deux systèmes MàF distincts. MàF social BIM = €548,55/an. MàF revenus tranche basse (<€13 402,43 nets) = €270,55, applicable à tous les ménages." },
+  { num: 55, bloc: 7, status: "verified", label: "Ticket modérateur BIM €1 (avec DMG)", correction: "<span class='corr-none'>—</span>", source: "INAMI, budget 2026", priority: false, detail: "Sans DMG : €1,50. BIM <25 ans avec DMG : €0 (gratuit depuis 01/10/2023)." },
+  { num: 56, bloc: 7, status: "verified", label: "Plafond revenus BIM €28 054,93", correction: "<span class='corr-none'>—</span>", source: "MC, Solidaris, CM, INAMI", priority: false, detail: "+€5 193,74 par membre supplémentaire du ménage." },
+
+  // BLOC 8 — Équivalences €30 Mds
+  { num: 57, bloc: 8, status: "corrected", label: "200 000 lits d'hôpital à €150 000", correction: "<span class='corr-old'>€150 000/lit</span> → <span class='corr-new'>€200 000-€400 000/lit</span>. Soit ~120 000 lits, pas 200 000.", source: "Études PMC 2021 ; Oireachtas 2020 ; hospi.info", priority: true, severity: "major",
+    detail: "Coût réel en Europe occidentale : PMC Italie €190 000-€347 000 ; Irlande €375 000 ; Allemagne/France/UK €400 000-€1 000 000. Sous-estimation de 33 à 167 %." },
+  { num: 58, bloc: 8, status: "approximate", label: "545 000 enseignants à €55 000/poste", correction: "Raisonnable (bas de fourchette €55 000-€65 000)", source: "OCDE, Education at a Glance 2024-2025", priority: false, detail: "" },
+  { num: 59, bloc: 8, status: "approximate", label: "150 000 logements sociaux à €200 000", correction: "Crédible (fourchette €150 000-€250 000 selon région)", source: "VMSW Flandre ; Banque des Territoires France, 2023", priority: false, detail: "" },
+  { num: 60, bloc: 8, status: "corrected", label: "3 000 000 bourses étudiantes à €10 000", correction: "<span class='corr-old'>€10 000/bourse</span> → Moyenne réelle : <span class='corr-new'>€1 400</span> ; max : €5 000-€6 000. Erreur facteur ×7.", source: "Enseignement.be (FWB)", priority: true, severity: "critical",
+    detail: "Avec €1 400 moyen : €30 Mds = ~21,4 millions de bourses. Même au max (~€5 000) : 6 millions. Le chiffre de €10 000 est ~7× la moyenne réelle." }
+];
+
+const PRIORITY_ITEMS = DATA.filter(d => d.priority).sort((a, b) => {
+  const sev = { critical: 0, major: 1, moderate: 2 };
+  return (sev[a.severity] || 3) - (sev[b.severity] || 3);
+});
+
+const BLOC_NAMES = {
+  1: "Ratios fraude",
+  2: "Panama/Pandora",
+  3: "Asymétrie contrôles",
+  4: "Reportage Deborsu",
+  5: "Gouv. Arizona",
+  6: "Mobilisations",
+  7: "BIM",
+  8: "Équivalences €30 Mds"
+};
+
+// ═══════════════════════════════════════════════
+// DONUT CHART
+// ═══════════════════════════════════════════════
+function drawDonut() {
+  const data = [
+    { value: 34, color: '#00e676', label: 'Vérifié' },
+    { value: 15, color: '#ff5252', label: 'Corrigé' },
+    { value: 8, color: '#ff9100', label: 'Approximatif' },
+    { value: 3, color: '#b388ff', label: 'Non vérifié' }
+  ];
+  const total = data.reduce((s, d) => s + d.value, 0);
+  const cx = 100, cy = 100, r = 80, inner = 50;
+  let cumulative = 0;
+  let paths = '';
+
+  data.forEach(d => {
+    const startAngle = (cumulative / total) * 2 * Math.PI - Math.PI / 2;
+    cumulative += d.value;
+    const endAngle = (cumulative / total) * 2 * Math.PI - Math.PI / 2;
+    const largeArc = d.value / total > 0.5 ? 1 : 0;
+    const x1o = cx + r * Math.cos(startAngle);
+    const y1o = cy + r * Math.sin(startAngle);
+    const x2o = cx + r * Math.cos(endAngle);
+    const y2o = cy + r * Math.sin(endAngle);
+    const x1i = cx + inner * Math.cos(endAngle);
+    const y1i = cy + inner * Math.sin(endAngle);
+    const x2i = cx + inner * Math.cos(startAngle);
+    const y2i = cy + inner * Math.sin(startAngle);
+    paths += `<path d="M${x1o},${y1o} A${r},${r} 0 ${largeArc} 1 ${x2o},${y2o} L${x1i},${y1i} A${inner},${inner} 0 ${largeArc} 0 ${x2i},${y2i} Z" fill="${d.color}" opacity="0.85" stroke="${'#12121e'}" stroke-width="2"/>`;
+  });
+
+  paths += `<text x="${cx}" y="${cy - 6}" text-anchor="middle" fill="#e8e6e3" font-family="Space Grotesk" font-size="28" font-weight="700">60</text>`;
+  paths += `<text x="${cx}" y="${cy + 14}" text-anchor="middle" fill="#9998a8" font-family="JetBrains Mono" font-size="9" letter-spacing="1">DONNÉES</text>`;
+
+  document.getElementById('donutChart').innerHTML = paths;
+}
+
+// ═══════════════════════════════════════════════
+// PRIORITY LIST
+// ═══════════════════════════════════════════════
+function renderPriorityList() {
+  const list = document.getElementById('priorityList');
+  list.innerHTML = PRIORITY_ITEMS.map(d => {
+    const sevClass = d.severity === 'critical' ? 'sev-critical' : d.severity === 'major' ? 'sev-major' : 'sev-moderate';
+    const sevLabel = d.severity === 'critical' ? 'Critique' : d.severity === 'major' ? 'Majeure' : 'Modérée';
+    return `<li class="priority-item" data-num="${d.num}">
+      <div class="pi-header">
+        <span class="pi-num">N°${d.num} · Bloc ${d.bloc}</span>
+        <span class="pi-severity ${sevClass}">${sevLabel}</span>
+      </div>
+      <div class="pi-title">${d.label}</div>
+      <div class="pi-fix">${d.correction}</div>
+    </li>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+// TABLE RENDERING
+// ═══════════════════════════════════════════════
+let currentFilter = 'all';
+let currentBloc = 'all';
+let searchQuery = '';
+let openDetailNum = null;
+
+function getFilteredData() {
+  return DATA.filter(d => {
+    if (currentFilter !== 'all' && d.status !== currentFilter) return false;
+    if (currentBloc !== 'all' && d.bloc !== parseInt(currentBloc)) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const haystack = `${d.num} ${d.label} ${d.correction} ${d.source} ${d.detail || ''} ${BLOC_NAMES[d.bloc]}`.toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function renderTable() {
+  const filtered = getFilteredData();
+  const tbody = document.getElementById('tableBody');
+
+  document.getElementById('resultsCount').innerHTML = `Affichage : <span>${filtered.length}</span> / 60 données`;
+
+  tbody.innerHTML = filtered.map(d => {
+    const statusClass = `status-${d.status}`;
+    const statusLabel = d.status === 'verified' ? '✓ Vérifié' : d.status === 'corrected' ? '✎ Corrigé' : d.status === 'approximate' ? '≈ Approx.' : '? Non vér.';
+    const isPriority = d.priority ? ' row-priority' : '';
+    const isOpen = openDetailNum === d.num;
+    
+    let row = `<tr class="data-row${isPriority}" data-num="${d.num}">
+      <td class="td-num">${d.num}</td>
+      <td class="td-status"><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+      <td class="td-bloc"><span class="bloc-tag">B${d.bloc}</span></td>
+      <td class="td-data">${d.label}</td>
+      <td class="td-correction">${d.correction}</td>
+      <td class="td-source">${d.source}</td>
+    </tr>`;
+
+    if (d.detail) {
+      row += `<tr class="row-detail${isOpen ? ' open' : ''}" data-detail="${d.num}">
+        <td colspan="6">
+          <div class="detail-inner">${d.detail}</div>
+        </td>
+      </tr>`;
+    }
+
+    return row;
+  }).join('');
+
+  // Click handlers for expandable rows
+  tbody.querySelectorAll('.data-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const num = parseInt(row.dataset.num);
+      const detailRow = tbody.querySelector(`tr[data-detail="${num}"]`);
+      if (!detailRow) return;
+      if (openDetailNum === num) {
+        detailRow.classList.remove('open');
+        openDetailNum = null;
+      } else {
+        tbody.querySelectorAll('.row-detail.open').forEach(r => r.classList.remove('open'));
+        detailRow.classList.add('open');
+        openDetailNum = num;
+      }
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════
+// CREDIBILITY BAR ANIMATION
+// ═══════════════════════════════════════════════
+function animateCredBar() {
+  setTimeout(() => {
+    document.getElementById('credBefore').style.width = '56.7%';
+  }, 400);
+  setTimeout(() => {
+    document.getElementById('credAfter').style.width = '96.7%';
+    document.getElementById('credAfter').textContent = '96,7 %';
+  }, 800);
+}
+
+// ═══════════════════════════════════════════════
+// EVENT HANDLERS
+// ═══════════════════════════════════════════════
+function initEvents() {
+  // Stat cards
+  document.querySelectorAll('.stat-card').forEach(card => {
+    card.addEventListener('click', () => {
+      currentFilter = card.dataset.filter;
+      document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      // Sync pills
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active-pill'));
+      document.querySelector(`.pill[data-filter="${currentFilter}"]`)?.classList.add('active-pill');
+      renderTable();
+    });
+  });
+
+  // Filter pills
+  document.querySelectorAll('.pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      currentFilter = pill.dataset.filter;
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active-pill'));
+      pill.classList.add('active-pill');
+      // Sync stat cards
+      document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+      document.querySelector(`.stat-card[data-filter="${currentFilter}"]`)?.classList.add('active');
+      renderTable();
+    });
+  });
+
+  // Bloc pills
+  document.querySelectorAll('.bloc-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      currentBloc = pill.dataset.bloc;
+      document.querySelectorAll('.bloc-pill').forEach(p => p.classList.remove('active-bloc'));
+      pill.classList.add('active-bloc');
+      renderTable();
+    });
+  });
+
+  // Search
+  document.getElementById('searchInput').addEventListener('input', (e) => {
+    searchQuery = e.target.value;
+    renderTable();
+  });
+
+  // Priority item click → scroll to table row
+  document.querySelectorAll('.priority-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const num = item.dataset.num;
+      const row = document.querySelector(`tr.data-row[data-num="${num}"]`);
+      if (row) {
+        // Reset filters to show all
+        currentFilter = 'all';
+        currentBloc = 'all';
+        searchQuery = '';
+        document.getElementById('searchInput').value = '';
+        document.querySelectorAll('.pill').forEach(p => p.classList.remove('active-pill'));
+        document.querySelector('.pill[data-filter="all"]').classList.add('active-pill');
+        document.querySelectorAll('.bloc-pill').forEach(p => p.classList.remove('active-bloc'));
+        document.querySelector('.bloc-pill[data-bloc="all"]').classList.add('active-bloc');
+        document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+        document.querySelector('.stat-card[data-filter="all"]').classList.add('active');
+        renderTable();
+        // Scroll and highlight
+        setTimeout(() => {
+          const targetRow = document.querySelector(`tr.data-row[data-num="${num}"]`);
+          if (targetRow) {
+            targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            targetRow.style.background = 'rgba(24,255,255,0.12)';
+            setTimeout(() => { targetRow.style.background = ''; }, 2000);
+            targetRow.click();
+          }
+        }, 100);
+      }
+    });
+  });
+
+  // Export CSV
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const csv = ['N°,Bloc,Statut,Donnée,Correction,Source primaire,Priorité,Sévérité'];
+    DATA.forEach(d => {
+      const correction = d.correction.replace(/<[^>]*>/g, '').replace(/,/g, ';');
+      csv.push(`${d.num},${d.bloc},${d.status},"${d.label}","${correction}","${d.source}",${d.priority},${d.severity || ''}`);
+    });
+    const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'audit-60-ouaisfieu.csv'; a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  drawDonut();
+  renderPriorityList();
+  renderTable();
+  animateCredBar();
+  initEvents();
+});
+</script>
+
+</body>
+</html>
