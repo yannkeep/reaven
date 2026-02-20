@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anatomie de la Fraude Sociale</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        
+        /* Chart Container Styling - Mandatory Requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Constrain width on large screens */
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px; /* Base height */
+            max-height: 400px;
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .neon-text {
+            text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+        }
+    </style>
+    <!-- Chosen Palette: Electric Insight (Deep Indigo #0f172a, Electric Cyan #06b6d4, Hot Pink #f472b6, Slate #94a3b8) -->
+    <!-- Application Structure Plan: A linear narrative infographic taking the user from the macro economic problem down to the micro individual incentives and finally the moral landscape. 
+         1. Intro: Hook with the invisible cost.
+         2. The Gap: Quantitative reality check (Est vs Rec).
+         3. The Incentive: Why people do it (Cohabitation mechanics).
+         4. The Sectors: Where it happens.
+         5. The Morality: How we justify it. -->
+    <!-- Visualization & Content Choices:
+         1. Macro Gap -> Goal: Compare -> Bar Chart (Chart.js) -> Shows the stark contrast effectively.
+         2. Cohabitation -> Goal: Compare -> Grouped Bar (Chart.js) -> Compares two clear scenarios side-by-side.
+         3. Sectors -> Goal: Rank -> Horizontal Bar (Chart.js) -> Best for long category labels like 'Construction'.
+         4. Morality -> Goal: Relationships -> Radar Chart (Chart.js) -> Shows the 'shape' of social tolerance across categories. 
+         Confirming NO SVG and NO Mermaid JS. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased selection:bg-cyan-500 selection:text-white">
+
+    <!-- Header / Hero -->
+    <header class="w-full py-16 px-6 text-center bg-slate-900 border-b border-slate-800">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 mb-6 tracking-tight">
+                L'ÉCONOMIE <br><span class="text-white">INVISIBLE</span>
+            </h1>
+            <p class="text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                Une plongée analytique dans les mécanismes de la fraude sociale. Entre milliards perdus, pièges administratifs et tolérance morale : pourquoi le système fuit-il ?
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+        <!-- SECTION 1: THE MACRO GAP -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6">
+                <div class="inline-block px-3 py-1 bg-cyan-900 text-cyan-300 text-xs font-bold uppercase tracking-wider rounded-full">Le Constat</div>
+                <h2 class="text-3xl md:text-4xl font-bold text-white">L'Écart Abyssal</h2>
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    La fraude sociale est un phénomène massif mais difficile à saisir. Les estimations des experts (Cour des Comptes, ONSS) contrastent violemment avec les montants effectivement récupérés par les services d'inspection.
+                </p>
+                <div class="grid grid-cols-2 gap-4 mt-6">
+                    <div class="p-4 bg-slate-800 rounded-lg border-l-4 border-cyan-500">
+                        <span class="block text-3xl font-bold text-white">~4 Mrd €</span>
+                        <span class="text-sm text-slate-400">Estimation Haute</span>
+                    </div>
+                    <div class="p-4 bg-slate-800 rounded-lg border-l-4 border-pink-500">
+                        <span class="block text-3xl font-bold text-white">~250 M €</span>
+                        <span class="text-sm text-slate-400">Récupération Réelle</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-panel p-6 rounded-2xl shadow-2xl">
+                <h3 class="text-lg font-semibold text-white mb-4 border-b border-slate-700 pb-2">Réalité vs Récupération</h3>
+                <div class="chart-container">
+                    <canvas id="gapChart"></canvas>
+                </div>
+                <p class="mt-4 text-xs text-slate-500 text-center">Les barres illustrent la disproportion entre le potentiel de fraude et l'efficacité actuelle des contrôles.</p>
+            </div>
+        </section>
+
+        <!-- SECTION 2: THE INCENTIVE (COHABITATION) -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center lg:flex-row-reverse">
+            <!-- Text Content -->
+            <div class="lg:order-2 space-y-6">
+                <div class="inline-block px-3 py-1 bg-pink-900 text-pink-300 text-xs font-bold uppercase tracking-wider rounded-full">Le Mécanisme</div>
+                <h2 class="text-3xl md:text-4xl font-bold text-white">Le Piège de la Cohabitation</h2>
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    Le système belge pénalise la solidarité. Une personne "isolée" perçoit nettement plus qu'un "cohabitant". Cela crée une incitation financière directe à la fraude à la domiciliation : vivre ensemble, mais déclarer vivre seul.
+                </p>
+                <ul class="space-y-3 text-slate-300">
+                    <li class="flex items-start">
+                        <span class="text-cyan-400 font-bold mr-2">&#10003;</span>
+                        <span>Statut "Isolé" : Allocation pleine.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-pink-500 font-bold mr-2">&#10007;</span>
+                        <span>Statut "Cohabitant" : Chute drastique des revenus.</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Chart Content -->
+            <div class="lg:order-1 glass-panel p-6 rounded-2xl shadow-2xl">
+                <h3 class="text-lg font-semibold text-white mb-4 border-b border-slate-700 pb-2">Impact Financier Mensuel</h3>
+                <div class="chart-container">
+                    <canvas id="cohabChart"></canvas>
+                </div>
+                <p class="mt-4 text-xs text-slate-500 text-center">Comparaison du revenu total pour un ménage de deux personnes selon leur statut déclaratif.</p>
+            </div>
+        </section>
+
+        <!-- SECTION 3: SECTORS -->
+        <section class="space-y-8">
+            <div class="text-center max-w-3xl mx-auto">
+                <div class="inline-block px-3 py-1 bg-purple-900 text-purple-300 text-xs font-bold uppercase tracking-wider rounded-full">Cartographie</div>
+                <h2 class="text-3xl md:text-4xl font-bold text-white mt-4">Où se Cache le Travail au Noir ?</h2>
+                <p class="text-slate-300 mt-4">
+                    Certains secteurs sont structurellement plus exposés. La main d'œuvre intensive, la sous-traitance en cascade et la circulation du cash favorisent l'économie souterraine.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Info Cards (Using Unicode icons instead of SVG) -->
+                <div class="bg-slate-800 p-6 rounded-xl hover:bg-slate-750 transition duration-300">
+                    <div class="text-4xl mb-4 text-cyan-400">&#9874;</div> <!-- Construction symbol -->
+                    <h4 class="text-xl font-bold text-white mb-2">Construction</h4>
+                    <p class="text-sm text-slate-400">Sous-traitance complexe et détachement international rendent les contrôles ardus.</p>
+                </div>
+                <div class="bg-slate-800 p-6 rounded-xl hover:bg-slate-750 transition duration-300">
+                    <div class="text-4xl mb-4 text-pink-400">&#9749;</div> <!-- Coffee/Horeca symbol -->
+                    <h4 class="text-xl font-bold text-white mb-2">Horeca</h4>
+                    <p class="text-sm text-slate-400">Horaires flexibles et paiements liquides facilitent le travail non déclaré.</p>
+                </div>
+                <div class="bg-slate-800 p-6 rounded-xl hover:bg-slate-750 transition duration-300">
+                    <div class="text-4xl mb-4 text-purple-400">&#10024;</div> <!-- Sparkles/Cleaning symbol -->
+                    <h4 class="text-xl font-bold text-white mb-2">Nettoyage</h4>
+                    <p class="text-sm text-slate-400">Le travail chez les particuliers échappe souvent à la vigilance des inspecteurs.</p>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl shadow-2xl max-w-4xl mx-auto">
+                <h3 class="text-lg font-semibold text-white mb-4 border-b border-slate-700 pb-2">Répartition des Infractions Détectées</h3>
+                <div class="chart-container">
+                    <canvas id="sectorChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: PUBLIC PERCEPTION -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6">
+                <div class="inline-block px-3 py-1 bg-green-900 text-green-300 text-xs font-bold uppercase tracking-wider rounded-full">Psychologie</div>
+                <h2 class="text-3xl md:text-4xl font-bold text-white">La Boussole Morale</h2>
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    Existe-t-il une "bonne" et une "mauvaise" fraude ? Les enquêtes d'opinion révèlent une géométrie variable. Si la fraude aux allocations est sévèrement jugée, le travail au noir "de proximité" bénéficie d'une large tolérance sociale.
+                </p>
+                <div class="bg-slate-800 p-4 rounded-lg">
+                    <h4 class="font-bold text-white mb-2">Le Paradoxe Belge</h4>
+                    <p class="text-sm text-slate-400">
+                        88% des citoyens condamnent la fraude aux prestations sociales, mais près de 42% trouvent acceptable de payer une aide ménagère "de la main à la main".
+                    </p>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl shadow-2xl">
+                <h3 class="text-lg font-semibold text-white mb-4 border-b border-slate-700 pb-2">Indice de Tolérance Sociale (0-100)</h3>
+                <div class="chart-container">
+                    <canvas id="moralChart"></canvas>
+                </div>
+                <p class="mt-4 text-xs text-slate-500 text-center">Plus la zone est étendue vers l'extérieur, plus le comportement est socialement accepté.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 border-t border-slate-800 py-12 mt-12">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="text-slate-500 text-sm">
+                Infographie générée à des fins éducatives basée sur les données thématiques du rapport. <br>
+                Sources : Estimations Cour des Comptes, ONSS, Enquêtes d'opinion.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // --- UTILITY FUNCTION FOR LABEL WRAPPING (Mandatory Requirement) ---
+        function wrapLabel(str, maxLen = 16) {
+            if (str.length <= maxLen) return str;
+            const words = str.split(' ');
+            const lines = [];
+            let currentLine = words[0];
+
+            for (let i = 1; i < words.length; i++) {
+                if (currentLine.length + 1 + words[i].length <= maxLen) {
+                    currentLine += ' ' + words[i];
+                } else {
+                    lines.push(currentLine);
+                    currentLine = words[i];
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+
+        // --- SHARED TOOLTIP CONFIGURATION (Mandatory Requirement) ---
+        const commonTooltipConfig = {
+            callbacks: {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    if (Array.isArray(label)) {
+                        return label.join(' ');
+                    } else {
+                        return label;
+                    }
+                }
+            }
+        };
+
+        // --- CHART 1: THE GAP (Bar) ---
+        const ctxGap = document.getElementById('gapChart').getContext('2d');
+        new Chart(ctxGap, {
+            type: 'bar',
+            data: {
+                labels: [wrapLabel('Fraude Sociale Estimée'), wrapLabel('Fraude Fiscale Estimée'), wrapLabel('Montant Récupéré')],
+                datasets: [{
+                    label: 'Milliards d\'Euros',
+                    data: [4, 20, 0.25], // Visual approximation: 4Bn, 20Bn, 0.25Bn
+                    backgroundColor: [
+                        'rgba(6, 182, 212, 0.8)', // Cyan
+                        'rgba(30, 41, 59, 0.5)',  // Dark Slate (Context)
+                        'rgba(244, 114, 182, 0.9)' // Pink (Highlight)
+                    ],
+                    borderColor: [
+                        'rgba(6, 182, 212, 1)',
+                        'rgba(30, 41, 59, 1)',
+                        'rgba(244, 114, 182, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: commonTooltipConfig
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#cbd5e1' }
+                    }
+                }
+            }
+        });
+
+        // --- CHART 2: COHABITATION (Grouped Bar) ---
+        const ctxCohab = document.getElementById('cohabChart').getContext('2d');
+        new Chart(ctxCohab, {
+            type: 'bar',
+            data: {
+                labels: [wrapLabel('Allocation Chômage'), wrapLabel('Revenu Intégration (CPAS)')],
+                datasets: [
+                    {
+                        label: 'Déclaré Isolé (x2 Personnes)',
+                        data: [3200, 2400], // Hypothetical combined income for 2 "singles"
+                        backgroundColor: 'rgba(6, 182, 212, 0.8)',
+                    },
+                    {
+                        label: 'Déclaré Cohabitant (Ménage)',
+                        data: [1800, 1600], // Hypothetical income for 1 household
+                        backgroundColor: 'rgba(244, 114, 182, 0.8)',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#cbd5e1' },
+                        position: 'top'
+                    },
+                    tooltip: commonTooltipConfig
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#cbd5e1' }
+                    }
+                }
+            }
+        });
+
+        // --- CHART 3: SECTORS (Horizontal Bar) ---
+        const ctxSector = document.getElementById('sectorChart').getContext('2d');
+        new Chart(ctxSector, {
+            type: 'bar',
+            data: {
+                labels: [
+                    wrapLabel('Construction et Bâtiment'),
+                    wrapLabel('Horeca (Restauration)'),
+                    wrapLabel('Nettoyage et Services'),
+                    wrapLabel('Commerce de Détail'),
+                    wrapLabel('Transport et Logistique')
+                ],
+                datasets: [{
+                    label: '% des Infractions',
+                    data: [35, 25, 15, 12, 8],
+                    backgroundColor: [
+                        'rgba(6, 182, 212, 0.9)',
+                        'rgba(6, 182, 212, 0.7)',
+                        'rgba(6, 182, 212, 0.5)',
+                        'rgba(6, 182, 212, 0.3)',
+                        'rgba(6, 182, 212, 0.2)'
+                    ],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y', // Horizontal bar
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: commonTooltipConfig
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#cbd5e1' }
+                    }
+                }
+            }
+        });
+
+        // --- CHART 4: MORALITY (Radar) ---
+        const ctxMoral = document.getElementById('moralChart').getContext('2d');
+        new Chart(ctxMoral, {
+            type: 'radar',
+            data: {
+                labels: [
+                    wrapLabel('Aide Ménagère au Noir'),
+                    wrapLabel('Petits Travaux Cash'),
+                    wrapLabel('Fraude Fiscale Riche'),
+                    wrapLabel('Fraude Chômage'),
+                    wrapLabel('Fraude Domiciliation')
+                ],
+                datasets: [{
+                    label: 'Niveau d\'Acceptation Sociale',
+                    data: [80, 75, 40, 15, 25],
+                    fill: true,
+                    backgroundColor: 'rgba(244, 114, 182, 0.2)',
+                    borderColor: 'rgba(244, 114, 182, 1)',
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(244, 114, 182, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: commonTooltipConfig
+                },
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(148, 163, 184, 0.1)' },
+                        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+                        pointLabels: {
+                            color: '#cbd5e1',
+                            font: { size: 11 }
+                        },
+                        ticks: { display: false, backdropColor: 'transparent' }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
