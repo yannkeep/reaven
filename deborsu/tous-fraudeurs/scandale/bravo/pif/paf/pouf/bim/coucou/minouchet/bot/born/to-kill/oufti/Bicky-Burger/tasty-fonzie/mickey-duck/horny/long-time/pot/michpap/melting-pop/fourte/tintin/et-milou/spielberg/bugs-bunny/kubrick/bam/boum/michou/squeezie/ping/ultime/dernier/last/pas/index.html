@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>⚔ Les Maisons de Belgique — Carte stratégique de la société civile | ouaisfieu</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+:root {
+  --bg:#08080f;--surface:#0e0e1a;--card:#141425;--elevated:#1c1c35;
+  --border:#252545;--border-hi:#353565;
+  --txt:#ddd8d0;--txt2:#9590a8;--muted:#5a5575;
+  --gold:#d4a843;--gold-dim:#d4a84320;--gold-bright:#ffd700;
+  --blood:#b71c1c;--blood-dim:#b71c1c25;
+  --ice:#4fc3f7;--ice-dim:#4fc3f720;
+  --fire:#ff6d00;--fire-dim:#ff6d0020;
+  --green:#43a047;--green-dim:#43a04720;
+  --purple:#9c27b0;--purple-dim:#9c27b020;
+  --white:#e0e0e0;
+  --font-title:'Cinzel',serif;--font-body:'Crimson Pro',Georgia,serif;--font-mono:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:var(--font-body);font-size:15px;line-height:1.6;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+.container{max-width:1500px;margin:0 auto;padding:20px}
+
+/* ══════ HEADER ══════ */
+.header{text-align:center;padding:50px 20px 30px;position:relative}
+.header::before{content:'⚔';display:block;font-size:40px;margin-bottom:10px;filter:grayscale(0.3)}
+.header h1{font-family:var(--font-title);font-size:clamp(1.8rem,4vw,3rem);font-weight:700;color:var(--gold);letter-spacing:3px;text-transform:uppercase;text-shadow:0 0 40px rgba(212,168,67,0.2);margin-bottom:8px}
+.header .sub{font-family:var(--font-body);font-size:clamp(0.95rem,2vw,1.2rem);color:var(--txt2);font-style:italic;font-weight:300;max-width:800px;margin:0 auto 16px}
+.header .meta{font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.header .meta span{color:var(--gold)}
+
+/* ══════ DOCTRINE BANNER ══════ */
+.doctrine-banner{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:30px auto 40px;max-width:1000px}
+@media(max-width:700px){.doctrine-banner{grid-template-columns:1fr}}
+.war-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px 16px;text-align:center;position:relative;overflow:hidden;transition:all .3s}
+.war-card:hover{border-color:var(--gold);transform:translateY(-3px);box-shadow:0 8px 30px rgba(212,168,67,0.1)}
+.war-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.war-card:nth-child(1)::before{background:linear-gradient(90deg,var(--fire),var(--gold))}
+.war-card:nth-child(2)::before{background:linear-gradient(90deg,var(--purple),var(--ice))}
+.war-card:nth-child(3)::before{background:linear-gradient(90deg,var(--green),var(--ice))}
+.war-card .chinese{font-size:22px;margin-bottom:4px;opacity:.8}
+.war-card .war-name{font-family:var(--font-title);font-size:13px;font-weight:600;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.war-card .war-desc{font-size:13px;color:var(--txt2);font-style:italic}
+
+/* ══════ FILTER TABS ══════ */
+.tabs{display:flex;justify-content:center;gap:6px;margin-bottom:30px;flex-wrap:wrap}
+.tab{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:7px 18px;font-family:var(--font-mono);font-size:11px;color:var(--txt2);cursor:pointer;transition:all .2s;white-space:nowrap}
+.tab:hover{border-color:var(--gold);color:var(--gold)}
+.tab.active{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
+
+/* ══════ FACTION GRID ══════ */
+.factions{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;margin-bottom:40px}
+
+.faction{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:all .3s;cursor:pointer;position:relative}
+.faction:hover{border-color:var(--border-hi);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.faction.expanded{grid-column:1/-1}
+
+.faction-banner{height:6px}
+.faction .f-head{padding:16px 18px 10px;display:flex;align-items:center;gap:14px}
+.faction .f-sigil{width:48px;height:48px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;border:2px solid var(--border)}
+.faction .f-info{flex:1;min-width:0}
+.faction .f-name{font-family:var(--font-title);font-size:15px;font-weight:600;letter-spacing:.5px}
+.faction .f-type{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--txt2)}
+
+.faction .f-stance{position:absolute;top:16px;right:16px;font-family:var(--font-mono);font-size:9px;padding:3px 8px;border-radius:3px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.stance-ally{background:var(--green-dim);color:var(--green)}
+.stance-enemy{background:var(--blood-dim);color:#ef5350}
+.stance-neutral{background:var(--ice-dim);color:var(--ice)}
+.stance-volatile{background:var(--fire-dim);color:var(--fire)}
+.stance-pivot{background:var(--purple-dim);color:#ce93d8}
+
+.faction .f-body{padding:0 18px 14px}
+.faction .f-motto{font-style:italic;color:var(--gold);font-size:13px;margin-bottom:8px;opacity:.8}
+.faction .f-desc{font-size:13px;color:var(--txt2);line-height:1.55}
+
+/* Power bar */
+.power-bar-wrap{padding:0 18px 14px}
+.power-label{font-family:var(--font-mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;display:flex;justify-content:space-between}
+.power-track{height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+.power-fill{height:100%;border-radius:3px;transition:width 1s ease}
+
+/* Members */
+.f-members{padding:0 18px 14px;display:flex;flex-wrap:wrap;gap:4px}
+.member-chip{font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:3px;background:var(--elevated);color:var(--txt2);border:1px solid var(--border)}
+
+/* Links to productions */
+.f-productions{padding:0 18px 16px}
+.f-productions .prod-label{font-family:var(--font-mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.prod-list{display:flex;flex-wrap:wrap;gap:4px}
+.prod-tag{font-family:var(--font-mono);font-size:9px;padding:3px 8px;border-radius:3px;background:var(--gold-dim);color:var(--gold);border:1px solid rgba(212,168,67,.2);cursor:help}
+
+/* Expanded detail */
+.f-detail{display:none;padding:0 18px 18px;border-top:1px solid var(--border);margin-top:8px}
+.faction.expanded .f-detail{display:block}
+.f-detail h4{font-family:var(--font-title);font-size:13px;color:var(--gold);margin:12px 0 6px;letter-spacing:.5px}
+.f-detail p,.f-detail li{font-size:13px;color:var(--txt2);line-height:1.6}
+.f-detail ul{list-style:none;margin:6px 0}
+.f-detail li::before{content:'→';color:var(--gold);margin-right:6px;font-family:var(--font-mono);font-size:11px}
+
+/* ══════ ALLIANCES MAP ══════ */
+.alliances-section{margin:40px 0;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:28px;position:relative;overflow:hidden}
+.alliances-section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blood),var(--gold),var(--green))}
+.alliances-section h2{font-family:var(--font-title);font-size:18px;color:var(--gold);text-align:center;margin-bottom:20px;letter-spacing:2px}
+
+.alliance-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:800px){.alliance-grid{grid-template-columns:1fr}}
+.alliance-col h3{font-family:var(--font-title);font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.alliance-col.allies h3{color:var(--green)}
+.alliance-col.enemies h3{color:#ef5350}
+.alliance-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:13px}
+.alliance-item .a-arrow{font-family:var(--font-mono);font-size:10px;color:var(--muted);flex-shrink:0}
+.alliance-item .a-from{color:var(--txt);font-weight:500;white-space:nowrap}
+.alliance-item .a-to{color:var(--txt2);white-space:nowrap}
+.alliance-item .a-type{font-family:var(--font-mono);font-size:9px;padding:2px 6px;border-radius:3px;margin-left:auto;white-space:nowrap}
+.a-type.organic{background:var(--green-dim);color:var(--green)}
+.a-type.tactical{background:var(--ice-dim);color:var(--ice)}
+.a-type.structural{background:var(--gold-dim);color:var(--gold)}
+.a-type.hostile{background:var(--blood-dim);color:#ef5350}
+.a-type.tension{background:var(--fire-dim);color:var(--fire)}
+
+/* ══════ CHESSBOARD — POWER MATRIX ══════ */
+.matrix-section{margin:40px 0}
+.matrix-section h2{font-family:var(--font-title);font-size:18px;color:var(--gold);text-align:center;letter-spacing:2px;margin-bottom:20px}
+.matrix-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:12px;max-width:1000px;margin:0 auto;min-height:400px}
+@media(max-width:700px){.matrix-grid{grid-template-columns:1fr;grid-template-rows:auto}}
+.matrix-quad{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;position:relative}
+.matrix-quad .mq-label{font-family:var(--font-title);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:block}
+.matrix-quad .mq-chips{display:flex;flex-wrap:wrap;gap:4px}
+.mq-chip{font-family:var(--font-mono);font-size:10px;padding:4px 10px;border-radius:4px;cursor:help;transition:all .2s}
+.mq-chip:hover{transform:scale(1.05)}
+.mq-chip.ally{background:var(--green-dim);color:var(--green);border:1px solid rgba(67,160,71,.3)}
+.mq-chip.enemy{background:var(--blood-dim);color:#ef5350;border:1px solid rgba(183,28,28,.3)}
+.mq-chip.neutral{background:var(--ice-dim);color:var(--ice);border:1px solid rgba(79,195,247,.3)}
+.mq-chip.pivot{background:var(--purple-dim);color:#ce93d8;border:1px solid rgba(156,39,176,.3)}
+
+.matrix-axes{text-align:center;margin-top:10px;font-family:var(--font-mono);font-size:10px;color:var(--muted)}
+
+/* ══════ TIMELINE ══════ */
+.timeline-section{margin:40px 0;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:28px;position:relative;overflow:hidden}
+.timeline-section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--ice),var(--fire),var(--blood))}
+.timeline-section h2{font-family:var(--font-title);font-size:18px;color:var(--gold);text-align:center;letter-spacing:2px;margin-bottom:20px}
+.timeline{position:relative;padding-left:30px}
+.timeline::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:2px;background:var(--border)}
+.tl-item{position:relative;margin-bottom:18px;padding-left:20px}
+.tl-item::before{content:'';position:absolute;left:-24px;top:6px;width:10px;height:10px;border-radius:50%;border:2px solid var(--border);background:var(--bg)}
+.tl-item.tl-blood::before{border-color:var(--blood);background:var(--blood)}
+.tl-item.tl-gold::before{border-color:var(--gold);background:var(--gold)}
+.tl-item.tl-green::before{border-color:var(--green);background:var(--green)}
+.tl-item.tl-fire::before{border-color:var(--fire);background:var(--fire)}
+.tl-item.tl-ice::before{border-color:var(--ice);background:var(--ice)}
+.tl-date{font-family:var(--font-mono);font-size:10px;color:var(--gold);letter-spacing:1px}
+.tl-event{font-size:14px;color:var(--txt)}
+.tl-sub{font-size:12px;color:var(--txt2);font-style:italic}
+
+/* ══════ FOOTER ══════ */
+.footer{text-align:center;padding:40px 20px;border-top:1px solid var(--border);margin-top:40px}
+.footer .brand{font-family:var(--font-title);font-size:20px;color:var(--gold);letter-spacing:3px;margin-bottom:6px}
+.footer .lic{font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:1px}
+.footer .lic2{font-family:var(--font-mono);font-size:9px;color:var(--muted);margin-top:4px}
+
+/* ══════ ANIMATIONS ══════ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.anim{animation:fadeUp .6s cubic-bezier(.16,1,.3,1) forwards;opacity:0}
+.d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}.d4{animation-delay:.4s}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<header class="header anim d1">
+  <h1>Les Maisons de Belgique</h1>
+  <p class="sub">Carte stratégique de la société civile, des rapports de force et des « Trois Guerres Civiques » — une synthèse de l'ensemble des productions ouaisfieu</p>
+  <p class="meta">ouaisfieu · intelligence citoyenne · <span>三种公民战法</span> · CC BY-NC 4.0 · février 2026</p>
+</header>
+
+<!-- DOCTRINE BANNER — 3 GUERRES -->
+<div class="doctrine-banner anim d2">
+  <div class="war-card">
+    <div class="chinese">舆论战</div>
+    <div class="war-name">Guerre du Récit</div>
+    <div class="war-desc">Contre-narratifs documentés · Fact-checking citoyen · SEO/GEO</div>
+  </div>
+  <div class="war-card">
+    <div class="chinese">心理战</div>
+    <div class="war-name">Guerre de la Dé-sidération</div>
+    <div class="war-desc">Éducation permanente · Résilience cognitive · VPA</div>
+  </div>
+  <div class="war-card">
+    <div class="chinese">法律战</div>
+    <div class="war-name">Guerre Juridique</div>
+    <div class="war-desc">Lawfare citoyen · Cour Constitutionnelle · CEDS · Saturation</div>
+  </div>
+</div>
+
+<!-- FILTER TABS -->
+<div class="tabs anim d3" id="tabs"></div>
+
+<!-- FACTIONS GRID -->
+<div class="factions anim d4" id="factionsGrid"></div>
+
+<!-- STAKEHOLDER MATRIX -->
+<div class="matrix-section anim">
+  <h2>⚖ Échiquier du Pouvoir</h2>
+  <div class="matrix-grid">
+    <div class="matrix-quad" style="border-color:var(--blood)">
+      <span class="mq-label">🎯 Gérer de près — Fort pouvoir, hostile</span>
+      <div class="mq-chips" id="mxManage"></div>
+    </div>
+    <div class="matrix-quad" style="border-color:var(--green)">
+      <span class="mq-label">🤝 Collaborer — Fort pouvoir, allié</span>
+      <div class="mq-chips" id="mxCollab"></div>
+    </div>
+    <div class="matrix-quad" style="border-color:var(--fire)">
+      <span class="mq-label">👁 Surveiller — Faible pouvoir, imprévisible</span>
+      <div class="mq-chips" id="mxMonitor"></div>
+    </div>
+    <div class="matrix-quad" style="border-color:var(--ice)">
+      <span class="mq-label">📢 Informer — Faible pouvoir, allié</span>
+      <div class="mq-chips" id="mxInform"></div>
+    </div>
+  </div>
+  <div class="matrix-axes">← Faible pouvoir · Axe horizontal · Fort pouvoir → &nbsp;|&nbsp; ↑ Hostile · Axe vertical · Allié ↓</div>
+</div>
+
+<!-- TIMELINE -->
+<div class="timeline-section anim">
+  <h2>📜 Chronique des Sept Royaumes — 2025-2026</h2>
+  <div class="timeline" id="timeline"></div>
+</div>
+
+<!-- ALLIANCES -->
+<div class="alliances-section anim">
+  <h2>🔗 Alliances et Rivalités</h2>
+  <div class="alliance-grid">
+    <div class="alliance-col allies" id="allyList"><h3>⚔ Alliances documentées</h3></div>
+    <div class="alliance-col enemies" id="enemyList"><h3>🗡 Tensions et conflits</h3></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="brand">OUAISFIEU</div>
+  <div class="lic">CC BY-NC 4.0 · Fork · Hack · Spread · Intelligence Citoyenne Belge</div>
+  <div class="lic2">Synthèse de 70+ dossiers analytiques · 8 blocs thématiques · 60 données auditées · Doctrine des Trois Guerres Civiques</div>
+</footer>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA — Belgian Civil Society "Houses"
+// ═══════════════════════════════════════════
+
+const FACTIONS = [
+  // ─── TRÔNE DE FER : COALITION ARIZONA ───
+  {id:"arizona",name:"Coalition Arizona",type:"Le Trône de Fer",category:"pouvoir",stance:"enemy",
+   sigil:"👑",color:"var(--blood)",power:95,
+   motto:"81 sièges, 54 %, cinq partis. « Le train des réformes est lancé. »",
+   desc:"N-VA + MR + CD&V + Les Engagés + Vooruit. PM Bart De Wever. Formée le 3/02/2025 après 239 jours. Programme : €23 Mds d'économies, limitation chômage 2 ans, malus pension, activation malades, plafonnement indexation.",
+   members:["Bart De Wever (N-VA)","Georges-Louis Bouchez (MR)","Maxime Prévot (Engagés)","Sammy Mahdi (CD&V)","Conner Rousseau (Vooruit)"],
+   productions:["Budget Arizona","Angles morts","Alerte pandémique","Plaidoyer STOP Arizona"],
+   matrix:"manage",
+   detail:"<h4>Tensions internes documentées</h4><p>Kern de 20h le 23/11/2025 — coalition a failli tomber. MR vs nouvelles taxes, Vooruit vs saut d'index, N-VA poussant €10 Mds d'économies. Accord de justesse : €9,2 Mds. Vooruit = maillon faible, coincé par la loyauté coalitionnelle mais sous pression syndicale de la FGTB et de sa base.</p><h4>Vulnérabilités</h4><ul><li>Arrêt Cour Constitutionnelle attendu fin 2026/2027 sur limitation chômage</li><li>Saturation prévisible des CPAS = preuve tangible d'échec</li><li>Sondages RTL-Ipsos déc. 2025 : MR -8,2 points en Wallonie</li><li>PTB 1er parti à Bruxelles (22,3 %)</li></ul>"},
+
+  {id:"nva",name:"Maison N-VA",type:"Pilier flamand nationaliste",category:"pouvoir",stance:"enemy",
+   sigil:"🦁",color:"#fdd835",power:88,
+   motto:"« Verandering voor Vooruitgang » — Le confédéralisme comme horizon.",
+   desc:"Premier parti de Flandre (~25,6 %). PM De Wever. Agenda : confédéralisme, activation, réduction État fédéral. Contrôle le tempo de la coalition.",
+   members:["Bart De Wever","Jan Jambon","Theo Francken","Zuhal Demir"],
+   productions:["Particratie","Parlementaires","613 jours"],
+   matrix:"manage",
+   detail:"<h4>Le maître du jeu</h4><p>La N-VA fixe l'agenda depuis 2014. La coalition Arizona est son chef-d'œuvre : elle a réussi à embarquer Vooruit (socialistes flamands) dans un programme d'austérité en échange de concessions symboliques. Son vrai objectif dépasse l'économie : chaque crise budgétaire est une occasion de démontrer l'« ingouvernabilité » de la Belgique fédérale.</p>"},
+
+  {id:"mr",name:"Maison MR",type:"Pilier libéral francophone",category:"pouvoir",stance:"enemy",
+   sigil:"🔵",color:"#1565c0",power:82,
+   motto:"« La liberté est le plus court chemin vers la prospérité. »",
+   desc:"Premier parti francophone (MR 20-21 sièges). Bouchez cumule ~€278K/an. Orthodoxie budgétaire. A qualifié le reportage « Tous Fraudeurs » de « hallucinant » (sens laudatif). Architecte de la Loi Quintin.",
+   members:["Georges-Louis Bouchez","Denis Ducarme","Charlotte Deborsu","Sophie Wilmès","David Leisterh"],
+   productions:["Tsar-e-Bomba","Reportage Deborsu","Audit·60","Loi Quintin"],
+   matrix:"manage",
+   detail:"<h4>La forteresse médiatique</h4><p>Bouchez a transformé le MR en machine à communication. Charlotte Deborsu (nièce du journaliste) = pont entre médias et politique. Stéphanie Cortisse (présidente conseil communal Verviers + députée FWB + prés. fédération MR Verviers) = seule des 37 élus à partager le reportage. Sondages : chute de 29,6 % à 21,4 % en Wallonie.</p><h4>Loi Quintin</h4><p>Avant-projet permettant la dissolution d'associations « radicales » par le gouvernement. Rappelé à l'ordre par le Conseil d'État. Amnesty International, CSC, CEPAG dénoncent une attaque contre la liberté d'association.</p>"},
+
+  // ─── OPPOSITION PARLEMENTAIRE ───
+  {id:"ps",name:"Maison PS",type:"Pilier socialiste francophone",category:"opposition",stance:"ally",
+   sigil:"🌹",color:"#c62828",power:70,
+   motto:"« Le PS, c'est nous tous. » — Paul Magnette.",
+   desc:"~30 % en Wallonie (sondages déc. 2025). Opposition principale. Magnette cumule ~€410K/an. Liens historiques FGTB. Refusé de gouverner avec N-VA à Bruxelles (veto déc. 2024).",
+   members:["Paul Magnette","Ahmed Laaouej","Christie Morreale"],
+   productions:["Particratie","Démogarchie","Angles morts"],
+   matrix:"inform",
+   detail:"<h4>Le tigre de papier</h4><p>Le PS dispose du récit mais pas du pouvoir. Sa critique de l'Arizona est légitime mais limitée par son propre passé au gouvernement (Vivaldi) et les critiques sur le cumul Magnette. Allié tactique mais pas structurel de la résistance citoyenne : le PS cherche à capter la contestation, pas à l'autonomiser.</p>"},
+
+  {id:"ptb",name:"Maison PTB-PVDA",type:"Gauche radicale unitaire",category:"opposition",stance:"ally",
+   sigil:"✊",color:"#d32f2f",power:55,
+   motto:"« Ce n'est pas 30 pesos, c'est 30 ans. »",
+   desc:"1er parti à Bruxelles (22,3 %). Seul parti unitaire (FR+NL). Alternatives budgétaires chiffrées : taxe patrimoines €4,7-10 Mds. Marco Van Hees = questions parlementaires clés sur contrôles fiscaux.",
+   members:["Raoul Hedebouw","Marco Van Hees","Sophie Merckx"],
+   productions:["Budget Arizona","Plaidoyer STOP","Angles morts"],
+   matrix:"inform",
+   detail:"<h4>Les contre-élites de Turchin</h4><p>Le PTB illustre parfaitement la dynamique de Peter Turchin : un parti de contre-élites (universitaires marxistes) qui canalise la frustration populaire via un discours de classe. Sa montée est un indicateur structurel de la crise du système particratique, pas un accident.</p>"},
+
+  {id:"ecolo",name:"Maison Écolo/Groen",type:"Pilier écologiste",category:"opposition",stance:"ally",
+   sigil:"🌿",color:"#2e7d32",power:35,
+   motto:"« L'écologie est la science des interdépendances. »",
+   desc:"Écolo -8 sièges aux élections 2024. Affaibli mais allié naturel sur le social-écologique. Groen dirige à Bruxelles.",
+   members:["Jean-Marc Nollet","Rajae Maouane"],
+   productions:["Plaidoyer STOP","Angles morts"],
+   matrix:"inform"},
+
+  // ─── SYNDICATS : LES GRANDES MAISONS ───
+  {id:"fgtb",name:"Maison FGTB/ABVV",type:"Pilier socialiste — Syndicat",category:"syndicats",stance:"ally",
+   sigil:"⚒",color:"#c62828",power:85,
+   motto:"« Le droit de grève n'est pas un privilège, c'est un acquis. »",
+   desc:"~1,5M membres. Pilier socialiste. Thierry Bodson (président). A mobilisé 100K (fév.), 140K (oct.), + grèves mars et nov. 2025. Front commun avec CSC. Services juridiques = allié clé pour lawfare citoyen.",
+   members:["Thierry Bodson","Centrales sectorielles","SETCa","CGSP","Centrale Générale"],
+   productions:["Plaidoyer STOP Arizona","Trois Guerres Civiques","Mobilisations 2025"],
+   matrix:"collab",
+   detail:"<h4>Le bélier</h4><p>La FGTB est le bras armé de la contestation sociale. 4 mobilisations majeures en 2025. Mais : aucun accord interprofessionnel conclu pour 2025-2026, signe des limites du rapport de force. Lien historique avec le PS mais base de plus en plus radicalisée vers le PTB.</p>"},
+
+  {id:"csc",name:"Maison CSC/ACV",type:"Pilier chrétien — Syndicat",category:"syndicats",stance:"ally",
+   sigil:"✝",color:"#ef6c00",power:88,
+   motto:"« La dignité du travail est au cœur de l'humain. »",
+   desc:"~1,7M membres — plus grand syndicat belge. Pilier chrétien (Beweging.net). Réseau et mobilisation. Front commun 2025. A rejoint les 3 jours de grève nov. 2025.",
+   members:["Marc Leemans","ACV Puls","CSC Transcom","CNE"],
+   productions:["Rapports de force","Pilarisation","Plaidoyer STOP"],
+   matrix:"collab",
+   detail:"<h4>Le géant prudent</h4><p>La CSC est plus grande mais plus conservatrice que la FGTB. Son ralliement total aux grèves de novembre 2025 (les 3 confédérations ensemble pour la première fois) est un signal fort. Mais elle reste liée au pilier chrétien (CD&V/Engagés) = tension interne permanente.</p>"},
+
+  {id:"cgslb",name:"Maison CGSLB/ACLVB",type:"Pilier libéral — Syndicat",category:"syndicats",stance:"ally",
+   sigil:"⚖",color:"#0277bd",power:40,
+   motto:"« Le progrès social passe par la liberté individuelle. »",
+   desc:"Syndicat libéral. Plus petit des trois. Absent de la grève du 31/03 mais présent aux 3 jours de nov. Son ralliement = indicateur de gravité.",
+   members:[],productions:["Plaidoyer STOP"],matrix:"inform"},
+
+  // ─── MUTUALITÉS ───
+  {id:"solidaris",name:"Maison Solidaris",type:"Mutualité socialiste",category:"mutualites",stance:"ally",
+   sigil:"❤",color:"#ad1457",power:50,
+   motto:"« La santé n'est pas une marchandise. »",
+   desc:"Expertise santé, dénonce la « taxe santé » Arizona. Source primaire sur MàF BIM (€548,55), tarifs sociaux, ticket modérateur. Partenaire potentiel pour ECP.",
+   members:[],productions:["Audit·60","BIM","Plaidoyer ECP"],matrix:"collab"},
+
+  {id:"mc",name:"Maison MC/CM",type:"Mutualité chrétienne",category:"mutualites",stance:"neutral",
+   sigil:"✚",color:"#ef6c00",power:55,
+   motto:"Plus grande mutualité belge — ~4,5M affiliés.",
+   desc:"Pilier chrétien. Source primaire plafond BIM €28 054,93. Position prudente sur Arizona car liée au CD&V/Engagés (membres de la coalition).",
+   members:[],productions:["Audit·60","BIM"],matrix:"monitor"},
+
+  // ─── MÉDIAS : LES MAÎTRES DU RÉCIT ───
+  {id:"rtl",name:"Maison RTL-TVI",type:"Média commercial",category:"medias",stance:"enemy",
+   sigil:"📺",color:"#e65100",power:70,
+   motto:"« Sans boulot : tous fraudeurs ? » — 410 860 téléspectateurs, 39,1 % PdM.",
+   desc:"Co-détenue Rossel (50 %) + DPG Media (50 %). Reportage Deborsu = déclencheur de la crise. 100+ plaintes CSA. CDJ saisi. Propagande sociologique au sens d'Ellul.",
+   members:["Christophe Deborsu","RTL Info (F. Bailly ex-rédac chef L'Écho)"],
+   productions:["Tsar-e-Bomba","Reportage Deborsu","Fabrique ennemi intérieur","Audit·60"],
+   matrix:"manage",
+   detail:"<h4>L'arme de destruction narrative massive</h4><p>Le reportage du 07/11/2025 a focalisé 1M+ téléspectateurs sur 0,3 % du budget social. Audience : 410 860 (39,1 % PdM). Bouchez l'a qualifié de « vrai travail d'enquête ». Denys (CPAS Verviers) : interview d'1h réduite à quelques secondes. La Fenêtre d'Overton déplacée (analyse Esenca). Modèle Herman-Chomsky applicable.</p>"},
+
+  {id:"rossel",name:"Maison Rossel-IPM",type:"Empire médiatique francophone",category:"medias",stance:"volatile",
+   sigil:"📰",color:"#795548",power:75,
+   motto:"Si la fusion aboutit : 95 % de la presse francophone sous un seul groupe.",
+   desc:"Rossel (fam. Hurbain) : Le Soir, SudInfo, 50 % RTL. IPM (fam. Le Hodey) : La Libre, La DH, L'Avenir, LN24. Fusion annoncée juin 2025, accord déc. 2025. De 48 titres (1960) à 15 (2016).",
+   members:["Famille Hurbain","Famille Le Hodey"],
+   productions:["Dépossession pouvoir d'agir","Angles morts","5 familles médias"],
+   matrix:"manage",
+   detail:"<h4>Le monopole en construction</h4><p>Médor : « En 2020, trois groupes de presse quotidienne existaient. En 2026, il n'y en aura plus qu'un. » 103+ journalistes passés en communication politique (1995-2017). Au CA de DPG : Davignon, Verhofstadt, De Geest (VOKA). Les GAFAM captent ~70 % des revenus pub numériques.</p>"},
+
+  {id:"rtbf",name:"Maison RTBF/VRT",type:"Médias publics",category:"medias",stance:"neutral",
+   sigil:"📡",color:"#37474f",power:60,
+   motto:"Neutralité relative — sous pression croisée.",
+   desc:"RTBF contrat de gestion contesté par médias privés. VRT = Flandre. Sources primaires fréquentes (Pandora Papers, mobilisations). Hadja Lahbib : RTBF → ministre → commissaire UE.",
+   members:[],productions:["Angles morts"],matrix:"monitor"},
+
+  // ─── PATRONAT ───
+  {id:"feb",name:"Maison FEB/VBO",type:"Patronat fédéral",category:"patronat",stance:"enemy",
+   sigil:"🏛",color:"#455a64",power:80,
+   motto:"« Le train est lancé. » — Le président FEB après l'accord d'été 2025.",
+   desc:"50 000 entreprises, 75 % emplois privés. 100+ instances de lobbying. Revendique régulièrement flexibilité et allégements fiscaux. Allié structurel de la coalition Arizona.",
+   members:["VOKA (Flandre)","UCM (Wallonie/BXL)","Fédérations sectorielles"],
+   productions:["Rapports de force","Budget Arizona"],
+   matrix:"manage"},
+
+  // ─── SOCIÉTÉ CIVILE : RÉSISTANCE ───
+  {id:"cpas",name:"Les CPAS",type:"Rempart de dernier recours",category:"societe_civile",stance:"ally",
+   sigil:"🏠",color:"#00695c",power:45,
+   motto:"Saturation prévisible = preuve tangible de l'échec Arizona.",
+   desc:"21 500 exclusions chômage au 01/01/2026 → transfert vers CPAS. UVCW + Brulocalis estiment surcoût €80M. Gaëlle Denys (Verviers) = voix de la résistance. Délai 30 jours intenable.",
+   members:["Gaëlle Denys (Verviers)","UVCW","Brulocalis"],
+   productions:["Plaidoyer STOP","Reportage Deborsu","Audit·60"],
+   matrix:"collab",
+   detail:"<h4>Le baromètre de l'échec</h4><p>Les CPAS sont le canari dans la mine. Chaque personne exclue du chômage qui arrive au CPAS est un transfert de coûts du fédéral vers les communes. Jean Hindriks (UCLouvain) : les gains budgétaires seront « en grande partie compensés par l'augmentation des dépenses des CPAS ». Motion unanime du conseil de Verviers (24/11/2025).</p>"},
+
+  {id:"csa",name:"Maison CSA/CDJ",type:"Régulateur audiovisuel",category:"institutions",stance:"neutral",
+   sigil:"⚖",color:"#546e7a",power:50,
+   motto:"100+ plaintes en quelques jours — un record.",
+   desc:"CSA : communiqué 12/11/2025, ouverture dossier d'instruction (art. 2.4-1, discrimination condition sociale). CDJ saisi pour déontologie (délai 90 jours).",
+   members:[],productions:["Reportage Deborsu","Audit·60"],matrix:"collab"},
+
+  {id:"courconst",name:"Cour Constitutionnelle",type:"Gardien des droits",category:"institutions",stance:"pivot",
+   sigil:"⚖",color:"#5e35b1",power:90,
+   motto:"Arrêt attendu fin 2026/2027 — peut créer un séisme politique.",
+   desc:"Recours déposé contre la limitation du chômage à 2 ans (violation Art. 23 standstill). Si annulation = défaite majeure pour Arizona. Précédent : annulation exclusions Di Rupo 2014.",
+   members:[],productions:["Plaidoyer STOP","Trois Guerres Civiques"],
+   matrix:"manage",
+   detail:"<h4>Le wildcard</h4><p>L'Art. 23 de la Constitution belge consacre le droit à la sécurité sociale avec obligation de standstill (non-régression). La limitation du chômage à 24 mois pourrait être jugée inconstitutionnelle. Un arrêt favorable serait un point de bascule. Stratégie ouaisfieu : documenter systématiquement les violations pour alimenter les requêtes.</p>"},
+
+  {id:"ceds",name:"Comité Européen Droits Sociaux",type:"Juridiction européenne",category:"institutions",stance:"pivot",
+   sigil:"🇪🇺",color:"#1565c0",power:60,
+   motto:"Plaintes collectives via la Charte sociale européenne.",
+   desc:"Voie de recours européenne. Plaintes possibles via organisations reconnues (syndicats, ONG). Décisions non contraignantes mais politiquement puissantes.",
+   members:[],productions:["Trois Guerres Civiques","Plaidoyer STOP"],matrix:"inform"},
+
+  {id:"pac",name:"Maison PAC",type:"Éducation permanente socialiste",category:"educ_permanente",stance:"ally",
+   sigil:"📚",color:"#e53935",power:35,
+   motto:"Présence et Action Culturelles — le plus grand opérateur d'éducation permanente en FWB.",
+   desc:"~200 groupes locaux, 32 régionales. Partenaire potentiel pour ouaisfieu (moratoire 2026-2028). Produit analyses, ateliers-débats, animations. Lié au pilier socialiste.",
+   members:[],productions:["PAC Radiographie","Formation intelligence citoyenne"],matrix:"collab"},
+
+  {id:"esenca",name:"Maison Esenca",type:"Défense personnes handicapées",category:"societe_civile",stance:"ally",
+   sigil:"♿",color:"#7b1fa2",power:25,
+   motto:"L'émission Deborsu = « véritable avertissement » (Fenêtre d'Overton).",
+   desc:"A publié l'analyse conceptualisant l'impact du documentaire via la Fenêtre d'Overton. Alerte sur la normalisation de l'hostilité envers les groupes vulnérables.",
+   members:[],productions:["Tsar-e-Bomba","Fabrique ennemi intérieur"],matrix:"inform"},
+
+  {id:"ouaisfieu",name:"ouaisfieu",type:"Contre-institution numérique",category:"ouaisfieu",stance:"ally",
+   sigil:"🐙",color:"var(--gold)",power:15,
+   motto:"Fork · Hack · Spread — 29€/mois, zéro tracking, CC BY-NC.",
+   desc:"70+ dossiers analytiques. PWA citoyennes. Audit·60. Doctrine des Trois Guerres Civiques. Psycho-noopolitique libertaire. Budget : 29€/mois. 1 personne + Claude. Candidature éducation permanente 2029.",
+   members:["Yan (fondateur)","Claude (IA partenaire)"],
+   productions:["Audit·60","Trois Guerres","Tsar-e-Bomba","Plaidoyers","Budget Arizona","Psycho-noopolitique","613 jours","Angles morts","Dépossession","Fork Hack Spread"],
+   matrix:"inform",
+   detail:"<h4>Le poulpe</h4><p>11+ plateformes, 70+ productions, 60 données auditées. Positionnement unique : grassroots + production de savoir. Pas de client, pas de marché public. Radicalité et auto-hébergement. L'intelligence citoyenne n'est pas un concept, c'est une pratique.</p><h4>Quatre pôles</h4><ul><li>PSYCHÉ : déplacer la culpabilité du sujet vers le système</li><li>NOOS : les Trois Guerres Civiques (récit, dé-sidération, juridique)</li><li>BIOS : documentation des violations Art. 23, plaintes CEDS</li><li>ANARCHIA : architecture technique non-capturable (statique, forkable, libre)</li></ul>"},
+
+  {id:"vb",name:"Maison Vlaams Belang",type:"Extrême-droite flamande",category:"opposition",stance:"volatile",
+   sigil:"🖤",color:"#212121",power:65,
+   motto:"~24 % en Flandre. Cordon sanitaire tient (pour l'instant).",
+   desc:"2e parti flamand. Peut instrumentaliser la colère sociale sur un registre identitaire. Risque de division du mouvement social. Bifurcation communautaire du mécontentement.",
+   members:["Tom Van Grieken"],productions:["Alerte pandémique","Angles morts"],matrix:"monitor",
+   detail:"<h4>Le prédateur opportuniste</h4><p>La bifurcation communautaire est le principal risque stratégique : la colère s'exprime à gauche (PS/PTB) au sud mais à droite radicale (N-VA/VB) au nord. Le VB ne peut pas gouverner (cordon sanitaire) mais il peut capturer l'électorat populaire flamand mécontent, rendant toute alternative impossible.</p>"},
+
+  {id:"eu",name:"Commission Européenne",type:"Pression budgétaire",category:"institutions",stance:"enemy",
+   sigil:"🇪🇺",color:"#1a237e",power:85,
+   motto:"La Belgique est le seul pays dont la procédure de déficit excessif n'a pas été suspendue.",
+   desc:"Procédure déficit excessif pendante. €9,2 Mds d'économies = réponse directe aux contraintes UE. Marge de manœuvre réduite pour tout gouvernement.",
+   members:["DG ECFIN","Semestre européen"],productions:["Budget Arizona","Angles morts"],matrix:"manage"},
+
+  {id:"ldh",name:"Ligue des Droits Humains",type:"ONG droits fondamentaux",category:"societe_civile",stance:"ally",
+   sigil:"⚖",color:"#00838f",power:30,
+   motto:"Co-requérant potentiel des recours constitutionnels.",
+   desc:"Coalition « Droit de protester ». Dénonce la Loi Quintin. Partenaire pour les recours devant la Cour Constitutionnelle et le CEDS.",
+   members:["Amnesty International BE","IFDH"],productions:["Trois Guerres Civiques","Loi Quintin"],matrix:"collab"},
+
+  {id:"academiques",name:"Tour d'Ivoire",type:"Recherche académique",category:"societe_civile",stance:"ally",
+   sigil:"🎓",color:"#4527a0",power:40,
+   motto:"Les chiffres contre les récits — la seule arme que la particratie ne contrôle pas.",
+   desc:"DULBEA (ULB), HIVA (KU Leuven), UCLouvain (Hindriks), IWEPS. Sources primaires des données d'audit. Études SUBLEC, BELMOD, PwC/SPP IS. Caution académique indispensable.",
+   members:["Jean Hindriks (UCLouvain)","DULBEA","HIVA-KU Leuven","IWEPS","Bouckaert & Schokkaert"],
+   productions:["Audit·60","Budget Arizona","Veille citoyenne"],matrix:"collab"},
+];
+
+const ALLIANCES = [
+  {from:"FGTB",to:"CSC",type:"organic",label:"Front commun syndical 2025"},
+  {from:"FGTB",to:"PS",type:"structural",label:"Lien pilier socialiste historique"},
+  {from:"CSC",to:"CD&V/Engagés",type:"tension",label:"Pilier chrétien mais opposition sur Arizona"},
+  {from:"CPAS",to:"UVCW/Brulocalis",type:"organic",label:"Réseau communal wallon/bruxellois"},
+  {from:"ouaisfieu",to:"PAC",type:"tactical",label:"Partenariat éducation permanente en construction"},
+  {from:"Syndicats",to:"Cour Const.",type:"tactical",label:"Alimentation recours Art. 23"},
+  {from:"45 organisations",to:"Syndicats",type:"organic",label:"Convergence mobilisations (Unia, Greenpeace, Amnesty…)"},
+  {from:"ouaisfieu",to:"Claude",type:"structural",label:"Co-création humain-IA"},
+  {from:"RTL-TVI",to:"MR",type:"structural",label:"Collusion médiatico-politique (#MRTL)"},
+  {from:"FEB/VOKA",to:"Arizona",type:"structural",label:"Lobbying pro-compétitivité → réformes"},
+  {from:"Rossel",to:"IPM",type:"structural",label:"Fusion = monopole presse francophone"},
+  {from:"N-VA",to:"Vlaams Belang",type:"tension",label:"Concurrence électorale Flandre (49,5 % combinés)"},
+  {from:"Vooruit",to:"FGTB",type:"tension",label:"Base syndicale vs loyauté coalitionnelle"},
+  {from:"Commission UE",to:"Arizona",type:"structural",label:"Procédure déficit excessif → pression €23 Mds"},
+  {from:"MR",to:"Liberté association",type:"hostile",label:"Loi Quintin : dissolution associations"},
+  {from:"PTB",to:"PS",type:"tension",label:"Concurrence électorale à gauche"},
+];
+
+const TIMELINE = [
+  {date:"31/01/2025",event:"Accord de coalition Arizona",sub:"239 jours de négociation. 5 partis, 81 sièges.",cls:"tl-blood"},
+  {date:"03/02/2025",event:"Prestation de serment — PM Bart De Wever",sub:"Premier nationaliste flamand au 16 rue de la Loi.",cls:"tl-blood"},
+  {date:"13/02/2025",event:"Manifestation nationale : ~100 000 personnes",sub:"10 jours après l'installation. Police : 60 000. Front commun + 45 orgas.",cls:"tl-green"},
+  {date:"31/03/2025",event:"Grève interprofessionnelle",sub:"FGTB + CSC (CGSLB absente). Aucun vol à Brussels Airport.",cls:"tl-green"},
+  {date:"29/07/2025",event:"Limitation chômage 2 ans — Moniteur Belge",sub:"Premières exclusions prévues 01/01/2026.",cls:"tl-blood"},
+  {date:"07/11/2025",event:"Reportage « Tous Fraudeurs ? » — RTL-TVI",sub:"410 860 téléspectateurs. 39,1 % PdM. Guerre du Récit en action.",cls:"tl-fire"},
+  {date:"12/11/2025",event:"CSA : 100+ plaintes — CDJ saisi",sub:"Record. Discrimination condition sociale (art. 2.4-1).",cls:"tl-gold"},
+  {date:"14/10/2025",event:"Manifestation nationale : 140 000 personnes",sub:"Police : 80 000. Front commun des 3 syndicats.",cls:"tl-green"},
+  {date:"23-24/11/2025",event:"Coalition a failli tomber — Kern de 20h",sub:"Accord €9,2 Mds de justesse. Le système craque.",cls:"tl-fire"},
+  {date:"24-26/11/2025",event:"3 jours de grève — ~300 000 mobilisés",sub:"Première fois : les 3 confédérations ensemble.",cls:"tl-green"},
+  {date:"01/01/2026",event:"Premières exclusions chômage : 21 500 personnes",sub:"13 000+ en Wallonie. Transfert vers CPAS.",cls:"tl-blood"},
+  {date:"20/02/2026",event:"AUDIT·60 — Vérification exhaustive des données",sub:"34 confirmées, 15 corrigées, 8 approximatives, 3 non vérifiées.",cls:"tl-gold"},
+  {date:"Fin 2026-2027",event:"⏳ Arrêt Cour Constitutionnelle attendu",sub:"Art. 23 standstill. Potentiel séisme politique.",cls:"tl-ice"},
+  {date:"2029",event:"⏳ Candidature éducation permanente ouaisfieu",sub:"Si moratoire levé. Objectif : reconnaissance institutionnelle.",cls:"tl-gold"},
+];
+
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+const CATEGORIES = [
+  {id:"all",label:"Toutes les Maisons"},
+  {id:"pouvoir",label:"👑 Trône de Fer"},
+  {id:"opposition",label:"⚔ Opposition"},
+  {id:"syndicats",label:"⚒ Syndicats"},
+  {id:"mutualites",label:"❤ Mutualités"},
+  {id:"medias",label:"📺 Médias"},
+  {id:"patronat",label:"🏛 Patronat"},
+  {id:"societe_civile",label:"🌍 Société civile"},
+  {id:"institutions",label:"⚖ Institutions"},
+  {id:"educ_permanente",label:"📚 Éduc. permanente"},
+  {id:"ouaisfieu",label:"🐙 ouaisfieu"},
+];
+
+let activeCategory = "all";
+
+function renderTabs(){
+  document.getElementById('tabs').innerHTML = CATEGORIES.map(c =>
+    `<div class="tab${activeCategory===c.id?' active':''}" data-cat="${c.id}">${c.label}</div>`
+  ).join('');
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click',()=>{
+    activeCategory = t.dataset.cat;
+    renderTabs(); renderFactions();
+  }));
+}
+
+function renderFactions(){
+  const filtered = activeCategory==='all' ? FACTIONS : FACTIONS.filter(f=>f.category===activeCategory);
+  document.getElementById('factionsGrid').innerHTML = filtered.map(f => {
+    const stanceClass = f.stance==='ally'?'stance-ally':f.stance==='enemy'?'stance-enemy':f.stance==='volatile'?'stance-volatile':f.stance==='pivot'?'stance-pivot':'stance-neutral';
+    const stanceLabel = f.stance==='ally'?'Allié':f.stance==='enemy'?'Adversaire':f.stance==='volatile'?'Volatile':f.stance==='pivot'?'Pivot':'Neutre';
+    return `<div class="faction" data-id="${f.id}">
+      <div class="faction-banner" style="background:${f.color}"></div>
+      <div class="f-stance ${stanceClass}">${stanceLabel}</div>
+      <div class="f-head">
+        <div class="f-sigil" style="border-color:${f.color}">${f.sigil}</div>
+        <div class="f-info">
+          <div class="f-name">${f.name}</div>
+          <div class="f-type">${f.type}</div>
+        </div>
+      </div>
+      <div class="f-body">
+        <div class="f-motto">${f.motto}</div>
+        <div class="f-desc">${f.desc}</div>
+      </div>
+      <div class="power-bar-wrap">
+        <div class="power-label"><span>Puissance</span><span>${f.power}/100</span></div>
+        <div class="power-track"><div class="power-fill" style="width:${f.power}%;background:${f.color}"></div></div>
+      </div>
+      ${f.members&&f.members.length?`<div class="f-members">${f.members.map(m=>`<span class="member-chip">${m}</span>`).join('')}</div>`:''}
+      ${f.productions&&f.productions.length?`<div class="f-productions"><div class="prod-label">📄 Productions ouaisfieu liées</div><div class="prod-list">${f.productions.map(p=>`<span class="prod-tag">${p}</span>`).join('')}</div></div>`:''}
+      ${f.detail?`<div class="f-detail">${f.detail}</div>`:''}
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('.faction').forEach(el => el.addEventListener('click',()=>{
+    el.classList.toggle('expanded');
+  }));
+}
+
+function renderMatrix(){
+  const slots = {manage:[],collab:[],monitor:[],inform:[]};
+  FACTIONS.forEach(f=>{
+    const cls = f.stance==='ally'?'ally':f.stance==='enemy'?'enemy':f.stance==='pivot'?'pivot':'neutral';
+    const chip = `<span class="mq-chip ${cls}" title="${f.type}">${f.sigil} ${f.name.replace('Maison ','')}</span>`;
+    if(f.matrix) slots[f.matrix]?.push(chip);
+  });
+  document.getElementById('mxManage').innerHTML = slots.manage.join('');
+  document.getElementById('mxCollab').innerHTML = slots.collab.join('');
+  document.getElementById('mxMonitor').innerHTML = slots.monitor.join('');
+  document.getElementById('mxInform').innerHTML = slots.inform.join('');
+}
+
+function renderTimeline(){
+  document.getElementById('timeline').innerHTML = TIMELINE.map(t =>
+    `<div class="tl-item ${t.cls}"><div class="tl-date">${t.date}</div><div class="tl-event">${t.event}</div>${t.sub?`<div class="tl-sub">${t.sub}</div>`:''}</div>`
+  ).join('');
+}
+
+function renderAlliances(){
+  const allies = ALLIANCES.filter(a=>a.type!=='hostile'&&a.type!=='tension');
+  const enemies = ALLIANCES.filter(a=>a.type==='hostile'||a.type==='tension');
+
+  document.getElementById('allyList').innerHTML = '<h3>⚔ Alliances documentées</h3>' +
+    allies.map(a=>`<div class="alliance-item"><span class="a-from">${a.from}</span><span class="a-arrow">⟶</span><span class="a-to">${a.to}</span><span class="a-type ${a.type}">${a.type}</span></div>`).join('');
+  document.getElementById('enemyList').innerHTML = '<h3>🗡 Tensions et conflits</h3>' +
+    enemies.map(a=>`<div class="alliance-item"><span class="a-from">${a.from}</span><span class="a-arrow">⚡</span><span class="a-to">${a.to}</span><span class="a-type ${a.type}">${a.type}</span></div>`).join('');
+}
+
+// INIT
+document.addEventListener('DOMContentLoaded',()=>{
+  renderTabs();
+  renderFactions();
+  renderMatrix();
+  renderTimeline();
+  renderAlliances();
+});
+</script>
+</body>
+</html>
