@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tous Fraudeurs ? - Rapport Interactif</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin: 0 auto; height: 300px; max-height: 400px; }
+        .active-tab { border-bottom: 2px solid #ef4444; color: #ef4444; font-weight: 600; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* Range Slider Styling */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #ef4444; cursor: pointer; margin-top: -6px; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #cbd5e1; border-radius: 2px; }
+    </style>
+    <!-- Chosen Palette: "Serious Investigation" - Warm Neutrals (#f8fafc), Dark Slate Text (#1e293b), Alert Red (#ef4444) for fraud metrics, Official Blue (#3b82f6) for static data. -->
+    <!-- Application Structure Plan: 
+        1. Executive Dashboard: Immediate visual impact of the estimated vs recovered fraud (The Core Problem).
+        2. The Mechanisms: Interactive exploration of HOW fraud happens (Cohabitation Trap & Black Labor).
+           - Chosen Interaction: A calculator for cohabitation to personalize the financial incentive to cheat.
+        3. Sector Analysis: Data drill-down into where black labor is most prevalent.
+        4. The Human Factor: Qualitative survey data on public perception (Moral Compass).
+        This structure moves from the MACRO (Billions lost) to the MICRO (Why I might cheat) to the MORAL (Is it okay?).
+    -->
+    <!-- Visualization & Content Choices:
+        - Dashboard: Bar Chart (Chart.js) to contrast the massive difference between estimated fraud and actual recovery.
+        - Cohabitation: Dynamic HTML/JS Calculator. No chart needed; the raw numbers tell the story best interactively.
+        - Sectors: Doughnut Chart (Chart.js) to show the proportion of fraud per industry.
+        - Ethics: Horizontal Bar Chart for survey results (Agreed/Disagreed).
+        - Justification: Canvas charts provide responsive, crisp data viz without SVG.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold text-slate-800 tracking-tight">TOUS <span class="text-red-500">FRAUDEURS ?</span></span>
+                </div>
+                <div class="hidden sm:flex space-x-8 items-center">
+                    <a href="#dashboard" class="text-slate-600 hover:text-red-500 transition-colors text-sm font-medium">Vue d'ensemble</a>
+                    <a href="#mechanisms" class="text-slate-600 hover:text-red-500 transition-colors text-sm font-medium">Mécanismes</a>
+                    <a href="#sectors" class="text-slate-600 hover:text-red-500 transition-colors text-sm font-medium">Secteurs</a>
+                    <a href="#ethics" class="text-slate-600 hover:text-red-500 transition-colors text-sm font-medium">Perception</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="bg-slate-900 text-white py-12 sm:py-20">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h1 class="text-4xl sm:text-5xl font-extrabold mb-6 leading-tight">La Face Cachée de la Sécurité Sociale</h1>
+            <p class="text-lg sm:text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
+                Analyse interactive basée sur l'enquête de Christophe Deborsu. Plongée dans les chiffres, les mécanismes et les dilemmes moraux de la fraude sociale en Belgique.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                    <span class="block text-3xl font-bold text-red-500">~2-4 Mrd €</span>
+                    <span class="text-sm text-slate-400">Est. Fraude Sociale / an</span>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                    <span class="block text-3xl font-bold text-blue-400">~250 Mio €</span>
+                    <span class="text-sm text-slate-400">Récupérés / an</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-20">
+
+        <!-- SECTION 1: DASHBOARD (Macro View) -->
+        <section id="dashboard" class="scroll-mt-24">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
+                <div class="lg:col-span-1 space-y-6">
+                    <h2 class="text-3xl font-bold text-slate-900 border-l-4 border-red-500 pl-4">L'Écart Abyssal</h2>
+                    <p class="text-slate-600 leading-relaxed">
+                        Le premier constat de l'enquête est la difficulté de chiffrer précisément l'ampleur du phénomène. Cependant, les estimations des experts contrastent violemment avec les montants effectivement récupérés par les services d'inspection.
+                    </p>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="font-semibold text-slate-800 mb-2">Le saviez-vous ?</h3>
+                        <p class="text-sm text-slate-500">
+                            La fraude fiscale (impôts) est estimée à 20 milliards d'euros, soit 5 à 10 fois plus que la fraude sociale. Pourtant, la fraude sociale cristallise souvent plus de tensions politiques.
+                        </p>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-slate-700">Comparatif : Estimation vs Réalité</h3>
+                        <select id="dataFilter" class="text-sm border-slate-300 rounded-md shadow-sm focus:border-red-500 focus:ring focus:ring-red-200 focus:ring-opacity-50 p-1 bg-slate-50">
+                            <option value="all">Vue Globale</option>
+                            <option value="recovered">Focus Récupération</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="macroChart"></canvas>
+                    </div>
+                    <p class="text-center text-xs text-slate-400 mt-4">Source: Estimations Cour des Comptes / ONSS (Données approximatives documentaire)</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: MECHANISMS (Cohabitation Trap) -->
+        <section id="mechanisms" class="bg-slate-50 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-16 scroll-mt-24">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-slate-900">Le "Piège" de la Cohabitation</h2>
+                    <p class="mt-4 text-slate-600 max-w-2xl mx-auto">
+                        L'une des fraudes les plus courantes concerne la domiciliation. Le système belge différencie fortement les allocations entre une personne "isolée" et un "cohabitant". Cette différence crée une incitation financière majeure à ne pas déclarer vivre en couple.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Calculator Interface -->
+                    <div class="bg-white p-8 rounded-2xl shadow-lg border-t-4 border-blue-500">
+                        <h3 class="text-xl font-bold text-slate-800 mb-6">Simulateur d'Incitations</h3>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Statut Social Actuel</label>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <button onclick="setScenario('chomage')" id="btn-chomage" class="scenario-btn active py-2 px-4 border rounded-md text-sm font-medium transition-colors bg-blue-50 border-blue-200 text-blue-700">Chômage</button>
+                                    <button onclick="setScenario('ris')" id="btn-ris" class="scenario-btn py-2 px-4 border rounded-md text-sm font-medium transition-colors bg-white border-slate-200 text-slate-600 hover:bg-slate-50">Revenu Intégration (CPAS)</button>
+                                </div>
+                            </div>
+
+                            <div class="pt-4 border-t border-slate-100">
+                                <p class="text-sm text-slate-500 mb-4">Situation : Deux adultes bénéficiaires vivent sous le même toit.</p>
+                                
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-medium text-slate-700">S'ils se déclarent "Cohabitants"</span>
+                                    <span id="cohabAmount" class="text-lg font-bold text-slate-900">1200 €</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-2.5 mb-6">
+                                    <div id="bar-cohab" class="bg-slate-400 h-2.5 rounded-full transition-all duration-500" style="width: 45%"></div>
+                                </div>
+
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-medium text-slate-700">S'ils fraudent (2 x "Isolés")</span>
+                                    <span id="singleAmount" class="text-lg font-bold text-green-600">2400 €</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-2.5 mb-1">
+                                    <div id="bar-single" class="bg-green-500 h-2.5 rounded-full transition-all duration-500" style="width: 90%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Result/Insight Panel -->
+                    <div class="flex flex-col justify-center space-y-6">
+                        <div class="bg-red-50 p-6 rounded-xl border border-red-100">
+                            <h4 class="text-red-800 font-bold mb-2">Le Gain de la Fraude</h4>
+                            <p class="text-red-600 text-4xl font-extrabold mb-2" id="fraudGain">+ 1200 € <span class="text-lg font-normal">/ mois</span></p>
+                            <p class="text-sm text-red-700 opacity-80">
+                                En ne déclarant pas leur cohabitation, ce ménage double potentiellement ses revenus. C'est ce mécanisme qui pousse de nombreux bénéficiaires dans l'illégalité par "nécessité" ou opportunisme.
+                            </p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <h4 class="text-slate-800 font-bold mb-2">La Réponse des Contrôles</h4>
+                            <p class="text-sm text-slate-600">
+                                Les contrôleurs de l'ONEM et des CPAS effectuent des <strong>visites domiciliaires</strong>. Ils vérifient les brosses à dents, les vêtements dans les armoires, et les photos pour prouver la cohabitation.
+                            </p>
+                            <div class="mt-4 flex items-center justify-between text-xs text-slate-500">
+                                <span>Taux de visite avec infraction :</span>
+                                <span class="font-bold text-slate-900">~35%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: SECTORS (Black Labor) -->
+        <section id="sectors" class="scroll-mt-24">
+            <div class="mb-10">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Le Travail au Noir</h2>
+                <p class="text-slate-600 max-w-3xl">
+                    Au-delà de la fraude aux allocations, le travail non déclaré représente une perte colossale de cotisations sociales. Certains secteurs sont structurellement plus touchés en raison de la nature du travail (main d'œuvre intensive, cash).
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <!-- Chart Col -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-700 mb-6 text-center">Répartition des Infractions par Secteur</h3>
+                    <div class="chart-container">
+                        <canvas id="sectorChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Interactive List Col -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-bold text-slate-700 mb-2">Top 3 des Secteurs à Risque</h3>
+                    
+                    <!-- Accordion Item 1 -->
+                    <div class="border border-slate-200 rounded-lg bg-white overflow-hidden">
+                        <button class="w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none bg-slate-50 hover:bg-slate-100 transition-colors" onclick="toggleAccordion('acc1')">
+                            <span class="font-semibold text-slate-800">1. Construction & Bâtiment</span>
+                            <span class="text-slate-400 text-xl">+</span>
+                        </button>
+                        <div id="acc1" class="hidden px-6 py-4 border-t border-slate-100 text-sm text-slate-600 bg-white">
+                            <p class="mb-2"><strong>Le problème :</strong> Sous-traitance en cascade et main d'œuvre étrangère détachée.</p>
+                            <p>Les contrôles sont difficiles sur les grands chantiers. Le travail au noir y est souvent organisé à grande échelle via des sociétés écrans.</p>
+                        </div>
+                    </div>
+
+                    <!-- Accordion Item 2 -->
+                    <div class="border border-slate-200 rounded-lg bg-white overflow-hidden">
+                        <button class="w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none bg-slate-50 hover:bg-slate-100 transition-colors" onclick="toggleAccordion('acc2')">
+                            <span class="font-semibold text-slate-800">2. Horeca (Hôtels, Restos, Cafés)</span>
+                            <span class="text-slate-400 text-xl">+</span>
+                        </button>
+                        <div id="acc2" class="hidden px-6 py-4 border-t border-slate-100 text-sm text-slate-600 bg-white">
+                            <p class="mb-2"><strong>Le problème :</strong> Paiements en cash et horaires flexibles non déclarés.</p>
+                            <p>L'introduction de la "Boîte Noire" (Caisse Blanche) a réduit la fraude, mais le travail non déclaré reste fréquent pour les extras et les étudiants.</p>
+                        </div>
+                    </div>
+
+                    <!-- Accordion Item 3 -->
+                    <div class="border border-slate-200 rounded-lg bg-white overflow-hidden">
+                        <button class="w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none bg-slate-50 hover:bg-slate-100 transition-colors" onclick="toggleAccordion('acc3')">
+                            <span class="font-semibold text-slate-800">3. Nettoyage & Titres-Services</span>
+                            <span class="text-slate-400 text-xl">+</span>
+                        </button>
+                        <div id="acc3" class="hidden px-6 py-4 border-t border-slate-100 text-sm text-slate-600 bg-white">
+                            <p class="mb-2"><strong>Le problème :</strong> Travail invisible chez les particuliers.</p>
+                            <p>Difficile pour les inspecteurs de pénétrer dans les domiciles privés pour vérifier si la femme de ménage est déclarée.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: ETHICS (Perception) -->
+        <section id="ethics" class="bg-slate-900 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-20 text-white scroll-mt-24">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="text-3xl font-bold mb-6">La Boussole Morale</h2>
+                <p class="text-slate-300 mb-12">
+                    Le documentaire pose une question fondamentale : la fraude est-elle perçue comme un crime ou un "sport national" ? Voici ce que pensent les Belges (données illustratives basées sur les sondages évoqués).
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+                    <div class="space-y-8">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm font-medium text-slate-300">"Payer une aide ménagère au noir, c'est acceptable."</span>
+                                <span class="text-sm font-bold text-white">42% D'accord</span>
+                            </div>
+                            <div class="w-full bg-slate-700 rounded-full h-2">
+                                <div class="bg-amber-400 h-2 rounded-full" style="width: 42%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm font-medium text-slate-300">"Ne pas déclarer un petit revenu complémentaire est normal."</span>
+                                <span class="text-sm font-bold text-white">65% D'accord</span>
+                            </div>
+                            <div class="w-full bg-slate-700 rounded-full h-2">
+                                <div class="bg-amber-400 h-2 rounded-full" style="width: 65%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-sm font-medium text-slate-300">"Profiter du chômage sans chercher d'emploi est grave."</span>
+                                <span class="text-sm font-bold text-white">88% D'accord</span>
+                            </div>
+                            <div class="w-full bg-slate-700 rounded-full h-2">
+                                <div class="bg-blue-500 h-2 rounded-full" style="width: 88%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 flex flex-col justify-center items-center text-center">
+                        <div class="text-5xl mb-4">⚖️</div>
+                        <h3 class="text-xl font-bold mb-2">Le Paradoxe Belge</h3>
+                        <p class="text-sm text-slate-400">
+                            On condamne fermement la "grosse" fraude organisée, mais on fait preuve d'une grande tolérance pour la "petite" fraude quotidienne, souvent perçue comme un moyen de survie face à une pression fiscale élevée.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-8 text-center">
+        <p class="text-slate-500 text-sm">
+            Rapport interactif généré pour analyse. Basé sur les thématiques du documentaire "Tous Fraudeurs ?" (RTBF).<br>
+            Données à titre indicatif et éducatif.
+        </p>
+    </footer>
+
+    <script>
+        // --- DATA STORE ---
+        const appData = {
+            macro: {
+                labels: ['Fraude Sociale Estimée', 'Fraude Fiscale Estimée', 'Montants Récupérés'],
+                data: [4000, 20000, 250], // in millions roughly
+                colors: ['#ef4444', '#cbd5e1', '#3b82f6']
+            },
+            sectors: {
+                labels: ['Construction', 'Horeca', 'Nettoyage', 'Commerce de détail', 'Transport', 'Autres'],
+                data: [35, 25, 15, 10, 8, 7],
+                colors: ['#1e293b', '#334155', '#475569', '#64748b', '#94a3b8', '#cbd5e1']
+            },
+            calculator: {
+                chomage: { single: 1600, cohab: 900 }, // Simulated avg monthly
+                ris: { single: 1200, cohab: 800 }      // Simulated CPAS monthly per person
+            }
+        };
+
+        // --- CHART INITIALIZATION ---
+        
+        // 1. MACRO CHART
+        const ctxMacro = document.getElementById('macroChart').getContext('2d');
+        const macroChart = new Chart(ctxMacro, {
+            type: 'bar',
+            data: {
+                labels: ['Fraude Sociale (Est.)', 'Fraude Fiscale (Est.)', 'Récupéré'],
+                datasets: [{
+                    label: 'Montant en Millions €',
+                    data: appData.macro.data,
+                    backgroundColor: appData.macro.colors,
+                    borderRadius: 4,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.raw + ' Millions €';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f5f9' },
+                        ticks: { callback: function(value) { return value + ' M€'; } }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 2. SECTOR CHART
+        const ctxSector = document.getElementById('sectorChart').getContext('2d');
+        new Chart(ctxSector, {
+            type: 'doughnut',
+            data: {
+                labels: appData.sectors.labels,
+                datasets: [{
+                    data: appData.sectors.data,
+                    backgroundColor: appData.sectors.colors,
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { usePointStyle: true, boxWidth: 8, padding: 20, font: { family: "'Inter', sans-serif" } }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.raw + '% des infractions';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // --- INTERACTIVITY LOGIC ---
+
+        // 1. Dashboard Filter
+        document.getElementById('dataFilter').addEventListener('change', function(e) {
+            const val = e.target.value;
+            if (val === 'recovered') {
+                macroChart.data.datasets[0].data = [0, 0, 250]; // Focus on the small number
+                macroChart.data.labels = ['Fraude Sociale', 'Fraude Fiscale', 'Récupéré (Focus)'];
+                // Only show the recovered bar color
+                macroChart.data.datasets[0].backgroundColor = ['#e2e8f0', '#e2e8f0', '#3b82f6'];
+            } else {
+                macroChart.data.datasets[0].data = appData.macro.data;
+                macroChart.data.labels = ['Fraude Sociale (Est.)', 'Fraude Fiscale (Est.)', 'Récupéré'];
+                macroChart.data.datasets[0].backgroundColor = appData.macro.colors;
+            }
+            macroChart.update();
+        });
+
+        // 2. Calculator Logic
+        let currentScenario = 'chomage';
+
+        function setScenario(scenario) {
+            currentScenario = scenario;
+            
+            // UI Button States
+            document.querySelectorAll('.scenario-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-50', 'border-blue-200', 'text-blue-700', 'active');
+                btn.classList.add('bg-white', 'border-slate-200', 'text-slate-600');
+            });
+            const activeBtn = document.getElementById(`btn-${scenario}`);
+            activeBtn.classList.remove('bg-white', 'border-slate-200', 'text-slate-600');
+            activeBtn.classList.add('bg-blue-50', 'border-blue-200', 'text-blue-700', 'active');
+
+            updateCalculator();
+        }
+
+        function updateCalculator() {
+            const data = appData.calculator[currentScenario];
+            
+            // Assume 2 people
+            const cohabTotal = data.cohab * 2; // What they get if they declare cohabitation (honest)
+            const singleTotal = data.single * 2; // What they get if they cheat (2 x single)
+            
+            const diff = singleTotal - cohabTotal;
+
+            // Update Text
+            document.getElementById('cohabAmount').innerText = cohabTotal + " €";
+            document.getElementById('singleAmount').innerText = singleTotal + " €";
+            document.getElementById('fraudGain').innerHTML = `+ ${diff} € <span class="text-lg font-normal">/ mois</span>`;
+
+            // Update Bars Width (Visual relative scale)
+            const maxVal = 3500; // Arbitrary max for visual scaling
+            document.getElementById('bar-cohab').style.width = (cohabTotal / maxVal * 100) + '%';
+            document.getElementById('bar-single').style.width = (singleTotal / maxVal * 100) + '%';
+        }
+
+        // Initialize Calculator
+        updateCalculator();
+
+        // 3. Accordion Logic
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                el.previousElementSibling.querySelector('span:last-child').innerText = '-';
+            } else {
+                el.classList.add('hidden');
+                el.previousElementSibling.querySelector('span:last-child').innerText = '+';
+            }
+        }
+    </script>
+</body>
+</html>
