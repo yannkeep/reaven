@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enquête : Les Belges, Tous Fraudeurs ?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Slate 50 */
+            color: #1e293b; /* Slate 800 */
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Chart Container Rules - MANDATORY */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Tab Transitions */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutral Journalism (Slate/White) with Belgian Accents (Red-700/Amber-400) -->
+    <!-- Application Structure Plan: Dashboard Layout. 
+         1. Header: Context & Hook. 
+         2. Navigation: Tabs for non-linear exploration (Overview, Sectors, Methods, Psychology).
+         3. Dynamic Views:
+            - Overview: Big numbers & global context charts.
+            - Sectors: Interactive Bar chart showing risk zones.
+            - Methods: Grid of cards detailing fraud techniques (Info Architecture: Problem -> Detail).
+            - Quiz/Psychology: Interactive element to engage user self-reflection.
+         Rationale: Breaks down a complex TV/book investigation into digestible, interactive chunks. -->
+    <!-- Visualization & Content Choices:
+         1. Comparison (Donut): Fiscal vs Social fraud to correct misconceptions (Chart.js).
+         2. Ranking (Bar): Sectors most affected (Chart.js).
+         3. Education (Cards): Explaining technical fraud terms (HTML/JS Interaction).
+         4. Engagement (Quiz): Simple JS logic to personalize the data.
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-red-100 selection:text-red-900">
+
+    <!-- Navigation Bar -->
+    <nav class="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-extrabold tracking-tight text-slate-900">
+                        <span class="text-red-600">D</span>ossier<span class="text-amber-500">.</span>BE
+                    </span>
+                    <span class="ml-3 px-2 py-1 bg-slate-100 text-xs font-semibold rounded text-slate-600 hidden sm:inline-block">
+                        Analyse : L'Enquête Deborsu
+                    </span>
+                </div>
+                <!-- Desktop Nav -->
+                <div class="hidden md:flex space-x-8 items-center">
+                    <button onclick="switchTab('overview')" id="nav-overview" class="nav-btn text-red-600 font-semibold border-b-2 border-red-600 px-1 pt-1 text-sm transition-colors">
+                        Vue d'ensemble
+                    </button>
+                    <button onclick="switchTab('sectors')" id="nav-sectors" class="nav-btn text-slate-500 hover:text-slate-900 px-1 pt-1 text-sm font-medium transition-colors">
+                        Secteurs à Risque
+                    </button>
+                    <button onclick="switchTab('mechanics')" id="nav-mechanics" class="nav-btn text-slate-500 hover:text-slate-900 px-1 pt-1 text-sm font-medium transition-colors">
+                        Les Techniques
+                    </button>
+                    <button onclick="switchTab('quiz')" id="nav-quiz" class="nav-btn px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-bold hover:bg-slate-700 transition-colors">
+                        Êtes-vous clean ?
+                    </button>
+                </div>
+                <!-- Mobile Menu Button -->
+                <div class="flex items-center md:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-slate-500 hover:text-slate-900 focus:outline-none">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Nav Panel -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-200">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <button onclick="switchTab('overview'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-red-600 bg-red-50 rounded-md">Vue d'ensemble</button>
+                <button onclick="switchTab('sectors'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-slate-600 hover:bg-slate-50 rounded-md">Secteurs</button>
+                <button onclick="switchTab('mechanics'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-slate-600 hover:bg-slate-50 rounded-md">Techniques</button>
+                <button onclick="switchTab('quiz'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-slate-600 hover:bg-slate-50 rounded-md">Le Quiz</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- VIEW: OVERVIEW -->
+        <div id="overview" class="tab-content active">
+            <header class="mb-10 text-center max-w-3xl mx-auto">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">
+                    Les Belges : <span class="bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-amber-600">Tous Fraudeurs ?</span>
+                </h1>
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    Une plongée interactive dans l'économie souterraine belge. Basé sur les thématiques abordées par Christophe Deborsu, ce tableau de bord analyse pourquoi et comment le "système D" est devenu un sport national pour certains, et une nécessité pour d'autres.
+                </p>
+            </header>
+
+            <!-- KPI Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 card-hover text-center">
+                    <div class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Économie Souterraine</div>
+                    <div class="text-4xl font-extrabold text-slate-900 mb-2">~13,4%</div>
+                    <div class="text-xs text-slate-500">du PIB Belge (Est.)</div>
+                    <div class="mt-4 text-sm text-slate-600">
+                        Soit environ <span class="font-bold text-red-600">60 Milliards €</span> qui échappent aux radars chaque année.
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 card-hover text-center">
+                    <div class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Pression Fiscale</div>
+                    <div class="text-4xl font-extrabold text-slate-900 mb-2">Top 3</div>
+                    <div class="text-xs text-slate-500">Mondial (OCDE)</div>
+                    <div class="mt-4 text-sm text-slate-600">
+                        La "tax wedge" sur les salaires dépasse souvent <span class="font-bold text-amber-500">50%</span>, moteur principal de la fraude.
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 card-hover text-center">
+                    <div class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Perception</div>
+                    <div class="text-4xl font-extrabold text-slate-900 mb-2">72%</div>
+                    <div class="text-xs text-slate-500">des Belges</div>
+                    <div class="mt-4 text-sm text-slate-600">
+                        estiment que frauder un peu est "compréhensible" vu la pression fiscale.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Intro Chart Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Fraude Fiscale vs Fraude Sociale</h3>
+                    <p class="text-sm text-slate-500 mb-6">Contrairement aux idées reçues, la grande fraude fiscale pèse bien plus lourd que la fraude aux allocations (chômage/CPAS).</p>
+                    <div class="chart-container">
+                        <canvas id="fraudTypeChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="bg-red-50 rounded-xl p-6 border-l-4 border-red-500">
+                        <h4 class="font-bold text-red-900 mb-2"><i class="fas fa-exclamation-circle mr-2"></i>Le Cercle Vicieux</h4>
+                        <p class="text-sm text-red-800 leading-relaxed">
+                            Plus l'État taxe pour combler les trous, plus les citoyens cherchent à échapper à l'impôt (travail au noir), ce qui creuse le déficit et force l'État à taxer davantage. C'est le paradoxe belge mis en lumière par l'enquête.
+                        </p>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-6 border border-slate-200">
+                        <h4 class="font-bold text-slate-900 mb-4">Pourquoi fraude-t-on ?</h4>
+                        <!-- Interactive Motivation List -->
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="font-medium">"L'État me prend trop" (Justification morale)</span>
+                                    <span class="text-slate-500">55%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-2">
+                                    <div class="bg-slate-800 h-2 rounded-full" style="width: 55%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="font-medium">Nécessité financière (Survie)</span>
+                                    <span class="text-slate-500">28%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-2">
+                                    <div class="bg-slate-600 h-2 rounded-full" style="width: 28%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="font-medium">Complexité administrative</span>
+                                    <span class="text-slate-500">12%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-2">
+                                    <div class="bg-amber-500 h-2 rounded-full" style="width: 12%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: SECTORS -->
+        <div id="sectors" class="tab-content">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">Les Zones Grises de l'Économie</h2>
+                <p class="text-slate-600">Certains secteurs sont structurellement plus exposés au "noir" en raison de la manipulation d'espèces ou de la nature de la main-d'œuvre. Explorez les données ci-dessous.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Chart Panel -->
+                <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">Indice de Risque par Secteur (0-100)</h3>
+                    <div class="chart-container">
+                        <canvas id="sectorChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-xs text-slate-400 text-center italic">Données estimatives basées sur les contrôles de l'inspection sociale.</div>
+                </div>
+
+                <!-- Detail Panel (Dynamic Update) -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Détails du Secteur</h3>
+                    <div id="sector-details" class="flex-grow">
+                        <p class="text-slate-500 italic">Cliquez sur une barre du graphique pour voir les détails spécifiques à ce secteur.</p>
+                        <div class="mt-8 flex justify-center">
+                            <i class="fas fa-chart-simple text-6xl text-slate-200"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Case Study Boxes -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                <div class="bg-white p-5 rounded-lg border border-slate-200">
+                    <div class="flex items-center mb-3 text-amber-600">
+                        <i class="fas fa-hard-hat text-xl mr-2"></i>
+                        <h4 class="font-bold">Construction</h4>
+                    </div>
+                    <p class="text-sm text-slate-600">Le champion historique. Heures non déclarées, matériaux payés en liquide. La TVA à 21% (ou 6%) incite fortement au "sans facture".</p>
+                </div>
+                <div class="bg-white p-5 rounded-lg border border-slate-200">
+                    <div class="flex items-center mb-3 text-red-600">
+                        <i class="fas fa-utensils text-xl mr-2"></i>
+                        <h4 class="font-bold">Horeca</h4>
+                    </div>
+                    <p class="text-sm text-slate-600">L'introduction de la "Caisse Blanche" a réduit la fraude, mais le "Flexi-job" a parfois créé de nouvelles zones d'ombre.</p>
+                </div>
+                <div class="bg-white p-5 rounded-lg border border-slate-200">
+                    <div class="flex items-center mb-3 text-blue-600">
+                        <i class="fas fa-broom text-xl mr-2"></i>
+                        <h4 class="font-bold">Services de Proximité</h4>
+                    </div>
+                    <p class="text-sm text-slate-600">Ménage, jardinage, garde d'enfants. Les Titres-Services ont blanchi une énorme partie de ce secteur (succès de l'incitatif).</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: MECHANICS -->
+        <div id="mechanics" class="tab-content">
+            <div class="mb-8 max-w-3xl">
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">La "Boîte à Outils" du Fraudeur</h2>
+                <p class="text-slate-600">Des petites astuces du quotidien aux montages criminels complexes. Voici les mécanismes les plus souvent détectés par les enquêteurs.</p>
+            </div>
+
+            <!-- Filter Buttons -->
+            <div class="flex flex-wrap gap-2 mb-6">
+                <button onclick="filterCards('all')" class="px-3 py-1 bg-slate-800 text-white rounded-full text-sm hover:bg-slate-700">Tout</button>
+                <button onclick="filterCards('social')" class="px-3 py-1 bg-white border border-slate-300 text-slate-600 rounded-full text-sm hover:bg-slate-50">Social</button>
+                <button onclick="filterCards('fiscal')" class="px-3 py-1 bg-white border border-slate-300 text-slate-600 rounded-full text-sm hover:bg-slate-50">Fiscal</button>
+            </div>
+
+            <!-- Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="mechanics-grid">
+                <!-- Cards injected by JS -->
+            </div>
+        </div>
+
+        <!-- VIEW: QUIZ -->
+        <div id="quiz" class="tab-content">
+            <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+                <div class="bg-slate-900 p-6 text-center">
+                    <h2 class="text-2xl font-bold text-white mb-1"><i class="fas fa-gavel mr-2 text-amber-500"></i>Test de Citoyenneté</h2>
+                    <p class="text-slate-400 text-sm">Êtes-vous un "chipoteur" ou un citoyen modèle ?</p>
+                </div>
+                
+                <div id="quiz-container" class="p-8">
+                    <!-- Dynamic Question Area -->
+                    <div id="question-area">
+                        <div class="mb-6">
+                            <span class="text-xs font-bold text-amber-600 uppercase tracking-wide">Question <span id="q-number">1</span>/3</span>
+                            <h3 id="q-text" class="text-xl font-bold text-slate-800 mt-2">Votre plombier propose : "500€ avec facture ou 400€ sans". Que faites-vous ?</h3>
+                        </div>
+                        <div class="space-y-3" id="q-options">
+                            <!-- Buttons injected by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Result Area (Hidden initially) -->
+                    <div id="result-area" class="hidden text-center">
+                        <div id="result-icon" class="text-6xl mb-4"></div>
+                        <h3 id="result-title" class="text-2xl font-bold text-slate-900 mb-2"></h3>
+                        <p id="result-desc" class="text-slate-600 mb-6"></p>
+                        <button onclick="restartQuiz()" class="px-6 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-700">Refaire le test</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="max-w-2xl mx-auto mt-8 p-4 bg-amber-50 rounded-lg text-amber-800 text-sm border border-amber-200">
+                <i class="fas fa-lightbulb mr-2"></i> <strong>Le saviez-vous ?</strong> La délation fiscale existe en Belgique, mais elle n'est pas rémunérée (contrairement aux USA) et reste culturellement mal vue.
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-slate-500 text-sm mb-2">
+                Simulateur pédagogique basé sur les thèmes de l'enquête publique "Les Belges, tous des fraudeurs ?".
+            </p>
+            <p class="text-slate-400 text-xs">
+                Les données sont présentées à titre illustratif pour comprendre les mécanismes de la fraude en Belgique.
+            </p>
+        </div>
+    </footer>
+
+    <!-- JS Logic -->
+    <script>
+        // --- DATA STORE ---
+        
+        // Data for Sector Chart
+        const sectorData = {
+            labels: ['Construction', 'Horeca', 'Transport', 'Nettoyage', 'Commerce Détail', 'IT/Consultance'],
+            data: [85, 78, 65, 60, 45, 30], // Risk index
+            descriptions: [
+                "**La Construction** : Le secteur le plus touché. Sous-traitance en cascade, travailleurs détachés non déclarés et paiement en espèces pour les matériaux.",
+                "**L'Horeca** : Travail au noir très fréquent (étudiants, extras). La 'Caisse Blanche' a assaini le secteur mais le 'black' reste une variable d'ajustement pour survivre.",
+                "**Le Transport** : Fraude sociale complexe, faux indépendants et non-respect des temps de repos. Concurrence internationale féroce.",
+                "**Le Nettoyage** : Travail dissimulé fréquent chez les particuliers (hors Titres-Services) et dans la sous-traitance industrielle.",
+                "**Le Commerce** : Non-enregistrement des ventes. Manipulation des logiciels de caisse (zappers).",
+                "**IT & Consultance** : Fraude plus sophistiquée. Optimisation fiscale agressive, facturation de prestations fictives, droits d'auteur abusifs."
+            ]
+        };
+
+        // Data for Mechanics Cards
+        const mechanics = [
+            {
+                title: "Le Travail au Noir",
+                type: "social",
+                icon: "fa-user-ninja",
+                desc: "Prestation rémunérée en cash sans déclaration ONSS. Le classique absolu.",
+                detail: "L'employeur économise ~35% de charges, l'employé ne paie pas d'impôt mais ne cotise pas pour sa pension."
+            },
+            {
+                title: "Domiciliation Fictive",
+                type: "social",
+                icon: "fa-home",
+                desc: "Se déclarer isolé alors qu'on vit en couple pour toucher plus d'allocations.",
+                detail: "Très chassé par les CPAS (visites domiciliaires). Peut mener au remboursement de dizaines de milliers d'euros."
+            },
+            {
+                title: "Carrousel TVA",
+                type: "fiscal",
+                icon: "fa-sync",
+                desc: "Fraude complexe impliquant des sociétés écrans dans plusieurs pays UE.",
+                detail: "On récupère de la TVA jamais payée. Coûte des milliards à l'Europe. Criminalité organisée."
+            },
+            {
+                title: "Faux Indépendant",
+                type: "social",
+                icon: "fa-briefcase",
+                desc: "Travailler comme employé mais facturer comme indépendant pour éviter les charges patronales.",
+                detail: "Fréquent chez les livreurs de plateforme et dans la construction."
+            },
+            {
+                title: "Le 'Sans Facture'",
+                type: "fiscal",
+                icon: "fa-file-invoice-dollar",
+                desc: "Ne pas déclarer une prestation pour éviter la TVA (21%).",
+                detail: "Le sport national belge dans la rénovation. 'On s'arrange ?'."
+            },
+            {
+                title: "Fraude au Chômage",
+                type: "social",
+                icon: "fa-couch",
+                desc: "Travailler tout en touchant ses allocations.",
+                detail: "Risqué : croisement de données banques/ONSS de plus en plus performant."
+            }
+        ];
+
+        // Quiz Data
+        const quizQuestions = [
+            {
+                q: "Votre plombier propose : '500€ avec facture ou 400€ sans'. Que faites-vous ?",
+                options: [
+                    { text: "Je prends sans facture (400€). C'est la crise !", score: 0 },
+                    { text: "Je demande la facture (500€). Je veux ma garantie.", score: 1 },
+                    { text: "Je propose 450€ sans facture. Faut négocier.", score: 0 }
+                ]
+            },
+            {
+                q: "Vous engagez une baby-sitter pour le samedi soir...",
+                options: [
+                    { text: "Je la paie en cash de la main à la main.", score: 0 },
+                    { text: "J'utilise une plateforme déclarée ou la Ligue des Familles.", score: 1 },
+                    { text: "Je la paie en nature (repas, transport).", score: 1 } // Grey area but acceptable
+                ]
+            },
+            {
+                q: "On vous propose de domicilier votre entreprise au Luxembourg juste pour l'impôt...",
+                options: [
+                    { text: "Pourquoi pas ? C'est de l'optimisation.", score: 0 }, // Borderline/Illegal if no activity
+                    { text: "Non, mon activité est en Belgique.", score: 1 },
+                    { text: "Je demande à mon comptable si c'est risqué.", score: 1 }
+                ]
+            }
+        ];
+
+        let currentQuizScore = 0;
+        let currentQuestionIndex = 0;
+
+        // --- CHART CONFIGURATION ---
+        
+        function initCharts() {
+            // 1. Donut Chart: Fraud Types
+            const ctxFraud = document.getElementById('fraudTypeChart').getContext('2d');
+            new Chart(ctxFraud, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Fraude Fiscale (Impôts, TVA)', 'Fraude Sociale (Cotisations)', 'Fraude aux Allocations'],
+                    datasets: [{
+                        data: [65, 25, 10], // Approximate distribution based on volume
+                        backgroundColor: [
+                            '#dc2626', // Red 600
+                            '#f59e0b', // Amber 500
+                            '#1e293b'  // Slate 800
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // 2. Bar Chart: Sectors
+            const ctxSector = document.getElementById('sectorChart').getContext('2d');
+            const sectorChart = new Chart(ctxSector, {
+                type: 'bar',
+                data: {
+                    labels: sectorData.labels,
+                    datasets: [{
+                        label: 'Indice de Risque',
+                        data: sectorData.data,
+                        backgroundColor: '#e2e8f0', // Slate 200
+                        hoverBackgroundColor: '#dc2626', // Red 600
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            updateSectorDetail(index);
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, max: 100 }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `Risque: ${context.raw}/100`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- DOM MANIPULATION FUNCTIONS ---
+
+        function switchTab(tabId) {
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            // Show target
+            document.getElementById(tabId).classList.add('active');
+            
+            // Update Nav Buttons Style (Desktop)
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-red-600', 'border-b-2', 'border-red-600');
+                btn.classList.add('text-slate-500');
+            });
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if(activeBtn && !activeBtn.classList.contains('bg-slate-900')) { // Don't style the quiz button like a tab
+                activeBtn.classList.add('text-red-600', 'border-b-2', 'border-red-600');
+                activeBtn.classList.remove('text-slate-500');
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        function updateSectorDetail(index) {
+            const container = document.getElementById('sector-details');
+            const title = sectorData.labels[index];
+            const desc = sectorData.descriptions[index].replace(/\*\*(.*?)\*\*/g, '<span class="font-bold text-slate-900">$1</span>');
+            
+            container.innerHTML = `
+                <div class="animate-pulse-once">
+                    <h4 class="text-xl font-bold text-red-600 mb-2">${title}</h4>
+                    <div class="h-1 w-12 bg-amber-500 mb-4 rounded"></div>
+                    <p class="text-slate-600 leading-relaxed">${desc}</p>
+                </div>
+            `;
+        }
+
+        function renderMechanics(filterType) {
+            const grid = document.getElementById('mechanics-grid');
+            grid.innerHTML = '';
+            
+            const filtered = filterType === 'all' 
+                ? mechanics 
+                : mechanics.filter(m => m.type === filterType);
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow-sm border border-slate-100 p-6 card-hover group';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-slate-50 rounded-lg text-slate-700 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+                            <i class="fas ${item.icon} text-xl"></i>
+                        </div>
+                        <span class="text-xs font-bold px-2 py-1 rounded ${item.type === 'social' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'} uppercase">
+                            ${item.type}
+                        </span>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900 mb-2">${item.title}</h3>
+                    <p class="text-sm text-slate-600 mb-4">${item.desc}</p>
+                    <div class="pt-4 border-t border-slate-100">
+                        <p class="text-xs text-slate-400 italic"><i class="fas fa-info-circle mr-1"></i>${item.detail}</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterCards(type) {
+            renderMechanics(type);
+        }
+
+        // --- QUIZ LOGIC ---
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= quizQuestions.length) {
+                showResults();
+                return;
+            }
+
+            const q = quizQuestions[currentQuestionIndex];
+            document.getElementById('q-number').innerText = currentQuestionIndex + 1;
+            document.getElementById('q-text').innerText = q.q;
+            
+            const optionsDiv = document.getElementById('q-options');
+            optionsDiv.innerHTML = '';
+            
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left p-4 rounded-lg border border-slate-200 hover:bg-slate-50 hover:border-slate-400 transition-all flex items-center group';
+                btn.innerHTML = `
+                    <span class="w-6 h-6 rounded-full border-2 border-slate-300 mr-3 flex-shrink-0 group-hover:border-slate-500"></span>
+                    <span class="text-slate-700 font-medium">${opt.text}</span>
+                `;
+                btn.onclick = () => {
+                    currentQuizScore += opt.score;
+                    currentQuestionIndex++;
+                    loadQuestion();
+                };
+                optionsDiv.appendChild(btn);
+            });
+        }
+
+        function showResults() {
+            document.getElementById('question-area').classList.add('hidden');
+            const resultArea = document.getElementById('result-area');
+            resultArea.classList.remove('hidden');
+            
+            const icon = document.getElementById('result-icon');
+            const title = document.getElementById('result-title');
+            const desc = document.getElementById('result-desc');
+
+            if (currentQuizScore === 3) {
+                icon.innerHTML = '😇';
+                title.innerText = "Citoyen Modèle !";
+                title.className = "text-2xl font-bold text-green-600 mb-2";
+                desc.innerText = "Bravo, vous contribuez au système. Baudouin serait fier de vous.";
+            } else if (currentQuizScore >= 1) {
+                icon.innerHTML = '🤔';
+                title.innerText = "Le Belge Moyen";
+                title.className = "text-2xl font-bold text-amber-500 mb-2";
+                desc.innerText = "Quelques petits arrangements avec la réalité, mais rien de grave... n'est-ce pas ?";
+            } else {
+                icon.innerHTML = '💸';
+                title.innerText = "Roi de la Débrouille";
+                title.className = "text-2xl font-bold text-red-600 mb-2";
+                desc.innerText = "Attention, le fisc vous a à l'œil. C'est du sport national, mais risqué !";
+            }
+        }
+
+        function restartQuiz() {
+            currentQuizScore = 0;
+            currentQuestionIndex = 0;
+            document.getElementById('question-area').classList.remove('hidden');
+            document.getElementById('result-area').classList.add('hidden');
+            loadQuestion();
+        }
+
+        // --- INITIALIZATION ---
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            renderMechanics('all');
+            loadQuestion();
+        });
+
+    </script>
+</body>
+</html>
