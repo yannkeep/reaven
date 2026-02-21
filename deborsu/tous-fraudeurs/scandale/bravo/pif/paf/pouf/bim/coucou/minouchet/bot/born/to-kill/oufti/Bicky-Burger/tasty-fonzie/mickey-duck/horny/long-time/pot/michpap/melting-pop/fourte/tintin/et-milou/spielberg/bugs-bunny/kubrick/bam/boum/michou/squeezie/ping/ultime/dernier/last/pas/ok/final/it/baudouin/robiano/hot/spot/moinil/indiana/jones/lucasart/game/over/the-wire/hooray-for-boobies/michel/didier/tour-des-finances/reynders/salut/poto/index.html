@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L'AFFAIRE REYNDERS — Anatomie d'une Chute d'État</title>
+<meta name="description" content="Investigation citoyenne interactive : 40 ans de pouvoir, 1 million d'euros suspects, et la chute du vizir de la politique belge.">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="manifest" href="manifest.json">
+<meta property="og:title" content="L'AFFAIRE REYNDERS — Anatomie d'une Chute d'État">
+<meta property="og:description" content="40 ans de pouvoir. 1 million d'euros suspects. La chute du vizir.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a;
+  --bg-card: #111111;
+  --bg-elevated: #1a1a1a;
+  --text: #e8e4de;
+  --text-dim: #8a857d;
+  --text-muted: #5a564f;
+  --accent: #c41e1e;
+  --accent-glow: #ff2d2d;
+  --gold: #c9a84c;
+  --gold-dim: #8a7433;
+  --evidence: #1a3a2a;
+  --evidence-border: #2d6b4a;
+  --warning: #c49a1e;
+  --serif: 'Source Serif 4', Georgia, serif;
+  --display: 'Playfair Display', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--serif);
+  line-height: 1.7;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--accent); color: white; }
+
+/* NOISE OVERLAY */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* SCROLL REVEAL */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.15s; }
+.reveal-delay-2 { transition-delay: 0.3s; }
+.reveal-delay-3 { transition-delay: 0.45s; }
+
+/* === HERO === */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  padding: 2rem;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse at 20% 50%, rgba(196, 30, 30, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 30%, rgba(201, 168, 76, 0.05) 0%, transparent 50%),
+    linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.4) 100%);
+  z-index: 0;
+}
+.hero > * { position: relative; z-index: 1; }
+
+.hero__badge {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 0.4em 1.2em;
+  margin-bottom: 2rem;
+  animation: pulse-border 3s ease-in-out infinite;
+}
+@keyframes pulse-border {
+  0%, 100% { border-color: var(--accent); }
+  50% { border-color: var(--accent-glow); box-shadow: 0 0 20px rgba(255, 45, 45, 0.15); }
+}
+
+.hero__title {
+  font-family: var(--display);
+  font-size: clamp(3rem, 10vw, 8rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(180deg, var(--text) 0%, var(--text-dim) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero__title span {
+  display: block;
+  font-size: 0.35em;
+  font-family: var(--sans);
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  -webkit-text-fill-color: var(--text-dim);
+  margin-top: 0.8rem;
+}
+
+.hero__meta {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  margin-bottom: 3rem;
+}
+.hero__meta strong { color: var(--gold); }
+
+.hero__numbers {
+  display: flex;
+  gap: 3rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+.hero__stat {
+  text-align: center;
+}
+.hero__stat-value {
+  font-family: var(--display);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1;
+}
+.hero__stat-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+}
+
+.hero__scroll {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  animation: float 2s ease-in-out infinite;
+}
+.hero__scroll::after {
+  content: '';
+  display: block;
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(var(--text-muted), transparent);
+  margin: 0.5rem auto 0;
+}
+@keyframes float {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(8px); }
+}
+
+/* === PRESUMPTION BANNER === */
+.presumption {
+  background: var(--bg-card);
+  border-top: 1px solid var(--gold-dim);
+  border-bottom: 1px solid var(--gold-dim);
+  padding: 1.2rem 2rem;
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+}
+
+/* === SECTIONS === */
+.section {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 5rem 2rem;
+}
+.section--wide { max-width: 1100px; }
+.section--full {
+  max-width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.section__number {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+.section__title {
+  font-family: var(--display);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 2rem;
+  letter-spacing: -0.02em;
+}
+.section__subtitle {
+  font-family: var(--sans);
+  font-size: 1.1rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin-bottom: 3rem;
+  font-weight: 400;
+}
+
+/* === PROSE === */
+.prose { margin-bottom: 2rem; }
+.prose p { margin-bottom: 1.2rem; font-size: 1.05rem; }
+.prose strong { color: var(--gold); font-weight: 600; }
+.prose em { font-style: italic; color: var(--text); }
+
+/* === EVIDENCE BLOCK === */
+.evidence {
+  background: var(--evidence);
+  border-left: 3px solid var(--evidence-border);
+  padding: 1.5rem;
+  margin: 2rem 0;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  border-radius: 0 4px 4px 0;
+}
+.evidence__label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--evidence-border);
+  margin-bottom: 0.5rem;
+}
+
+/* === MONEY COUNTER === */
+.money-display {
+  background: var(--bg-card);
+  border: 1px solid #222;
+  padding: 3rem 2rem;
+  text-align: center;
+  margin: 3rem 0;
+  position: relative;
+  overflow: hidden;
+}
+.money-display::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+.money-display__amount {
+  font-family: var(--mono);
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 700;
+  color: var(--accent-glow);
+  text-shadow: 0 0 40px rgba(255, 45, 45, 0.3);
+}
+.money-display__label {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-top: 0.5rem;
+}
+.money-display__detail {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 1rem;
+}
+
+/* === TIMELINE === */
+.timeline {
+  position: relative;
+  padding-left: 3rem;
+  margin: 3rem 0;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 0.5rem;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(var(--accent), var(--gold-dim), var(--text-muted));
+}
+.timeline__event {
+  position: relative;
+  margin-bottom: 2.5rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid #1a1a1a;
+}
+.timeline__event:last-child { border-bottom: none; margin-bottom: 0; }
+.timeline__event::before {
+  content: '';
+  position: absolute;
+  left: -2.65rem;
+  top: 0.4rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(196, 30, 30, 0.5);
+}
+.timeline__event--gold::before { background: var(--gold); box-shadow: 0 0 10px rgba(201, 168, 76, 0.5); }
+.timeline__date {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.3rem;
+}
+.timeline__event--gold .timeline__date { color: var(--gold); }
+.timeline__title {
+  font-family: var(--display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+.timeline__desc {
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+/* === FIGURE CARDS === */
+.figures-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 3rem 0;
+}
+.figure-card {
+  background: var(--bg-card);
+  border: 1px solid #1f1f1f;
+  padding: 2rem;
+  position: relative;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.figure-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.figure-card__role {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  margin-bottom: 0.8rem;
+}
+.figure-card__name {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.figure-card__desc {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+.figure-card__status {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  padding: 0.3em 0.8em;
+  display: inline-block;
+  letter-spacing: 0.05em;
+}
+.figure-card__status--inculpe {
+  background: rgba(196, 30, 30, 0.15);
+  color: var(--accent-glow);
+  border: 1px solid rgba(196, 30, 30, 0.3);
+}
+.figure-card__status--suspect {
+  background: rgba(201, 168, 76, 0.1);
+  color: var(--gold);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+}
+.figure-card__status--temoin {
+  color: var(--text-muted);
+  border: 1px solid #333;
+}
+
+/* === NETWORK DIAGRAM === */
+.network {
+  background: var(--bg-card);
+  border: 1px solid #1f1f1f;
+  padding: 2rem;
+  margin: 3rem 0;
+  overflow-x: auto;
+}
+.network__title {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.network svg {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}
+
+/* === DATA TABLE === */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  text-align: left;
+  padding: 0.8rem 1rem;
+  border-bottom: 2px solid var(--accent);
+}
+.data-table td {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid #1a1a1a;
+  color: var(--text-dim);
+}
+.data-table tr:hover td { background: rgba(255,255,255,0.02); color: var(--text); }
+.data-table .amount {
+  font-family: var(--mono);
+  color: var(--accent-glow);
+  font-weight: 700;
+}
+
+/* === AFFAIRES GRID === */
+.affaires-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 3rem 0;
+}
+.affaire-card {
+  background: var(--bg-card);
+  border: 1px solid #1f1f1f;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s;
+  cursor: pointer;
+}
+.affaire-card:hover { border-color: var(--gold-dim); }
+.affaire-card::before {
+  content: attr(data-number);
+  position: absolute;
+  top: -10px;
+  right: 10px;
+  font-family: var(--display);
+  font-size: 5rem;
+  font-weight: 900;
+  color: rgba(255,255,255,0.03);
+  line-height: 1;
+}
+.affaire-card__tag {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  margin-bottom: 0.8rem;
+}
+.affaire-card__title {
+  font-family: var(--display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+  line-height: 1.2;
+}
+.affaire-card__summary {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.affaire-card__amount {
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  color: var(--accent-glow);
+  margin-top: 1rem;
+  font-weight: 700;
+}
+
+/* === QUOTE === */
+.quote {
+  border-left: 3px solid var(--gold);
+  padding: 1.5rem 2rem;
+  margin: 2.5rem 0;
+  background: rgba(201, 168, 76, 0.03);
+}
+.quote__text {
+  font-family: var(--display);
+  font-size: 1.4rem;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--text);
+}
+.quote__source {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 0.8rem;
+  letter-spacing: 0.05em;
+}
+
+/* === LINKS SECTION === */
+.links-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+.link-item {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  padding: 0.8rem;
+  border: 1px solid #1a1a1a;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: block;
+}
+.link-item:hover {
+  border-color: var(--gold-dim);
+  color: var(--text);
+  background: rgba(201, 168, 76, 0.03);
+}
+.link-item__source {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 0.3rem;
+}
+
+/* === SEPARATOR === */
+.sep {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--text-muted), transparent);
+  margin: 4rem auto;
+  max-width: 200px;
+  opacity: 0.3;
+}
+
+/* === FOOTER === */
+.footer {
+  background: var(--bg-card);
+  border-top: 1px solid #1a1a1a;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+.footer__logo {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+.footer__text {
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+.footer__legal {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  margin-top: 2rem;
+  opacity: 0.5;
+}
+
+/* === SHARE BAR === */
+.share-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid #222;
+  padding: 0.8rem 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  z-index: 100;
+  transform: translateY(100%);
+  transition: transform 0.4s ease;
+}
+.share-bar.visible { transform: translateY(0); }
+.share-bar__text {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.share-btn {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  padding: 0.5em 1.2em;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  background: transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  letter-spacing: 0.05em;
+}
+.share-btn:hover { background: var(--accent); color: white; }
+.share-btn--gold { border-color: var(--gold); color: var(--gold); }
+.share-btn--gold:hover { background: var(--gold); color: var(--bg); }
+
+/* === TABS === */
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #222;
+  overflow-x: auto;
+}
+.tab {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.8rem 1.5rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+.tab:hover { color: var(--text-dim); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .hero__numbers { gap: 1.5rem; }
+  .section { padding: 3rem 1.2rem; }
+  .timeline { padding-left: 2rem; }
+  .timeline::before { left: 0.3rem; }
+  .timeline__event::before { left: -1.85rem; }
+  .figures-grid { grid-template-columns: 1fr; }
+  .affaires-grid { grid-template-columns: 1fr; }
+  .share-bar { padding: 0.6rem 1rem; gap: 0.5rem; }
+  .share-bar__text { display: none; }
+}
+
+/* === PROGRESS BAR === */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--gold));
+  z-index: 1000;
+  transition: width 0.1s;
+  width: 0%;
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ==================== HERO ==================== -->
+<header class="hero">
+  <div class="hero__badge">Investigation citoyenne</div>
+  <h1 class="hero__title">
+    L'Affaire<br>Reynders
+    <span>Anatomie d'une Chute d'État</span>
+  </h1>
+  <div class="hero__meta">
+    Dernière mise à jour : <strong>21 février 2026</strong> · Sources judiciaires & médiatiques publiques
+  </div>
+  <div class="hero__numbers">
+    <div class="hero__stat">
+      <div class="hero__stat-value" data-count="1000000" data-prefix="~" data-suffix="€">~0€</div>
+      <div class="hero__stat-label">Montant suspect</div>
+    </div>
+    <div class="hero__stat">
+      <div class="hero__stat-value" data-count="40">0</div>
+      <div class="hero__stat-label">Années de pouvoir</div>
+    </div>
+    <div class="hero__stat">
+      <div class="hero__stat-value" data-count="3">0</div>
+      <div class="hero__stat-label">Inculpés</div>
+    </div>
+    <div class="hero__stat">
+      <div class="hero__stat-value" data-count="12">0</div>
+      <div class="hero__stat-label">Affaires connexes</div>
+    </div>
+  </div>
+  <div class="hero__scroll">Descendre pour enquêter</div>
+</header>
+
+<!-- ==================== PRESUMPTION ==================== -->
+<div class="presumption">
+  ⚖️ Toutes les personnes mentionnées bénéficient de la <strong>présomption d'innocence</strong>. L'instruction est en cours. Aucun jugement n'a été rendu. Ce document s'appuie exclusivement sur des sources judiciaires et médiatiques publiques.
+</div>
+
+<!-- ==================== SECTION 1 : LE RÉSUMÉ ==================== -->
+<section class="section">
+  <div class="reveal">
+    <div class="section__number">Dossier N°01</div>
+    <h2 class="section__title">Le Vizir est tombé</h2>
+    <div class="section__subtitle">
+      Didier Reynders, figure centrale du libéralisme belge pendant un quart de siècle, est inculpé depuis octobre 2025 pour blanchiment d'argent. L'ancien ministre des Finances, des Affaires étrangères et commissaire européen à la Justice faisait figure d'intouchable. Ce temps est révolu.
+    </div>
+  </div>
+
+  <div class="prose reveal">
+    <p>L'homme que l'on surnommait « le vizir » a navigué durant près de <strong>quatre décennies</strong> dans les plus hautes sphères du pouvoir exécutif, financier et diplomatique belge et européen. De la présidence de la SNCB à 29 ans au poste de Commissaire européen à la Justice, sa trajectoire dessinait l'illusion d'une ascension inébranlable.</p>
+    <p>Pourtant, ce n'est ni un scandale géopolitique ni un désaccord diplomatique qui l'a fait chuter — mais une affaire d'une <strong>banalité confondante</strong> : des centaines de milliers d'euros en cash déposés chez ING pendant une décennie, puis recyclés via l'achat compulsif de billets à gratter de la Loterie Nationale. L'architecte de la politique fiscale belge, le gardien de l'État de droit européen, réduit à gratter des tickets dans un bureau de tabac pour blanchir son argent.</p>
+  </div>
+
+  <div class="money-display reveal">
+    <div class="money-display__amount">~1 000 000 €</div>
+    <div class="money-display__label">Montant global sous investigation judiciaire</div>
+    <div class="money-display__detail">700-800K€ cash via ING (2008-2018) + ~200K€ via Loterie Nationale (2018-2023)</div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ==================== SECTION 2 : LES ACTEURS ==================== -->
+<section class="section section--wide">
+  <div class="reveal">
+    <div class="section__number">Dossier N°02</div>
+    <h2 class="section__title">Le Clan</h2>
+    <div class="section__subtitle">
+      Une structure criminelle présumée, pérenne et coordonnée, selon la qualification de la justice — pas les erreurs accidentelles d'un ministre gérant mal son patrimoine.
+    </div>
+  </div>
+
+  <div class="figures-grid">
+    <div class="figure-card reveal">
+      <div class="figure-card__role">Pièce centrale</div>
+      <div class="figure-card__name">Didier Reynders</div>
+      <div class="figure-card__desc">Ministre des Finances (1999-2011), Affaires étrangères (2011-2019), Commissaire européen à la Justice (2019-2024). Président du G10, membre du G7. Le « vizir » du pouvoir belge.</div>
+      <span class="figure-card__status figure-card__status--inculpe">Inculpé — 16 oct. 2025</span>
+    </div>
+
+    <div class="figure-card reveal reveal-delay-1">
+      <div class="figure-card__role">Éminence grise</div>
+      <div class="figure-card__name">Jean-Claude Fontinoy</div>
+      <div class="figure-card__desc">80 ans. Bras droit de Reynders depuis 1986. Ex-président SNCB-Holding. Décrit par les enquêteurs comme « une véritable machine à générer du cash ». Présent dans quasiment toutes les affaires.</div>
+      <span class="figure-card__status figure-card__status--inculpe">Inculpé — 16 fév. 2026</span>
+    </div>
+
+    <div class="figure-card reveal reveal-delay-2">
+      <div class="figure-card__role">Le paravent artistique</div>
+      <div class="figure-card__name">Olivier Theunissen</div>
+      <div class="figure-card__desc">Antiquaire du Sablon, rue de la Régence. Chevalier de l'Ordre de la Couronne (2012). Galerie perquisitionnée en juin 2025, puis fermée. Circuit comparable à l'affaire Guéant en France.</div>
+      <span class="figure-card__status figure-card__status--inculpe">Inculpé — 16 fév. 2026</span>
+    </div>
+
+    <div class="figure-card reveal reveal-delay-3">
+      <div class="figure-card__role">La magistrate</div>
+      <div class="figure-card__name">Bernadette Prignon</div>
+      <div class="figure-card__desc">Épouse de Reynders. Présidente de chambre à la Cour d'appel de Liège. Impliquée dans les achats massifs de billets de loterie via un second compte joueur. Auditionnée le 3 décembre 2024.</div>
+      <span class="figure-card__status figure-card__status--suspect">Non inculpée à ce stade</span>
+    </div>
+  </div>
+
+  <!-- NETWORK DIAGRAM -->
+  <div class="network reveal">
+    <div class="network__title">Réseau de placement — Les anciens chefs de cabinet aux postes stratégiques</div>
+    <svg viewBox="0 0 800 350" xmlns="http://www.w3.org/2000/svg">
+      <!-- Central node -->
+      <circle cx="400" cy="175" r="35" fill="none" stroke="#c41e1e" stroke-width="2"/>
+      <text x="400" y="172" text-anchor="middle" fill="#e8e4de" font-family="'DM Sans',sans-serif" font-size="10" font-weight="700">REYNDERS</text>
+      <text x="400" y="185" text-anchor="middle" fill="#8a857d" font-family="'JetBrains Mono',monospace" font-size="7">CENTRE DU RÉSEAU</text>
+      
+      <!-- Lines -->
+      <line x1="365" y1="175" x2="130" y2="80" stroke="#333" stroke-width="1"/>
+      <line x1="365" y1="175" x2="130" y2="175" stroke="#333" stroke-width="1"/>
+      <line x1="365" y1="175" x2="130" y2="270" stroke="#333" stroke-width="1"/>
+      <line x1="435" y1="175" x2="670" y2="55" stroke="#333" stroke-width="1"/>
+      <line x1="435" y1="175" x2="670" y2="140" stroke="#333" stroke-width="1"/>
+      <line x1="435" y1="175" x2="670" y2="225" stroke="#333" stroke-width="1"/>
+      <line x1="435" y1="175" x2="670" y2="310" stroke="#333" stroke-width="1"/>
+      
+      <!-- Left nodes -->
+      <circle cx="130" cy="80" r="22" fill="#1a1a1a" stroke="#c9a84c" stroke-width="1.5"/>
+      <text x="130" y="77" text-anchor="middle" fill="#c9a84c" font-family="'DM Sans',sans-serif" font-size="7.5" font-weight="700">P. PRAET</text>
+      <text x="130" y="88" text-anchor="middle" fill="#5a564f" font-family="'JetBrains Mono',monospace" font-size="6">BCE</text>
+      
+      <circle cx="130" cy="175" r="22" fill="#1a1a1a" stroke="#c9a84c" stroke-width="1.5"/>
+      <text x="130" y="172" text-anchor="middle" fill="#c9a84c" font-family="'DM Sans',sans-serif" font-size="7.5" font-weight="700">P. WUNSCH</text>
+      <text x="130" y="183" text-anchor="middle" fill="#5a564f" font-family="'JetBrains Mono',monospace" font-size="6">BNB</text>
+      
+      <circle cx="130" cy="270" r="22" fill="#1a1a1a" stroke="#c9a84c" stroke-width="1.5"/>
+      <text x="130" y="267" text-anchor="middle" fill="#c9a84c" font-family="'DM Sans',sans-serif" font-size="7.5" font-weight="700">K. VAN LOO</text>
+      <text x="130" y="278" text-anchor="middle" fill="#5a564f" font-family="'JetBrains Mono',monospace" font-size="6">SFPI</text>
+      
+      <!-- Right nodes -->
+      <circle cx="670" cy="55" r="22" fill="#1a1a1a" stroke="#c9a84c" stroke-width="1.5"/>
+      <text x="670" y="52" text-anchor="middle" fill="#c9a84c" font-family="'DM Sans',sans-serif" font-size="7.5" font-weight="700">O. HÉNIN</text>
+      <text x="670" y="63" text-anchor="middle" fill="#5a564f" font-family="'JetBrains Mono',monospace" font-size="6">SNCB / FSMA</text>
+      
+      <circle cx="670" cy="140" r="22" fill="#1a1a1a" stroke="#c9a84c" stroke-width="1.5"/>
+      <text x="670" y="137" text-anchor="middle" fill="#c9a84c" font-family="'DM Sans',sans-serif" font-size="7.5" font-weight="700">A. BERTRAND</text>
+      <text x="670" y="148" text-anchor="middle" fill="#5a564f" font-family="'JetBrains Mono',monospace" font-size="6">AvH → CABINET</text>
+      
+      <circle cx="670" cy="225" r="22" fill="#1a1a1a" stroke="#c41e1e" stroke-width="1.5"/>
+      <text x="670" y="222" text-anchor="middle" fill="#c41e1e" font-family="'DM Sans',sans-serif" font-size="7.5" font-weight="700">H. BRULIN</text>
+      <text x="670" y="233" text-anchor="middle" fill="#5a564f" font-family="'JetBrains Mono',monospace" font-size="6">SÛRETÉ N°3</text>
+      
+      <circle cx="670" cy="310" r="22" fill="#1a1a1a" stroke="#c9a84c" stroke-width="1.5"/>
+      <text x="670" y="307" text-anchor="middle" fill="#c9a84c" font-family="'DM Sans',sans-serif" font-size="7.5" font-weight="700">F. JAUMIN</text>
+      <text x="670" y="318" text-anchor="middle" fill="#5a564f" font-family="'JetBrains Mono',monospace" font-size="6">CONTRE-ESPIONNAGE</text>
+    </svg>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ==================== SECTION 3 : LE MÉCANISME ==================== -->
+<section class="section">
+  <div class="reveal">
+    <div class="section__number">Dossier N°03</div>
+    <h2 class="section__title">Suivre l'argent</h2>
+    <div class="section__subtitle">
+      Deux phases, une décennie, un million d'euros. Le mécanisme de blanchiment présumé, étape par étape.
+    </div>
+  </div>
+
+  <div class="reveal">
+    <h3 style="font-family:var(--display);font-size:1.5rem;margin-bottom:1.5rem;">Phase 1 — Le Cash chez ING <span style="font-family:var(--mono);font-size:0.7rem;color:var(--accent);">(2008–2018)</span></h3>
+    <div class="prose">
+      <p>Pendant dix ans, alors qu'il est successivement ministre des Finances puis des Affaires étrangères, Reynders dépose régulièrement des espèces sur son compte à vue ING. Total cumulé : entre <strong>700 000 et 800 000 euros</strong>.</p>
+      <p>ING, pourtant tenue à une surveillance renforcée pour les « Personnes Politiquement Exposées », ne signale rien à la CTIF pendant une décennie. En 2018, la banque interroge enfin son client. Reynders invoque des ventes d'œuvres d'art et d'antiquités. Aucune trace écrite n'a été retrouvée.</p>
+    </div>
+
+    <div class="evidence">
+      <div class="evidence__label">Pièce à conviction</div>
+      Lors de la perquisition du 3 décembre 2024, les enquêteurs découvrent <strong>7 000 euros en liquide</strong> au domicile, dont une partie en <strong>billets de 500 euros</strong> — coupures dont l'émission a cessé en 2019 précisément en raison de leur association au blanchiment.
+    </div>
+  </div>
+
+  <div class="reveal">
+    <h3 style="font-family:var(--display);font-size:1.5rem;margin:2rem 0 1.5rem;">Phase 2 — La Loterie Nationale <span style="font-family:var(--mono);font-size:0.7rem;color:var(--accent);">(2018–2023)</span></h3>
+    <div class="prose">
+      <p>Après que la banque pose des questions, les dépôts directs cessent. Reynders bascule vers l'achat massif de billets à gratter en espèces — environ <strong>200 000 euros sur cinq ans</strong>. L'ironie est cruelle : il a exercé la tutelle gouvernementale directe sur la Loterie Nationale en tant que ministre des Finances.</p>
+      <p>Le mécanisme présumé : miser du cash « noir » dans des jeux de hasard, puis encaisser des gains « propres » versés sur le compte bancaire avec un justificatif irréfutable — un certificat de gain émis par l'État belge.</p>
+    </div>
+
+    <div class="evidence">
+      <div class="evidence__label">Signal d'alerte</div>
+      Le couple Reynders-Prignon atteint <strong>quasiment chaque semaine la limite légale de 500€/semaine</strong> par compte joueur, utilisant deux comptes pour contourner le plafond. Les algorithmes de la Loterie les identifient comme le <strong>seul profil en Belgique</strong> à maintenir une telle constance dans des volumes aussi massifs.
+    </div>
+
+    <table class="data-table reveal">
+      <thead>
+        <tr>
+          <th>Mécanisme (données ~2023)</th>
+          <th>Montant</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Dépôts sur comptes joueurs Loterie</td>
+          <td class="amount">+20 000 €</td>
+        </tr>
+        <tr>
+          <td>Montant total misé aux jeux</td>
+          <td class="amount">~25 000 €</td>
+        </tr>
+        <tr>
+          <td>Rapatriement bancaire en « gains »</td>
+          <td class="amount">+15 000 €</td>
+        </tr>
+        <tr>
+          <td>Estimation blanchie via les jeux (5 ans)</td>
+          <td class="amount">~200 000 €</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--text);">Montant global dans l'instruction</td>
+          <td class="amount" style="font-size:1.1rem;">~1 000 000 €</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="quote reveal">
+    <div class="quote__text">« Pour savoir d'où vient l'argent de Reynders, il faut enquêter sur le tandem Reynders-Fontinoy. »</div>
+    <div class="quote__source">— Un officier de police, cité par Médor n°39, juin 2025</div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ==================== SECTION 4 : LES AFFAIRES CONNEXES ==================== -->
+<section class="section section--wide">
+  <div class="reveal">
+    <div class="section__number">Dossier N°04</div>
+    <h2 class="section__title">40 ans de zones d'ombre</h2>
+    <div class="section__subtitle">
+      Le blanchiment n'est que le dernier chapitre. Voici la constellation des affaires qui entourent le système Reynders — chacune insuffisante pour le faire tomber seule, toutes convergentes dans leur logique.
+    </div>
+  </div>
+
+  <div class="affaires-grid">
+    <div class="affaire-card reveal" data-number="01">
+      <div class="affaire-card__tag">Géopolitique / Législatif</div>
+      <div class="affaire-card__title">Kazakhgate</div>
+      <div class="affaire-card__summary">Une loi sur la transaction pénale votée dans l'urgence en 2011, taillée sur mesure pour le milliardaire Patokh Chodiev. Marchandage franco-belge lié à des contrats d'armement de 2 milliards. Armand De Decker perçoit 734 346€ d'honoraires. Décédé avant jugement.</div>
+      <div class="affaire-card__amount">13,3M€ d'honoraires documentés</div>
+    </div>
+
+    <div class="affaire-card reveal reveal-delay-1" data-number="02">
+      <div class="affaire-card__tag">Finance / Diplomatie</div>
+      <div class="affaire-card__title">Fonds Libyens</div>
+      <div class="affaire-card__summary">16,1 milliards d'euros d'avoirs libyens gelés chez Euroclear. Plus de 10 milliards « disparaissent ». Fontinoy accusé d'avoir accepté une enveloppe de 50 000€ en guise de pot-de-vin maquillé en « projet environnemental ».</div>
+      <div class="affaire-card__amount">~10 Mds€ évaporés</div>
+    </div>
+
+    <div class="affaire-card reveal reveal-delay-2" data-number="03">
+      <div class="affaire-card__tag">Finance / Crise bancaire</div>
+      <div class="affaire-card__title">Fortisgate</div>
+      <div class="affaire-card__summary">BNP Paribas acquiert Fortis « pour rien » selon Morgan Stanley. Albert Frère, ami de Reynders, conseille simultanément l'acheteur et le vendeur. 500 000 actionnaires lésés. Leterme tombe, Reynders reste — d'où le surnom « Téflon ».</div>
+      <div class="affaire-card__amount">11,2 Mds€ de plan de sauvetage</div>
+    </div>
+
+    <div class="affaire-card reveal reveal-delay-3" data-number="04">
+      <div class="affaire-card__tag">Immobilier / Corruption</div>
+      <div class="affaire-card__title">Police fédérale & Régie des Bâtiments</div>
+      <div class="affaire-card__summary">Fontinoy identifié comme « clairement le décideur » à la Régie des Bâtiments par la Sûreté de l'État. Bakchich de 50 000€ refusé par Besix pour Kinshasa. Audenaert (police) reçoit +100 000€ du promoteur Breevast. 40M€ « disparus ».</div>
+      <div class="affaire-card__amount">1M€ de paiement occulte demandé</div>
+    </div>
+
+    <div class="affaire-card reveal" data-number="05">
+      <div class="affaire-card__tag">Fiscalité / Idéologie</div>
+      <div class="affaire-card__title">Intérêts Notionnels</div>
+      <div class="affaire-card__summary">La loi de 2005 rédigée par la FEB, pas par le ministère. Arme de détaxation massive au profit des multinationales. Des milliards siphonnés des caisses de l'État. Un exemple de « corruption idéologique » selon les analystes.</div>
+      <div class="affaire-card__amount">Milliards € de manque à gagner</div>
+    </div>
+
+    <div class="affaire-card reveal reveal-delay-1" data-number="06">
+      <div class="affaire-card__tag">Oligarchie / Sanctions</div>
+      <div class="affaire-card__title">Piste Deripaska</div>
+      <div class="affaire-card__summary">Immobilier de luxe à Uccle lié à l'oligarque russe via des fondations au Liechtenstein. 878 000€ transitant par des ASBL bruxelloises. Enquête séparée examinée par le parquet. Le marché de l'art comme vecteur de blanchiment.</div>
+      <div class="affaire-card__amount">878 000€ via des ASBL</div>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ==================== SECTION 5 : CHRONOLOGIE ==================== -->
+<section class="section">
+  <div class="reveal">
+    <div class="section__number">Dossier N°05</div>
+    <h2 class="section__title">Chronologie de la chute</h2>
+    <div class="section__subtitle">De l'alerte de la Loterie Nationale à l'effondrement du clan — 4 ans d'investigation.</div>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline__event reveal">
+      <div class="timeline__date">Mars 2022</div>
+      <div class="timeline__title">La Loterie Nationale donne l'alerte</div>
+      <div class="timeline__desc">Détection d'un nombre « extrêmement élevé » de ventes d'e-tickets liées à « une personne ayant une identité politiquement sensible ». KPMG mandaté, conclut à un risque de blanchiment.</div>
+    </div>
+    <div class="timeline__event reveal">
+      <div class="timeline__date">Août 2023</div>
+      <div class="timeline__title">Le parquet fédéral se réveille</div>
+      <div class="timeline__desc">17 mois après le signalement de la Loterie, le parquet demande enfin des informations complémentaires. Délai possiblement lié à l'immunité du commissaire européen.</div>
+    </div>
+    <div class="timeline__event reveal">
+      <div class="timeline__date">Fin 2023</div>
+      <div class="timeline__title">ING alerte enfin la CTIF</div>
+      <div class="timeline__desc">La banque signale dix ans de mouvements suspects — 800 000€ — à la Cellule de Traitement des Informations Financières. Cinq ans après avoir interrogé Reynders.</div>
+    </div>
+    <div class="timeline__event reveal timeline__event--gold">
+      <div class="timeline__date">1er septembre 2024</div>
+      <div class="timeline__title">Bouchez écarte Reynders</div>
+      <div class="timeline__desc">Le président du MR choisit Hadja Lahbib comme commissaire européenne. Humiliation totale : le vizir est politiquement obsolète. Plus aucun parapluie partisan.</div>
+    </div>
+    <div class="timeline__event reveal">
+      <div class="timeline__date">30 novembre 2024</div>
+      <div class="timeline__title">Fin du mandat européen</div>
+      <div class="timeline__desc">L'immunité fonctionnelle s'éteint. Les enquêteurs avaient stratégiquement attendu ce moment.</div>
+    </div>
+    <div class="timeline__event reveal">
+      <div class="timeline__date">3 décembre 2024</div>
+      <div class="timeline__title">Perquisitions</div>
+      <div class="timeline__desc">3 jours après la fin du mandat. Domicile d'Uccle et résidence de Vissoul perquisitionnés. 7 000€ en cash retrouvés dont des billets de 500€. Reynders et Prignon auditionnés.</div>
+    </div>
+    <div class="timeline__event reveal">
+      <div class="timeline__date">16 octobre 2025</div>
+      <div class="timeline__title">Inculpation de Reynders</div>
+      <div class="timeline__desc">Le juge Olivier Leroux inculpe pour blanchiment d'argent et « un ou plusieurs autre(s) délit(s) potentiel(s) ». Rendu public le 4 novembre par un consortium médiatique.</div>
+    </div>
+    <div class="timeline__event reveal">
+      <div class="timeline__date">Août 2025</div>
+      <div class="timeline__title">ING dans la tourmente</div>
+      <div class="timeline__desc">Information judiciaire ouverte pour « trafic d'influence » contre ING Belgique. L'ancien CEO et le CEO actuel convoqués comme suspects.</div>
+    </div>
+    <div class="timeline__event reveal">
+      <div class="timeline__date">16 février 2026</div>
+      <div class="timeline__title">Le Clan s'effondre</div>
+      <div class="timeline__desc">Fontinoy (80 ans) inculpé pour association de malfaiteurs et faux en écriture. Theunissen inculpé pour association de malfaiteurs. La qualification indique une structure criminelle organisée.</div>
+    </div>
+    <div class="timeline__event reveal timeline__event--gold">
+      <div class="timeline__date">Février 2026</div>
+      <div class="timeline__title">Commission d'enquête demandée</div>
+      <div class="timeline__desc">Le PTB dépose une proposition de commission d'enquête parlementaire. La Chambre débat de la levée de l'immunité résiduelle de Reynders.</div>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ==================== SECTION 6 : ING ==================== -->
+<section class="section">
+  <div class="reveal">
+    <div class="section__number">Dossier N°06</div>
+    <h2 class="section__title">ING : le scandale dans le scandale</h2>
+    <div class="section__subtitle">
+      Comment une banque de premier plan a couvert un client PPE pendant une décennie.
+    </div>
+  </div>
+
+  <div class="prose reveal">
+    <p>De 2008 à 2018, ING Belgique ne signale aucun des dépôts en espèces de Reynders à la CTIF, malgré son statut de Personne Politiquement Exposée imposant une surveillance renforcée. Le prestige de la fonction a paralysé l'institution financière.</p>
+    <p>Quand ING interroge enfin son client en 2018, elle se contente de ses explications — des ventes d'art sans aucune trace écrite. Le signalement à la CTIF n'intervient qu'<strong>en fin 2023</strong>, cinq ans après l'entretien. Un délai que la professeure Veerle Colaert (KU Leuven) qualifie d'inacceptable.</p>
+  </div>
+
+  <div class="evidence reveal">
+    <div class="evidence__label">Conflit d'intérêts structurel</div>
+    Le conseil d'administration d'ING comprenait <strong>Luc Bertrand</strong>, président d'Ackermans & van Haaren et « vieil ami » de Reynders. Par ailleurs, <strong>Pierre Wunsch</strong>, ancien chef de cabinet de Reynders, est gouverneur de la Banque Nationale de Belgique — l'organe qui supervise ING.
+  </div>
+
+  <div class="quote reveal">
+    <div class="quote__text">« Des devoirs d'enquête simples et élémentaires n'ont pas été effectués : tels qu'une enquête patrimoniale classique. Ou même simplement interroger les grandes banques du pays. »</div>
+    <div class="quote__source">— Me Alexis Deswaef, avocat du lanceur d'alerte Nicolas Ullens, à propos du classement sans suite de 2019</div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ==================== SECTION 7 : PARADOXE ==================== -->
+<section class="section">
+  <div class="reveal">
+    <div class="section__number">Dossier N°07</div>
+    <h2 class="section__title">Le Paradoxe suprême</h2>
+  </div>
+
+  <div class="prose reveal">
+    <p>De 2019 à 2024, Didier Reynders est <strong>Commissaire européen à la Justice</strong>. Il initie les rapports annuels sur l'État de droit, sermonne la Hongrie et la Pologne sur l'indépendance de leur magistrature, se fait le chantre de la lutte anti-corruption devant la Cour européenne des droits de l'homme.</p>
+    <p>Pendant exactement la même période, son épouse — présidente de chambre à la Cour d'appel de Liège — et lui-même grattent chaque semaine des tickets de loterie avec du cash d'origine inexpliquée pour blanchir leur argent.</p>
+    <p>Le gardien de l'État de droit européen organisait un circuit de blanchiment via une institution d'État sur laquelle il a exercé la tutelle.</p>
+  </div>
+
+  <div class="money-display reveal">
+    <div class="money-display__amount" style="font-size:clamp(1.5rem,5vw,2.5rem);color:var(--gold);">2019–2024</div>
+    <div class="money-display__label">Commissaire européen à la Justice & Blanchiment simultané</div>
+    <div class="money-display__detail">Il prône l'indépendance de la magistrature. Son épouse est magistrate. Leur argent transite par la Loterie.</div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ==================== SECTION 8 : ULLENS ==================== -->
+<section class="section">
+  <div class="reveal">
+    <div class="section__number">Dossier N°08</div>
+    <h2 class="section__title">Le lanceur d'alerte réduit au silence</h2>
+  </div>
+
+  <div class="prose reveal">
+    <p><strong>Nicolas Ullens de Schooten</strong>, ancien inspecteur de la Sûreté de l'État (2007-2018), se rend à la police judiciaire en avril 2019 pour dénoncer Reynders et Fontinoy. Il cite le déménagement de la police, le Kazakhgate, les fonds libyens, les gares SNCB, l'ambassade de Kinshasa.</p>
+    <p>Le dossier est classé sans suite le <strong>25 septembre 2019</strong> — une semaine avant l'audition de Reynders au Parlement européen pour sa candidature de commissaire. Aucune enquête patrimoniale n'est menée. Ironie cruelle : ce sont exactement les vérifications basiques suggérées par Ullens qui, effectuées plus tard par ING et la Loterie, conduisent à l'inculpation.</p>
+    <p>Ullens affirme avoir été mis à l'écart de la Sûreté dès août 2015 — moment exact de la nomination de <strong>Hugues Brulin</strong>, ancien cabinet Reynders, comme numéro 3 de la Sûreté de l'État.</p>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ==================== SECTION 9 : SOURCES ==================== -->
+<section class="section section--wide">
+  <div class="reveal">
+    <div class="section__number">Sources</div>
+    <h2 class="section__title">Médias & documents publics</h2>
+    <div class="section__subtitle">
+      Cette investigation s'appuie exclusivement sur des sources judiciaires publiques, des articles de presse d'investigation, des rapports parlementaires et des décisions de justice. Pas de rumeurs. Des faits.
+    </div>
+  </div>
+
+  <div class="links-section reveal">
+    <a class="link-item" href="https://medor.coop/magazines/medor-n39-ete-2025/affaire-reynders-fontinoy-cash-blanchiment-lotterie-sarkozy-kazakhgate-ullens-sncb/?full=1" target="_blank" rel="noopener">
+      « D'où vient l'argent ? » — Affaire Reynders
+      <span class="link-item__source">Médor n°39, juin 2025</span>
+    </a>
+    <a class="link-item" href="https://pour.press/didier-reynders-lhomme-qui-parle-a-la-poche-des-riches/" target="_blank" rel="noopener">
+      L'homme qui parle à la poche des riches
+      <span class="link-item__source">POUR.press</span>
+    </a>
+    <a class="link-item" href="https://bx1.be/categories/news/deux-proches-de-didier-reynders-inculpes-dans-lenquete-pour-blanchiment/" target="_blank" rel="noopener">
+      Deux proches inculpés dans l'enquête pour blanchiment
+      <span class="link-item__source">BX1, février 2026</span>
+    </a>
+    <a class="link-item" href="https://lpost.be/2026/02/16/proche-de-didier-reynders-jean-claude-fontinoy-est-inculpe-dans-le-dossier-de-lex-vice-premier-ministre/" target="_blank" rel="noopener">
+      Fontinoy inculpé dans le dossier Reynders
+      <span class="link-item__source">Lpost, 16 février 2026</span>
+    </a>
+    <a class="link-item" href="https://www.levif.be/belgique/justice/affaire-reynders-ing-sous-le-coup-dune-information-judiciaire-pour-trafic-dinfluence/" target="_blank" rel="noopener">
+      ING sous le coup d'une information judiciaire
+      <span class="link-item__source">Trends-Tendances / Le Vif</span>
+    </a>
+    <a class="link-item" href="https://www.brusselstimes.com/1975387/two-people-close-to-didier-reynders-charged-in-money-laundering-case" target="_blank" rel="noopener">
+      Two people close to Reynders charged
+      <span class="link-item__source">The Brussels Times, 2026</span>
+    </a>
+    <a class="link-item" href="https://www.ptb.be/presse/la-commission-finances-examine-la-proposition-du-ptb-pour-une-commission-denquete-sur" target="_blank" rel="noopener">
+      Proposition de commission d'enquête PTB
+      <span class="link-item__source">PTB, janvier 2026</span>
+    </a>
+    <a class="link-item" href="https://fr.wikipedia.org/wiki/Didier_Reynders" target="_blank" rel="noopener">
+      Didier Reynders — Article encyclopédique
+      <span class="link-item__source">Wikipédia</span>
+    </a>
+  </div>
+
+  <div class="evidence reveal" style="margin-top:2rem;">
+    <div class="evidence__label">Ouvrages de référence</div>
+    <p style="margin-bottom:0.5rem;"><strong>Philippe Engels</strong>, <em>Le Clan Reynders</em>, Éditions Kennes, 7 avril 2021 (176 pages). Cofondateur de Médor, lauréat du prix Trace International 2019.</p>
+    <p><strong>Marco Van Hees</strong>, <em>Didier Reynders, l'homme qui parle à l'oreille des riches</em>, Éditions Aden, 2007. Travail parlementaire PTB de deux décennies.</p>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="footer">
+  <div class="footer__logo">ouaisfi.eu</div>
+  <div class="footer__text">
+    Contre-institution numérique de surveillance citoyenne. Ce dossier est un outil d'éducation permanente produit dans le cadre de l'exercice du droit à l'information. Toute personne mentionnée bénéficie de la présomption d'innocence.
+  </div>
+  <div class="footer__legal">
+    Licence CC BY-SA 4.0 · Sources publiques · Aucune donnée collectée · Pas de cookies
+  </div>
+</footer>
+
+<!-- ==================== SHARE BAR ==================== -->
+<div class="share-bar" id="shareBar">
+  <span class="share-bar__text">Partagez l'enquête</span>
+  <button class="share-btn" onclick="shareNative()">Partager</button>
+  <button class="share-btn share-btn--gold" onclick="copyLink()">Copier le lien</button>
+</div>
+
+<script>
+// === SCROLL REVEAL ===
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// === PROGRESS BAR ===
+window.addEventListener('scroll', () => {
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = (scrollTop / docHeight) * 100;
+  document.getElementById('progressBar').style.width = progress + '%';
+  
+  // Show share bar after scrolling past hero
+  const shareBar = document.getElementById('shareBar');
+  if (scrollTop > window.innerHeight * 0.8) {
+    shareBar.classList.add('visible');
+  } else {
+    shareBar.classList.remove('visible');
+  }
+});
+
+// === COUNTER ANIMATION ===
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !entry.target.dataset.animated) {
+      entry.target.dataset.animated = 'true';
+      animateCounter(entry.target);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('[data-count]').forEach(el => counterObserver.observe(el));
+
+function animateCounter(el) {
+  const target = parseInt(el.dataset.count);
+  const prefix = el.dataset.prefix || '';
+  const suffix = el.dataset.suffix || '';
+  const duration = 2000;
+  const start = performance.now();
+  
+  function update(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(target * eased);
+    
+    if (target >= 1000000) {
+      el.textContent = prefix + current.toLocaleString('fr-BE') + suffix;
+    } else {
+      el.textContent = prefix + current + suffix;
+    }
+    
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+// === SHARE FUNCTIONS ===
+function shareNative() {
+  if (navigator.share) {
+    navigator.share({
+      title: "L'AFFAIRE REYNDERS — Anatomie d'une Chute d'État",
+      text: "40 ans de pouvoir. 1 million d'euros suspects. La chute du vizir de la politique belge.",
+      url: window.location.href
+    });
+  } else {
+    copyLink();
+  }
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    const btn = event.target;
+    btn.textContent = 'Copié ✓';
+    setTimeout(() => btn.textContent = 'Copier le lien', 2000);
+  });
+}
+
+// === PWA REGISTRATION ===
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+
+</body>
+</html>
