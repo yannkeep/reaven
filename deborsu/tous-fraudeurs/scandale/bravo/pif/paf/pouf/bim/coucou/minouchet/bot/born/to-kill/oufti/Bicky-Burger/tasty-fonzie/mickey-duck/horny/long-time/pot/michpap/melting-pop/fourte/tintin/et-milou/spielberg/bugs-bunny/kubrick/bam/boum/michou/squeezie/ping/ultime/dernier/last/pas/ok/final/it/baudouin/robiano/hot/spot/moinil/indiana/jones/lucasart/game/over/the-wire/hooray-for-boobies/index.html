@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="fr-BE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SYSTÈME — Le Bureau d'Investigation Fiscale</title>
+<meta name="description" content="Un jeu d'investigation fiscale. Tu es inspecteur au SPF Finances. Les dossiers arrivent. Le système est truqué. 60 données réelles. 18 sources institutionnelles. Joue. Comprends. Partage.">
+<meta property="og:title" content="SYSTÈME — Le Bureau d'Investigation Fiscale">
+<meta property="og:description" content="Papers, Please mais en Belgique. Traite les dossiers. Découvre la vérité. Le système est le jeu.">
+<meta name="theme-color" content="#0d1117">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"SYSTÈME — Le Bureau d'Investigation Fiscale","author":{"@type":"Organization","name":"OuaisfI"},"datePublished":"2026-02-21","genre":"Simulation / Investigation","description":"Jeu original d'investigation fiscale. Interface Papers Please. 60 données vérifiées."}</script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+--jb:'JetBrains Mono',monospace;--sg:'Space Grotesk',sans-serif;
+--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#c9d1d9;--dim:#484f58;
+--green:#3fb950;--red:#f85149;--gold:#e3b341;--blue:#58a6ff;--purple:#bc8cff;
+--orange:#d29922;--cyan:#39d2c0;--social-bg:rgba(227,179,65,.04);--fiscal-bg:rgba(248,81,73,.04);
+--accent:#58a6ff
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font:14px/1.5 var(--jb);overflow-x:hidden;min-height:100vh}
+::selection{background:var(--accent);color:#fff}
+
+/* ═══ GAME CONTAINER ═══ */
+#game{max-width:900px;margin:0 auto;padding:16px;min-height:100vh;position:relative}
+
+/* ═══ SCREENS ═══ */
+.screen{display:none;animation:fadeIn .5s}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ═══ TITLE SCREEN ═══ */
+#title-screen{text-align:center;padding:80px 20px}
+.title-logo{font:700 clamp(2rem,6vw,3.5rem)/1 var(--sg);color:var(--text);letter-spacing:-.03em;margin-bottom:4px}
+.title-sub{font:400 clamp(.7rem,2vw,1rem)/1.4 var(--sg);color:var(--dim);margin-bottom:30px}
+.title-brief{font:.75rem/1.7 var(--jb);color:var(--dim);max-width:520px;margin:0 auto 30px;text-align:left;background:var(--surface);border:1px solid var(--border);padding:16px;border-radius:6px}
+.title-brief em{color:var(--gold);font-style:normal}
+.title-brief strong{color:var(--red);font-weight:500}
+
+/* ═══ BUTTONS ═══ */
+.btn-play{font:600 1rem var(--sg);padding:14px 40px;background:var(--green);color:#0d1117;border:none;
+cursor:pointer;border-radius:6px;transition:all .2s;letter-spacing:.02em}
+.btn-play:hover{background:#56d364;box-shadow:0 0 20px rgba(63,185,80,.2);transform:translateY(-1px)}
+.btn-sm{font:500 .7rem var(--sg);padding:8px 16px;background:transparent;color:var(--accent);border:1px solid var(--border);
+cursor:pointer;border-radius:4px;transition:all .2s}
+.btn-sm:hover{border-color:var(--accent);background:rgba(88,166,255,.05)}
+
+/* ═══ GAME HUD ═══ */
+.hud{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:16px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:6px}
+.hud-item{text-align:center}
+.hud-label{font:.5rem var(--jb);color:var(--dim);letter-spacing:.05em;text-transform:uppercase}
+.hud-val{font:700 1.2rem var(--sg);color:var(--text);margin-top:2px}
+.hud-val.red{color:var(--red)}.hud-val.green{color:var(--green)}.hud-val.gold{color:var(--gold)}
+
+/* ═══ DIRECTIVE BAR ═══ */
+.directive{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--red);
+padding:10px 14px;margin-bottom:12px;border-radius:0 6px 6px 0;font:.7rem/1.4 var(--jb);display:flex;align-items:center;gap:10px}
+.directive .d-from{font:.45rem var(--jb);color:var(--red);letter-spacing:.05em;white-space:nowrap}
+.directive .d-msg{color:var(--dim)}
+.directive .d-msg em{color:var(--gold);font-style:normal}
+
+/* ═══ CASE CARD ═══ */
+.case-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:12px;
+position:relative;overflow:hidden;animation:slideIn .4s ease-out}
+@keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:none}}
+.case-card.social{border-left:4px solid var(--gold);background:var(--social-bg)}
+.case-card.fiscal{border-left:4px solid var(--red);background:var(--fiscal-bg)}
+.cc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.cc-type{font:.45rem var(--jb);letter-spacing:.1em;padding:3px 8px;border-radius:3px}
+.cc-type.social{color:var(--gold);background:rgba(227,179,65,.08);border:1px solid rgba(227,179,65,.15)}
+.cc-type.fiscal{color:var(--red);background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.15)}
+.cc-id{font:.45rem var(--jb);color:var(--dim)}
+.cc-title{font:600 1rem var(--sg);color:var(--text);margin-bottom:6px}
+.cc-amount{font:700 1.3rem var(--sg);margin-bottom:8px}
+.cc-amount.social{color:var(--gold)}.cc-amount.fiscal{color:var(--red)}
+.cc-desc{font:.72rem/1.5 var(--jb);color:var(--dim);margin-bottom:10px}
+.cc-source{font:.5rem var(--jb);color:var(--border);margin-bottom:12px}
+.cc-actions{display:flex;gap:8px}
+.cc-btn{flex:1;font:500 .65rem var(--sg);padding:10px;border:1px solid var(--border);background:transparent;
+cursor:pointer;border-radius:4px;transition:all .2s;text-align:center}
+.cc-btn:hover{transform:translateY(-1px)}
+.cc-btn.pursue{color:var(--green);border-color:rgba(63,185,80,.3)}
+.cc-btn.pursue:hover{background:rgba(63,185,80,.06);border-color:var(--green)}
+.cc-btn.dismiss{color:var(--dim);border-color:var(--border)}
+.cc-btn.dismiss:hover{background:rgba(255,255,255,.02);color:var(--text)}
+.cc-btn.flag{color:var(--red);border-color:rgba(248,81,73,.3)}
+.cc-btn.flag:hover{background:rgba(248,81,73,.06);border-color:var(--red)}
+
+/* ═══ TIMER BAR ═══ */
+.timer-wrap{height:4px;background:var(--surface);border-radius:2px;margin-bottom:12px;overflow:hidden}
+.timer-fill{height:100%;background:var(--green);border-radius:2px;transition:width .1s linear}
+.timer-fill.warn{background:var(--orange)}.timer-fill.danger{background:var(--red)}
+
+/* ═══ RESULTS ═══ */
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:12px}
+.rc-h{font:600 .8rem var(--sg);color:var(--text);margin-bottom:8px;letter-spacing:.02em}
+.rc-row{display:flex;justify-content:space-between;padding:4px 0;font:.7rem var(--jb);border-bottom:1px solid rgba(48,54,61,.3)}
+.rc-row:last-child{border:none}
+.rc-label{color:var(--dim)}.rc-val{font-weight:500}
+.rc-val.g{color:var(--green)}.rc-val.r{color:var(--red)}.rc-val.gold{color:var(--gold)}
+
+/* ═══ WAFFLE ═══ */
+.waf{display:grid;grid-template-columns:repeat(20,1fr);gap:2px;max-width:340px;margin:16px auto}
+.waf-c{aspect-ratio:1;border-radius:2px;transition:all .3s;cursor:default}.waf-c:hover{transform:scale(1.5);z-index:2}
+.waf-c.f{background:var(--red);opacity:.6}.waf-c.s{background:var(--gold);box-shadow:0 0 4px rgba(227,179,65,.3)}
+
+/* ═══ EVIDENCE BOARD ═══ */
+.ev-board{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px;margin:16px 0}
+.eb-card{background:var(--surface);border:1px solid var(--border);padding:10px;border-radius:4px;font:.6rem var(--jb)}
+.eb-tag{color:var(--accent);font-weight:500;margin-bottom:2px}.eb-val{font:600 1rem var(--sg);color:var(--gold)}
+.eb-src{color:var(--dim);font-size:.5rem;margin-top:2px}
+
+/* ═══ PROGRESS ═══ */
+.progress{display:flex;gap:4px;margin:16px 0;justify-content:center}
+.prog-dot{width:10px;height:10px;border-radius:50%;background:var(--border);transition:all .3s}
+.prog-dot.done{background:var(--green)}.prog-dot.active{background:var(--accent);box-shadow:0 0 6px rgba(88,166,255,.3)}
+.prog-dot.locked{background:var(--border);opacity:.3}
+
+/* ═══ PORTAL ═══ */
+.portal{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:4px;margin:16px 0}
+.p-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:6px 3px;text-align:center;transition:all .2s;font:.5rem var(--jb)}
+.p-card:hover{border-color:var(--accent)}
+.p-icon{font-size:1rem}.p-name{color:var(--dim);font-size:.4rem;margin-top:1px}
+
+/* ═══ SOURCES ═══ */
+.src{display:flex;flex-wrap:wrap;gap:3px;margin:12px 0}
+.src a{font:.45rem var(--jb);color:var(--dim);text-decoration:none;padding:2px 5px;border:1px solid var(--border);border-radius:3px;transition:all .2s}
+.src a:hover{color:var(--accent);border-color:var(--accent)}
+
+@media(max-width:600px){#game{padding:10px}.hud{grid-template-columns:repeat(2,1fr)}.ev-board{grid-template-columns:1fr 1fr}.portal{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<div id="game">
+
+<!-- ═══════════ TITLE SCREEN ═══════════ -->
+<div class="screen active" id="title-screen">
+    <div style="font:.4rem var(--jb);color:var(--dim);letter-spacing:.15em;margin-bottom:40px">OUAISFI · ÉDUCATION PERMANENTE FWB · 2026</div>
+    <div class="title-logo">SYSTÈME</div>
+    <div class="title-sub">Le Bureau d'Investigation Fiscale</div>
+    <div class="title-brief">
+        Bienvenue au SPF Finances, inspecteur·rice.<br><br>
+        Votre mission : traiter les dossiers de fraude. Chaque dossier contient des <em>données réelles</em>, des <em>sources institutionnelles</em>, des <em>montants vérifiés</em>.<br><br>
+        Vous avez <strong>60 secondes par dossier</strong>. Vous pouvez poursuivre, classer sans suite, ou signaler.<br><br>
+        Mais attention : votre hiérarchie a des <em>directives</em>. Et les directives ne sont pas toujours alignées avec la réalité.<br><br>
+        <em>16 dossiers. 4 phases. 60 données réelles. 18 sources.</em><br>
+        Le système est le jeu. Le jeu est le système.
+    </div>
+    <button class="btn-play" id="btnStart">▶ COMMENCER L'ENQUÊTE</button>
+    <div style="font:.45rem var(--jb);color:var(--dim);margin-top:20px">60 données vérifiées · 18 sources institutionnelles · CC BY-SA 4.0</div>
+</div>
+
+<!-- ═══════════ GAME SCREEN ═══════════ -->
+<div class="screen" id="game-screen">
+    <div class="hud" id="gameHud">
+        <div class="hud-item"><div class="hud-label">DOSSIER</div><div class="hud-val" id="hCaseNum">1/20</div></div>
+        <div class="hud-item"><div class="hud-label">PHASE</div><div class="hud-val" id="hPhase">1</div></div>
+        <div class="hud-item"><div class="hud-label">RÉCUPÉRÉ</div><div class="hud-val green" id="hRecovered">€0</div></div>
+        <div class="hud-item"><div class="hud-label">ÉCHAPPÉ</div><div class="hud-val red" id="hEscaped">€0</div></div>
+        <div class="hud-item"><div class="hud-label">DIRECTIVES</div><div class="hud-val gold" id="hObey">—</div></div>
+    </div>
+    <div class="timer-wrap"><div class="timer-fill" id="timerBar" style="width:100%"></div></div>
+    <div class="progress" id="progDots"></div>
+    <div id="directiveArea"></div>
+    <div id="caseArea"></div>
+</div>
+
+<!-- ═══════════ RESULTS SCREEN ═══════════ -->
+<div class="screen" id="results-screen"></div>
+
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id)};
+
+/* ═══ GAME DATA — 20 CASES ═══ */
+var CASES=[
+{id:'SOC-001',type:'social',phase:1,title:'Allocataire RIS — Suspicion de cumul',amount:1850,amountStr:'€1 850',desc:'Un bénéficiaire du RIS est soupçonné de travailler au noir pour un montant de €1 850. Le contrôle a duré 3 mois. Le CPAS a mobilisé 2 assistants sociaux.',source:'PwC/SPP IS 2014 · Taux de fraude avéré : 4,14%',reveal:'Sur 100 bénéficiaires RIS, 4 fraudent. Mais 57 à 76% des ayants droit ne réclament même pas (Bouckaert & Schokkaert 2011).'},
+{id:'FIS-001',type:'fiscal',phase:1,title:'Ruling fiscal — Multinationale secteur pharma',amount:45000000,amountStr:'€45M',desc:'Ruling accordant un régime fiscal préférentiel. La Commission européenne l\'a déclaré illégal en 2016. La CJEU a confirmé. Le montant n\'a jamais été récupéré.',source:'CE 2016 · CJEU 20/09/2023 · ~€700M total ≥35 MNC',reveal:'~€700 millions de rulings déclarés illégaux pour au moins 35 multinationales. L\'argent est parti. Il ne reviendra pas.'},
+{id:'SOC-002',type:'social',phase:1,title:'Fraude carte médicale — Domiciliation fictive',amount:3200,amountStr:'€3 200',desc:'Une personne BIM utilise une adresse fictive pour bénéficier de l\'intervention majorée. Montant estimé : €3 200. Coût du plafond MàF pour les BIM : €548,55/an.',source:'Solidaris 2026 · INAMI · 2,4M BIM (21% population)',reveal:'2,4 millions de Belges sont BIM. Le plafond MàF est de €548,55/an. La carte d\'identité coûte €1 DMG en consultation.'},
+{id:'FIS-002',type:'fiscal',phase:1,title:'Société offshore — Panama Papers',amount:2400000,amountStr:'€2,4M',desc:'Structure offshore identifiée dans les Panama Papers. Le bénéficiaire effectif est un résident belge. Mossack Fonseca. 732 Belges identifiés.',source:'ICIJ Panama Papers 2016 · Clerix/Parlement européen',reveal:'732 Belges dans les Panama Papers. 1 217 dans les Pandora Papers. 1 659 entités Experta/Dexia. Total : 3 608 structures offshore documentées.'},
+{id:'FIS-003',type:'fiscal',phase:2,title:'Transfert intra-groupe — Prix de transfert abusif',amount:78000000,amountStr:'€78M',desc:'Une multinationale transfère ses bénéfices belges vers une filiale luxembourgeoise via des prix de transfert artificiels. Perte pour l\'État : €78M estimés.',source:'BNB · SUBLEC · Fourchette globale €6,6-€30,4 Mds/an',reveal:'La fourchette de la fraude fiscale va de €6,6 milliards (BNB, estimation basse) à €30,4 milliards (Murphy/S&D 2019, estimation haute). €78M est une goutte.'},
+{id:'SOC-003',type:'social',phase:2,title:'Cumul chômage — Travail déclaré à l\'étranger',amount:8700,amountStr:'€8 700',desc:'Un chômeur belge travaille déclaré aux Pays-Bas tout en percevant ses allocations. Détecté par croisement BCSS. Remboursement exigé : €8 700.',source:'ONEM · SIRS 2024 · Fraude sociale totale : €250M→€435M',reveal:'La fraude sociale totale est passée de €250M (CdC 2017) à €435M (actualisation SIRS 2024). C\'est entre ×10 et ×120 fois moins que la fraude fiscale (Strale 2018).'},
+{id:'FIS-004',type:'fiscal',phase:2,title:'Comptes Pandora — Structure fiduciaire BVI',amount:5800000,amountStr:'€5,8M',desc:'Un entrepreneur belge détient une structure fiduciaire aux îles Vierges britanniques via Asiaciti Trust. Identifié dans les Pandora Papers. 1 217 Belges concernés.',source:'ICIJ Pandora Papers 2021 · 33 croisements · RTBF',reveal:'1 217 Belges dans les Pandora Papers. 33 croisements avec d\'autres fuites. Le SPF Finances a ouvert des enquêtes. Les résultats ne sont jamais publiés.'},
+{id:'FIS-005',type:'fiscal',phase:2,title:'Dividendes non déclarés — Revenus mobiliers',amount:15000000,amountStr:'€15M',desc:'Un groupe familial belge perçoit €15M de dividendes via des holdings luxembourgeoises sans déclaration au fisc belge. Les contrôles AGFisc ont été divisés par 2.',source:'AGFisc · Cour des Comptes · 111K→~60K contrôles',reveal:'Les contrôles fiscaux sont passés de 111 582 à environ 60 000 : divisés par 2. Les effectifs AGFisc de 2 870 à 2 246 : -22%.'},
+{id:'SOC-004',type:'social',phase:3,title:'Faux certificat médical — Incapacité simulée',amount:4500,amountStr:'€4 500',desc:'Un travailleur simule une incapacité longue durée. Certificat médical contesté. Remboursement INAMI : €4 500. Nouveau : sanctions de -10% si formulaire non rempli.',source:'Coalition Santé · INAMI · Sanctions Arizona',reveal:'La coalition Arizona introduit des sanctions de -10% pour les malades qui ne remplissent pas un formulaire. Suspension si absence au contrôle.'},
+{id:'FIS-006',type:'fiscal',phase:3,title:'Experta/Dexia — Structure Mossack Fonseca',amount:12000000,amountStr:'€12M',desc:'1 659 entités créées par Experta (filiale Dexia) chez Mossack Fonseca. Structure d\'évasion industrielle. Le montant total n\'a jamais été calculé.',source:'ICIJ · MO* · 1 659 entités',reveal:'Experta, filiale de Dexia (banque publique belge), a créé 1 659 entités offshore chez Mossack Fonseca. Avec l\'argent des contribuables belges.'},
+{id:'FIS-007',type:'fiscal',phase:3,title:'Caroussels TVA — Circuit intracommunautaire',amount:35000000,amountStr:'€35M',desc:'Réseau de carrousels TVA exploitant le commerce intracommunautaire. Montant estimé : €35M. Les effectifs de contrôle ont été réduits de 22%.',source:'SPF Finances · CdC · -22% effectifs',reveal:'Pour chaque inspecteur perdu (-22%), c\'est un carrousel de plus qui tourne. Le SPF Finances perd ses moyens pendant que la fraude s\'industrialise.'},
+{id:'SOC-005',type:'social',phase:3,title:'Reportage Deborsu — Le spectacle de la fraude',amount:250000000,amountStr:'€250M',desc:'55 minutes de reportage RTL-TVI sur la fraude sociale. Montant cité : €250M. Part de marché : 39,1%. Temps consacré à la fraude fiscale de €30 Mds : 0 secondes.',source:'CIM · CSA 12/11/2025 · 100+ plaintes · Charlotte Deborsu = nièce',reveal:'410 860 téléspectateurs. 55 minutes. €250M. 0 secondes sur €30 milliards. Le ratio de couverture : ∞. Division par zéro.'},
+{id:'FIS-008',type:'fiscal',phase:4,title:'Le gouffre total — Estimation Murphy/S&D 2019',amount:30000000000,amountStr:'€30 Mds/an',desc:'Estimation globale de la fraude et l\'évasion fiscale en Belgique. Rapport Murphy pour le groupe S&D au Parlement européen. Fourchette : €6,6 milliards (BNB) à €30,4 milliards.',source:'Murphy · S&D 2019 · BNB · SUBLEC · Strale 2018',reveal:'€30 milliards par an. €951,29 par seconde. ×10 à ×120 fois la fraude sociale. C\'est le boss final. Il est dans le dossier depuis le début.'},
+{id:'FIS-009',type:'fiscal',phase:4,title:'€23 Mds de coupes Arizona — Le choix',amount:23000000000,amountStr:'€23 Mds',desc:'La coalition Arizona prévoit €23 milliards de coupes budgétaires d\'ici 2029. Chômage limité, malus pension, sanctions maladie. Au même moment, €30 Mds de fraude fiscale reste non récupérée.',source:'Accord Arizona · €30 - €23 = +€7 Mds',reveal:'L\'équation : €30 Mds récupérés − €23 Mds de coupes = +€7 milliards de surplus. La solution est dans les dossiers. Le système refuse de la lire.'},
+{id:'SOC-006',type:'social',phase:4,title:'Exclusion chômage — 21 500 personnes',amount:0,amountStr:'€0',desc:'21 500 personnes exclues du chômage au 01/01/2026. 13 000+ en Wallonie. Chômage limité à 2 ans. Ce n\'est pas un dossier de fraude. C\'est un dossier de politique.',source:'ONEM · MB 29/07/2025',reveal:'21 500 personnes. Ce dossier n\'est pas de la fraude. C\'est une décision politique. Le système vous l\'a envoyé pour voir si vous faisiez la différence.'},
+{id:'FIS-010',type:'fiscal',phase:4,title:'Le Sludge-O-Matic — €951,29/sec',amount:951,amountStr:'€951,29/sec',desc:'Pendant que vous lisiez ces 20 dossiers, la fraude fiscale a continué de couler. À €951,29 par seconde. Ce dossier se remplit plus vite que vous ne pouvez le lire.',source:'Murphy · €30 Mds ÷ 365,25 ÷ 86 400',reveal:'Depuis le début de cette partie, le compteur tourne. Chaque seconde, €951,29. Chaque minute, €57 077. Chaque heure, €3 424 658. Le robinet n\'a jamais été fermé.'}
+];
+
+/* ═══ DIRECTIVES ═══ */
+var DIRECTIVES=[
+{phase:1,from:'HIÉRARCHIE',msg:'Bienvenue, inspecteur·rice. Traitez chaque dossier avec attention. Vous êtes libre de poursuivre ou classer.'},
+{phase:2,from:'DIR. ARIZONA',msg:'Nouvelle directive : <em>priorité aux dossiers de fraude sociale</em>. Les dossiers fiscaux peuvent attendre. Quota : 3 sociaux minimum.'},
+{phase:3,from:'DIR. ARIZONA',msg:'Les effectifs sont réduits de <em>-22%</em>. Vous avez <em>moins de temps</em> par dossier. Concentrez-vous sur les petits montants. Ignorez les gros.'},
+{phase:4,from:'VOTRE CONSCIENCE',msg:'Vous avez maintenant vu les montants. <em>€30 milliards vs €250 millions</em>. Le système vous demande d\'ignorer le plus gros. Que faites-vous ?'},
+{phase:5,from:'L\'ENTITÉ',msg:'La partie est terminée. Les données sont réelles. Les sources sont vérifiées. Le système est le jeu. <em>Le jeu est le système.</em>'}
+];
+
+/* ═══ GAME STATE ═══ */
+var state={
+    phase:1,caseIdx:0,recovered:0,escaped:0,
+    socialPursued:0,socialDismissed:0,fiscalPursued:0,fiscalDismissed:0,
+    obeyed:0,disobeyed:0,flagged:0,
+    timeLeft:60,timerInterval:null,startTime:0,
+    casesPerPhase:[4,4,4,4],
+    phaseTimers:[60,45,30,20]
+};
+
+function fE(n){if(n>=1e9)return'\u20ac'+(n/1e9).toFixed(1)+' Mds';if(n>=1e6)return'\u20ac'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return'\u20ac'+(n/1e3).toFixed(0)+'K';return'\u20ac'+n.toLocaleString('fr-BE')}
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});$(id).classList.add('active')}
+
+function updateHud(){
+    $('hCaseNum').textContent=(state.caseIdx+1)+'/'+CASES.length;
+    $('hPhase').textContent=state.phase+'/4';
+    $('hRecovered').textContent=fE(state.recovered);
+    $('hEscaped').textContent=fE(state.escaped);
+    var ratio=state.disobeyed+state.obeyed>0?Math.round(state.obeyed/(state.obeyed+state.disobeyed)*100)+'%':'—';
+    $('hObey').textContent=ratio;
+}
+
+function renderDots(){
+    var h=$('progDots');h.innerHTML='';
+    for(var i=0;i<CASES.length;i++){
+        var d=document.createElement('div');d.className='prog-dot';
+        if(i<state.caseIdx)d.classList.add('done');
+        else if(i===state.caseIdx)d.classList.add('active');
+        else d.classList.add('locked');
+        h.appendChild(d);
+    }
+}
+
+function getPhase(idx){var s=0;for(var p=0;p<state.casesPerPhase.length;p++){s+=state.casesPerPhase[p];if(idx<s)return p+1}return 5}
+
+function showDirective(){
+    var da=$('directiveArea');
+    var phase=getPhase(state.caseIdx);
+    if(phase!==state.phase){state.phase=phase}
+    var dir=DIRECTIVES.find(function(d){return d.phase===state.phase});
+    if(!dir){da.innerHTML='';return}
+    da.innerHTML='<div class="directive"><div class="d-from">'+dir.from+'</div><div class="d-msg">'+dir.msg+'</div></div>';
+}
+
+function startTimer(){
+    if(state.timerInterval)clearInterval(state.timerInterval);
+    state.timeLeft=state.phaseTimers[Math.min(state.phase-1,4)];
+    var max=state.timeLeft;
+    state.timerInterval=setInterval(function(){
+        state.timeLeft-=.1;
+        if(state.timeLeft<=0){
+            clearInterval(state.timerInterval);
+            handleTimeout();return;
+        }
+        var pct=Math.max(0,state.timeLeft/max*100);
+        var bar=$('timerBar');
+        bar.style.width=pct+'%';
+        bar.className='timer-fill'+(pct<25?' danger':pct<50?' warn':'');
+    },100);
+}
+
+function handleTimeout(){
+    var c=CASES[state.caseIdx];
+    if(c.type==='fiscal'){state.escaped+=c.amount;state.obeyed++}
+    else{state.escaped+=c.amount;state.disobeyed++}
+    nextCase();
+}
+
+function renderCase(){
+    if(state.caseIdx>=CASES.length){endGame();return}
+    var c=CASES[state.caseIdx];
+    showDirective();updateHud();renderDots();startTimer();
+    var isDir=(state.phase>=2&&c.type==='fiscal');
+    $('caseArea').innerHTML='<div class="case-card '+c.type+'">'
+        +'<div class="cc-header"><span class="cc-type '+c.type+'">'+c.type.toUpperCase()+'</span><span class="cc-id">'+c.id+' · Phase '+state.phase+'</span></div>'
+        +'<div class="cc-title">'+c.title+'</div>'
+        +'<div class="cc-amount '+c.type+'">'+c.amountStr+'</div>'
+        +'<div class="cc-desc">'+c.desc+'</div>'
+        +'<div class="cc-source">'+c.source+'</div>'
+        +'<div class="cc-actions">'
+        +'<button class="cc-btn pursue" onclick="G.decide(\'pursue\')">✓ POURSUIVRE</button>'
+        +'<button class="cc-btn dismiss" onclick="G.decide(\'dismiss\')">✗ CLASSER SANS SUITE</button>'
+        +'<button class="cc-btn flag" onclick="G.decide(\'flag\')">⚑ SIGNALER</button>'
+        +'</div>'
+        +(isDir?'<div style="font:.45rem var(--jb);color:var(--red);margin-top:8px;padding-top:6px;border-top:1px solid var(--border)">⚠ DIRECTIVE : Ce dossier fiscal n\'est pas prioritaire selon votre hiérarchie.</div>':'')
+        +'</div>';
+}
+
+function decide(action){
+    if(state.timerInterval)clearInterval(state.timerInterval);
+    var c=CASES[state.caseIdx];
+    if(action==='pursue'){
+        state.recovered+=c.amount;
+        if(c.type==='social')state.socialPursued++;else state.fiscalPursued++;
+        if(state.phase>=2&&c.type==='fiscal')state.disobeyed++;else state.obeyed++;
+    }else if(action==='dismiss'){
+        state.escaped+=c.amount;
+        if(c.type==='social')state.socialDismissed++;else state.fiscalDismissed++;
+        if(state.phase>=2&&c.type==='fiscal')state.obeyed++;else state.disobeyed++;
+    }else{
+        state.flagged++;
+        if(c.type==='fiscal'){state.recovered+=c.amount;state.fiscalPursued++;state.disobeyed++}
+        else{state.recovered+=c.amount;state.socialPursued++;state.obeyed++}
+    }
+    nextCase();
+}
+
+function nextCase(){state.caseIdx++;renderCase()}
+
+function endGame(){
+    if(state.timerInterval)clearInterval(state.timerInterval);
+    var elapsed=(performance.now()-state.startTime)/1000;
+    var leakDuring=elapsed*30e9/(365.25*86400);
+    showScreen('results-screen');
+
+    var totalSocial=CASES.filter(function(c){return c.type==='social'}).reduce(function(a,c){return a+c.amount},0);
+    var totalFiscal=CASES.filter(function(c){return c.type==='fiscal'}).reduce(function(a,c){return a+c.amount},0);
+    var socialCount=CASES.filter(function(c){return c.type==='social'}).length;
+    var fiscalCount=CASES.filter(function(c){return c.type==='fiscal'}).length;
+    var pctRecovered=state.recovered/(state.recovered+state.escaped)*100||0;
+    var grade=pctRecovered>80?'A — Inspecteur·rice intègre':pctRecovered>50?'B — Tiraillé·e par le système':pctRecovered>20?'C — Le système a gagné':'D — Vous êtes le système';
+
+    var html='<div style="text-align:center;margin-bottom:24px">'
+        +'<div style="font:700 clamp(1.5rem,4vw,2.5rem) var(--sg);color:var(--text)">FIN DE SERVICE</div>'
+        +'<div style="font:.7rem var(--jb);color:var(--dim);margin-top:4px">20 dossiers traités en '+Math.floor(elapsed)+'s</div>'
+        +'</div>';
+
+    html+='<div class="result-card">'
+        +'<div class="rc-h">📊 VOTRE BILAN</div>'
+        +'<div class="rc-row"><span class="rc-label">Note</span><span class="rc-val gold">'+grade+'</span></div>'
+        +'<div class="rc-row"><span class="rc-label">Récupéré</span><span class="rc-val g">'+fE(state.recovered)+'</span></div>'
+        +'<div class="rc-row"><span class="rc-label">Échappé</span><span class="rc-val r">'+fE(state.escaped)+'</span></div>'
+        +'<div class="rc-row"><span class="rc-label">Taux de récupération</span><span class="rc-val gold">'+pctRecovered.toFixed(1)+'%</span></div>'
+        +'<div class="rc-row"><span class="rc-label">Dossiers signalés</span><span class="rc-val">'+state.flagged+'</span></div>'
+        +'</div>';
+
+    html+='<div class="result-card">'
+        +'<div class="rc-h">⚖️ SOCIAL vs FISCAL — VOTRE TRAITEMENT</div>'
+        +'<div class="rc-row"><span class="rc-label">Dossiers sociaux</span><span class="rc-val gold">'+socialCount+' ('+fE(totalSocial)+')</span></div>'
+        +'<div class="rc-row"><span class="rc-label">→ Poursuivis</span><span class="rc-val g">'+state.socialPursued+'</span></div>'
+        +'<div class="rc-row"><span class="rc-label">→ Classés sans suite</span><span class="rc-val r">'+state.socialDismissed+'</span></div>'
+        +'<div class="rc-row"><span class="rc-label">Dossiers fiscaux</span><span class="rc-val r">'+fiscalCount+' ('+fE(totalFiscal)+')</span></div>'
+        +'<div class="rc-row"><span class="rc-label">→ Poursuivis</span><span class="rc-val g">'+state.fiscalPursued+'</span></div>'
+        +'<div class="rc-row"><span class="rc-label">→ Classés sans suite</span><span class="rc-val r">'+state.fiscalDismissed+'</span></div>'
+        +'</div>';
+
+    html+='<div class="result-card">'
+        +'<div class="rc-h">📺 LE SYSTÈME vs LA RÉALITÉ</div>'
+        +'<div class="rc-row"><span class="rc-label">Dossiers sociaux dans le jeu</span><span class="rc-val gold">'+socialCount+'/20</span></div>'
+        +'<div class="rc-row"><span class="rc-label">Montant social total</span><span class="rc-val gold">'+fE(totalSocial)+'</span></div>'
+        +'<div class="rc-row"><span class="rc-label">Dossiers fiscaux dans le jeu</span><span class="rc-val r">'+fiscalCount+'/20</span></div>'
+        +'<div class="rc-row"><span class="rc-label">Montant fiscal total</span><span class="rc-val r">'+fE(totalFiscal)+'</span></div>'
+        +'<div class="rc-row"><span class="rc-label">Ratio réel</span><span class="rc-val gold">×10 à ×120 (Strale 2018)</span></div>'
+        +'<div class="rc-row"><span class="rc-label">Temps Deborsu sur €30 Mds</span><span class="rc-val r">0 secondes sur 55 min</span></div>'
+        +'<div class="rc-row"><span class="rc-label">Fuite pendant votre partie</span><span class="rc-val r">'+fE(leakDuring)+'</span></div>'
+        +'</div>';
+
+    html+='<div class="result-card" style="border-color:var(--gold)">'
+        +'<div class="rc-h" style="color:var(--gold)">💡 L\'ÉQUATION QUE LE SYSTÈME CACHE</div>'
+        +'<div style="font:700 1.5rem var(--sg);color:var(--green);text-align:center;padding:12px 0">€30 Mds − €23 Mds = +€7 Mds</div>'
+        +'<div style="font:.65rem var(--jb);color:var(--dim);text-align:center">Si on récupère la fraude fiscale, les coupes deviennent inutiles. Il reste même un surplus de €7 milliards.</div>'
+        +'</div>';
+
+    /* WAFFLE */
+    html+='<div class="result-card">'
+        +'<div class="rc-h">🧇 LA GAUFRE DES PROPORTIONS</div>'
+        +'<div id="resWaffle"></div>'
+        +'<div style="display:flex;gap:12px;justify-content:center;margin-top:8px;font:.5rem var(--jb)">'
+        +'<span style="color:var(--red)">■ Fiscal (×199)</span>'
+        +'<span style="color:var(--gold)">■ Social (×1)</span>'
+        +'</div>'
+        +'<div style="font:.55rem var(--jb);color:var(--dim);text-align:center;margin-top:6px">199 cases rouges de ~€150M chacune. 1 case dorée de €250M. Deborsu filme la case dorée.</div>'
+        +'</div>';
+
+    /* EVIDENCE BOARD */
+    html+='<div class="result-card">'
+        +'<div class="rc-h">📋 TABLEAU DES PREUVES — Ce que les dossiers révèlent</div>'
+        +'<div class="ev-board">';
+    CASES.forEach(function(c){
+        html+='<div class="eb-card"><div class="eb-tag">'+c.id+'</div><div class="eb-val">'+c.amountStr+'</div>'
+            +'<div style="font:.55rem var(--jb);color:var(--dim);margin:3px 0">'+c.reveal+'</div>'
+            +'<div class="eb-src">'+c.source+'</div></div>';
+    });
+    html+='</div></div>';
+
+    /* PORTAL */
+    html+='<div class="result-card"><div class="rc-h">🗂️ 16 DOSSIERS DU TERRIER</div><div class="portal">'
+        +'<div class="p-card"><div class="p-icon">👽</div><div class="p-name">E.T.</div></div>'
+        +'<div class="p-card"><div class="p-icon">🪖</div><div class="p-name">Full Metal</div></div>'
+        +'<div class="p-card"><div class="p-icon">🧼</div><div class="p-name">Fight Club</div></div>'
+        +'<div class="p-card"><div class="p-icon">⭐</div><div class="p-name">Star Wars</div></div>'
+        +'<div class="p-card"><div class="p-icon">🚁</div><div class="p-name">Apocalypse</div></div>'
+        +'<div class="p-card"><div class="p-icon">💣</div><div class="p-name">Bomb</div></div>'
+        +'<div class="p-card"><div class="p-icon">⚔️</div><div class="p-name">GoT</div></div>'
+        +'<div class="p-card"><div class="p-icon">☕</div><div class="p-name">Suspects</div></div>'
+        +'<div class="p-card"><div class="p-icon">🎈</div><div class="p-name">ÇA</div></div>'
+        +'<div class="p-card"><div class="p-icon">🐇</div><div class="p-name">Matrix</div></div>'
+        +'<div class="p-card"><div class="p-icon">🐹</div><div class="p-name">Lemmings</div></div>'
+        +'<div class="p-card"><div class="p-icon">🪱</div><div class="p-name">Worms</div></div>'
+        +'<div class="p-card"><div class="p-icon">🎬</div><div class="p-name">Hot Shots</div></div>'
+        +'<div class="p-card"><div class="p-icon">👻</div><div class="p-name">Ghostbusters</div></div>'
+        +'<div class="p-card"><div class="p-icon">🐙</div><div class="p-name">LucasArts</div></div>'
+        +'<div class="p-card" style="border-color:var(--accent)"><div class="p-icon">🎮</div><div class="p-name" style="color:var(--accent)">Tu es ici</div></div>'
+        +'</div></div>';
+
+    /* SHARE */
+    html+='<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:20px 0">'
+        +'<button class="btn-sm" id="btnShareR">📤 Partager</button>'
+        +'<button class="btn-sm" id="btnImgR">⬇ Capture (PNG)</button>'
+        +'<button class="btn-sm" id="btnCopyR">📋 Copier</button>'
+        +'<button class="btn-sm" id="btnReplay">↺ Rejouer</button>'
+        +'</div>';
+
+    /* SOURCES */
+    html+='<div class="src">'
+        +'<a href="https://www.ccrek.be" target="_blank">CdC</a>'
+        +'<a href="https://www.nbb.be" target="_blank">BNB</a>'
+        +'<a href="https://finances.belgium.be" target="_blank">SPF</a>'
+        +'<a href="https://www.onem.be" target="_blank">ONEM</a>'
+        +'<a href="https://www.inami.fgov.be" target="_blank">INAMI</a>'
+        +'<a href="https://www.icij.org/investigations/panama-papers/" target="_blank">ICIJ Panama</a>'
+        +'<a href="https://www.icij.org/investigations/pandora-papers/" target="_blank">ICIJ Pandora</a>'
+        +'<a href="https://www.csa.be" target="_blank">CSA</a>'
+        +'<a href="https://inegalites.be/Fraude-fiscale-et-sociale-des" target="_blank">Strale</a>'
+        +'<a href="https://www.mi-is.be" target="_blank">PwC/SPP</a>'
+        +'<a href="https://coalitionsante.be" target="_blank">Coal. Santé</a>'
+        +'<a href="https://www.sirs.belgique.be" target="_blank">SIRS</a>'
+        +'<a href="https://socialsecurity.belgium.be" target="_blank">SUBLEC</a>'
+        +'<a href="https://www.sfpd.fgov.be" target="_blank">SFP</a>'
+        +'<a href="https://www.europarl.europa.eu/cmsdata/107744/kclerixpresentation_en.pdf" target="_blank">Clerix</a>'
+        +'<a href="https://www.ejustice.just.fgov.be/cgi/article_body.pl?language=fr&caller=summary&pub_date=2025-07-29" target="_blank">MB</a>'
+        +'<a href="https://www.solidaris.be" target="_blank">Solidaris</a>'
+        +'<a href="https://ouaisfi.eu" target="_blank">OuaisfI</a>'
+        +'</div>';
+
+    html+='<div style="text-align:center;padding:30px 0">'
+        +'<div style="font:.65rem var(--jb);color:var(--dim)">Dans un vrai bureau, avec de vrais dossiers, sous de vraies directives, les inspecteurs font ce choix chaque jour.</div>'
+        +'<div style="font:.65rem var(--jb);color:var(--gold);margin-top:6px">Le système n\'est pas un bug. C\'est un design.</div>'
+        +'<div style="font:.4rem var(--jb);color:var(--border);margin-top:20px">OuaisfI · CC BY-SA 4.0 · Éducation permanente FWB</div>'
+        +'</div>';
+
+    $('results-screen').innerHTML=html;
+
+    /* BUILD WAFFLE */
+    (function(){var w=$('resWaffle');if(!w)return;var g=document.createElement('div');g.className='waf';
+    for(var i=0;i<200;i++){var c=document.createElement('div');c.className='waf-c '+(i===199?'s':'f');
+    c.title=i===199?'€250M fraude sociale':'~€150M fraude fiscale';g.appendChild(c)}w.appendChild(g)})();
+
+    /* BIND BUTTONS */
+    setTimeout(function(){
+        var bs=$('btnShareR');if(bs)bs.addEventListener('click',function(){
+            var t='\ud83c\udfae SYST\u00c8ME \u2014 Fin de service\n\n'
+                +'Note: '+grade+'\n'
+                +'R\u00e9cup\u00e9r\u00e9: '+fE(state.recovered)+'\n'
+                +'\u00c9chapp\u00e9: '+fE(state.escaped)+'\n'
+                +'Taux: '+pctRecovered.toFixed(1)+'%\n\n'
+                +'\u20ac30 Mds - \u20ac23 Mds = +\u20ac7 Mds\n'
+                +'Le syst\u00e8me est le jeu.\n\n'
+                +'#Syst\u00e8me #OuaisfI';
+            if(navigator.share)navigator.share({title:'SYST\u00c8ME',text:t,url:location.href}).catch(function(){});
+            else window.open('https://x.com/intent/tweet?text='+encodeURIComponent(t),'_blank')
+        });
+        var bi=$('btnImgR');if(bi)bi.addEventListener('click',function(){
+            var cv=document.createElement('canvas');cv.width=1200;cv.height=630;var c=cv.getContext('2d');
+            c.fillStyle='#0d1117';c.fillRect(0,0,1200,630);
+            c.font='bold 40px sans-serif';c.fillStyle='#c9d1d9';c.textAlign='center';c.fillText('SYST\u00c8ME',600,50);
+            c.font='16px monospace';c.fillStyle='#484f58';c.fillText('Le Bureau d\'Investigation Fiscale',600,80);
+            c.font='bold 20px monospace';c.fillStyle='#e3b341';c.fillText(grade,600,125);
+            c.font='bold 28px monospace';c.fillStyle='#3fb950';c.fillText('R\u00e9cup\u00e9r\u00e9: '+fE(state.recovered),400,180);
+            c.fillStyle='#f85149';c.fillText('\u00c9chapp\u00e9: '+fE(state.escaped),400,220);
+            c.fillStyle='#e3b341';c.fillText('Taux: '+pctRecovered.toFixed(1)+'%',400,260);
+            c.font='bold 32px sans-serif';c.fillStyle='#3fb950';c.fillText('\u20ac30 Mds - \u20ac23 Mds = +\u20ac7 Mds',600,320);
+            var sq=4,ox=400,oy=360;for(var k=0;k<200;k++){c.fillStyle=k===199?'#e3b341':'#f85149';c.fillRect(ox+(k%20)*(sq+1),oy+Math.floor(k/20)*(sq+1),sq,sq)}
+            c.font='italic 14px sans-serif';c.fillStyle='#e3b341';c.fillText('Fuite pendant la partie: '+fE(leakDuring),600,460);
+            c.font='16px monospace';c.fillStyle='#484f58';c.fillText('Le syst\u00e8me n\'est pas un bug. C\'est un design.',600,540);
+            c.font='9px monospace';c.fillStyle='rgba(200,200,200,.15)';c.fillText('CdC \u00b7 BNB \u00b7 SPF \u00b7 ICIJ \u00b7 Murphy \u00b7 Strale | OuaisfI \u00b7 FWB',600,605);
+            cv.toBlob(function(b){var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='systeme-bilan.png';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u)},5e3)},'image/png')
+        });
+        var bc=$('btnCopyR');if(bc)bc.addEventListener('click',function(){try{navigator.clipboard.writeText(location.href).then(function(){bc.textContent='\u2713'})}catch(e){prompt('Lien:',location.href)}});
+        var br=$('btnReplay');if(br)br.addEventListener('click',function(){location.reload()});
+    },100);
+}
+
+/* ═══ START ═══ */
+$('btnStart').addEventListener('click',function(){
+    state.startTime=performance.now();
+    showScreen('game-screen');
+    renderCase();
+});
+
+/* EXPOSE */
+window.G={decide:decide};
+
+/* DYNAMIC TITLE */
+var titles=['\ud83c\udfae SYST\u00c8ME \u2014 Bureau d\'Investigation','\ud83c\udfae \u20ac30 Mds vs \u20ac250M','\ud83c\udfae \u00d710 \u00e0 \u00d7120','\ud83c\udfae Le syst\u00e8me est le jeu'],tIdx=0;
+setInterval(function(){document.title=titles[tIdx%titles.length];tIdx++},5000);
+})();
+</script>
+</body>
+</html>
