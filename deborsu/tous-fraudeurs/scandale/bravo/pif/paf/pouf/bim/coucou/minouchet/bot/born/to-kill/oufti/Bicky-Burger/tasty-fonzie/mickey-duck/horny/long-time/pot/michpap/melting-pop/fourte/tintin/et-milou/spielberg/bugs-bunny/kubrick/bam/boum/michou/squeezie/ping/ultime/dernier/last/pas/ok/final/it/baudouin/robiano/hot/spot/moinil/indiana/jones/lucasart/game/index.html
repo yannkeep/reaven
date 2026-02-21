@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="fr-BE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>LE GOUFFRE — Simulateur d'inspecteur fiscal</title>
+<meta name="description" content="Tu es inspecteur AGFisc. La fraude fiscale tombe du ciel à €951/sec. Ton budget est coupé de -22%. Tes contrôles sont divisés par 2. Attrape ce que tu peux. Le jeu est truqué. Comme le vrai système.">
+<meta property="og:title" content="LE GOUFFRE — Le jeu que tu ne peux pas gagner">
+<meta property="og:description" content="Inspecteur fiscal simulator. €30 Mds tombent. Tu en attrapes 3%. Le reste coule. Arizona coupe ton budget. Game over par design.">
+<meta name="theme-color" content="#0a0a1a">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"LE GOUFFRE — Simulateur d'inspecteur fiscal","author":{"@type":"Organization","name":"OuaisfI"},"description":"Jeu arcade original: attrape la fraude fiscale qui tombe du ciel. Le jeu est truqué par design — comme le vrai système belge. 60 données vérifiées.","genre":"arcade/satire","applicationCategory":"Game"}</script>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#0a0a1a;overflow:hidden;touch-action:none;font-family:'Press Start 2P',monospace}
+#c{display:block;margin:0 auto;image-rendering:pixelated;cursor:none}
+#ui{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;pointer-events:none}
+#ui.active{pointer-events:auto}
+.ui-box{background:rgba(10,10,26,.95);border:3px solid #FFD700;padding:30px;max-width:600px;width:90%;text-align:center;display:none}
+.ui-box.show{display:block}
+.ui-box h1{font:clamp(.5rem,2vw,.8rem)/1.3 'Press Start 2P';color:#FFD700;margin-bottom:12px}
+.ui-box p{font:clamp(.7rem,1.5vw,.9rem)/1.6 'VT323',monospace;color:#ddd;margin-bottom:8px}
+.ui-box .data{font:.5rem 'Press Start 2P';color:#30ff30;margin:8px 0;line-height:1.6}
+.ui-box em{color:#FFD700;font-style:normal}
+.play-btn{font:.4rem 'Press Start 2P';color:#FFD700;background:none;border:2px solid #FFD700;padding:12px 24px;cursor:pointer;margin-top:16px;transition:all .3s;display:inline-block}
+.play-btn:hover{background:#FFD700;color:#0a0a1a}
+.stat{display:inline-block;background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.1);padding:6px 10px;margin:3px;border-radius:2px}
+.stat b{color:#FFD700;display:block;font-size:.6rem}
+.stat span{color:#ff3030;font:.35rem 'Press Start 2P'}
+/* Mobile touch zones */
+#touchL,#touchR{position:fixed;bottom:0;width:50%;height:35%;z-index:50;display:none}
+#touchL{left:0}#touchR{right:0}
+@media(pointer:coarse){#touchL,#touchR{display:block}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<!-- TOUCH ZONES -->
+<div id="touchL"></div>
+<div id="touchR"></div>
+
+<!-- UI OVERLAY -->
+<div id="ui" class="active">
+    <!-- TITLE -->
+    <div class="ui-box show" id="titleScreen">
+        <div style="font:.25rem 'Press Start 2P';color:#666;letter-spacing:.2em;margin-bottom:12px">OUAISFI · ÉDUCATION PERMANENTE FWB · 2026</div>
+        <h1 style="font-size:clamp(.7rem,3vw,1.2rem);color:#ff3030">LE GOUFFRE</h1>
+        <p style="color:#FFD700;font-size:clamp(.6rem,1.5vw,.8rem)">Simulateur d'inspecteur fiscal</p>
+        <p style="margin-top:16px">Tu es inspecteur AGFisc. La fraude fiscale <em>tombe du ciel</em>. Attrape ce que tu peux.</p>
+        <p>Mais ton budget est coupé à chaque niveau. Tes contrôles divisés par 2. Et <em>€951 par seconde</em> coulent dans le gouffre.</p>
+        <p style="color:#ff3030;margin-top:8px">Le jeu est truqué. Comme le vrai système.</p>
+        <div class="data">← → ou TOUCH pour bouger · ESPACE pour commencer</div>
+        <button class="play-btn" id="btnStart">▶ COMMENCER L'INSPECTION</button>
+    </div>
+
+    <!-- LEVEL INTRO -->
+    <div class="ui-box" id="levelScreen">
+        <h1 id="lvlTitle">NIVEAU 1</h1>
+        <p id="lvlDesc"></p>
+        <div id="lvlStats" style="margin:12px 0"></div>
+        <p id="lvlQuote" style="color:#FFD700;font-style:italic"></p>
+        <button class="play-btn" id="btnLevel">▶ INSPECTER</button>
+    </div>
+
+    <!-- GAME OVER -->
+    <div class="ui-box" id="overScreen">
+        <h1 style="color:#ff3030" id="overTitle">GAME OVER</h1>
+        <p id="overMsg"></p>
+        <div id="overStats" style="margin:12px 0"></div>
+        <p id="overReveal" style="color:#30ff30"></p>
+        <button class="play-btn" id="btnRetry">▶ RECOMMENCER</button>
+        <button class="play-btn" id="btnShare" style="border-color:#30ff30;color:#30ff30;margin-left:8px">📤 PARTAGER</button>
+    </div>
+
+    <!-- REVELATION (final) -->
+    <div class="ui-box" id="revealScreen">
+        <h1 style="color:#30ff30">RÉVÉLATION</h1>
+        <div id="revealContent"></div>
+        <button class="play-btn" id="btnReveal" style="border-color:#30ff30;color:#30ff30">▶ CONTINUER</button>
+    </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ═══════════════════════════════════════
+   GAME CONFIG & DATA
+   ═══════════════════════════════════════ */
+var LEVELS=[
+    {name:'NIVEAU 1 — 2013',desc:'Les contrôles fonctionnent encore. 111 582 vérifications par an. 2 870 inspecteurs. Le système marche. Presque.',speed:1,spawnRate:60,playerSpeed:5,width:48,fraudPerSec:951,cuts:0,
+     quote:'« Le labo fonctionne. » — Dr. Fred',
+     reveal:null},
+    {name:'NIVEAU 2 — Premières coupes',desc:'Le budget commence à fondre. Les effectifs baissent. Le gouffre s\'élargit. Tu cours plus vite mais il y a plus de fraude.',speed:1.3,spawnRate:50,playerSpeed:4.8,width:44,fraudPerSec:951,cuts:5,
+     quote:'« Moins d\'inspecteurs = moins de contrôles = plus de fraude. » — Cour des Comptes',
+     reveal:{title:'DONNÉE DÉBLOQUÉE',text:'Contrôles fiscaux : de 111 582 à ~60 000. Divisés par 2.',src:'AGFisc · Cour des Comptes'}},
+    {name:'NIVEAU 3 — Austérité',desc:'Les effectifs AGFisc passent de 2 870 à 2 600. Le gouffre accélère. Tu rétrécis.',speed:1.6,spawnRate:42,playerSpeed:4.5,width:40,fraudPerSec:951,cuts:10,
+     quote:'« On ne peut pas attraper ce qu\'on ne cherche pas. »',
+     reveal:{title:'DONNÉE DÉBLOQUÉE',text:'Effectifs AGFisc : de 2 870 à 2 246. -22% en 10 ans.',src:'Cour des Comptes'}},
+    {name:'NIVEAU 4 — Déni médiatique',desc:'Un reportage de 55 minutes passe à la télé. Sur €250M de fraude sociale. Le public regarde Slimer. Toi, tu cours après Gozer.',speed:1.9,spawnRate:36,playerSpeed:4.2,width:36,fraudPerSec:951,cuts:15,
+     quote:'« 55 min sur €250M. 0 sec sur €30 Mds. » — CSA 12/11/2025',
+     reveal:{title:'DONNÉE DÉBLOQUÉE',text:'Deborsu : 410 860 spectateurs · 39,1% part de marché · 100+ plaintes CSA. Ratio fraude fiscale/sociale : ×10 à ×120 (Strale 2018).',src:'CIM · CSA · Strale'}},
+    {name:'NIVEAU 5 — Panama / Pandora',desc:'Les Panama Papers tombent. Les Pandora Papers tombent. 732 + 1 217 + 1 659 entités. Tu les vois. Tu ne peux pas toutes les attraper.',speed:2.2,spawnRate:30,playerSpeed:3.8,width:32,fraudPerSec:951,cuts:20,
+     quote:'« It belongs in a museum! — No, in a holding in the Caymans. »',
+     reveal:{title:'DONNÉE DÉBLOQUÉE',text:'732 Belges (Panama) + 1 217 (Pandora) + 1 659 entités (Experta/Dexia). ~€700M de rulings illégaux.',src:'ICIJ · Clerix/PE · CE 2016 · CJEU'}},
+    {name:'NIVEAU 6 — Arizona',desc:'La coalition Arizona est formée. 81 sièges. €23 Mds de coupes. Ton budget est décimé. Tu rétrécis encore. Le gouffre accélère.',speed:2.6,spawnRate:24,playerSpeed:3.2,width:28,fraudPerSec:951,cuts:30,
+     quote:'« €23 Mds de coupes. Dont 0 € sur la fraude fiscale. » — Accord Arizona',
+     reveal:{title:'DONNÉE DÉBLOQUÉE',text:'21 500 exclus du chômage au 01/01/2026. 13 000+ en Wallonie. Malus pension -2%/-4%/-5% (max -25%). Sanctions maladie -10%.',src:'ONEM · MB 29/07/2025 · SFP'}},
+    {name:'NIVEAU 7 — LE GOUFFRE',desc:'Niveau final. Tout tombe. Tu es minuscule. Le gouffre est immense. Tu ne peux pas gagner. C\'est le design.',speed:3,spawnRate:18,playerSpeed:2.5,width:22,fraudPerSec:951,cuts:50,
+     quote:'« Le jeu est truqué. La solution n\'est pas dans le jeu. Elle est dans le système. »',
+     reveal:{title:'RÉVÉLATION FINALE',text:'€30 Mds − €23 Mds = +€7 Mds.\n\nLe trésor était là depuis le début. Il n\'est pas caché. Il est dans les données publiques. Murphy/S&D 2019, BNB, SUBLEC.\n\nTu ne pouvais pas gagner parce que le jeu est conçu pour que tu perdes. Comme le vrai système.\n\nLa solution n\'est pas d\'attraper plus vite. La solution est de fermer le robinet.\n\n34 confirmées · 15 corrigées · 8 approximatives · 3 NV\n60 données · 18 sources · 0 cookies · CC BY-SA 4.0',src:'Murphy · BNB · SUBLEC · CdC · ICIJ · INAMI · ONEM · CE'}}
+];
+
+/* ═══ CANVAS SETUP ═══ */
+var cv=document.getElementById('c'),cx=cv.getContext('2d');
+var W,H,scale;
+var GW=480,GH=640; // game resolution
+
+function resize(){
+    var r=GW/GH,wr=innerWidth/innerHeight;
+    if(wr>r){H=innerHeight;W=H*r}else{W=innerWidth;H=W/r}
+    cv.width=GW;cv.height=GH;cv.style.width=W+'px';cv.style.height=H+'px';
+    scale=W/GW;
+}
+resize();
+window.addEventListener('resize',resize);
+
+/* ═══ STATE ═══ */
+var STATE='title',level=0,score=0,totalMissed=0,totalCaught=0,caught=0,missed=0,hp=3;
+var player={x:GW/2,y:GH-50,w:48,h:24,speed:5,color:'#FFD700'};
+var drops=[],particles=[],shakes=0,flashTimer=0;
+var keys={},touchDir=0;
+var spawnTimer=0,levelTimer=0,LEVEL_DURATION=25; // seconds per level
+var FS=30e9/(365.25*86400),gameTime=0;
+var starField=[];
+for(var si=0;si<60;si++)starField.push({x:Math.random()*GW,y:Math.random()*GH,s:Math.random()*1.5+.5,b:Math.random()});
+
+/* ═══ INPUT ═══ */
+document.addEventListener('keydown',function(e){keys[e.code]=true;
+    if(e.code==='Space'||e.code==='Enter'){e.preventDefault();handleAction()}});
+document.addEventListener('keyup',function(e){keys[e.code]=false});
+document.getElementById('touchL').addEventListener('touchstart',function(e){e.preventDefault();touchDir=-1});
+document.getElementById('touchL').addEventListener('touchend',function(){touchDir=0});
+document.getElementById('touchR').addEventListener('touchstart',function(e){e.preventDefault();touchDir=1});
+document.getElementById('touchR').addEventListener('touchend',function(){touchDir=0});
+
+/* Buttons */
+document.getElementById('btnStart').addEventListener('click',function(){startLevel(0)});
+document.getElementById('btnLevel').addEventListener('click',function(){hideAll();STATE='playing'});
+document.getElementById('btnRetry').addEventListener('click',function(){startLevel(level)});
+document.getElementById('btnReveal').addEventListener('click',function(){
+    if(level<LEVELS.length-1){startLevel(level+1)}
+    else{showFinalReveal()}
+});
+document.getElementById('btnShare').addEventListener('click',shareGame);
+
+function handleAction(){
+    if(STATE==='title')startLevel(0);
+}
+
+function hideAll(){
+    ['titleScreen','levelScreen','overScreen','revealScreen'].forEach(function(id){
+        document.getElementById(id).classList.remove('show')});
+    document.getElementById('ui').classList.remove('active');
+}
+function showBox(id){
+    hideAll();
+    document.getElementById('ui').classList.add('active');
+    document.getElementById(id).classList.add('show');
+}
+
+/* ═══ LEVEL START ═══ */
+function startLevel(n){
+    level=n;
+    var L=LEVELS[n];
+    player.w=L.width;player.speed=L.playerSpeed;
+    player.x=GW/2;
+    drops=[];particles=[];caught=0;missed=0;hp=3;spawnTimer=0;levelTimer=0;
+    document.getElementById('lvlTitle').textContent=L.name;
+    document.getElementById('lvlDesc').textContent=L.desc;
+    document.getElementById('lvlQuote').textContent=L.quote;
+    var st='<div class="stat"><b>VITESSE</b><span>×'+L.speed.toFixed(1)+'</span></div>';
+    st+='<div class="stat"><b>INSPECTEUR</b><span>'+L.width+'px</span></div>';
+    st+='<div class="stat"><b>COUPES</b><span>-'+L.cuts+'%</span></div>';
+    st+='<div class="stat"><b>HP</b><span>'+hp+'❤️</span></div>';
+    document.getElementById('lvlStats').innerHTML=st;
+    showBox('levelScreen');
+    STATE='levelIntro';
+}
+
+/* ═══ DROP SPAWN ═══ */
+function spawnDrop(){
+    var L=LEVELS[level];
+    var isSocial=Math.random()<0.02; // 2% chance social fraud (tiny)
+    var isBonus=!isSocial&&Math.random()<0.05; // 5% bonus data
+    var isPanama=!isSocial&&!isBonus&&level>=4&&Math.random()<0.08;
+    var w=isSocial?8:(isPanama?18:(isBonus?14:(10+Math.random()*12)));
+    var h=isSocial?8:(isPanama?14:(isBonus?14:10));
+    drops.push({
+        x:Math.random()*(GW-w),y:-h,w:w,h:h,
+        vy:(1.5+Math.random()*1.5)*L.speed,
+        type:isSocial?'social':(isBonus?'bonus':(isPanama?'panama':'fiscal')),
+        val:isSocial?250:(isPanama?732:(isBonus?0:(Math.random()*500+100))),
+        flash:0
+    });
+}
+
+/* ═══ PARTICLES ═══ */
+function addParticles(x,y,color,n){
+    for(var i=0;i<n;i++){
+        particles.push({x:x,y:y,vx:(Math.random()-.5)*4,vy:(Math.random()-1)*3,
+            life:1,color:color,size:Math.random()*3+1});
+    }
+}
+
+/* ═══ COLLISION ═══ */
+function collides(a,b){
+    return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+}
+
+/* ═══ UPDATE ═══ */
+function update(dt){
+    if(STATE!=='playing')return;
+    var L=LEVELS[level];
+
+    // Timer
+    levelTimer+=dt;
+    gameTime+=dt;
+
+    // Player movement
+    var dx=0;
+    if(keys.ArrowLeft||keys.KeyA)dx=-1;
+    if(keys.ArrowRight||keys.KeyD)dx=1;
+    if(touchDir)dx=touchDir;
+    player.x+=dx*player.speed*(dt*60);
+    if(player.x<0)player.x=0;
+    if(player.x>GW-player.w)player.x=GW-player.w;
+
+    // Spawn
+    spawnTimer+=dt;
+    if(spawnTimer>L.spawnRate/1000){
+        spawnTimer=0;
+        spawnDrop();
+    }
+
+    // Update drops
+    for(var i=drops.length-1;i>=0;i--){
+        var d=drops[i];
+        d.y+=d.vy*(dt*60);
+        if(d.flash>0)d.flash-=dt*3;
+
+        // Caught?
+        if(collides(player,d)){
+            if(d.type==='fiscal'){
+                score+=Math.round(d.val);caught++;totalCaught++;
+                addParticles(d.x+d.w/2,d.y,d.val>300?'#FFD700':'#30ff30',6);
+            }else if(d.type==='social'){
+                score+=50;caught++;totalCaught++;
+                addParticles(d.x+d.w/2,d.y,'#FFD700',4);
+            }else if(d.type==='panama'){
+                score+=1000;caught++;totalCaught++;
+                addParticles(d.x+d.w/2,d.y,'#ff30ff',10);
+                flashTimer=.2;
+            }else if(d.type==='bonus'){
+                hp=Math.min(hp+1,5);
+                addParticles(d.x+d.w/2,d.y,'#30ffff',8);
+            }
+            drops.splice(i,1);
+            continue;
+        }
+
+        // Missed (fell off screen)
+        if(d.y>GH+10){
+            if(d.type==='fiscal'||d.type==='panama'){
+                missed++;totalMissed++;
+                if(d.type==='panama')shakes=.3;
+            }
+            drops.splice(i,1);
+        }
+    }
+
+    // Particles
+    for(var j=particles.length-1;j>=0;j--){
+        var p=particles[j];
+        p.x+=p.vx;p.y+=p.vy;p.vy+=.1;p.life-=dt*2;
+        if(p.life<=0)particles.splice(j,1);
+    }
+
+    // Shakes
+    if(shakes>0)shakes-=dt;
+    if(flashTimer>0)flashTimer-=dt;
+
+    // Level end
+    if(levelTimer>=LEVEL_DURATION){
+        endLevel();
+    }
+}
+
+/* ═══ END LEVEL ═══ */
+function endLevel(){
+    STATE='levelEnd';
+    var L=LEVELS[level];
+    var pct=caught+missed>0?Math.round(caught/(caught+missed)*100):0;
+    var realPct=((2246/2870)*100*(1-L.cuts/100)).toFixed(1);
+
+    if(L.reveal&&L.reveal.title==='RÉVÉLATION FINALE'){
+        // Final level
+        var rc=document.getElementById('revealContent');
+        rc.innerHTML='<p style="color:#FFD700;font:1rem VT323,monospace;line-height:1.8">'+L.reveal.text.replace(/\n/g,'<br>')+'</p>'
+            +'<div class="data" style="margin-top:12px">'+L.reveal.src+'</div>'
+            +'<p style="color:#ff3030;margin-top:12px;font:.8rem VT323">Score final: '+score.toLocaleString('fr-BE')
+            +' · Attrapé: '+totalCaught+' · Perdu: '+totalMissed
+            +' · Taux: '+(totalCaught+totalMissed>0?Math.round(totalCaught/(totalCaught+totalMissed)*100):0)+'%</p>';
+        document.getElementById('btnReveal').textContent='▶ PARTAGER';
+        document.getElementById('btnReveal').onclick=shareGame;
+        showBox('revealScreen');
+    }else if(L.reveal){
+        var rc=document.getElementById('revealContent');
+        rc.innerHTML='<h1 style="color:#FFD700;font:.5rem \'Press Start 2P\'">'+L.reveal.title+'</h1>'
+            +'<p style="color:#ddd;font:1rem VT323,monospace;margin:12px 0">'+L.reveal.text+'</p>'
+            +'<div class="data">'+L.reveal.src+'</div>'
+            +'<p style="color:#ff3030;margin-top:8px;font:.8rem VT323">Tu as attrapé '+pct+'% de la fraude ce niveau. Capacité réelle estimée : '+realPct+'%.</p>';
+        document.getElementById('btnReveal').textContent='▶ NIVEAU SUIVANT';
+        document.getElementById('btnReveal').onclick=function(){startLevel(level+1)};
+        showBox('revealScreen');
+    }else{
+        startLevel(level+1);
+    }
+}
+
+/* ═══ DRAW ═══ */
+function draw(){
+    cx.save();
+    // Screen shake
+    if(shakes>0){cx.translate(Math.random()*6-3,Math.random()*6-3)}
+
+    // BG
+    cx.fillStyle='#0a0a1a';cx.fillRect(0,0,GW,GH);
+
+    // Stars
+    for(var s=0;s<starField.length;s++){
+        var st=starField[s];
+        st.b+=.02;
+        cx.fillStyle='rgba(200,180,255,'+(Math.sin(st.b)*.3+.3).toFixed(2)+')';
+        cx.fillRect(st.x,st.y,st.s,st.s);
+    }
+
+    // Gouffre (bottom)
+    var grad=cx.createLinearGradient(0,GH-80,0,GH);
+    grad.addColorStop(0,'rgba(139,0,0,0)');
+    grad.addColorStop(.5,'rgba(139,0,0,.15)');
+    grad.addColorStop(1,'rgba(139,0,0,.4)');
+    cx.fillStyle=grad;cx.fillRect(0,GH-80,GW,80);
+
+    // Flash
+    if(flashTimer>0){cx.fillStyle='rgba(255,215,0,'+(flashTimer*2).toFixed(2)+')';cx.fillRect(0,0,GW,GH)}
+
+    // Drops
+    for(var i=0;i<drops.length;i++){
+        var d=drops[i];
+        if(d.type==='fiscal'){
+            cx.fillStyle=d.val>300?'#ff3030':'#cc2020';
+            cx.fillRect(d.x,d.y,d.w,d.h);
+            cx.fillStyle='rgba(255,215,0,.6)';
+            cx.font='6px sans-serif';
+            cx.fillText('€',d.x+1,d.y+d.h-2);
+        }else if(d.type==='social'){
+            cx.fillStyle='#FFD700';
+            cx.fillRect(d.x,d.y,d.w,d.h);
+        }else if(d.type==='panama'){
+            cx.fillStyle='#ff30ff';
+            cx.fillRect(d.x,d.y,d.w,d.h);
+            cx.fillStyle='rgba(255,255,255,.7)';
+            cx.font='7px sans-serif';
+            cx.fillText('📄',d.x,d.y+d.h-2);
+        }else if(d.type==='bonus'){
+            cx.fillStyle='#30ffff';
+            cx.beginPath();
+            cx.arc(d.x+d.w/2,d.y+d.h/2,d.w/2,0,Math.PI*2);
+            cx.fill();
+            cx.fillStyle='#fff';cx.font='8px sans-serif';cx.textAlign='center';
+            cx.fillText('+',d.x+d.w/2,d.y+d.h/2+3);cx.textAlign='left';
+        }
+    }
+
+    // Particles
+    for(var j=0;j<particles.length;j++){
+        var p=particles[j];
+        cx.globalAlpha=p.life;
+        cx.fillStyle=p.color;
+        cx.fillRect(p.x,p.y,p.size,p.size);
+    }
+    cx.globalAlpha=1;
+
+    // Player (inspector)
+    var pw=player.w,ph=player.h;
+    // Body
+    cx.fillStyle=player.color;
+    cx.fillRect(player.x,player.y,pw,ph);
+    // Hat
+    cx.fillStyle='#1a1a2e';
+    cx.fillRect(player.x-2,player.y-4,pw+4,6);
+    cx.fillRect(player.x+pw*.2,player.y-10,pw*.6,8);
+    // Badge
+    cx.fillStyle='#FFD700';
+    cx.fillRect(player.x+pw/2-2,player.y+4,4,4);
+    // Eyes
+    cx.fillStyle='#fff';
+    cx.fillRect(player.x+pw*.25,player.y+10,3,3);
+    cx.fillRect(player.x+pw*.6,player.y+10,3,3);
+
+    // HUD
+    cx.fillStyle='rgba(10,10,26,.8)';cx.fillRect(0,0,GW,36);
+    cx.strokeStyle='#FFD700';cx.lineWidth=1;cx.beginPath();cx.moveTo(0,36);cx.lineTo(GW,36);cx.stroke();
+
+    cx.font='7px "Press Start 2P"';cx.textAlign='left';
+    cx.fillStyle='#FFD700';cx.fillText('SCORE: '+score.toLocaleString('fr-BE'),6,12);
+    cx.fillStyle='#30ff30';cx.fillText('LVL '+(level+1)+'/7',6,26);
+
+    cx.textAlign='center';
+    // HP hearts
+    var hearts='';for(var hh=0;hh<hp;hh++)hearts+='❤️';
+    cx.font='10px sans-serif';cx.fillText(hearts,GW/2,16);
+
+    cx.textAlign='right';
+    cx.font='7px "Press Start 2P"';
+    cx.fillStyle='#ff3030';
+    var leaked=gameTime*FS;
+    cx.fillText('FUITE: €'+(leaked>=1e6?(leaked/1e6).toFixed(1)+'M':Math.round(leaked).toLocaleString('fr-BE')),GW-6,12);
+    cx.fillStyle='#666';
+    var pct=caught+missed>0?Math.round(caught/(caught+missed)*100):0;
+    cx.fillText('TAUX: '+pct+'%',GW-6,26);
+
+    // Level timer bar
+    if(STATE==='playing'){
+        var prog=levelTimer/LEVEL_DURATION;
+        cx.fillStyle='rgba(255,255,255,.05)';cx.fillRect(0,34,GW,4);
+        cx.fillStyle='#FFD700';cx.fillRect(0,34,GW*prog,4);
+    }
+
+    cx.restore();
+}
+
+/* ═══ FINAL REVEAL ═══ */
+function showFinalReveal(){
+    var rc=document.getElementById('revealContent');
+    rc.innerHTML='<p style="color:#FFD700;font:1.2rem VT323">LE JEU EST TERMINÉ.</p>'
+        +'<p style="color:#ddd;font:1rem VT323;margin:12px 0;line-height:1.8">'
+        +'Score final : <em>'+score.toLocaleString('fr-BE')+'</em><br>'
+        +'Fraude attrapée : <em>'+totalCaught+'</em><br>'
+        +'Fraude perdue : <em>'+totalMissed+'</em><br>'
+        +'Fuite pendant la partie : <em>€'+(gameTime*FS>=1e6?(gameTime*FS/1e6).toFixed(2)+'M':Math.round(gameTime*FS).toLocaleString('fr-BE'))+'</em></p>'
+        +'<p style="color:#ff3030;font:1rem VT323;line-height:1.8">La fuite réelle est de <em>€30 milliards par an</em>.<br>'
+        +'Ton score représente <em>'+(score/30e9*100).toFixed(6)+'%</em> du gouffre annuel.<br><br>'
+        +'Le jeu est truqué. Comme le système.<br>'
+        +'La solution n\'est pas de jouer plus vite.<br>'
+        +'<em>C\'est de changer les règles.</em></p>'
+        +'<p style="color:#FFD700;font:.8rem VT323;margin-top:12px">€30 Mds − €23 Mds = +€7 Mds</p>'
+        +'<div class="data">60 données · 18 sources · OuaisfI.eu · CC BY-SA 4.0</div>';
+    document.getElementById('btnReveal').textContent='📤 PARTAGER LE SCORE';
+    document.getElementById('btnReveal').onclick=shareGame;
+    showBox('revealScreen');
+}
+
+/* ═══ SHARE ═══ */
+function shareGame(){
+    var pct=totalCaught+totalMissed>0?Math.round(totalCaught/(totalCaught+totalMissed)*100):0;
+    var t='🕳️ LE GOUFFRE — Simulateur d\'inspecteur fiscal\n\n'
+        +'Score: '+score.toLocaleString('fr-BE')+'\n'
+        +'Attrapé: '+totalCaught+' ('+pct+'%)\n'
+        +'Perdu: '+totalMissed+'\n'
+        +'Fuite pendant la partie: €'+(gameTime*FS>=1e6?(gameTime*FS/1e6).toFixed(1)+'M':Math.round(gameTime*FS).toLocaleString('fr-BE'))+'\n\n'
+        +'Mon score = '+(score/30e9*100).toFixed(6)+'% du gouffre annuel.\n'
+        +'Le jeu est truqué. Comme le système.\n'
+        +'€30 Mds − €23 Mds = +€7 Mds\n\n'
+        +'#LeGouffre #OuaisfI';
+    if(navigator.share)navigator.share({title:'LE GOUFFRE',text:t}).catch(function(){});
+    else window.open('https://x.com/intent/tweet?text='+encodeURIComponent(t),'_blank');
+}
+
+/* ═══ GAME LOOP ═══ */
+var last=0;
+function loop(ts){
+    var dt=Math.min((ts-last)/1000,.05);
+    last=ts;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+}
+requestAnimationFrame(function(ts){last=ts;loop(ts)});
+
+/* Dynamic title */
+var titles=['🕳️ LE GOUFFRE','🕳️ €951/sec','🕳️ Inspecteur fiscal','🕳️ Le jeu est truqué','🕳️ €30 − €23 = +€7','🕳️ -22% effectifs','🕳️ ÷2 contrôles'],ti=0;
+setInterval(function(){document.title=titles[ti%titles.length];ti++},4500);
+
+})();
+</script>
+</body>
+</html>
