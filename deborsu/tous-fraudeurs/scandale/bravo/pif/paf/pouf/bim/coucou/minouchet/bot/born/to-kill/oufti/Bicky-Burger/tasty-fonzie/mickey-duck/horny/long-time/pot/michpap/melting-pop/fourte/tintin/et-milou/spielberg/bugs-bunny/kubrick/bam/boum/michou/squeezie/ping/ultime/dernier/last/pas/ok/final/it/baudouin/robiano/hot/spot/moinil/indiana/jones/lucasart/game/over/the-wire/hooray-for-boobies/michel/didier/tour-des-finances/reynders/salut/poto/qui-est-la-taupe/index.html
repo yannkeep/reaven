@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>DOSSIER CLASSIFIÉ — L'Affaire Reynders</title>
+<meta name="description" content="JDR textuel d'investigation citoyenne : incarnez un personnage et enquêtez sur 40 ans de pouvoir et de zones d'ombre.">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=JetBrains+Mono:wght@300;400;500;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07080a;
+  --bg-card: #0d0f12;
+  --bg-elevated: #12151a;
+  --bg-overlay: rgba(7,8,10,0.92);
+  --text: #d4cfc6;
+  --text-bright: #f0ece4;
+  --text-dim: #7a766e;
+  --text-muted: #4a473f;
+  --red: #c2291e;
+  --red-glow: #ff3b2e;
+  --red-dim: rgba(194,41,30,0.15);
+  --gold: #b8943e;
+  --gold-glow: #e0b84a;
+  --gold-dim: rgba(184,148,62,0.12);
+  --green: #2a8a4a;
+  --green-glow: #3dcc6a;
+  --green-dim: rgba(42,138,74,0.12);
+  --blue: #2a5a8a;
+  --blue-glow: #4a8acc;
+  --blue-dim: rgba(42,90,138,0.12);
+  --purple: #6a3a8a;
+  --purple-glow: #9a5acc;
+  --cyan: #1a7a7a;
+  --cyan-glow: #2ababa;
+  --serif: 'Crimson Pro', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Outfit', sans-serif;
+  --vh: 1vh;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--serif);
+  line-height: 1.65;
+  overflow-x: hidden;
+  min-height: 100vh;
+  min-height: calc(var(--vh, 1vh) * 100);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+::selection { background: var(--red); color: white; }
+
+/* === SCREEN SYSTEM === */
+.screen {
+  display: none;
+  min-height: 100vh;
+  min-height: calc(var(--vh, 1vh) * 100);
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.screen.active {
+  display: flex;
+  flex-direction: column;
+}
+.screen.visible { opacity: 1; }
+
+/* === BOOT SEQUENCE === */
+#bootScreen {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  background: var(--bg);
+}
+.boot-text {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--green);
+  text-align: left;
+  max-width: 500px;
+  line-height: 1.8;
+}
+.boot-text .cursor {
+  display: inline-block;
+  width: 8px;
+  height: 14px;
+  background: var(--green);
+  animation: blink 1s step-end infinite;
+  vertical-align: middle;
+  margin-left: 2px;
+}
+@keyframes blink { 50% { opacity: 0; } }
+.boot-text .classified {
+  color: var(--red);
+  font-weight: 700;
+}
+
+/* === TITLE SCREEN === */
+#titleScreen {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  position: relative;
+}
+#titleScreen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 40%, rgba(194,41,30,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 60%, rgba(184,148,62,0.04) 0%, transparent 50%);
+}
+#titleScreen > * { position: relative; z-index: 1; }
+.title-eyebrow {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 1.5rem;
+}
+.title-main {
+  font-family: var(--sans);
+  font-size: clamp(2.5rem, 12vw, 5rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: var(--text-bright);
+  margin-bottom: 0.5rem;
+}
+.title-sub {
+  font-family: var(--serif);
+  font-size: clamp(1rem, 4vw, 1.5rem);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--text-dim);
+  margin-bottom: 3rem;
+}
+.title-desc {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  max-width: 400px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.6;
+}
+.btn-start {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 1rem 3rem;
+  border: 1px solid var(--red);
+  color: var(--red);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-start::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--red);
+  transform: translateX(-101%);
+  transition: transform 0.3s;
+}
+.btn-start:hover::before, .btn-start:active::before { transform: translateX(0); }
+.btn-start:hover, .btn-start:active { color: white; }
+.btn-start span { position: relative; z-index: 1; }
+.title-legal {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  margin-top: 3rem;
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+/* === CHARACTER SELECT === */
+#selectScreen {
+  padding: 1.5rem;
+  padding-bottom: 6rem;
+}
+.select-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-top: 1rem;
+}
+.select-header h2 {
+  font-family: var(--sans);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+.select-header p {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+.persona-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+.persona-card {
+  background: var(--bg-card);
+  border: 1px solid #1a1d22;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.persona-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 3px;
+  background: var(--persona-color, var(--red));
+  transform: scaleY(0);
+  transition: transform 0.3s;
+  transform-origin: top;
+}
+.persona-card:hover::before, .persona-card:active::before { transform: scaleY(1); }
+.persona-card:hover, .persona-card:active {
+  border-color: var(--persona-color, var(--red));
+  transform: translateX(4px);
+}
+.persona-card__icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.persona-card__role {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--persona-color, var(--red));
+  margin-bottom: 0.3rem;
+}
+.persona-card__name {
+  font-family: var(--sans);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 0.5rem;
+}
+.persona-card__desc {
+  font-family: var(--serif);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.persona-card__diff {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  margin-top: 0.8rem;
+  letter-spacing: 0.05em;
+}
+
+/* === BRIEFING === */
+#briefingScreen {
+  padding: 1.5rem;
+  justify-content: center;
+  align-items: center;
+}
+.briefing-content {
+  max-width: 500px;
+  width: 100%;
+}
+.briefing-dossier {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--red);
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.briefing-portrait {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px solid var(--persona-active-color, var(--red));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  margin: 0 auto 1.5rem;
+  background: var(--bg-elevated);
+}
+.briefing-name {
+  font-family: var(--sans);
+  font-size: 1.8rem;
+  font-weight: 900;
+  text-align: center;
+  color: var(--text-bright);
+  margin-bottom: 0.3rem;
+}
+.briefing-role {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  text-align: center;
+  color: var(--persona-active-color, var(--red));
+  letter-spacing: 0.1em;
+  margin-bottom: 2rem;
+}
+.briefing-text {
+  font-family: var(--serif);
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text);
+  margin-bottom: 2rem;
+}
+.briefing-text strong { color: var(--gold-glow); }
+.briefing-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  margin-bottom: 2rem;
+}
+.briefing-stat {
+  background: var(--bg-card);
+  border: 1px solid #1a1d22;
+  padding: 0.8rem;
+  text-align: center;
+}
+.briefing-stat__label {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  margin-bottom: 0.3rem;
+}
+.briefing-stat__value {
+  font-family: var(--sans);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-bright);
+}
+.briefing-stat__bar {
+  height: 3px;
+  background: #1a1d22;
+  margin-top: 0.4rem;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.briefing-stat__fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 1s ease;
+}
+.btn-begin {
+  width: 100%;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 1rem;
+  border: 1px solid var(--persona-active-color, var(--red));
+  color: var(--persona-active-color, var(--red));
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.btn-begin:hover, .btn-begin:active {
+  background: var(--persona-active-color, var(--red));
+  color: white;
+}
+
+/* === GAME SCREEN === */
+#gameScreen {
+  padding: 0;
+}
+.game-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid #1a1d22;
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.game-topbar__left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.game-topbar__chapter {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--persona-active-color, var(--red));
+}
+.game-topbar__title {
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.game-topbar__right {
+  display: flex;
+  gap: 0.5rem;
+}
+.topbar-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #1a1d22;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.topbar-btn:hover, .topbar-btn:active {
+  border-color: var(--text-dim);
+  color: var(--text);
+}
+.topbar-btn.has-new {
+  position: relative;
+}
+.topbar-btn.has-new::after {
+  content: '';
+  position: absolute;
+  top: 4px; right: 4px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--red-glow);
+}
+
+/* GAME NARRATIVE */
+.game-narrative {
+  flex: 1;
+  padding: 1.5rem;
+  padding-bottom: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+}
+.narrative-block {
+  margin-bottom: 1.5rem;
+  opacity: 0;
+  transform: translateY(15px);
+  animation: fadeUp 0.6s ease forwards;
+}
+.narrative-block:nth-child(2) { animation-delay: 0.3s; }
+.narrative-block:nth-child(3) { animation-delay: 0.6s; }
+.narrative-block:nth-child(4) { animation-delay: 0.9s; }
+.narrative-block:nth-child(5) { animation-delay: 1.2s; }
+.narrative-block:nth-child(6) { animation-delay: 1.5s; }
+@keyframes fadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.narrative-text {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: var(--text);
+}
+.narrative-text strong { color: var(--gold-glow); font-weight: 600; }
+.narrative-text em { color: var(--text-bright); }
+.narrative-text .redacted {
+  background: var(--text-muted);
+  color: var(--text-muted);
+  padding: 0 0.3em;
+  cursor: pointer;
+  transition: all 0.3s;
+  user-select: none;
+}
+.narrative-text .redacted.revealed {
+  background: var(--red-dim);
+  color: var(--red-glow);
+}
+
+/* EVIDENCE INLINE */
+.evidence-inline {
+  background: var(--bg-elevated);
+  border-left: 3px solid var(--gold);
+  padding: 1rem 1.2rem;
+  margin: 1.5rem 0;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+.evidence-inline__tag {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.evidence-inline__tag::before {
+  content: '◆';
+  font-size: 0.5rem;
+}
+.evidence-collected {
+  animation: evidenceFlash 0.5s ease;
+}
+@keyframes evidenceFlash {
+  0% { border-left-color: var(--gold-glow); box-shadow: 0 0 20px var(--gold-dim); }
+  100% { border-left-color: var(--gold); box-shadow: none; }
+}
+
+/* DIALOGUE */
+.dialogue {
+  background: var(--bg-card);
+  border: 1px solid #1a1d22;
+  padding: 1.2rem;
+  margin: 1.5rem 0;
+  position: relative;
+}
+.dialogue::before {
+  content: '«';
+  position: absolute;
+  top: -5px; left: 10px;
+  font-family: var(--serif);
+  font-size: 2.5rem;
+  color: var(--text-muted);
+  line-height: 1;
+}
+.dialogue__text {
+  font-family: var(--serif);
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--text-bright);
+  padding-left: 0.5rem;
+  line-height: 1.6;
+}
+.dialogue__speaker {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 0.6rem;
+  letter-spacing: 0.05em;
+}
+
+/* CHOICES */
+.choices-container {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #1a1d22;
+  opacity: 0;
+  animation: fadeUp 0.6s ease 1.8s forwards;
+}
+.choices-label {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+.choice-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--bg-card);
+  border: 1px solid #1a1d22;
+  padding: 1.2rem;
+  margin-bottom: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  font-family: inherit;
+  color: inherit;
+}
+.choice-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 3px;
+  background: var(--persona-active-color, var(--red));
+  transform: scaleY(0);
+  transition: transform 0.3s;
+  transform-origin: bottom;
+}
+.choice-btn:hover::before, .choice-btn:active::before { transform: scaleY(1); }
+.choice-btn:hover, .choice-btn:active {
+  border-color: var(--persona-active-color, var(--red));
+  background: var(--bg-elevated);
+  transform: translateX(4px);
+}
+.choice-btn__letter {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--persona-active-color, var(--red));
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+.choice-btn__text {
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+.choice-btn__consequence {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  margin-top: 0.4rem;
+}
+
+/* STAT CHANGE NOTIFICATION */
+.stat-change {
+  position: fixed;
+  top: 60px;
+  right: 1rem;
+  background: var(--bg-card);
+  border: 1px solid #1a1d22;
+  padding: 0.6rem 1rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  z-index: 100;
+  animation: slideInOut 2.5s ease forwards;
+  pointer-events: none;
+}
+.stat-change.positive { border-color: var(--green); color: var(--green-glow); }
+.stat-change.negative { border-color: var(--red); color: var(--red-glow); }
+@keyframes slideInOut {
+  0% { transform: translateX(100%); opacity: 0; }
+  15% { transform: translateX(0); opacity: 1; }
+  85% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+/* === EVIDENCE BOARD OVERLAY === */
+#evidenceBoard {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-overlay);
+  z-index: 200;
+  display: none;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 1rem;
+}
+#evidenceBoard.open { display: flex; }
+.evidence-board__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #1a1d22;
+  position: sticky;
+  top: 0;
+  background: var(--bg-overlay);
+  z-index: 1;
+}
+.evidence-board__title {
+  font-family: var(--sans);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.evidence-board__count {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--gold);
+}
+.evidence-board__close {
+  width: 36px; height: 36px;
+  background: transparent;
+  border: 1px solid #1a1d22;
+  color: var(--text-dim);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.evidence-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding-bottom: 2rem;
+}
+.evidence-item {
+  background: var(--bg-card);
+  border: 1px solid #1a1d22;
+  padding: 1rem;
+}
+.evidence-item.locked {
+  opacity: 0.3;
+  border-style: dashed;
+}
+.evidence-item__tag {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+.evidence-item__name {
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-bright);
+  margin-bottom: 0.3rem;
+}
+.evidence-item__desc {
+  font-family: var(--serif);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* === STATS OVERLAY === */
+#statsPanel {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-overlay);
+  z-index: 200;
+  display: none;
+  flex-direction: column;
+  padding: 1rem;
+  overflow-y: auto;
+}
+#statsPanel.open { display: flex; }
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #1a1d22;
+}
+.stats-header h3 {
+  font-family: var(--sans);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.stat-row {
+  margin-bottom: 1.5rem;
+}
+.stat-row__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.3rem;
+}
+.stat-row__name {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.stat-row__value {
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 700;
+}
+.stat-row__bar {
+  height: 6px;
+  background: #1a1d22;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.stat-row__fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.8s ease;
+}
+
+/* === CHAPTER END === */
+.chapter-end {
+  text-align: center;
+  padding: 2rem 0;
+  margin-top: 2rem;
+  border-top: 1px solid #1a1d22;
+}
+.chapter-end__label {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+.btn-next-chapter {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.8rem 2.5rem;
+  border: 1px solid var(--persona-active-color, var(--red));
+  color: var(--persona-active-color, var(--red));
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.btn-next-chapter:hover, .btn-next-chapter:active {
+  background: var(--persona-active-color, var(--red));
+  color: white;
+}
+
+/* === ENDING SCREEN === */
+#endingScreen {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+}
+.ending-verdict {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 1.5rem;
+}
+.ending-title {
+  font-family: var(--sans);
+  font-size: clamp(1.8rem, 8vw, 3rem);
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+}
+.ending-text {
+  font-family: var(--serif);
+  font-size: 1rem;
+  color: var(--text-dim);
+  max-width: 500px;
+  margin: 0 auto 2rem;
+  line-height: 1.7;
+}
+.ending-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  max-width: 400px;
+  margin: 0 auto 2rem;
+}
+.ending-stat {
+  background: var(--bg-card);
+  border: 1px solid #1a1d22;
+  padding: 1rem;
+}
+.ending-stat__value {
+  font-family: var(--sans);
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--gold-glow);
+}
+.ending-stat__label {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+.btn-replay {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.8rem 2.5rem;
+  border: 1px solid var(--text-dim);
+  color: var(--text-dim);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-right: 0.8rem;
+}
+.btn-replay:hover { border-color: var(--text); color: var(--text); }
+.ending-cta {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-top: 3rem;
+  max-width: 450px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+.ending-cta a {
+  color: var(--gold);
+  text-decoration: none;
+  border-bottom: 1px solid var(--gold-dim);
+}
+
+/* === NOISE === */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+</style>
+</head>
+<body>
+
+<!-- ===== SCREENS ===== -->
+<div class="screen active" id="bootScreen"></div>
+<div class="screen" id="titleScreen"></div>
+<div class="screen" id="selectScreen"></div>
+<div class="screen" id="briefingScreen"></div>
+<div class="screen" id="gameScreen"></div>
+<div class="screen" id="endingScreen"></div>
+
+<!-- ===== OVERLAYS ===== -->
+<div id="evidenceBoard"></div>
+<div id="statsPanel"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// GAME ENGINE
+// ═══════════════════════════════════════════════
+
+const state = {
+  persona: null,
+  chapter: 0,
+  stats: { credibilite: 50, pression: 20, reseau: 30, intuition: 40 },
+  evidence: new Set(),
+  choices: {},
+  evidenceCount: 0,
+  totalEvidence: 24
+};
+
+// ── PERSONAS ──
+const PERSONAS = {
+  journaliste: {
+    icon: '🖊️',
+    name: 'Nadia Verhoeven',
+    role: 'Journaliste d\'investigation — Médor',
+    color: 'var(--gold)',
+    colorName: 'gold',
+    difficulty: '★★☆☆☆ · Narratif',
+    desc: 'Cofondatrice d\'un média d\'investigation indépendant. Depuis 5 ans, vous tirez les fils du réseau Reynders. Votre arme : la patience et les documents.',
+    briefing: 'Vous êtes journaliste d\'investigation pour un média coopératif. Depuis des années, un nom revient dans tous vos dossiers : <strong>Didier Reynders</strong>. Les gares pharaoniques, les fonds libyens, le Kazakhgate — à chaque fois, la même architecture d\'influence, le même cercle de fidèles.\n\nUn informateur vous contacte. Il dit avoir des documents. Le rendez-vous est fixé dans un café du quartier des Marolles. C\'est le début de cinq ans d\'enquête qui va ébranler le sommet de l\'État belge.',
+    baseStats: { credibilite: 60, pression: 15, reseau: 45, intuition: 50 }
+  },
+  agent: {
+    icon: '🔍',
+    name: 'Nicolas V.',
+    role: 'Inspecteur — Sûreté de l\'État',
+    color: 'var(--green)',
+    colorName: 'green',
+    difficulty: '★★★★☆ · Thriller',
+    desc: 'Agent du renseignement intérieur depuis 10 ans. Vous avez découvert des choses que vous n\'auriez jamais dû voir. Et on le sait.',
+    briefing: 'Vous travaillez à la <strong>Sûreté de l\'État</strong> depuis 2007. Au fil des années, vous avez accumulé des rapports classifiés sur un réseau d\'influence qui remonte au sommet du pouvoir. Le nom de <strong>Jean-Claude Fontinoy</strong> revient partout : gares, ambassades, promoteurs immobiliers.\n\nMais en août 2015, un ancien du cabinet Reynders est nommé numéro 3 de votre service. Vos dossiers sont « reclassés ». Vos accès sont restreints. Vous comprenez que <strong>vous êtes devenu le problème</strong>.',
+    baseStats: { credibilite: 40, pression: 50, reseau: 35, intuition: 65 }
+  },
+  banquier: {
+    icon: '🏦',
+    name: 'Katrien De Smet',
+    role: 'Responsable Compliance — ING Belgique',
+    color: 'var(--blue)',
+    colorName: 'blue',
+    difficulty: '★★★☆☆ · Dilemme moral',
+    desc: 'Chef de la cellule anti-blanchiment d\'une grande banque. Un dossier client atterrit sur votre bureau. Le nom vous glace le sang.',
+    briefing: 'Vous dirigez l\'équipe <strong>compliance</strong> d\'ING Belgique. Votre mission : détecter les opérations suspectes et alerter la CTIF. En théorie, c\'est simple. En pratique, le dossier qui vient d\'arriver sur votre écran change tout.\n\nCompte n° ████████. Titulaire : un ministre fédéral en exercice. Statut PPE confirmé. <strong>Dix ans de dépôts en espèces massifs</strong>. Aucune déclaration de soupçon jamais émise par vos prédécesseurs. Et votre directeur vous regarde par la vitre de son bureau.',
+    baseStats: { credibilite: 55, pression: 40, reseau: 25, intuition: 45 }
+  },
+  deputee: {
+    icon: '🏛️',
+    name: 'Sarah Mbeki',
+    role: 'Députée fédérale — Opposition',
+    color: 'var(--purple)',
+    colorName: 'purple',
+    difficulty: '★★★☆☆ · Politique',
+    desc: 'Élue à la Chambre sur un programme de justice fiscale. Vous avez juré de faire la lumière sur les privilèges des intouchables.',
+    briefing: 'Vous siégez à la <strong>commission des Finances</strong> de la Chambre. Depuis votre élection, vous avez compilé un dossier de 300 pages sur les conflits d\'intérêts de Didier Reynders : les centres de coordination de Carmeuse, les intérêts notionnels rédigés par la FEB, les marchés publics douteux.\n\nPersonne ne vous écoute. Jusqu\'au jour de décembre 2024 où les perquisitions explosent dans la presse. Soudain, <strong>tout le monde veut votre dossier</strong>.',
+    baseStats: { credibilite: 50, pression: 35, reseau: 55, intuition: 35 }
+  },
+  procureur: {
+    icon: '⚖️',
+    name: 'Juge L.',
+    role: 'Juge d\'instruction — Parquet de Bruxelles',
+    color: 'var(--cyan)',
+    colorName: 'cyan',
+    difficulty: '★★★★★ · Stratégie',
+    desc: 'Vous instruisez des dossiers financiers depuis 15 ans. Celui-ci est le plus gros — et le plus dangereux — de votre carrière.',
+    briefing: 'Le dossier <strong>BI/2023/████</strong> vient de vous être attribué. Objet : blanchiment d\'argent. Suspect principal : un ancien Commissaire européen.\n\nVous avez devant vous les transmissions de la CTIF (800 000€ de mouvements suspects chez ING) et le signalement de la Loterie Nationale (comportement d\'achat aberrant). Mais le suspect dispose d\'une <strong>immunité fonctionnelle européenne</strong> active jusqu\'au 30 novembre 2024. Vous devez construire un dossier en béton <strong>sans alerter la cible</strong>.',
+    baseStats: { credibilite: 65, pression: 30, reseau: 40, intuition: 55 }
+  }
+};
+
+// ── EVIDENCE DATABASE ──
+const EVIDENCE_DB = {
+  'cash-ing': { tag: 'FINANCIER', name: 'Relevés ING (2008-2018)', desc: '700-800 000€ de dépôts cash sur compte à vue. Aucune déclaration de soupçon pendant 10 ans.', color: 'var(--red)' },
+  'billets-500': { tag: 'MATÉRIEL', name: 'Billets de 500€', desc: '7 000€ retrouvés au domicile dont des coupures de 500€ — retirées de circulation en 2019 car associées au blanchiment.', color: 'var(--red)' },
+  'loterie-data': { tag: 'FINANCIER', name: 'Données Loterie Nationale', desc: 'Profil unique en Belgique : limite de 500€/semaine atteinte quasi systématiquement. ~200 000€ misés sur 5 ans.', color: 'var(--gold)' },
+  'loterie-kpmg': { tag: 'AUDIT', name: 'Rapport KPMG — Loterie', desc: 'Audit mandaté en 2022 concluant à un risque de blanchiment lié à une « personne politiquement sensible ».', color: 'var(--gold)' },
+  'fontinoy-surete': { tag: 'CLASSIFIÉ', name: 'Rapports Sûreté — Fontinoy', desc: '« Le décideur à la Régie des bâtiments est clairement Jean-Claude Fontinoy » — rapport de 2010.', color: 'var(--green)' },
+  'fontinoy-bakchich': { tag: 'CLASSIFIÉ', name: 'Bakchich Besix/Kinshasa', desc: 'Besix aurait refusé de payer un bakchich de 50 000€ demandé par Fontinoy pour la nouvelle ambassade.', color: 'var(--green)' },
+  'fontinoy-million': { tag: 'CLASSIFIÉ', name: 'Paiement occulte 1M€', desc: 'Fontinoy « conditionne son accord à un paiement occulte d\'un million d\'euros » — déménagement police fédérale.', color: 'var(--green)' },
+  'kazakhgate-loi': { tag: 'LÉGISLATIF', name: 'Loi Transaction Pénale', desc: 'Texte mis sur la table par le cabinet Reynders le 31/01/2011. Voté le même jour en commission.', color: 'var(--purple)' },
+  'kazakhgate-chodiev': { tag: 'JUDICIAIRE', name: 'Transaction Chodiev', desc: '3,5M€ versés à l\'État (contre 23M annoncés). Contrat hélicoptères signé 10 jours après.', color: 'var(--purple)' },
+  'fonds-libyens': { tag: 'DIPLOMATIQUE', name: 'Fonds libyens — Euroclear', desc: '10 milliards€ disparus des 16,1 milliards gelés. Interprétation controversée sur les intérêts.', color: 'var(--blue)' },
+  'enveloppe-50k': { tag: 'CORRUPTION', name: 'Enveloppe 50 000€ (Libye)', desc: 'Fontinoy accusé d\'avoir accepté une enveloppe en cash maquillée en « projet environnemental ».', color: 'var(--red)' },
+  'fortis-morgan': { tag: 'FINANCIER', name: 'Rapport Morgan Stanley — Fortis', desc: 'BNP Paribas acquiert les activités bancaires de Fortis « pour rien » — rapport Morgan Stanley.', color: 'var(--blue)' },
+  'frere-reynders': { tag: 'RÉSEAU', name: 'Lien Frère-Reynders', desc: 'Invitations à Marrakech, propriété de Burdinne liée à GBL, Grand Officier de l\'Ordre de Léopold remis par Reynders.', color: 'var(--gold)' },
+  'deripaska-asbl': { tag: 'OLIGARCHIE', name: 'ASBL bruxelloises — Deripaska', desc: '878 000€ transitant via des ASBL liées à des proches de Reynders. Fondation artistique à Uccle.', color: 'var(--red)' },
+  'ullens-classement': { tag: 'OBSTRUCTION', name: 'Classement Ullens — sept. 2019', desc: 'Dossier classé sans suite une semaine avant l\'audition de Reynders au Parlement européen.', color: 'var(--red)' },
+  'brulin-surete': { tag: 'PLACEMENT', name: 'Nomination Brulin — Sûreté', desc: 'Ancien cabinet Reynders nommé n°3 de la Sûreté en août 2015. Moment exact de la mise à l\'écart d\'Ullens.', color: 'var(--green)' },
+  'notionnels': { tag: 'FISCALITÉ', name: 'Intérêts notionnels — FEB', desc: 'Loi rédigée par Michel Alloo (FEB), pas par le ministère. Des milliards siphonnés des caisses de l\'État.', color: 'var(--purple)' },
+  'carmeuse': { tag: 'CONFLIT D\'INTÉRÊTS', name: 'Administrateur Carmeuse', desc: 'Reynders reste administrateur rémunéré d\'un centre de coordination pendant 1 an après sa nomination de ministre.', color: 'var(--gold)' },
+  'prignon-loterie': { tag: 'FAMILIAL', name: 'Double compte Prignon', desc: 'L\'épouse de Reynders, présidente de chambre à la Cour d\'appel de Liège, utilise un second compte joueur.', color: 'var(--red)' },
+  'theunissen-galerie': { tag: 'ART & BLANCHIMENT', name: 'Galerie Theunissen — Sablon', desc: 'Fontinoy se rend « quasiment quotidiennement » chez l\'antiquaire. Circuit comparable à l\'affaire Guéant.', color: 'var(--gold)' },
+  'audenaert-breevast': { tag: 'CORRUPTION POLICIÈRE', name: 'Affaire Audenaert-Breevast', desc: 'Directeur police judiciaire reçoit 100 000€ de Breevast. Fontinoy au cœur du montage immobilier.', color: 'var(--green)' },
+  'gare-mons': { tag: 'MARCHÉS PUBLICS', name: 'Gare de Mons — Calatrava', desc: 'Budget de 37M€ à 480M€. 10 ans de retard. Accord secret Fontinoy-Bourlard. Fontinoy photographié à l\'inauguration.', color: 'var(--purple)' },
+  'ctif-2023': { tag: 'ANTI-BLANCHIMENT', name: 'Transmission CTIF — fin 2023', desc: 'ING signale 800 000€ de mouvements suspects. 5 ans après avoir interrogé Reynders.', color: 'var(--blue)' },
+  'prince-riyad': { tag: 'DIPLOMATIQUE', name: 'Photo avec prince narcotrafiquant', desc: 'Reynders photographié avec Nayef Al-Shaalan, condamné pour trafic de 2 tonnes de cocaïne. Riyad, 2012.', color: 'var(--red)' }
+};
+
+// ── CHAPTERS DATABASE ──
+const CHAPTERS = {
+  journaliste: [
+    {
+      title: 'L\'informateur',
+      location: 'Café des Marolles, Bruxelles',
+      blocks: [
+        { type: 'text', content: 'La pluie martèle les pavés du Jeu de Balle. Vous attendez depuis vingt minutes dans un café où le formica des tables a vu passer trois générations de brocanteurs. Votre téléphone vibre — un SMS depuis un numéro anonyme : <em>« Je suis là. Table du fond. »</em>' },
+        { type: 'text', content: 'L\'homme qui s\'assoit face à vous a le teint gris des gens qui ne dorment plus. Il se présente sous un prénom — probablement faux. Il dit avoir travaillé dans l\'entourage d\'un <strong>haut responsable de la SNCB</strong>. Il parle de marchés publics truqués, de rétro-commissions sur des chantiers de gares, d\'un homme que tout le monde appelle « Fonti ».' },
+        { type: 'dialogue', text: 'Fonti, c\'est la machine à cash. Il est partout : les gares, les ambassades, la Régie des bâtiments. Mais le vrai patron, c\'est celui qui prend le petit-déjeuner avec les présidents du G7 pendant que Fonti fait le sale boulot.', speaker: 'L\'informateur' },
+        { type: 'text', content: 'Il pousse une clé USB sur la table. <em>« Des photos de réunions. Des notes internes. Des noms. »</em> Puis il ajoute : <em>« Si vous publiez ça, ils vont vous tomber dessus. Ils ont des gens partout — à la Sûreté, dans la magistrature, dans les banques. »</em>' },
+        { type: 'evidence', id: 'fontinoy-surete', text: 'La clé USB contient des scans partiels de rapports de la Sûreté de l\'État mentionnant Fontinoy comme « le décideur » à la Régie des bâtiments.' }
+      ],
+      choices: [
+        { id: 'a', text: 'Commencer par enquêter discrètement sur Fontinoy — son parcours à la SNCB, ses liens avec les promoteurs. Travail de fourmi, mais solide.', consequence: 'Crédibilité +10 · Pression faible', effects: { credibilite: 10, pression: -5, intuition: 5 }, next: 1 },
+        { id: 'b', text: 'Viser directement le sommet : chercher le lien entre Fontinoy et Reynders dans les marchés publics. Plus risqué mais plus dévastateur.', consequence: 'Intuition +10 · Pression +15', effects: { credibilite: 5, pression: 15, intuition: 10 }, next: 1 },
+        { id: 'c', text: 'Publier immédiatement ce que vous avez — les documents de la clé USB — pour provoquer une réaction. Forcer le jeu.', consequence: 'Réseau +10 · Crédibilité -10', effects: { credibilite: -10, reseau: 10, pression: 20 }, next: 1 }
+      ]
+    },
+    {
+      title: 'Le Clan',
+      location: 'Rédaction de Médor, Bruxelles',
+      blocks: [
+        { type: 'text', content: 'Trois mois d\'enquête. Les pièces s\'assemblent sur votre mur de liège. Au centre : <strong>Jean-Claude Fontinoy</strong>, 80 ans, ingénieur à la SNCB depuis 1967, rencontre Reynders en 1986, ne le quitte plus jamais.' },
+        { type: 'text', content: 'Un ancien de la SNCB vous a décrit la « loi Fontinoy » de 2010 — une modification législative supprimant la limite d\'âge de 65 ans, taillée sur mesure pour lui permettre de rester président. Mais ce qui vous fascine, c\'est le réseau de placement : les anciens chefs de cabinet de Reynders placés à la <strong>BCE</strong>, la <strong>BNB</strong>, la <strong>SFPI</strong>, la <strong>FSMA</strong>, la <strong>Sûreté de l\'État</strong>.' },
+        { type: 'evidence', id: 'brulin-surete', text: 'Hugues Brulin, ex-cabinet Reynders, nommé n°3 de la Sûreté en août 2015 — au moment exact où un agent de la Sûreté commençait à poser trop de questions.' },
+        { type: 'text', content: 'Un collègue vous alerte : <em>« Fais gaffe. Un confrère qui a gratté le Kazakhgate a eu son téléphone mis sur écoute pendant six mois. »</em>' },
+        { type: 'dialogue', text: 'Le Clan Reynders, c\'est pas une expression de journaliste. C\'est le mot qu\'utilisent les flics entre eux quand ils parlent de ce réseau. Quarante ans de placements, de renvois d\'ascenseur, de protection mutuelle.', speaker: 'Source policière, sous condition d\'anonymat' }
+      ],
+      choices: [
+        { id: 'a', text: 'Contacter l\'ancien agent de la Sûreté qui a été mis à l\'écart. S\'il accepte de parler, c\'est la bombe atomique.', consequence: 'Réseau +15 · Pression +10', effects: { reseau: 15, pression: 10, intuition: 5 }, next: 2 },
+        { id: 'b', text: 'Se concentrer sur le volet financier — les gares, les marchés publics. Suivre l\'argent plutôt que les hommes.', consequence: 'Crédibilité +15 · Intuition +5', effects: { credibilite: 15, intuition: 5 }, next: 2 }
+      ]
+    },
+    {
+      title: 'L\'argent liquide',
+      location: 'Bureau de tabac, Uccle',
+      blocks: [
+        { type: 'text', content: 'C\'est un tuyau improbable qui fait basculer l\'enquête. Pas un document classifié, pas un rapport de la Sûreté — juste une vendeuse de station-service près d\'Uccle qui raconte à un ami que <em>« le ministre vient acheter des billets à gratter avec des liasses de cash »</em>.' },
+        { type: 'text', content: 'Vous vérifiez. Et ce que vous découvrez est sidérant : <strong>Didier Reynders</strong>, l\'homme qui a présidé le G10, le Commissaire européen à la Justice, utilise deux comptes de la Loterie Nationale pour transformer du cash en « gains » légitimes. Sa femme — <strong>présidente de chambre à la Cour d\'appel de Liège</strong> — fait pareil.' },
+        { type: 'evidence', id: 'loterie-data', text: 'Le couple atteint la limite de 500€/semaine quasi systématiquement sur deux comptes. Profil unique en Belgique : ~200 000€ misés en 5 ans.' },
+        { type: 'evidence', id: 'prignon-loterie', text: 'Bernadette Prignon, magistrate, utilise un second compte joueur. L\'institution judiciaire est directement compromise.' },
+        { type: 'dialogue', text: 'Il venait régulièrement avec 2 000 à 3 000 euros en cash. Toujours les mêmes jeux. Toujours la même routine. On trouvait ça bizarre mais bon, c\'est pas à nous de poser des questions, non ?', speaker: 'Vendeuse, station-service d\'Uccle' },
+        { type: 'text', content: 'L\'ironie vous frappe comme un coup de poing : <strong>Reynders a exercé la tutelle sur la Loterie Nationale</strong> pendant 12 ans en tant que ministre des Finances. Il blanchit son argent via une institution d\'État qu\'il a lui-même supervisée.' }
+      ],
+      choices: [
+        { id: 'a', text: 'Contacter la direction de la Loterie Nationale pour vérifier si elle a, elle aussi, détecté quelque chose.', consequence: 'Crédibilité +15 · Déblocage preuve KPMG', effects: { credibilite: 15, intuition: 5 }, evidence: 'loterie-kpmg', next: 3 },
+        { id: 'b', text: 'Enquêter sur l\'autre bout du tuyau : d\'où vient le cash ? ING ? Des rétro-commissions ? Le Kazakhgate ?', consequence: 'Intuition +15 · Pression +10', effects: { intuition: 15, pression: 10 }, next: 3 }
+      ]
+    },
+    {
+      title: 'ING : le silence complice',
+      location: 'Quartier financier, Bruxelles',
+      blocks: [
+        { type: 'text', content: 'Vous tenez les deux bouts : la Loterie en aval, et maintenant — grâce à une fuite de la CTIF — <strong>ING en amont</strong>. Dix ans de dépôts cash massifs. 700 à 800 000 euros. Aucune déclaration de soupçon.' },
+        { type: 'evidence', id: 'cash-ing', text: 'Confirmation : les relevés ING montrent des dépôts cash réguliers sur le compte à vue de Reynders de 2008 à 2018.' },
+        { type: 'text', content: 'Le scandale dans le scandale : ING interroge Reynders en 2018 et <strong>se contente de ses explications</strong> — des « ventes d\'art ». Puis <strong>attend cinq ans</strong> pour signaler à la CTIF. La professeure Colaert de la KU Leuven vous confirme : c\'est une violation flagrante de la loi anti-blanchiment.' },
+        { type: 'evidence', id: 'ctif-2023', text: 'ING ne transmet le signalement à la CTIF qu\'en fin 2023. Dix ans de cash. Cinq ans de silence après l\'interrogatoire.' },
+        { type: 'text', content: 'Et puis il y a le détail qui fait tout basculer : au conseil d\'administration d\'ING siège <strong>Luc Bertrand</strong>, président d\'Ackermans & van Haaren et « vieil ami » de Reynders. Et <strong>Pierre Wunsch</strong>, ancien chef de cabinet de Reynders, est gouverneur de la BNB — l\'organe qui supervise ING.' },
+        { type: 'dialogue', text: 'Un signalement aurait dû être effectué bien avant 2023. Le statut PPE impose une vigilance renforcée. Ce n\'est pas une zone grise — c\'est une obligation légale claire.', speaker: 'Professeure Veerle Colaert, KU Leuven' }
+      ],
+      choices: [
+        { id: 'a', text: 'Publier maintenant en consortium avec Le Soir et De Standaard. Frapper fort, frapper ensemble.', consequence: 'Crédibilité +20 · Le dossier explose', effects: { credibilite: 20, reseau: 10, pression: 15 }, next: 4 },
+        { id: 'b', text: 'Attendre la fin du mandat européen de Reynders pour que la justice puisse agir sans contrainte d\'immunité.', consequence: 'Intuition +15 · Le timing est crucial', effects: { intuition: 15, credibilite: 10 }, next: 4 }
+      ]
+    },
+    {
+      title: 'La chute',
+      location: 'Bruxelles — Décembre 2024',
+      blocks: [
+        { type: 'text', content: '3 décembre 2024. Trois jours après la fin du mandat de Reynders à la Commission européenne. Votre téléphone explose de notifications. <strong>Perquisitions au domicile d\'Uccle et à la résidence de Vissoul.</strong>' },
+        { type: 'evidence', id: 'billets-500', text: 'Les enquêteurs retrouvent 7 000€ en liquide dont des billets de 500€ — coupures retirées de circulation en 2019.' },
+        { type: 'text', content: 'Georges-Louis Bouchez, le président du MR, lâche froidement à la presse : <em>« L\'affaire Reynders ne me concerne pas. La justice est la même pour tout le monde. »</em>' },
+        { type: 'text', content: 'Octobre 2025 : Reynders est inculpé pour blanchiment. Février 2026 : Fontinoy et Theunissen tombent pour association de malfaiteurs. Le clan s\'effondre.' },
+        { type: 'evidence', id: 'theunissen-galerie', text: 'L\'antiquaire du Sablon inculpé. Fontinoy se rendait « quasiment quotidiennement » dans sa galerie. Circuit de fausses factures d\'art présumé.' },
+        { type: 'text', content: 'Cinq ans d\'enquête. Des centaines de documents. Le livre <em>Le Clan Reynders</em> est épuisé en librairie. Et vous réalisez que ce n\'est que le début : la commission d\'enquête parlementaire est demandée. Les fonds libyens, le Kazakhgate, la Régie des bâtiments — tout est sur la table.' }
+      ],
+      choices: [
+        { id: 'a', text: 'Exiger une commission d\'enquête parlementaire élargie — pas seulement le blanchiment, mais 40 ans de système.', consequence: 'Fin : Le Grand Déballage', effects: { credibilite: 10, reseau: 10 }, ending: 'deballage' },
+        { id: 'b', text: 'Se concentrer sur la source de l\'argent. D\'où viennent les 700 000€ ? C\'est la question qui reste sans réponse.', consequence: 'Fin : Follow the Money', effects: { intuition: 15 }, ending: 'money' }
+      ]
+    }
+  ],
+
+  agent: [
+    {
+      title: 'Le rapport classifié',
+      location: 'Caserne Reine Élisabeth, Bruxelles',
+      blocks: [
+        { type: 'text', content: 'Automne 2012. Vous êtes inspecteur à la <strong>Sûreté de l\'État</strong> depuis cinq ans. Votre section surveille les marchés publics sensibles. Le dossier du jour : la construction de la nouvelle ambassade de Belgique à <strong>Kinshasa</strong>.' },
+        { type: 'text', content: 'En croisant les informations, vous tombez sur un nom récurrent dans les notes de vos collègues : <strong>Jean-Claude Fontinoy</strong>. Ingénieur SNCB à la retraite, 67 ans, mais visiblement au cœur de toutes les décisions immobilières de l\'État fédéral.' },
+        { type: 'evidence', id: 'fontinoy-bakchich', text: 'Un rapport interne note que l\'entreprise Besix aurait « refusé de payer un bakchich de 50 000€ » demandé par Fontinoy pour le chantier de Kinshasa.' },
+        { type: 'dialogue', text: 'Fontinoy ? Tout le monde ici sait qui c\'est. C\'est l\'homme de Reynders. Rien ne passe à la Régie des Bâtiments sans son feu vert. Mais personne ne met ça dans un rapport officiel.', speaker: 'Collègue de la Sûreté, entre deux portes' },
+        { type: 'text', content: 'Vous décidez de creuser. En remontant les archives, vous découvrez un rapport de 2010 encore plus explosif.' },
+        { type: 'evidence', id: 'fontinoy-million', text: 'Rapport 2010 : Fontinoy « conditionne son accord à un paiement occulte d\'un million d\'euros » pour le déménagement de la police fédérale.' }
+      ],
+      choices: [
+        { id: 'a', text: 'Rédiger un rapport de synthèse complet et le transmettre par voie hiérarchique officielle.', consequence: 'Crédibilité +15 · Vous laissez une trace', effects: { credibilite: 15, pression: 10 }, next: 1 },
+        { id: 'b', text: 'Enquêter officieusement en dehors du cadre. Moins de risque d\'être bloqué, mais aucune protection institutionnelle.', consequence: 'Intuition +15 · Pression +15', effects: { intuition: 15, pression: 15 }, next: 1 }
+      ]
+    },
+    {
+      title: 'Le nouveau numéro 3',
+      location: 'Sûreté de l\'État — Août 2015',
+      blocks: [
+        { type: 'text', content: 'Tout change en un instant. Un matin d\'août 2015, un mail circulaire annonce une nouvelle nomination : <strong>Hugues Brulin</strong>, ancien du cabinet Reynders, devient le numéro 3 de la Sûreté de l\'État.' },
+        { type: 'evidence', id: 'brulin-surete', text: 'La nomination coïncide avec la montée en puissance du dossier Kazakhgate. Un ancien du cabinet Reynders contrôle désormais vos dossiers.' },
+        { type: 'text', content: 'En quelques semaines, vos accès sont restreints. Vos rapports sur Fontinoy sont « reclassés ». On vous assigne à d\'autres dossiers. Un collègue vous glisse : <em>« T\'es sur une liste. Fais profil bas. »</em>' },
+        { type: 'dialogue', text: 'Tu comprends pas ? Brulin, c\'est pas juste un fonctionnaire. C\'est les yeux et les oreilles de Reynders à l\'intérieur de notre service. Et Frank Jaumin prend le contre-espionnage. Ils verrouillent tout.', speaker: 'Ancien collègue, par messagerie chiffrée' },
+        { type: 'text', content: 'Vous avez trois ans de travail dans vos fichiers personnels. Des rapports, des organigrammes, des connexions. Mais si Brulin a accès au système interne, il sait ce que vous avez consulté.' }
+      ],
+      choices: [
+        { id: 'a', text: 'Sécuriser vos documents sur un support externe et attendre. Le moment viendra.', consequence: 'Intuition +10 · Pression se maintient', effects: { intuition: 10, credibilite: 5 }, next: 2 },
+        { id: 'b', text: 'Prendre contact officieusement avec un journaliste d\'investigation. Transmettre des éléments.', consequence: 'Réseau +15 · Pression +20 · DANGER', effects: { reseau: 15, pression: 20 }, next: 2 },
+        { id: 'c', text: 'Confronter la hiérarchie. Demander officiellement pourquoi vos accès ont été restreints.', consequence: 'Crédibilité +10 · Vous vous exposez', effects: { credibilite: 10, pression: 25 }, next: 2 }
+      ]
+    },
+    {
+      title: 'La porte de sortie',
+      location: 'Police Judiciaire Fédérale — Avril 2019',
+      blocks: [
+        { type: 'text', content: 'Vous avez quitté la Sûreté. Harcèlement moral, mise à l\'écart, <strong>menaces de mort</strong>. Trois ans à chercher la bonne porte. Aujourd\'hui, vous poussez celle de la <strong>police judiciaire fédérale de Bruxelles</strong>.' },
+        { type: 'text', content: 'Vous déballez tout. Le déménagement de la police, le Kazakhgate, les fonds libyens, les gares SNCB, l\'ambassade de Kinshasa. Quarante ans de système. L\'officier en face de vous prend des notes. Beaucoup de notes.' },
+        { type: 'evidence', id: 'audenaert-breevast', text: 'Vous connectez les points : Audenaert (police) a reçu 100 000€ de Breevast. Le même Breevast qui déménage la police fédérale. Le même immeuble où Fontinoy est « le décideur ».' },
+        { type: 'evidence', id: 'enveloppe-50k', text: 'Vous rapportez l\'enveloppe de 50 000€ acceptée par Fontinoy dans l\'affaire des fonds libyens, maquillée en « projet environnemental ».' },
+        { type: 'text', content: 'Cinq mois passent. Septembre 2019. Votre avocat vous appelle, la voix blanche : <em>« Le dossier est classé sans suite. Faute du moindre délit. »</em>' },
+        { type: 'evidence', id: 'ullens-classement', text: 'Le classement intervient le 25 septembre 2019 — une semaine avant l\'audition de Reynders au Parlement européen pour le poste de commissaire.' }
+      ],
+      choices: [
+        { id: 'a', text: 'Transmettre vos informations à la juge française Aude Buresi qui instruit le volet Kazakhgate.', consequence: 'Réseau +20 · Le dossier survit à l\'étranger', effects: { reseau: 20, intuition: 10 }, next: 3 },
+        { id: 'b', text: 'Contacter directement les médias d\'investigation. Si la justice refuse d\'agir, la presse le fera.', consequence: 'Crédibilité +10 · Pression +15', effects: { credibilite: 10, pression: 15, reseau: 10 }, next: 3 }
+      ]
+    },
+    {
+      title: 'La revanche du réel',
+      location: 'Bruxelles — 2022-2025',
+      blocks: [
+        { type: 'text', content: 'Mars 2022. Votre téléphone sonne. Un contact dans la presse : <em>« La Loterie Nationale vient de signaler Reynders au parquet pour des achats massifs de tickets à gratter. Des centaines de milliers d\'euros en cash. »</em>' },
+        { type: 'text', content: 'Vous n\'en croyez pas vos oreilles. Tout ce que vous avez dénoncé en 2019 — les flux de cash, le réseau de protection, la corruption systémique — c\'est <strong>la Loterie Nationale</strong> et <strong>une banque</strong> qui l\'ont finalement révélé. Pas la police. Pas la Sûreté. Des algorithmes anti-blanchiment.' },
+        { type: 'evidence', id: 'loterie-kpmg', text: 'Le rapport KPMG commandé par la Loterie conclut au risque de blanchiment. Ce que vous disiez depuis 2012.' },
+        { type: 'dialogue', text: 'Des devoirs d\'enquête simples et élémentaires n\'ont pas été effectués en 2019 : tels qu\'une enquête patrimoniale classique. Ou même simplement interroger les grandes banques du pays.', speaker: 'Me Alexis Deswaef, votre avocat — dans la presse' },
+        { type: 'text', content: 'Décembre 2024 : les perquisitions. Octobre 2025 : l\'inculpation. Février 2026 : Fontinoy et Theunissen tombent. <strong>Tout ce que vous aviez documenté se matérialise.</strong> Six ans trop tard. Mais ça se matérialise.' }
+      ],
+      choices: [
+        { id: 'a', text: 'Témoigner publiquement. Raconter comment le système a tenté de vous faire taire.', consequence: 'Fin : Le Témoin', effects: { credibilite: 15, reseau: 10 }, ending: 'temoin' },
+        { id: 'b', text: 'Rester dans l\'ombre. Laisser la justice faire son travail. Vous avez fait votre part.', consequence: 'Fin : La Patience', effects: { intuition: 15, credibilite: 5 }, ending: 'patience' }
+      ]
+    }
+  ],
+
+  banquier: [
+    {
+      title: 'Le dossier PPE',
+      location: 'Siège ING, avenue Marnix, Bruxelles',
+      blocks: [
+        { type: 'text', content: 'Lundi matin. Votre écran de compliance affiche une alerte rouge. <strong>Client PPE — Anomalie détectée.</strong> Vous ouvrez le dossier.' },
+        { type: 'text', content: 'Le nom vous fige. Ministre fédéral en exercice. 10 ans de dépôts en espèces. Montant cumulé : entre <strong>700 000 et 800 000 euros</strong>. Aucune déclaration de soupçon transmise à la CTIF. Vos prédécesseurs ont regardé ailleurs pendant une décennie.' },
+        { type: 'evidence', id: 'cash-ing', text: 'Les relevés montrent un schéma régulier : dépôts cash de plusieurs milliers d\'euros, échelonnés sur dix ans.' },
+        { type: 'dialogue', text: 'Katrien, je dois te parler de ce dossier. Ce client... c\'est quelqu\'un d\'important. Très important. Il faut gérer ça avec... discrétion.', speaker: 'Votre directeur, porte fermée' },
+        { type: 'text', content: 'Vous savez ce que dit la loi. Personne Politiquement Exposée = <strong>surveillance renforcée</strong>. Dépôts cash massifs = <strong>déclaration de soupçon obligatoire</strong>. Mais vous savez aussi ce qui siège au conseil d\'administration d\'ING : <strong>Luc Bertrand</strong>, « vieil ami » du client en question.' }
+      ],
+      choices: [
+        { id: 'a', text: 'Convoquer le client pour un entretien formel et lui demander de justifier l\'origine des fonds.', consequence: 'Crédibilité +10 · Vous suivez la procédure', effects: { credibilite: 10, pression: 10 }, next: 1 },
+        { id: 'b', text: 'Transmettre immédiatement une déclaration de soupçon à la CTIF, comme l\'exige la loi.', consequence: 'Crédibilité +20 · Pression +25 · DANGER', effects: { credibilite: 20, pression: 25 }, next: 1 },
+        { id: 'c', text: 'Demander conseil en interne d\'abord. Monter le dossier au juridique avant toute action.', consequence: 'Réseau +10 · Le système vous ralentit', effects: { reseau: 10, pression: 5, credibilite: -5 }, next: 1 }
+      ]
+    },
+    {
+      title: 'L\'entretien',
+      location: 'Salle de réunion confidentielle, ING Belgique — 2018',
+      blocks: [
+        { type: 'text', content: 'Il est en face de vous. Costume impeccable. Sourire de diplomate. L\'homme qui a présidé le G10. Le futur Commissaire européen. Et vous devez lui demander d\'où vient son argent.' },
+        { type: 'dialogue', text: 'Des ventes d\'œuvres d\'art et d\'antiquités. J\'ai une collection personnelle que je renouvelle régulièrement. C\'est assez courant dans mon milieu, vous savez.', speaker: 'Le client' },
+        { type: 'text', content: 'Vous demandez des justificatifs. Des factures. Des certificats de vente. Des expertises. <strong>Rien ne vient.</strong> Pas un reçu, pas un catalogue, pas une trace écrite.' },
+        { type: 'evidence', id: 'carmeuse', text: 'Vous découvrez en parallèle que ce même client est resté administrateur rémunéré d\'un centre de coordination fiscal pendant un an après sa nomination de ministre. Porosité totale.' },
+        { type: 'text', content: 'Votre directeur vous convoque le lendemain. <em>« Le client est satisfait de l\'entretien. On peut classer le dossier. »</em> Vous regardez la pile de relevés sur votre bureau. 800 000 euros d\'origine inconnue. Et on vous demande de classer.' }
+      ],
+      choices: [
+        { id: 'a', text: 'Refuser de classer. Rédiger la déclaration de soupçon vous-même et l\'envoyer à la CTIF.', consequence: 'Crédibilité +25 · Pression MAXIMALE', effects: { credibilite: 25, pression: 30, intuition: 10 }, next: 2 },
+        { id: 'b', text: 'Obtempérer pour l\'instant mais garder le dossier ouvert en interne. Documenter tout. Attendre.', consequence: 'Intuition +15 · Vous protégez vos arrières', effects: { intuition: 15, pression: -5 }, next: 2 }
+      ]
+    },
+    {
+      title: 'Le prix du silence',
+      location: 'ING Belgique — 2023',
+      blocks: [
+        { type: 'text', content: 'Cinq ans ont passé. Le client est devenu Commissaire européen à la Justice. <strong>Il sermonne la Hongrie sur l\'État de droit</strong> pendant que ses 800 000€ de cash dorment dans votre système sans déclaration.' },
+        { type: 'text', content: 'La <strong>Banque Nationale de Belgique</strong> lance une inspection. Les inspecteurs posent des questions précises sur les clients PPE. Votre dossier remonte à la surface. Et cette fois, impossible de le refermer.' },
+        { type: 'evidence', id: 'ctif-2023', text: 'ING transmet enfin le signalement à la CTIF — fin 2023. Dix ans de cash. Cinq ans après l\'entretien.' },
+        { type: 'dialogue', text: 'Le parquet de Bruxelles a ouvert une information judiciaire pour trafic d\'influence contre ING Belgique. L\'ancien CEO et le CEO actuel ont été convoqués comme suspects.', speaker: 'Flash info, Le Soir — Août 2025' },
+        { type: 'text', content: 'Le directeur qui vous avait demandé de classer est convoqué à l\'<strong>OCRC</strong>. Vous aussi. La banque n\'est plus seulement témoin — elle est <strong>suspecte de complicité</strong>.' }
+      ],
+      choices: [
+        { id: 'a', text: 'Coopérer pleinement avec les enquêteurs. Fournir tout ce que vous avez documenté depuis 2018.', consequence: 'Fin : Le Compliance Officer', effects: { credibilite: 20, intuition: 10 }, ending: 'compliance' },
+        { id: 'b', text: 'Témoigner publiquement sur la pression exercée par la hiérarchie pour couvrir un client PPE.', consequence: 'Fin : La Lanceuse d\'Alerte', effects: { credibilite: 15, reseau: 15, pression: 20 }, ending: 'lanceuse' }
+      ]
+    }
+  ],
+
+  deputee: [
+    {
+      title: 'Le dossier de 300 pages',
+      location: 'Chambre des Représentants, Bruxelles',
+      blocks: [
+        { type: 'text', content: 'Vous êtes élue depuis deux ans. Commission des Finances. Votre bureau croule sous les documents : rapports de la Cour des comptes, réponses ministérielles évasives, articles d\'investigation. Tout pointe vers le même système.' },
+        { type: 'evidence', id: 'notionnels', text: 'Les intérêts notionnels : la loi de 2005 rédigée par la FEB, pas par le ministère. Des milliards siphonnés. « Corruption idéologique » selon les analystes.' },
+        { type: 'text', content: 'Vos questions parlementaires sur Reynders sont systématiquement esquivées. Les réponses arrivent hors délai, noyées dans le jargon. La majorité bloque toute commission d\'enquête. Vos collègues vous regardent avec un mélange de pitié et d\'admiration.' },
+        { type: 'evidence', id: 'gare-mons', text: 'La gare de Mons : budget de 37M€ explosé à 480M€. Accord secret Fontinoy-Bourlard. 10 ans de retard.' },
+        { type: 'dialogue', text: 'Sarah, arrête. Reynders est intouchable. Il a des gens à la BNB, à la Sûreté, dans les cabinets. Même si t\'as raison sur tout, personne ne votera ta commission d\'enquête.', speaker: 'Collègue député, cafétéria de la Chambre' }
+      ],
+      choices: [
+        { id: 'a', text: 'Persévérer seule. Continuer les questions parlementaires, accumuler les preuves documentaires, tenir le registre public.', consequence: 'Crédibilité +15 · Long mais solide', effects: { credibilite: 15, intuition: 5 }, next: 1 },
+        { id: 'b', text: 'Chercher des alliés au-delà des clivages partisans. Même dans la majorité, certains sont gênés.', consequence: 'Réseau +20 · Jeu politique', effects: { reseau: 20, pression: 5 }, next: 1 }
+      ]
+    },
+    {
+      title: 'Les perquisitions',
+      location: 'Chambre des Représentants — Décembre 2024',
+      blocks: [
+        { type: 'text', content: '3 décembre 2024. Votre téléphone n\'arrête plus de sonner. <strong>Perquisitions chez Reynders.</strong> Tout ce que vous avez documenté depuis deux ans remonte à la surface. Les journalistes qui vous ignoraient vous appellent.' },
+        { type: 'text', content: 'Bouchez, le président du MR, lâche Reynders en direct : <em>« La justice est la même pour tout le monde. »</em> Les mêmes qui bloquaient vos questions parlementaires prennent leurs distances à la vitesse de la lumière.' },
+        { type: 'evidence', id: 'billets-500', text: 'Les 7 000€ en cash retrouvés au domicile, dont des billets de 500€. Votre dossier de 300 pages vient de trouver sa conclusion.' },
+        { type: 'evidence', id: 'fortis-morgan', text: 'Vous reliez le Fortisgate : BNP Paribas acquiert Fortis « pour rien ». Frère conseille acheteur et vendeur. 500 000 actionnaires lésés.' },
+        { type: 'text', content: 'C\'est maintenant ou jamais. Vous avez le momentum politique. La proposition de commission d\'enquête que personne ne voulait entendre devient soudain « pertinente ».' }
+      ],
+      choices: [
+        { id: 'a', text: 'Déposer immédiatement la proposition de commission d\'enquête parlementaire. Pas seulement le blanchiment — tout le système.', consequence: 'Crédibilité +15 · Réseau +10', effects: { credibilite: 15, reseau: 10, pression: 10 }, next: 2 },
+        { id: 'b', text: 'Jouer la carte ING d\'abord — interroger le ministre des Finances sur la défaillance bancaire. Mettre la pression par les institutions financières.', consequence: 'Intuition +15 · Stratégie indirecte', effects: { intuition: 15, reseau: 5 }, next: 2 }
+      ]
+    },
+    {
+      title: 'La commission',
+      location: 'Commission des Finances — Janvier 2026',
+      blocks: [
+        { type: 'text', content: 'Votre proposition de commission d\'enquête est à l\'ordre du jour. <strong>27 janvier 2026.</strong> Vous demandez d\'enquêter non seulement sur le million d\'euros blanchi, mais aussi sur les fonds libyens, le Kazakhgate, et les marchés publics pilotés par Fontinoy.' },
+        { type: 'evidence', id: 'kazakhgate-loi', text: 'La loi sur la transaction pénale de 2011, mise sur la table par le cabinet Reynders. Votée le même jour en commission.' },
+        { type: 'evidence', id: 'fonds-libyens', text: '10 milliards€ disparus des fonds libyens gelés chez Euroclear. L\'interprétation controversée sur les intérêts remonte à la tutelle de Reynders.' },
+        { type: 'text', content: 'La majorité hésite. Certains députés MR quittent la salle pendant le vote. Le N-VA tergiverse. Le CD&V se cache derrière la séparation des pouvoirs. Mais pour la première fois en 25 ans, <strong>le mur du silence craque</strong>.' },
+        { type: 'dialogue', text: 'Ce n\'est pas une chasse aux sorcières. C\'est une question de démocratie. Un million d\'euros d\'origine inconnue chez un ancien ministre des Finances — les citoyens ont le droit de savoir.', speaker: 'Votre intervention en commission' }
+      ],
+      choices: [
+        { id: 'a', text: 'Élargir la coalition : proposer un compromis sur le périmètre pour obtenir les voix de la N-VA et du CD&V.', consequence: 'Fin : Le Compromis Historique', effects: { reseau: 15, credibilite: 10 }, ending: 'compromis' },
+        { id: 'b', text: 'Maintenir le périmètre maximal. Tant pis si la majorité bloque — l\'opinion publique tranchera.', consequence: 'Fin : La Ligne Rouge', effects: { credibilite: 20, pression: 15 }, ending: 'ligne_rouge' }
+      ]
+    }
+  ],
+
+  procureur: [
+    {
+      title: 'Le dossier BI/2023',
+      location: 'Palais de Justice, Bruxelles',
+      blocks: [
+        { type: 'text', content: 'Le dossier atterrit sur votre bureau un matin de janvier 2024. <strong>Transmission CTIF</strong> : 800 000 euros de mouvements suspects sur un compte ING. Plus un <strong>signalement direct de la Loterie Nationale</strong> : achats massifs de billets à gratter en espèces.' },
+        { type: 'text', content: 'Le nom du suspect vous fait lever les yeux de votre écran. <strong>Commissaire européen en exercice.</strong> Immunité fonctionnelle active jusqu\'au 30 novembre 2024. Vous ne pouvez pas perquisitionner, pas convoquer, pas informer le Collège des commissaires sans alerter la cible.' },
+        { type: 'evidence', id: 'loterie-data', text: 'Dossier Loterie : deux comptes joueurs saturant la limite de 500€/semaine. Profil unique en Belgique. ~200 000€ misés en 5 ans.' },
+        { type: 'evidence', id: 'cash-ing', text: 'Dossier ING : dix ans de dépôts cash. 700-800 000€. Aucune déclaration de soupçon avant 2023.' },
+        { type: 'text', content: 'Vous avez deux certitudes : le dossier est solide, et <strong>le timing est tout</strong>. Si Reynders apprend que vous enquêtez, les preuves disparaîtront. Vous devez attendre la fin du mandat européen. Chaque jour est un risque de fuite.' }
+      ],
+      choices: [
+        { id: 'a', text: 'Stratégie de l\'attente : préparer minutieusement le dossier, coordonner les perquisitions pour le jour J, ne rien faire qui puisse alerter.', consequence: 'Crédibilité +15 · Intuition +10', effects: { credibilite: 15, intuition: 10 }, next: 1 },
+        { id: 'b', text: 'Élargir discrètement l\'enquête dès maintenant : interroger la Loterie, ING, les témoins périphériques. Risque de fuite mais dossier plus complet.', consequence: 'Intuition +15 · Pression +15', effects: { intuition: 15, pression: 15, reseau: 5 }, next: 1 }
+      ]
+    },
+    {
+      title: 'Jour J : 3 décembre 2024',
+      location: 'Opération coordonnée — Uccle / Vissoul',
+      blocks: [
+        { type: 'text', content: '<strong>30 novembre 2024</strong> : le mandat de Reynders à la Commission expire. <strong>3 décembre</strong> : vous signez les mandats de perquisition. Trois jours. Pas un de plus.' },
+        { type: 'text', content: 'À l\'aube, la section Ecofin de la police judiciaire fédérale frappe simultanément à deux adresses : le domicile d\'<strong>Uccle</strong> et la résidence de <strong>Vissoul</strong> (commune de Burdinne, province de Liège).' },
+        { type: 'evidence', id: 'billets-500', text: '7 000€ en liquide retrouvés au domicile. Dont des billets de 500€ — coupures retirées de circulation en 2019.' },
+        { type: 'text', content: 'Reynders et son épouse <strong>Bernadette Prignon</strong>, présidente de chambre à la Cour d\'appel de Liège, sont auditionnés sans privation de liberté. L\'avocat <strong>Me André Renette</strong> conteste toute qualification pénale.' },
+        { type: 'dialogue', text: 'Mon client conteste la qualification de blanchiment tant en fait qu\'en droit. Ces fonds proviennent de ventes d\'œuvres d\'art et d\'antiquités.', speaker: 'Me André Renette, ancien bâtonnier de Liège' },
+        { type: 'text', content: 'Aucune facture, aucun reçu, aucun catalogue de vente. La défense « art et antiquités » ne tient que sur la parole d\'un homme. Et cette parole, vous allez la confronter aux chiffres.' }
+      ],
+      choices: [
+        { id: 'a', text: 'Suivre la piste de l\'art : perquisitionner la galerie Theunissen au Sablon, vérifier les transactions Fontinoy-Theunissen.', consequence: 'Intuition +15 · Association de malfaiteurs ?', effects: { intuition: 15, credibilite: 10 }, evidence: 'theunissen-galerie', next: 2 },
+        { id: 'b', text: 'Remonter le cash : se concentrer sur la source des 700 000€. D\'où vient l\'argent avant ING ?', consequence: 'Crédibilité +15 · La question centrale', effects: { credibilite: 15, intuition: 5 }, next: 2 }
+      ]
+    },
+    {
+      title: 'L\'inculpation',
+      location: 'Cabinet du Juge d\'instruction — Octobre 2025',
+      blocks: [
+        { type: 'text', content: 'Dix mois d\'instruction. Des dizaines d\'auditions. Le dossier est devenu un monstre : ING, la Loterie, Fontinoy, Theunissen, les billets de 500€, les « ventes d\'art » sans trace. Il est temps de franchir le pas.' },
+        { type: 'text', content: '<strong>16 octobre 2025.</strong> Vous inculpez Didier Reynders pour blanchiment d\'argent et « un ou plusieurs autre(s) délit(s) potentiel(s) dont la qualification n\'est pas connue ». L\'information sera rendue publique le 4 novembre par un consortium médiatique.' },
+        { type: 'evidence', id: 'prince-riyad', text: 'En fouillant les archives, vous tombez sur la photo de 2012 : Reynders à Riyad avec le prince Nayef Al-Shaalan, condamné pour trafic de 2 tonnes de cocaïne. « Couac diplomatique », dit-il.' },
+        { type: 'text', content: 'Mais le blanchiment n\'est que la surface. Vous voyez les connexions : le cash vient de quelque part. Fontinoy est le fil rouge. Les rapports de la Sûreté le décrivent comme une « machine à cash ». Vous avez besoin de l\'inculper pour <strong>association de malfaiteurs</strong> — ce qui qualifie le réseau comme une structure criminelle organisée.' },
+        { type: 'evidence', id: 'fontinoy-surete', text: 'Vous intégrez les rapports de la Sûreté au dossier. Fontinoy est partout : gares, ambassades, promoteurs, Régie des bâtiments.' }
+      ],
+      choices: [
+        { id: 'a', text: 'Perquisitionner Fontinoy et Theunissen en juin 2025, puis les inculper en février 2026. Boucler le clan.', consequence: 'Fin : L\'Association de Malfaiteurs', effects: { credibilite: 20, intuition: 10 }, ending: 'association' },
+        { id: 'b', text: 'Élargir encore : ouvrir un volet distinct sur ING pour trafic d\'influence. Frapper les facilitateurs bancaires.', consequence: 'Fin : Le Système Complet', effects: { credibilite: 15, reseau: 15, intuition: 10 }, ending: 'systeme' }
+      ]
+    }
+  ]
+};
+
+// ── ENDINGS ──
+const ENDINGS = {
+  deballage: { title: 'Le Grand Déballage', text: 'La commission d\'enquête parlementaire est créée. Pour la première fois en 25 ans, les dossiers Kazakhgate, Libye, Régie des bâtiments et blanchiment sont examinés ensemble. Le système Reynders est autopsié publiquement. Votre enquête a déclenché le plus grand examen de conscience politique de la Belgique contemporaine.' },
+  money: { title: 'Follow the Money', text: 'Vous n\'avez jamais lâché la question centrale : d\'où vient l\'argent ? Les trois pistes — Kazakhgate, fonds libyens, rétro-commissions immobilières — convergent vers Fontinoy. La « machine à cash » qui alimentait le vizir depuis 40 ans. L\'instruction est toujours en cours, mais vous avez posé les fondations.' },
+  temoin: { title: 'Le Témoin', text: 'Vous témoignez publiquement. Votre histoire — celle d\'un agent réduit au silence pour avoir dit la vérité — devient le symbole des dysfonctionnements de l\'État belge. Le classement sans suite de 2019 est réexaminé. La nomination de Brulin à la Sûreté fait l\'objet d\'une enquête interne. Le système de protection a fonctionné pendant six ans. Mais pas éternellement.' },
+  patience: { title: 'La Patience', text: 'Vous aviez raison. Sur tout. Il a fallu six ans pour que le système rattrape ce que vous aviez documenté en 2012. Vous regardez les inculpations tomber depuis votre salon, avec un mélange d\'amertume et de soulagement. La justice finit toujours par arriver — mais elle arrive toujours trop tard pour ceux qui ont payé le prix de la vérité.' },
+  compliance: { title: 'Le Compliance Officer', text: 'Votre coopération avec les enquêteurs permet de reconstituer une décennie de complaisance bancaire. ING fait face à une information judiciaire pour trafic d\'influence. Le dossier devient un cas d\'école dans la formation anti-blanchiment européenne. La prochaine PPE qui déposera du cash sera détectée — pas dans dix ans, mais en dix jours.' },
+  lanceuse: { title: 'La Lanceuse d\'Alerte', text: 'Votre témoignage public sur les pressions exercées par la hiérarchie d\'ING provoque un séisme dans le secteur bancaire belge. La BNB renforce ses inspections. Le Parlement adopte une meilleure protection des lanceurs d\'alerte du secteur financier. Vous avez payé le prix, mais le système de surveillance ne sera plus jamais le même.' },
+  compromis: { title: 'Le Compromis Historique', text: 'La commission d\'enquête est votée avec un périmètre élargi mais négocié. CD&V et N-VA acceptent d\'enquêter sur le blanchiment et les marchés publics, mais excluent le Kazakhgate. C\'est imparfait. Mais c\'est la première fois en 25 ans que le système Reynders fait l\'objet d\'un examen parlementaire officiel.' },
+  ligne_rouge: { title: 'La Ligne Rouge', text: 'La majorité bloque votre commission d\'enquête à périmètre maximal. Mais votre dossier de 300 pages est désormais public. L\'opinion tranche : 67% des Belges veulent une commission d\'enquête selon le sondage de février 2026. La pression populaire est irrésistible. Le vote est reporté, pas annulé.' },
+  association: { title: 'L\'Association de Malfaiteurs', text: 'La qualification d\'association de malfaiteurs est dévastatrice. Elle transforme le dossier : ce n\'est plus un ministre qui gérait mal son patrimoine, c\'est une structure criminelle organisée. Reynders, Fontinoy, Theunissen — le triangle du blanchiment est formellement reconstitué. Le procès sera historique.' },
+  systeme: { title: 'Le Système Complet', text: 'En ouvrant le volet ING en parallèle, vous avez frappé les facilitateurs. La banque, les intermédiaires du marché de l\'art, l\'éminence grise. Le dossier démontre que le blanchiment d\'un million d\'euros nécessitait la complicité active d\'une institution bancaire, le silence de la Sûreté, et la couverture d\'un réseau de placement aux postes stratégiques. C\'est le système qui est jugé.' }
+};
+
+
+// ═══════════════════════════════════════════════
+// RENDERING ENGINE
+// ═══════════════════════════════════════════════
+
+function setVH() {
+  document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+}
+window.addEventListener('resize', setVH);
+setVH();
+
+function showScreen(id, delay = 0) {
+  document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active','visible'); });
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    el.classList.add('active');
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('visible')));
+  }, delay);
+}
+
+// ── BOOT ──
+function boot() {
+  const lines = [
+    '> Initialisation du système...',
+    '> Chargement des archives classifiées...',
+    '> Connexion sécurisée établie',
+    '> Décryptage des dossiers judiciaires...',
+    '> <span class="classified">ACCÈS RESTREINT — NIVEAU: CITOYEN</span>',
+    '> 44 sources médiatiques vérifiées',
+    '> 24 pièces à conviction indexées',
+    '> 5 parcours d\'investigation disponibles',
+    '> ',
+    '> <span class="classified">DOSSIER: AFFAIRE REYNDERS</span>',
+    '> <span class="classified">STATUT: INSTRUCTION EN COURS</span>',
+    '> <span class="classified">PRÉSOMPTION D\'INNOCENCE: ACTIVE</span>',
+    '> ',
+    '> Système prêt.<span class="cursor"></span>'
+  ];
+  
+  const container = document.getElementById('bootScreen');
+  const bootDiv = document.createElement('div');
+  bootDiv.className = 'boot-text';
+  container.appendChild(bootDiv);
+  
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i < lines.length) {
+      if (i === lines.length - 1) {
+        bootDiv.innerHTML += lines[i];
+      } else {
+        bootDiv.innerHTML += lines[i] + '\n';
+      }
+      i++;
+    } else {
+      clearInterval(interval);
+      setTimeout(() => showScreen('titleScreen', 300), 1500);
+    }
+  }, 180);
+  
+  showScreen('bootScreen');
+  setTimeout(() => document.getElementById('bootScreen').classList.add('visible'), 50);
+}
+
+// ── TITLE ──
+function renderTitle() {
+  document.getElementById('titleScreen').innerHTML = `
+    <div class="title-eyebrow">Investigation interactive</div>
+    <h1 class="title-main">DOSSIER<br>CLASSIFIÉ</h1>
+    <p class="title-sub">L'Affaire Reynders</p>
+    <p class="title-desc">Incarnez un personnage. Enquêtez sur 40 ans de pouvoir. Collectez les indices. Découvrez comment tombe un intouchable.</p>
+    <button class="btn-start" onclick="showScreen('selectScreen',200)"><span>Ouvrir le dossier</span></button>
+    <p class="title-legal">⚖️ Présomption d'innocence — Sources publiques uniquement — Aucune donnée collectée<br>ouaisfi.eu · CC BY-SA 4.0</p>
+  `;
+}
+
+// ── SELECT ──
+function renderSelect() {
+  const cards = Object.entries(PERSONAS).map(([id, p]) => `
+    <div class="persona-card" style="--persona-color:${p.color}" onclick="selectPersona('${id}')">
+      <div class="persona-card__icon">${p.icon}</div>
+      <div class="persona-card__role">${p.role.split('—')[0].trim()}</div>
+      <div class="persona-card__name">${p.name}</div>
+      <div class="persona-card__desc">${p.desc}</div>
+      <div class="persona-card__diff">${p.difficulty}</div>
+    </div>
+  `).join('');
+  
+  document.getElementById('selectScreen').innerHTML = `
+    <div class="select-header">
+      <h2>Choisissez votre rôle</h2>
+      <p>Chaque personnage offre un angle différent sur la même affaire</p>
+    </div>
+    <div class="persona-list">${cards}</div>
+  `;
+}
+
+// ── SELECT PERSONA ──
+function selectPersona(id) {
+  state.persona = id;
+  state.chapter = 0;
+  state.evidence = new Set();
+  state.choices = {};
+  const p = PERSONAS[id];
+  state.stats = { ...p.baseStats };
+  document.documentElement.style.setProperty('--persona-active-color', p.color);
+  renderBriefing();
+  showScreen('briefingScreen', 200);
+}
+
+// ── BRIEFING ──
+function renderBriefing() {
+  const p = PERSONAS[state.persona];
+  const statBars = Object.entries(state.stats).map(([key, val]) => {
+    const colors = { credibilite: 'var(--gold)', pression: 'var(--red)', reseau: 'var(--blue-glow)', intuition: 'var(--green-glow)' };
+    const labels = { credibilite: 'Crédibilité', pression: 'Pression', reseau: 'Réseau', intuition: 'Intuition' };
+    return `
+      <div class="briefing-stat">
+        <div class="briefing-stat__label">${labels[key]}</div>
+        <div class="briefing-stat__value">${val}</div>
+        <div class="briefing-stat__bar"><div class="briefing-stat__fill" style="width:${val}%;background:${colors[key]}"></div></div>
+      </div>`;
+  }).join('');
+  
+  document.getElementById('briefingScreen').innerHTML = `
+    <div class="briefing-content">
+      <div class="briefing-dossier">Dossier agent · Classifié</div>
+      <div class="briefing-portrait">${p.icon}</div>
+      <div class="briefing-name">${p.name}</div>
+      <div class="briefing-role">${p.role}</div>
+      <div class="briefing-text">${p.briefing}</div>
+      <div class="briefing-stats">${statBars}</div>
+      <button class="btn-begin" onclick="startGame()">Commencer l'enquête</button>
+    </div>
+  `;
+}
+
+// ── START GAME ──
+function startGame() {
+  renderChapter();
+  showScreen('gameScreen', 200);
+}
+
+// ── RENDER CHAPTER ──
+function renderChapter() {
+  const chapters = CHAPTERS[state.persona];
+  if (!chapters || state.chapter >= chapters.length) return;
+  const ch = chapters[state.chapter];
+  
+  let html = `
+    <div class="game-topbar">
+      <div class="game-topbar__left">
+        <div class="game-topbar__chapter">CH.${state.chapter + 1}/${chapters.length}</div>
+        <div class="game-topbar__title">${ch.title}</div>
+      </div>
+      <div class="game-topbar__right">
+        <button class="topbar-btn ${state.evidence.size > 0 ? 'has-new' : ''}" onclick="toggleEvidence()">📋</button>
+        <button class="topbar-btn" onclick="toggleStats()">📊</button>
+      </div>
+    </div>
+    <div class="game-narrative">
+      <div class="narrative-block">
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--text-muted);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.3rem;">📍 ${ch.location}</div>
+      </div>
+  `;
+  
+  ch.blocks.forEach((block, i) => {
+    if (block.type === 'text') {
+      html += `<div class="narrative-block"><div class="narrative-text">${block.content}</div></div>`;
+    } else if (block.type === 'dialogue') {
+      html += `<div class="narrative-block"><div class="dialogue"><div class="dialogue__text">${block.text}</div><div class="dialogue__speaker">— ${block.speaker}</div></div></div>`;
+    } else if (block.type === 'evidence') {
+      const ev = EVIDENCE_DB[block.id];
+      if (ev) {
+        state.evidence.add(block.id);
+        html += `<div class="narrative-block"><div class="evidence-inline evidence-collected"><div class="evidence-inline__tag">Indice collecté — ${ev.tag}</div><strong style="color:var(--text-bright)">${ev.name}</strong><br>${block.text || ev.desc}</div></div>`;
+      }
+    }
+  });
+  
+  if (ch.choices) {
+    const letters = ['A', 'B', 'C', 'D'];
+    html += `<div class="choices-container"><div class="choices-label">Que faites-vous ?</div>`;
+    ch.choices.forEach((choice, i) => {
+      html += `
+        <button class="choice-btn" onclick="makeChoice(${state.chapter}, ${i})">
+          <div class="choice-btn__letter">Option ${letters[i]}</div>
+          <div class="choice-btn__text">${choice.text}</div>
+          <div class="choice-btn__consequence">${choice.consequence}</div>
+        </button>`;
+    });
+    html += `</div>`;
+  }
+  
+  html += `</div>`;
+  document.getElementById('gameScreen').innerHTML = html;
+  window.scrollTo(0, 0);
+}
+
+// ── MAKE CHOICE ──
+function makeChoice(chapterIdx, choiceIdx) {
+  const ch = CHAPTERS[state.persona][chapterIdx];
+  const choice = ch.choices[choiceIdx];
+  state.choices[chapterIdx] = choiceIdx;
+  
+  // Apply effects
+  if (choice.effects) {
+    Object.entries(choice.effects).forEach(([stat, delta]) => {
+      const old = state.stats[stat];
+      state.stats[stat] = Math.max(0, Math.min(100, state.stats[stat] + delta));
+      showStatChange(stat, delta);
+    });
+  }
+  
+  // Collect evidence
+  if (choice.evidence) {
+    state.evidence.add(choice.evidence);
+  }
+  
+  // Check for ending
+  if (choice.ending) {
+    setTimeout(() => renderEnding(choice.ending), 600);
+    return;
+  }
+  
+  // Next chapter
+  if (choice.next !== undefined) {
+    state.chapter = choice.next;
+    setTimeout(() => {
+      renderChapter();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 400);
+  }
+}
+
+function showStatChange(stat, delta) {
+  const labels = { credibilite: 'Crédibilité', pression: 'Pression', reseau: 'Réseau', intuition: 'Intuition' };
+  const el = document.createElement('div');
+  el.className = `stat-change ${delta > 0 ? 'positive' : 'negative'}`;
+  el.textContent = `${labels[stat]} ${delta > 0 ? '+' : ''}${delta}`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2600);
+}
+
+// ── EVIDENCE BOARD ──
+function toggleEvidence() {
+  const board = document.getElementById('evidenceBoard');
+  if (board.classList.contains('open')) {
+    board.classList.remove('open');
+    return;
+  }
+  
+  let items = '';
+  Object.entries(EVIDENCE_DB).forEach(([id, ev]) => {
+    const collected = state.evidence.has(id);
+    items += `
+      <div class="evidence-item ${collected ? '' : 'locked'}">
+        <div class="evidence-item__tag" style="color:${collected ? ev.color : 'var(--text-muted)'}">${collected ? ev.tag : '???'}</div>
+        <div class="evidence-item__name">${collected ? ev.name : 'Indice verrouillé'}</div>
+        <div class="evidence-item__desc">${collected ? ev.desc : 'Continuez l\'enquête pour débloquer cet indice.'}</div>
+      </div>`;
+  });
+  
+  board.innerHTML = `
+    <div class="evidence-board__header">
+      <div>
+        <div class="evidence-board__title">Tableau d'indices</div>
+        <div class="evidence-board__count">${state.evidence.size} / ${state.totalEvidence} collectés</div>
+      </div>
+      <button class="evidence-board__close" onclick="toggleEvidence()">✕</button>
+    </div>
+    <div class="evidence-list">${items}</div>
+  `;
+  board.classList.add('open');
+}
+
+// ── STATS PANEL ──
+function toggleStats() {
+  const panel = document.getElementById('statsPanel');
+  if (panel.classList.contains('open')) {
+    panel.classList.remove('open');
+    return;
+  }
+  
+  const colors = { credibilite: 'var(--gold)', pression: 'var(--red)', reseau: 'var(--blue-glow)', intuition: 'var(--green-glow)' };
+  const labels = { credibilite: 'Crédibilité', pression: 'Pression', reseau: 'Réseau', intuition: 'Intuition' };
+  const descs = {
+    credibilite: 'La solidité de votre dossier et votre réputation.',
+    pression: 'Le danger qui pèse sur vous. Trop haut = game over.',
+    reseau: 'Vos contacts et alliances stratégiques.',
+    intuition: 'Votre capacité à connecter les indices entre eux.'
+  };
+  
+  let rows = Object.entries(state.stats).map(([key, val]) => `
+    <div class="stat-row">
+      <div class="stat-row__header">
+        <div class="stat-row__name">${labels[key]}</div>
+        <div class="stat-row__value" style="color:${colors[key]}">${val}/100</div>
+      </div>
+      <div class="stat-row__bar"><div class="stat-row__fill" style="width:${val}%;background:${colors[key]}"></div></div>
+      <div style="font-family:var(--serif);font-size:0.75rem;color:var(--text-muted);margin-top:0.3rem;">${descs[key]}</div>
+    </div>
+  `).join('');
+  
+  const p = PERSONAS[state.persona];
+  panel.innerHTML = `
+    <div class="stats-header">
+      <h3>${p.icon} ${p.name}</h3>
+      <button class="evidence-board__close" onclick="toggleStats()">✕</button>
+    </div>
+    <div style="font-family:var(--mono);font-size:0.65rem;color:var(--text-muted);margin-bottom:1.5rem;">${p.role}</div>
+    ${rows}
+    <div style="font-family:var(--mono);font-size:0.6rem;color:var(--text-muted);margin-top:1rem;text-align:center;">
+      Chapitre ${state.chapter + 1} · ${state.evidence.size} indices collectés
+    </div>
+  `;
+  panel.classList.add('open');
+}
+
+// ── ENDING ──
+function renderEnding(endingId) {
+  const ending = ENDINGS[endingId];
+  const p = PERSONAS[state.persona];
+  
+  document.getElementById('endingScreen').innerHTML = `
+    <div class="ending-verdict">Fin de l'enquête</div>
+    <h2 class="ending-title">${ending.title}</h2>
+    <p class="ending-text">${ending.text}</p>
+    <div class="ending-stats">
+      <div class="ending-stat"><div class="ending-stat__value">${state.stats.credibilite}</div><div class="ending-stat__label">Crédibilité</div></div>
+      <div class="ending-stat"><div class="ending-stat__value">${state.evidence.size}</div><div class="ending-stat__label">Indices</div></div>
+      <div class="ending-stat"><div class="ending-stat__value">${state.stats.reseau}</div><div class="ending-stat__label">Réseau</div></div>
+      <div class="ending-stat"><div class="ending-stat__value">${Object.keys(state.choices).length + 1}</div><div class="ending-stat__label">Chapitres</div></div>
+    </div>
+    <div>
+      <button class="btn-replay" onclick="restart()">Rejouer</button>
+      <button class="btn-next-chapter" onclick="restart()">Autre personnage</button>
+    </div>
+    <div class="ending-cta">
+      <strong style="color:var(--text-bright)">Ce jeu est basé sur des faits réels.</strong><br>
+      Toutes les informations proviennent de sources judiciaires et médiatiques publiques. Les personnes mentionnées bénéficient de la présomption d'innocence.<br><br>
+      📖 <a href="https://medor.coop" target="_blank">Médor</a> · 
+      <a href="https://pour.press/didier-reynders-lhomme-qui-parle-a-la-poche-des-riches/" target="_blank">POUR.press</a> · 
+      <a href="https://bx1.be" target="_blank">BX1</a><br>
+      🏛️ <a href="https://www.ptb.be/presse/la-commission-finances-examine-la-proposition-du-ptb-pour-une-commission-denquete-sur" target="_blank">Commission d'enquête PTB</a><br><br>
+      <span style="font-family:var(--mono);font-size:0.6rem;color:var(--text-muted);">ouaisfi.eu · Éducation permanente · CC BY-SA 4.0</span>
+    </div>
+  `;
+  showScreen('endingScreen', 300);
+}
+
+function restart() {
+  state.persona = null;
+  state.chapter = 0;
+  state.evidence = new Set();
+  state.choices = {};
+  showScreen('selectScreen', 200);
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+renderTitle();
+renderSelect();
+boot();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
