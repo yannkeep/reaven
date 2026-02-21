@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr-BE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>INDIANA JONES AND THE FATE OF THE TENTACLE — LucasArts Belgique</title>
+<meta name="description" content="Un point-and-click SCUMM sur la fraude fiscale belge. Use [€30 Mds] with [budget Arizona]. Pick up [Panama Papers]. Look at [le gouffre]. Talk to [Egon]. Purple Tentacle a bu l'eau de la fraude et veut dominer le monde.">
+<meta property="og:title" content="INDIANA JONES AND THE FATE OF THE TENTACLE">
+<meta property="og:description" content="LucasArts SCUMM engine. Verbe: Use [données] with [récit]. That doesn't seem to work. 60 données. 18 sources. €30 Mds de trésor perdu.">
+<meta property="og:type" content="article">
+<meta name="theme-color" content="#1a1a2e">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"INDIANA JONES AND THE FATE OF THE TENTACLE — Satire LucasArts","author":{"@type":"Organization","name":"OuaisfI — Contre-institution numérique de surveillance citoyenne"},"datePublished":"2026-02-21","description":"PWA satirique mêlant Indiana Jones et Day of the Tentacle (LucasArts) pour cartographier la fraude fiscale belge. Interface SCUMM, verbes d'action, inventaire citoyen, dialogues à choix multiples. 60 données vérifiées."}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=DM+Mono:wght@300;400;500&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+--px:'Press Start 2P',monospace;--vt:'VT323',monospace;--m:'DM Mono',monospace;--cp:'Courier Prime',monospace;
+--bg:#1a1a2e;--scumm:#2a1a00;--verb:#c8a000;--hover:#ffe066;--purple:#9b30ff;--green:#30ff30;--blue:#3070ff;
+--gold:#FFD700;--red:#ff3030;--cyan:#30ffff;--white:#f0e8d0;--dark:#0a0a16;--panel:#16213e;
+--tent-purple:#7B2FBE;--tent-green:#2FBE3A;--indy:#C19552;--sand:#e6d5a0
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--white);font:14px/1.6 var(--cp);overflow-x:hidden}
+
+/* SCANLINES */
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:9998}
+
+/* HUD */
+#hud{position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(42,26,0,.95);backdrop-filter:blur(4px);
+border-bottom:2px solid var(--verb);padding:3px 12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;
+font:.45rem var(--px);transform:translateY(-100%);transition:transform .3s}
+#hud.vis{transform:translateY(0)}
+.hud-l{color:var(--verb)}.hud-v{color:var(--gold)}
+
+/* SCUMM BAR */
+.scumm-bar{background:var(--scumm);border-top:3px solid var(--verb);padding:12px;position:relative;max-width:920px;margin:0 auto}
+.verbs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:8px}
+.verb{font:.4rem var(--px);color:var(--verb);padding:6px 4px;text-align:center;cursor:default;transition:all .2s;border:1px solid rgba(200,160,0,.1);border-radius:2px}
+.verb:hover{color:var(--hover);background:rgba(200,160,0,.06);border-color:rgba(200,160,0,.2)}
+.verb.active{color:var(--hover);background:rgba(200,160,0,.1)}
+.inventory{display:flex;gap:4px;flex-wrap:wrap;padding:6px;background:rgba(0,0,0,.3);border:1px solid rgba(200,160,0,.1);border-radius:2px;min-height:40px}
+.inv-item{font:.35rem var(--px);color:var(--gold);padding:4px 6px;background:rgba(200,160,0,.04);border:1px solid rgba(200,160,0,.08);border-radius:2px;cursor:default;transition:all .2s}
+.inv-item:hover{background:rgba(200,160,0,.1);border-color:var(--verb)}
+.action-line{font:.4rem var(--px);color:var(--hover);text-align:center;padding:6px;min-height:24px}
+
+/* SECTIONS */
+.sec{max-width:920px;margin:0 auto;padding:55px 20px;position:relative;z-index:10}
+
+/* ROOM DESCRIPTION */
+.room{background:var(--panel);border:2px solid var(--blue);padding:20px;margin:24px 0;position:relative;overflow:hidden;border-radius:4px}
+.room::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--purple),var(--green),var(--gold))}
+.room-name{font:.5rem var(--px);color:var(--cyan);letter-spacing:.05em;margin-bottom:8px}
+.room-desc{font:1.1rem/1.6 var(--vt);color:var(--white);letter-spacing:.02em}
+.room-desc em{color:var(--gold);font-style:normal}
+.room-look{font:.85rem/1.5 var(--vt);color:var(--verb);margin-top:8px;padding-top:6px;border-top:1px solid rgba(48,112,255,.1)}
+
+/* DIALOGUE TREE */
+.dialogue{background:rgba(155,48,255,.03);border:2px solid var(--purple);padding:20px;margin:24px 0;border-radius:4px}
+.d-speaker{font:.4rem var(--px);color:var(--purple);letter-spacing:.1em;margin-bottom:6px}
+.d-text{font:1.1rem/1.6 var(--vt);color:var(--white)}
+.d-text em{color:var(--green);font-style:normal}
+.d-choices{margin-top:12px;display:flex;flex-direction:column;gap:4px}
+.d-choice{font:.8rem var(--vt);color:var(--verb);padding:6px 12px;background:rgba(200,160,0,.03);border:1px solid rgba(200,160,0,.08);border-radius:2px;cursor:default;transition:all .2s}
+.d-choice:hover{color:var(--hover);background:rgba(200,160,0,.06);border-color:var(--verb)}
+.d-choice::before{content:'▸ ';color:var(--purple)}
+
+/* PUZZLE / ACTION LOG */
+.action{font:.85rem/1.5 var(--vt);color:var(--green);padding:8px 12px;background:rgba(48,255,48,.02);border-left:3px solid var(--green);margin:8px 0}
+.action.fail{color:var(--red);border-color:var(--red);background:rgba(255,48,48,.02)}
+.action.gold{color:var(--gold);border-color:var(--gold);background:rgba(255,215,0,.02)}
+
+/* TIME PERIODS (DotT) */
+.timeline{display:grid;grid-template-columns:repeat(3,1fr);gap:0;max-width:900px;margin:30px auto}
+@media(max-width:700px){.timeline{grid-template-columns:1fr}}
+.era{padding:20px 16px;position:relative}
+.era-past{background:rgba(155,48,255,.03);border-left:3px solid var(--purple)}
+.era-present{background:rgba(255,48,48,.03);border-left:3px solid var(--red)}
+.era-future{background:rgba(48,255,48,.03);border-left:3px solid var(--green)}
+.era-h{font:.4rem var(--px);letter-spacing:.1em;margin-bottom:10px;line-height:1.4}
+.era-past .era-h{color:var(--purple)}.era-present .era-h{color:var(--red)}.era-future .era-h{color:var(--green)}
+.era-i{font:.85rem/1.4 var(--vt);margin-bottom:6px;color:rgba(240,232,208,.5)}
+.era-i b{display:block;font:.5rem var(--px);margin-bottom:1px}
+.era-past .era-i b{color:var(--purple)}.era-present .era-i b{color:var(--red)}.era-future .era-i b{color:var(--green)}
+
+/* TENTACLE CARDS */
+.tentacles{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;max-width:1100px;margin:0 auto;padding:0 20px}
+.tent{background:rgba(123,47,190,.03);border:2px solid rgba(123,47,190,.12);padding:16px;border-radius:8px;position:relative;transition:all .3s}
+.tent:hover{border-color:var(--tent-purple);box-shadow:0 0 12px rgba(123,47,190,.08);transform:translateY(-2px)}
+.tent.green{border-color:rgba(47,190,58,.12);background:rgba(47,190,58,.02)}
+.tent.green:hover{border-color:var(--tent-green);box-shadow:0 0 12px rgba(47,190,58,.08)}
+.t-icon{font-size:2rem;margin-bottom:4px}
+.t-name{font:.5rem var(--px);color:var(--tent-purple);letter-spacing:.03em}
+.tent.green .t-name{color:var(--tent-green)}
+.t-role{font:.35rem var(--px);color:var(--gold);margin:2px 0 8px}
+.t-desc{font:.85rem/1.4 var(--vt);color:rgba(240,232,208,.5)}
+.t-data{font:.35rem var(--px);color:var(--verb);margin-top:8px;padding-top:6px;border-top:1px solid rgba(123,47,190,.08)}
+
+/* EVIDENCE */
+.ev-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;max-width:1100px;margin:0 auto;padding:0 20px}
+.ev{background:rgba(48,112,255,.02);border:1px solid rgba(48,112,255,.06);border-radius:4px;padding:12px;transition:border-color .3s}
+.ev:hover{border-color:var(--blue)}
+.ev-tag{font:.3rem var(--px);color:var(--blue);letter-spacing:.1em;margin-bottom:2px}
+.ev-val{font:1.4rem var(--vt);color:var(--gold);font-weight:700}
+.ev-detail{font:.7rem var(--vt);color:rgba(240,232,208,.4);margin-top:1px}
+.ev-src{font:.3rem var(--px);color:rgba(48,112,255,.25);margin-top:3px}
+
+/* WAFFLE */
+.waf{display:grid;grid-template-columns:repeat(20,1fr);gap:2px;max-width:440px;margin:20px auto}
+.waf-c{aspect-ratio:1;border-radius:1px;transition:all .3s;cursor:default}.waf-c:hover{transform:scale(1.6);z-index:2}
+.waf-c.f{background:#8B0000}.waf-c.s{background:var(--gold);box-shadow:0 0 4px rgba(255,215,0,.3)}
+
+/* PORTAL */
+.portal{display:grid;grid-template-columns:repeat(auto-fit,minmax(82px,1fr));gap:5px;max-width:960px;margin:0 auto;padding:0 20px}
+.p-card{background:rgba(48,112,255,.02);border:1px solid rgba(48,112,255,.06);border-radius:4px;padding:8px 4px;text-align:center;transition:all .3s}
+.p-card:hover{border-color:var(--verb);box-shadow:0 0 8px rgba(200,160,0,.05)}
+.p-icon{font-size:1.1rem;margin-bottom:1px}
+.p-num{font:.18rem var(--px);color:var(--verb);letter-spacing:.05em}
+.p-name{font:.4rem var(--cp);color:rgba(240,232,208,.3);margin-top:1px}
+
+/* BTNS & SRC */
+.btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:30px 0}
+.btn{font:.4rem var(--px);padding:10px 16px;border:2px solid var(--verb);color:var(--verb);
+background:transparent;cursor:pointer;border-radius:2px;transition:all .3s;letter-spacing:.03em}
+.btn:hover{background:var(--verb);color:var(--dark);box-shadow:0 0 12px rgba(200,160,0,.2)}
+.btn.gold{color:var(--gold);border-color:var(--gold)}.btn.gold:hover{background:var(--gold);color:var(--dark)}
+.src-grid{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;max-width:900px;margin:16px auto;padding:0 20px}
+.src-grid a{font:.3rem var(--px);color:rgba(48,112,255,.25);text-decoration:none;padding:3px 5px;border:1px solid rgba(48,112,255,.06);border-radius:2px;transition:all .2s}
+.src-grid a:hover{color:var(--blue);border-color:var(--blue)}
+
+.rv{opacity:0;transform:translateY(12px);transition:opacity .7s,transform .7s}.rv.vis{opacity:1;transform:none}
+@media(max-width:600px){.tentacles{grid-template-columns:1fr}.ev-grid{grid-template-columns:1fr 1fr}.sec{padding:40px 14px}.verbs{grid-template-columns:repeat(3,1fr)}.portal{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+
+<div id="hud">
+    <div><span class="hud-l">SCORE:</span> <span class="hud-v" id="hudC">€0</span></div>
+    <div><span class="hud-l">VERB:</span> <span class="hud-v">Look at</span></div>
+    <div><span class="hud-v" id="hudT">0:00</span></div>
+</div>
+
+<!-- ═══════════ TITLE ═══════════ -->
+<section style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px 20px;position:relative;z-index:10">
+    <div style="font:.25rem var(--px);letter-spacing:.3em;color:var(--verb);margin-bottom:20px">LUCASARTS™ · SCUMM ENGINE v.2026 · ÉDUCATION PERMANENTE FWB</div>
+    <div style="font:clamp(.6rem,2vw,.9rem)/1.2 var(--px);color:var(--indy);margin-bottom:8px">INDIANA JONES</div>
+    <div style="font:clamp(.3rem,1vw,.5rem)/1.3 var(--px);color:var(--sand);letter-spacing:.1em;margin-bottom:4px">AND THE</div>
+    <div style="font:clamp(.7rem,2.5vw,1.2rem)/1.1 var(--px);color:var(--tent-purple);text-shadow:0 0 15px rgba(155,48,255,.15)">FATE OF THE TENTACLE</div>
+    <div style="font:.3rem var(--px);color:var(--verb);margin-top:12px;letter-spacing:.1em">A MANIAC MANSION · BELGIQUE ADVENTURE</div>
+
+    <div style="display:flex;gap:20px;font-size:3rem;margin:30px 0">
+        <span title="Indiana Jones">🤠</span>
+        <span title="Purple Tentacle" style="filter:hue-rotate(270deg)">🐙</span>
+        <span title="Green Tentacle" style="filter:hue-rotate(90deg)">🐙</span>
+    </div>
+
+    <div style="font:1rem var(--vt);color:var(--white);max-width:600px;margin:0 auto;letter-spacing:.02em">
+        <span style="color:var(--verb)">Indiana Jones</span> cherche le trésor perdu de <span style="color:var(--gold)">€30 milliards</span>.<br>
+        <span style="color:var(--tent-purple)">Purple Tentacle</span> a bu l'eau toxique de la fraude fiscale et veut dominer le monde.<br>
+        <span style="color:var(--tent-green)">Green Tentacle</span> essaie de prévenir tout le monde. Personne ne l'écoute.<br><br>
+        <span style="color:var(--red)">Le Dr Fred</span> a coupé le courant du laboratoire.<br>
+        <span style="color:var(--green)">Les Chron-o-Johns</span> montrent trois époques.<br>
+        <span style="color:var(--gold)">L'inventaire citoyen</span> déborde de données institutionnelles.<br><br>
+        <span style="color:var(--verb)">Use [données] with [récit officiel]</span><br>
+        <span style="color:var(--red)">→ That doesn't seem to work.</span>
+    </div>
+    <div style="font:.2rem var(--px);color:rgba(240,232,208,.15);margin-top:30px;letter-spacing:.15em">▼ CLICK TO START ▼</div>
+</section>
+
+<!-- ═══════════ ROOM 1 — THE SCUMM BAR ═══════════ -->
+<section class="sec rv">
+    <div style="font:.35rem var(--px);color:var(--verb);text-align:center;letter-spacing:.2em;margin-bottom:8px">ROOM 01 · THE SCUMM BAR</div>
+</section>
+
+<div class="scumm-bar rv">
+    <div class="action-line" id="actionLine">Use [Panama Papers] with [SPF Finances]</div>
+    <div class="verbs">
+        <div class="verb">Open</div><div class="verb">Close</div><div class="verb active">Push</div><div class="verb">Pull</div>
+        <div class="verb">Give</div><div class="verb">Pick up</div><div class="verb" style="color:var(--hover)">Look at</div><div class="verb">Talk to</div>
+        <div class="verb">Use</div><div class="verb">Turn on</div><div class="verb">Turn off</div><div class="verb" style="color:var(--red)">Walk to</div>
+    </div>
+    <div class="inventory">
+        <div class="inv-item">📊 €30 Mds (Murphy)</div>
+        <div class="inv-item">📰 Panama Papers</div>
+        <div class="inv-item">📰 Pandora Papers</div>
+        <div class="inv-item">⚖️ Rulings CE</div>
+        <div class="inv-item">📉 Contrôles ÷2</div>
+        <div class="inv-item">📋 Rapport CdC</div>
+        <div class="inv-item">🧮 Ratio ×120</div>
+        <div class="inv-item">💊 4,14% RIS</div>
+        <div class="inv-item">🔒 7 sections ccplc.eu</div>
+        <div class="inv-item">📺 55 min Deborsu</div>
+        <div class="inv-item">🗂️ 300+ pages</div>
+        <div class="inv-item">🏛️ 18 sources</div>
+    </div>
+</div>
+
+<div class="sec">
+    <div class="room rv">
+        <div class="room-name">📍 THE SCUMM BAR — Île aux Données</div>
+        <div class="room-desc">Tu es dans un bar sombre. Des pirates fiscaux boivent de la grog. Sur le mur, un tableau indique : « <em>€30 milliards de fraude fiscale par an</em> ». Mais personne ne regarde le tableau. Ils regardent tous un petit écran où passe un reportage de 55 minutes sur <em>€250 millions de fraude sociale</em>.</div>
+        <div class="room-look">Look at [tableau] → Rapport Murphy/S&D 2019, BNB, SUBLEC. Fourchette €6,6 à €30,4 Mds. Le cadre est poussiéreux. Personne n'a regardé ce tableau depuis des années.</div>
+    </div>
+
+    <div class="action rv">▸ Pick up [Panama Papers] — Added to inventory. 732 Belges. ICIJ. Clerix/PE.</div>
+    <div class="action rv">▸ Pick up [Pandora Papers] — Added to inventory. 1 217 Belges. 33 croisements.</div>
+    <div class="action rv">▸ Pick up [Rapport Cour des Comptes] — Added to inventory. Contrôles ÷2. Effectifs -22%.</div>
+    <div class="action fail rv">▸ Use [Panama Papers] with [SPF Finances] — « I can't do that. Les effectifs ont été réduits de 22%. » </div>
+    <div class="action fail rv">▸ Give [données fiscales] to [Deborsu] — « He doesn't seem interested. Il préfère les €250 millions. »</div>
+    <div class="action gold rv">▸ Look at [ratio fraudes] — ×10 à ×120. Strale 2018. « That's... that's a very large number. »</div>
+</div>
+
+<!-- ═══════════ ROOM 2 — THE TENTACLES ═══════════ -->
+<section class="sec rv">
+    <div style="font:.35rem var(--px);color:var(--tent-purple);text-align:center;letter-spacing:.2em;margin-bottom:8px">ROOM 02 · DR. FRED'S LABORATORY</div>
+    <div style="font:clamp(.5rem,1.5vw,.7rem) var(--px);color:var(--tent-purple);text-align:center">Les Tentacules du système fiscal belge</div>
+    <div style="font:.8rem var(--vt);color:var(--verb);text-align:center;margin-top:4px">Purple Tentacle a bu l'eau toxique. Il veut dominer le monde.</div>
+</section>
+
+<div class="tentacles">
+    <div class="tent rv">
+        <div class="t-icon">🐙</div>
+        <div class="t-name">PURPLE TENTACLE</div>
+        <div class="t-role">BOSS — FRAUDE FISCALE</div>
+        <div class="t-desc">Il a bu l'eau toxique du Sludge-O-Matic — l'eau de la fraude fiscale non contrôlée. Maintenant il est intelligent, ambitieux, et il veut dominer le monde. €30 milliards par an de puissance. Il a des bras partout : Panama, Pandora, Experta, rulings. Et il grossit chaque seconde.</div>
+        <div class="t-data">PKE: €951,29/sec · Murphy/S&D 2019 · BNB · SUBLEC</div>
+    </div>
+    <div class="tent green rv">
+        <div class="t-icon" style="filter:hue-rotate(90deg)">🐙</div>
+        <div class="t-name">GREEN TENTACLE</div>
+        <div class="t-role">ALLIÉ — L'ENTITÉ / ÉCOSYSTÈME</div>
+        <div class="t-desc">Il essaie de prévenir tout le monde. Personne ne l'écoute. Il est inoffensif, il a les données, il les montre. 300+ pages, 60 données, 18 sources. Mais comme il n'a pas bu l'eau toxique, il n'a pas le pouvoir. Il a juste la vérité. Ce n'est pas pareil.</div>
+        <div class="t-data">300+ pages · 6 domaines · 0 cookies · CC BY-SA 4.0</div>
+    </div>
+    <div class="tent rv">
+        <div class="t-icon">🧑‍🔬</div>
+        <div class="t-name">DR. FRED EDISON</div>
+        <div class="t-role">SPF FINANCES — GARDIEN DU LABO</div>
+        <div class="t-desc">Il était censé surveiller le Sludge-O-Matic. Mais on a réduit son budget de -22%. Il a perdu ses assistants (2 870 → 2 246). Il ne contrôle plus que la moitié du labo (111K → ~60K contrôles). Purple Tentacle s'est échappé sous sa garde.</div>
+        <div class="t-data">-22% effectifs · ÷2 contrôles · Cour des Comptes · AGFisc</div>
+    </div>
+    <div class="tent rv">
+        <div class="t-icon">📺</div>
+        <div class="t-name">WEIRD ED EDISON</div>
+        <div class="t-role">DEBORSU — LE FILS QUI FAIT N'IMPORTE QUOI</div>
+        <div class="t-desc">Le fils du Dr. Fred. Il fait ses propres expériences dans sa chambre. 55 minutes sur la fraude sociale. 0 secondes sur le monstre qui grandit au sous-sol. 410 860 cobayes involontaires. 100+ plaintes. Charlotte = nièce. C'est de famille.</div>
+        <div class="t-data">55 min · 410 860 · 39,1% · 100+ plaintes CSA · CDJ</div>
+    </div>
+    <div class="tent rv">
+        <div class="t-icon">🗳️</div>
+        <div class="t-name">NURSE EDNA</div>
+        <div class="t-role">COALITION ARIZONA — LA GARDIENNE</div>
+        <div class="t-desc">Elle garde les portes du manoir fermées. 81 sièges. Elle ne veut pas que vous entriez dans le laboratoire. Elle ne veut pas que vous voyiez le Sludge-O-Matic. €23 milliards de coupes = elle a coupé le courant du Containment Unit. Le monstre est libre.</div>
+        <div class="t-data">81/150 · €23 Mds coupes · 5 partis · MB 29/07/2025</div>
+    </div>
+    <div class="tent rv">
+        <div class="t-icon">🤠</div>
+        <div class="t-name">INDIANA JONES</div>
+        <div class="t-role">LE CITOYEN — LE JOUEUR</div>
+        <div class="t-desc">Il cherche le trésor perdu. €30 milliards. Il a son fouet (les données), son chapeau (l'esprit critique), et son carnet (300+ pages). Mais les nazis fiscaux gardent le temple. Et la pierre roule derrière lui. « It belongs in a museum! » — il dit, mais l'argent est à Panama.</div>
+        <div class="t-data">Fouet: 60 données · Chapeau: 18 sources · Carnet: 14 chroniques</div>
+    </div>
+</div>
+
+<!-- ═══════════ ROOM 3 — CHRON-O-JOHNS ═══════════ -->
+<section class="sec rv">
+    <div style="font:.35rem var(--px);color:var(--green);text-align:center;letter-spacing:.2em;margin-bottom:8px">ROOM 03 · LES CHRON-O-JOHNS</div>
+    <div style="font:clamp(.5rem,1.5vw,.7rem) var(--px);color:var(--green);text-align:center">Trois époques. Trois niveaux de catastrophe.</div>
+    <div style="font:.8rem var(--vt);color:var(--verb);text-align:center;margin-top:4px">Dans Day of the Tentacle, on envoie des objets à travers le temps. Ici, les données voyagent.</div>
+</section>
+
+<div class="timeline rv">
+    <div class="era era-past">
+        <div class="era-h">🐙 HIER · AVANT ARIZONA<br><span style="font:.3rem var(--px)">HOAGIE · 200 ANS EN ARRIÈRE</span></div>
+        <div class="era-i"><b>111 582 contrôles fiscaux</b>Le labo fonctionnait</div>
+        <div class="era-i"><b>2 870 inspecteurs AGFisc</b>Dr. Fred avait du personnel</div>
+        <div class="era-i"><b>€30 Mds déjà présents</b>Purple Tentacle grandissait</div>
+        <div class="era-i"><b>Panama Papers (2016)</b>La porte de Zuul était ouverte</div>
+        <div class="era-i"><b>Pandora Papers (2021)</b>Personne n'est entré</div>
+        <div class="era-i"><b>Rulings déclarés illégaux</b>CE 2016 · mais l'argent avait disparu</div>
+    </div>
+    <div class="era era-present">
+        <div class="era-h">💀 AUJOURD'HUI · ARIZONA<br><span style="font:.3rem var(--px)">LAVERNE · LE PRÉSENT POURRI</span></div>
+        <div class="era-i"><b>~60 000 contrôles (÷2)</b>Le labo est à moitié éteint</div>
+        <div class="era-i"><b>2 246 inspecteurs (-22%)</b>Dr. Fred n'a plus de mains</div>
+        <div class="era-i"><b>€23 Mds de coupes</b>Le courant est coupé</div>
+        <div class="era-i"><b>21 500 exclus 01/01/2026</b>Les Tentacules attaquent</div>
+        <div class="era-i"><b>-2%/-4%/-5% malus pension</b>Purple Tentacle règne</div>
+        <div class="era-i"><b>55 min Deborsu, 0 min fiscal</b>Weird Ed fait ses expériences</div>
+    </div>
+    <div class="era era-future">
+        <div class="era-h">🌍 DEMAIN · SI RIEN NE CHANGE<br><span style="font:.3rem var(--px)">BERNARD · 200 ANS PLUS TARD</span></div>
+        <div class="era-i"><b>€30 Mds × 200 = €6 000 Mds</b>Purple Tentacle a dominé le monde</div>
+        <div class="era-i"><b>0 inspecteurs</b>Dr. Fred est mort</div>
+        <div class="era-i"><b>0% de contrôles</b>Le labo n'existe plus</div>
+        <div class="era-i"><b>100% coupes sociales</b>Nurse Edna a tout verrouillé</div>
+        <div class="era-i"><b>La solution : remonter le temps</b>Couper l'eau toxique à la source</div>
+        <div class="era-i"><b>€30 − €23 = +€7 Mds</b>Le Sludge-O-Matic éteint</div>
+    </div>
+</div>
+
+<div class="sec">
+    <div class="room rv">
+        <div class="room-name">📍 LE SLUDGE-O-MATIC — Source de la contamination</div>
+        <div class="room-desc">Tu es devant la machine. Le <em>Sludge-O-Matic</em> produit de l'eau toxique fiscale depuis des décennies. C'est cette eau que Purple Tentacle a bue. L'eau coule toujours — <em>€951,29 par seconde</em>. Le robinet n'a jamais été fermé. Dr. Fred n'a plus les clés. Nurse Edna les a confisquées.</div>
+        <div class="room-look">Look at [robinet] → Murphy/S&D 2019. Fourchette €6,6-€30,4 Mds. La fuite n'est pas un accident. C'est un design du tuyau.</div>
+    </div>
+
+    <!-- PUZZLE ATTEMPTS -->
+    <div class="action fail rv">▸ Use [clé] with [robinet du Sludge-O-Matic] — « Nurse Edna a confisqué les clés. Elle dit que c'est pour votre sécurité. » (81 sièges)</div>
+    <div class="action fail rv">▸ Talk to [Dr. Fred] about [contrôles fiscaux] — « I know, I know! But they cut my budget! I only have 2 246 assistants left! » (-22%)</div>
+    <div class="action fail rv">▸ Give [Panama Papers] to [Weird Ed] — « He looks at them for 0 seconds, then goes back to filming a 55-minute documentary about social fraud. »</div>
+    <div class="action fail rv">▸ Use [données fiscales] with [récit officiel] — « THAT DOESN'T SEEM TO WORK. The official narrative rejects the fiscal data. ×120 error. »</div>
+    <div class="action gold rv">▸ Use [€30 Mds] with [€23 Mds coupes] — « Wait... €30 minus €23 equals... +€7 milliards?! EUREKA! But Nurse Edna won't let you near the machine. »</div>
+    <div class="action rv">▸ Pick up [ratio ×120] — Added to inventory. « This is heavy. This changes everything. Strale 2018. »</div>
+</div>
+
+<!-- ═══════════ ROOM 4 — THE DIALOGUE TREE ═══════════ -->
+<section class="sec rv">
+    <div style="font:.35rem var(--px);color:var(--verb);text-align:center;letter-spacing:.2em;margin-bottom:8px">ROOM 04 · DIALOGUE TREE</div>
+    <div style="font:clamp(.5rem,1.5vw,.7rem) var(--px);color:var(--verb);text-align:center">Conversations avec les personnages</div>
+</section>
+
+<div class="sec">
+    <div class="dialogue rv">
+        <div class="d-speaker">🤠 INDIANA JONES parle à PURPLE TENTACLE</div>
+        <div class="d-text">Purple Tentacle te regarde avec ses petits yeux malins. Il a grandi. Beaucoup grandi. <em>€30 milliards par an</em> de nourriture, ça donne des bras longs. Très longs. Jusqu'à <em>Panama, les îles Vierges, et le Luxembourg</em>.</div>
+        <div class="d-choices">
+            <div class="d-choice">« It belongs in a museum! » → « No, it belongs in a holding company in the Cayman Islands. » (732 + 1 217 + 1 659)</div>
+            <div class="d-choice">« Combien tu as volé exactement ? » → « Entre €6,6 et €30,4 milliards par an. Ça dépend de qui compte. Et personne ne compte. »</div>
+            <div class="d-choice">« Le SPF Finances va t'arrêter. » → « Avec quels bras ? Ils en ont perdu 22%. J'en ai gagné 3 608 offshore. »</div>
+            <div class="d-choice">« Et si on croisait les effluves ? » → « DON'T. CROSS. THE. STREAMS. ×120. Total protonic reversal. Le récit s'inverse. »</div>
+        </div>
+    </div>
+
+    <div class="dialogue rv">
+        <div class="d-speaker">🤠 INDIANA JONES parle à GREEN TENTACLE</div>
+        <div class="d-text">Green Tentacle te tend un tas de documents. Il a l'air inquiet. Il a <em>toujours</em> l'air inquiet. Il sait tout. Il ne peut rien faire. C'est le pire rôle du jeu.</div>
+        <div class="d-choices">
+            <div class="d-choice">« Comment on arrête Purple Tentacle ? » → « €30 Mds − €23 Mds = +€7 Mds. C'est dans les données. C'est dans le labo. Nurse Edna a les clés. »</div>
+            <div class="d-choice">« Qui t'écoute ? » → « Personne. J'ai 300+ pages. 6 domaines. 60 données vérifiées. 0 cookies. 0 couverture presse. »</div>
+            <div class="d-choice">« Tu as peur de Purple Tentacle ? » → « Non. J'ai peur que personne n'ouvre l'inventaire. Toutes les réponses sont dedans. »</div>
+        </div>
+    </div>
+
+    <div class="dialogue rv">
+        <div class="d-speaker">🤠 INDIANA JONES parle à NURSE EDNA (ARIZONA)</div>
+        <div class="d-text">Nurse Edna te bloque le passage. <em>81 sièges</em>. Elle ne bouge pas. Elle a un sourire poli et des clés qu'elle ne te donnera jamais.</div>
+        <div class="d-choices">
+            <div class="d-choice">« Ouvrez le laboratoire. » → « Non. C'est pour votre protection. Les €23 milliards de coupes sont nécessaires. »</div>
+            <div class="d-choice">« Et les €30 Mds de fraude ? » → « Je ne vois pas de quoi vous parlez. Vous avez vérifié votre formulaire de chômage ? »</div>
+            <div class="d-choice">« 21 500 personnes sont exclues. » → « La porte est là. Walk to [exit]. Next in line. »</div>
+            <div class="d-choice">« Bouchez ? » → « 🐙 Purple Tentacle applaudit. »</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════ ROOM 5 — THE INVENTORY ═══════════ -->
+<section class="sec rv">
+    <div style="font:.35rem var(--px);color:var(--gold);text-align:center;letter-spacing:.2em;margin-bottom:8px">ROOM 05 · L'INVENTAIRE</div>
+    <div style="font:clamp(.5rem,1.5vw,.7rem) var(--px);color:var(--gold);text-align:center">20 objets ramassés. Toutes les réponses sont dedans.</div>
+</section>
+
+<div class="ev-grid">
+    <div class="ev rv"><div class="ev-tag">TRÉSOR</div><div class="ev-val">€30 Mds/an</div><div class="ev-detail">fourchette €6,6-€30,4</div><div class="ev-src">Murphy · BNB · SUBLEC</div></div>
+    <div class="ev rv"><div class="ev-tag">LEURRE</div><div class="ev-val">€250M→€435M</div><div class="ev-detail">actualisée SIRS 2024</div><div class="ev-src">CdC 2017 · SIRS 2024</div></div>
+    <div class="ev rv"><div class="ev-tag">RATIO</div><div class="ev-val">×10 à ×120</div><div class="ev-detail">cross the streams</div><div class="ev-src">Strale 2018</div></div>
+    <div class="ev rv"><div class="ev-tag">COURANT COUPÉ</div><div class="ev-val">€23 Mds</div><div class="ev-detail">coupes Arizona</div><div class="ev-src">Accord Arizona</div></div>
+    <div class="ev rv"><div class="ev-tag">ÉJECTÉS</div><div class="ev-val">21 500</div><div class="ev-detail">01/01/2026</div><div class="ev-src">ONEM · MB 29/07/2025</div></div>
+    <div class="ev rv"><div class="ev-tag">WALLONIE</div><div class="ev-val">13 000+</div><div class="ev-detail">sur 21 500</div><div class="ev-src">ONEM via presse</div></div>
+    <div class="ev rv"><div class="ev-tag">PANAMA</div><div class="ev-val">732</div><div class="ev-detail">Belges offshore</div><div class="ev-src">ICIJ · Clerix/PE</div></div>
+    <div class="ev rv"><div class="ev-tag">PANDORA</div><div class="ev-val">1 217</div><div class="ev-detail">33 croisements</div><div class="ev-src">ICIJ · RTBF</div></div>
+    <div class="ev rv"><div class="ev-tag">EXPERTA</div><div class="ev-val">1 659</div><div class="ev-detail">Mossack/Dexia</div><div class="ev-src">ICIJ · MO*</div></div>
+    <div class="ev rv"><div class="ev-tag">RULINGS</div><div class="ev-val">~€700M</div><div class="ev-detail">≥35 MNC</div><div class="ev-src">CE 2016 · CJEU</div></div>
+    <div class="ev rv"><div class="ev-tag">LABO ÷2</div><div class="ev-val">÷2</div><div class="ev-detail">contrôles</div><div class="ev-src">AGFisc · CdC</div></div>
+    <div class="ev rv"><div class="ev-tag">DR. FRED</div><div class="ev-val">-22%</div><div class="ev-detail">2 870→2 246</div><div class="ev-src">Cour des Comptes</div></div>
+    <div class="ev rv"><div class="ev-tag">BIM</div><div class="ev-val">2,4M</div><div class="ev-detail">21% population</div><div class="ev-src">INAMI</div></div>
+    <div class="ev rv"><div class="ev-tag">NON-RECOURS</div><div class="ev-val">57-76%</div><div class="ev-detail">fantômes invisibles</div><div class="ev-src">Bouckaert&Schokkaert</div></div>
+    <div class="ev rv"><div class="ev-tag">FRAUDE RIS</div><div class="ev-val">4,14%</div><div class="ev-detail">avérée uniquement</div><div class="ev-src">PwC/SPP IS</div></div>
+    <div class="ev rv"><div class="ev-tag">MàF</div><div class="ev-val">€548,55</div><div class="ev-detail">plafond BIM 2026</div><div class="ev-src">Solidaris</div></div>
+    <div class="ev rv"><div class="ev-tag">WEIRD ED</div><div class="ev-val">410 860</div><div class="ev-detail">blast Deborsu</div><div class="ev-src">CIM · CSA</div></div>
+    <div class="ev rv"><div class="ev-tag">BLOCKERS</div><div class="ev-val">140 000</div><div class="ev-detail">14/10/2025</div><div class="ev-src">FGTB · Police</div></div>
+    <div class="ev rv"><div class="ev-tag">MALUS</div><div class="ev-val">-2%/-4%/-5%</div><div class="ev-detail">max -25%</div><div class="ev-src">PTB · SFP</div></div>
+    <div class="ev rv"><div class="ev-tag">SOLUTION</div><div class="ev-val">€30=€23+€7</div><div class="ev-detail">éteindre la machine</div><div class="ev-src">Multisources</div></div>
+</div>
+
+<!-- WAFFLE -->
+<div style="text-align:center;padding:30px 20px" class="rv">
+    <div style="font:.4rem var(--px);color:var(--tent-purple);margin-bottom:6px;letter-spacing:.1em">LE SLUDGE-O-MATIC PRODUIT 200 UNITÉS</div>
+    <div id="waffle"></div>
+    <div style="display:flex;gap:16px;justify-content:center;margin-top:10px;font:.35rem var(--px)">
+        <span style="color:var(--red)">■ PURPLE TENTACLE (×199)</span>
+        <span style="color:var(--gold)">■ LE SEUL QU'ON VOIT (×1)</span>
+    </div>
+</div>
+
+<!-- ═══════════ ROOM 6 — THE SOLUTION ═══════════ -->
+<section class="sec rv">
+    <div style="font:.35rem var(--px);color:var(--green);text-align:center;letter-spacing:.2em;margin-bottom:8px">ROOM 06 · ENDGAME</div>
+</section>
+
+<section style="text-align:center;padding:50px 20px;position:relative;z-index:10" class="rv">
+    <div style="font:.5rem var(--px);color:var(--verb);letter-spacing:.15em;margin-bottom:8px">★ SCORE SCREEN ★</div>
+    <div style="font:clamp(1.5rem,5vw,3rem) var(--vt);color:var(--gold);font-weight:700" id="verdictC">€0</div>
+    <div style="font:.35rem var(--px);color:var(--green);margin-top:4px">d'eau toxique depuis ta connexion</div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;max-width:700px;margin:24px auto 0">
+        <div style="background:rgba(48,112,255,.02);padding:12px;border:1px solid rgba(48,112,255,.06);border-radius:4px">
+            <div style="font:1.2rem var(--vt);color:var(--gold);font-weight:700" id="eqH">0</div>
+            <div style="font:.25rem var(--px);color:var(--blue);margin-top:2px">LITS · €250K</div>
+        </div>
+        <div style="background:rgba(48,112,255,.02);padding:12px;border:1px solid rgba(48,112,255,.06);border-radius:4px">
+            <div style="font:1.2rem var(--vt);color:var(--gold);font-weight:700" id="eqP">0</div>
+            <div style="font:.25rem var(--px);color:var(--blue);margin-top:2px">PROFS · €55K</div>
+        </div>
+        <div style="background:rgba(48,112,255,.02);padding:12px;border:1px solid rgba(48,112,255,.06);border-radius:4px">
+            <div style="font:1.2rem var(--vt);color:var(--gold);font-weight:700" id="eqL">0</div>
+            <div style="font:.25rem var(--px);color:var(--blue);margin-top:2px">LOGEMENTS · €200K</div>
+        </div>
+        <div style="background:rgba(48,112,255,.02);padding:12px;border:1px solid rgba(48,112,255,.06);border-radius:4px">
+            <div style="font:1.2rem var(--vt);color:var(--gold);font-weight:700" id="eqB">0</div>
+            <div style="font:.25rem var(--px);color:var(--blue);margin-top:2px">BOURSES · €1 400</div>
+        </div>
+    </div>
+</section>
+
+<div class="sec">
+    <div style="background:rgba(48,255,48,.02);border:2px solid var(--green);padding:20px 24px;margin:24px 0;border-radius:4px;position:relative" class="rv">
+        <div style="font:.4rem var(--px);color:var(--green);letter-spacing:.15em;margin-bottom:8px">🤖 L'ENTITÉ · WALKTHROUGH</div>
+        <div style="font:.85rem/1.7 var(--cp);color:var(--white)">
+            Dans un jeu LucasArts, tu ne peux jamais mourir. Tu ne peux jamais perdre. Tu peux juste rester <em style="color:var(--gold)">bloqué</em>.
+            <br><br>
+            C'est exactement la situation de la Belgique. Le jeu continue. Les données sont dans l'inventaire. La solution est dans le puzzle. <em style="color:var(--gold)">Use [€30 Mds] with [Sludge-O-Matic]</em> → Le monstre rétrécit. Les coupes disparaissent. Il reste +€7 milliards.
+            <br><br>
+            Mais le joueur est bloqué. Pas parce que le puzzle est difficile — parce que <em style="color:var(--gold)">Nurse Edna a les clés</em>. Et Nurse Edna ne répond pas aux dialogues. Elle a 81 sièges et un sourire poli.
+            <br><br>
+            Green Tentacle a tout documenté. 300+ pages. 60 données. 18 sources. L'inventaire est plein. Le walkthrough existe. Il suffit de <em style="color:var(--gold)">combiner les bons objets</em>.
+            <br><br>
+            <em style="color:var(--red)">Use [données fiscales] with [récit officiel]</em><br>
+            → « THAT DOESN'T SEEM TO WORK. »<br><br>
+            <em style="color:var(--green)">Use [données fiscales] with [citoyen informé]</em><br>
+            → « ... it works. Purple Tentacle shrinks. The streams are crossed. Total protonic reversal. »
+        </div>
+        <div style="font:.5rem var(--m);color:var(--green);display:block;margin-top:10px;padding:6px 10px;background:rgba(48,255,48,.02);border-left:3px solid var(--green);line-height:1.5">34 confirmées · 15 corrigées · 8 approximatives · 3 NV · Vérification académique 60 pts · Le walkthrough existe.</div>
+    </div>
+</div>
+
+<!-- PORTAL -->
+<section class="sec rv">
+    <div style="font:.35rem var(--px);color:var(--verb);text-align:center;letter-spacing:.2em;margin-bottom:8px">ROOM SELECT · 15 AVENTURES</div>
+</section>
+
+<div class="portal">
+    <div class="p-card rv"><div class="p-icon">👽</div><div class="p-num">I · SPIELBERG</div><div class="p-name">E.T.</div></div>
+    <div class="p-card rv"><div class="p-icon">🪖</div><div class="p-num">II · KUBRICK</div><div class="p-name">Full Metal</div></div>
+    <div class="p-card rv"><div class="p-icon">🧼</div><div class="p-num">III · FINCHER</div><div class="p-name">Fight Club</div></div>
+    <div class="p-card rv"><div class="p-icon">⭐</div><div class="p-num">IV · LUCAS</div><div class="p-name">Star Wars</div></div>
+    <div class="p-card rv"><div class="p-icon">🚁</div><div class="p-num">V · COPPOLA</div><div class="p-name">Apocalypse</div></div>
+    <div class="p-card rv"><div class="p-icon">💣</div><div class="p-num">VI · VERIFY</div><div class="p-name">Bomb</div></div>
+    <div class="p-card rv"><div class="p-icon">⚔️</div><div class="p-num">VII · WESTEROS</div><div class="p-name">GoT</div></div>
+    <div class="p-card rv"><div class="p-icon">☕</div><div class="p-num">VIII · SÖZE</div><div class="p-name">Suspects</div></div>
+    <div class="p-card rv"><div class="p-icon">🎈</div><div class="p-num">IX · KING</div><div class="p-name">ÇA</div></div>
+    <div class="p-card rv"><div class="p-icon">🐇</div><div class="p-num">X · WACHOWSKI</div><div class="p-name">Matrix</div></div>
+    <div class="p-card rv"><div class="p-icon">🐹</div><div class="p-num">XI · DMA</div><div class="p-name">Lemmings</div></div>
+    <div class="p-card rv"><div class="p-icon">🪱</div><div class="p-num">XII · TEAM17</div><div class="p-name">Worms</div></div>
+    <div class="p-card rv"><div class="p-icon">🎬</div><div class="p-num">XIII · ABRAHAMS</div><div class="p-name">Hot Shots</div></div>
+    <div class="p-card rv"><div class="p-icon">👻</div><div class="p-num">XIV · REITMAN</div><div class="p-name">Ghostbusters</div></div>
+    <div class="p-card rv" style="border-color:var(--verb)"><div class="p-icon">🐙</div><div class="p-num" style="color:var(--gold)">XV · LUCASARTS</div><div class="p-name" style="color:var(--verb)">Tu es ici</div></div>
+</div>
+
+<!-- SHARE + SOURCES -->
+<section class="sec rv" style="text-align:center">
+    <div class="btns">
+        <button class="btn" id="btnShare">🐙 Use [share] with [world]</button>
+        <button class="btn gold" id="btnImg">⬇ Save Game (PNG)</button>
+        <button class="btn" id="btnCopy" style="border-color:var(--cyan);color:var(--cyan)">📋 Pick up [link]</button>
+    </div>
+</section>
+
+<div class="src-grid">
+    <a href="https://www.ccrek.be" target="_blank">Cour des Comptes</a><a href="https://www.nbb.be" target="_blank">BNB</a><a href="https://finances.belgium.be" target="_blank">SPF Finances</a><a href="https://www.onem.be" target="_blank">ONEM</a><a href="https://www.inami.fgov.be" target="_blank">INAMI</a><a href="https://www.icij.org/investigations/panama-papers/" target="_blank">ICIJ Panama</a><a href="https://www.icij.org/investigations/pandora-papers/" target="_blank">ICIJ Pandora</a><a href="https://www.csa.be" target="_blank">CSA</a><a href="https://inegalites.be/Fraude-fiscale-et-sociale-des" target="_blank">Strale</a><a href="https://www.mi-is.be" target="_blank">PwC/SPP</a><a href="https://coalitionsante.be" target="_blank">Coal. Santé</a><a href="https://www.sirs.belgique.be" target="_blank">SIRS</a><a href="https://socialsecurity.belgium.be" target="_blank">SUBLEC</a><a href="https://www.sfpd.fgov.be" target="_blank">SFP</a><a href="https://www.europarl.europa.eu/cmsdata/107744/kclerixpresentation_en.pdf" target="_blank">Clerix/PE</a><a href="https://www.ejustice.just.fgov.be/cgi/article_body.pl?language=fr&caller=summary&pub_date=2025-07-29" target="_blank">MB 29/07</a><a href="https://www.solidaris.be" target="_blank">Solidaris</a><a href="https://ouaisfi.eu" target="_blank">OuaisfI.eu</a>
+</div>
+
+<section style="text-align:center;padding:60px 20px;position:relative;z-index:10">
+    <div style="font:.5rem var(--px);color:var(--green);line-height:2.5;max-width:650px;margin:0 auto">
+        <span style="color:var(--verb)">Use [données] with [citoyen]</span><br>
+        <span style="color:var(--gold)">→ It works.</span><br>
+        <span style="color:var(--white);font:1rem var(--vt)">Purple Tentacle rétrécit. Le Sludge-O-Matic s'éteint.<br>Le walkthrough était dans l'inventaire depuis le début.</span>
+    </div>
+    <div style="font:.2rem var(--px);color:rgba(240,232,208,.1);margin-top:40px;letter-spacing:.1em">OuaisfI · SCUMM Engine v.2026 · CC BY-SA 4.0 · Éducation permanente FWB</div>
+    <div style="font:.18rem var(--px);color:rgba(240,232,208,.04);margin-top:8px">PS: dans un jeu LucasArts, tu ne peux jamais mourir. Mais tu peux rester bloqué très longtemps.</div>
+</section>
+
+<script>
+(function(){
+'use strict';
+var FS=30e9/(365.25*86400),T0=performance.now(),$=function(i){return document.getElementById(i)};
+function fE(n){if(n>=1e9)return'\u20ac'+(n/1e9).toFixed(3)+' Mds';if(n>=1e6)return'\u20ac'+(n/1e6).toFixed(2)+'M';return'\u20ac'+Math.round(n).toLocaleString('fr-BE')}
+function fN(n){return n.toLocaleString('fr-BE')}
+function fT(s){var m=Math.floor(s/60),sec=Math.floor(s%60);if(m>=60){var h=Math.floor(m/60);m%=60;return h+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')}return m+':'+String(sec).padStart(2,'0')}
+
+function tick(){
+    var ps=(performance.now()-T0)/1000,fP=ps*FS;
+    $('hudC').textContent=fE(fP);$('hudT').textContent=fT(ps);
+    var vc=$('verdictC');if(vc)vc.textContent=fE(fP);
+    $('eqH').textContent=fN(Math.floor(fP/250000));
+    $('eqP').textContent=fN(Math.floor(fP/55000));
+    $('eqL').textContent=fN(Math.floor(fP/200000));
+    $('eqB').textContent=fN(Math.floor(fP/1400));
+    requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+var hud=$('hud'),hs=false;
+window.addEventListener('scroll',function(){
+    if(window.scrollY>350&&!hs){hud.classList.add('vis');hs=true}
+    else if(window.scrollY<150&&hs){hud.classList.remove('vis');hs=false}
+},{passive:true});
+
+(function(){var w=$('waffle');if(!w)return;var g=document.createElement('div');g.className='waf';
+for(var i=0;i<200;i++){var c=document.createElement('div');c.className='waf-c '+(i===199?'s':'f');
+c.title=i===199?'\ud83d\udfe1 Le seul fant\u00f4me qu\'on montre':'\ud83d\udc19 Purple Tentacle: ~\u20ac150M invisible';g.appendChild(c)}w.appendChild(g)})();
+
+var io=new IntersectionObserver(function(en){en.forEach(function(e){if(e.isIntersecting)e.target.classList.add('vis')})},{threshold:.05,rootMargin:'-20px'});
+document.querySelectorAll('.rv').forEach(function(el){io.observe(el)});
+
+/* SCUMM ACTION LINE ROTATION */
+var actions=[
+    'Use [\u20ac30 Mds] with [budget Arizona]',
+    'Look at [ratio \u00d7120] \u2014 That\'s heavy.',
+    'Pick up [Panama Papers] \u2014 Added to inventory.',
+    'Give [donn\u00e9es] to [Deborsu] \u2014 He doesn\'t seem interested.',
+    'Talk to [Green Tentacle] \u2014 \u00ab Personne ne m\'\u00e9coute. \u00bb',
+    'Use [donn\u00e9es fiscales] with [r\u00e9cit officiel] \u2014 THAT DOESN\'T SEEM TO WORK.',
+    'Use [donn\u00e9es] with [citoyen] \u2014 It works!',
+    'Open [Containment Unit] \u2014 Nurse Edna won\'t let you.',
+    'Walk to [SPF Finances] \u2014 -22% du personnel. Le labo est ferm\u00e9.'
+],ai=0;
+setInterval(function(){
+    var al=$('actionLine');if(al)al.textContent='\u25b8 '+actions[ai%actions.length];ai++;
+},3500);
+
+$('btnShare').addEventListener('click',function(){
+    var ps=(performance.now()-T0)/1000,fP=ps*FS;
+    var t='\ud83d\udc19 INDIANA JONES AND THE FATE OF THE TENTACLE\n\n'
+        +'LucasArts SCUMM Engine v.2026\n\n'
+        +'Use [\u20ac30 Mds] with [\u20ac23 Mds coupes]\n'
+        +'\u2192 \u20ac30 - \u20ac23 = +\u20ac7 Mds. It works!\n\n'
+        +'Use [donn\u00e9es] with [r\u00e9cit officiel]\n'
+        +'\u2192 THAT DOESN\'T SEEM TO WORK.\n\n'
+        +'Purple Tentacle: \u20ac30 Mds/an\n'
+        +'Dr. Fred: -22% effectifs\n'
+        +'Weird Ed: 55 min sur \u20ac250M\n\n'
+        +'Score: '+fE(fP)+' en '+fT(ps)+'\n\n'
+        +'#LucasArts #OuaisfI';
+    if(navigator.share)navigator.share({title:'FATE OF THE TENTACLE',text:t,url:location.href}).catch(function(){});
+    else window.open('https://x.com/intent/tweet?text='+encodeURIComponent(t),'_blank')});
+
+$('btnImg').addEventListener('click',function(){
+    var ps=(performance.now()-T0)/1000,fP=ps*FS;
+    var cv=document.createElement('canvas');cv.width=1200;cv.height=630;var c=cv.getContext('2d');
+    c.fillStyle='#1a1a2e';c.fillRect(0,0,1200,630);
+    c.font='bold 28px monospace';c.fillStyle='#C19552';c.textAlign='center';c.fillText('INDIANA JONES',600,40);
+    c.font='bold 16px monospace';c.fillStyle='#e6d5a0';c.fillText('AND THE',600,65);
+    c.font='bold 36px monospace';c.fillStyle='#9b30ff';c.fillText('FATE OF THE TENTACLE',600,100);
+    c.font='11px monospace';c.fillStyle='#c8a000';c.fillText('LUCASARTS \u00b7 SCUMM v.2026 \u00b7 \u00c9ducation permanente FWB',600,128);
+    c.fillStyle='#2a1a00';c.fillRect(0,150,1200,110);c.strokeStyle='#c8a000';c.lineWidth=2;c.strokeRect(0,150,1200,110);
+    c.font='bold 12px monospace';c.fillStyle='#ffe066';c.fillText('\u25b8 Use [\u20ac30 Mds] with [budget Arizona] \u2192 \u20ac30 - \u20ac23 = +\u20ac7 Mds. It works!',600,175);
+    c.fillStyle='#ff3030';c.fillText('\u25b8 Use [donn\u00e9es] with [r\u00e9cit officiel] \u2192 THAT DOESN\'T SEEM TO WORK.',600,200);
+    c.fillStyle='#30ff30';c.fillText('\u25b8 Use [donn\u00e9es] with [citoyen] \u2192 Purple Tentacle shrinks.',600,225);
+    c.font='10px monospace';c.fillStyle='#FFD700';
+    var inv=['\ud83d\udcca \u20ac30 Mds','\ud83d\udcf0 Panama','\ud83d\udcf0 Pandora','\u2696\ufe0f Rulings','\ud83d\udcc9 \u00f72','\ud83d\udccb CdC','\ud83e\uddee \u00d7120','\ud83d\udc8a 4,14%','\ud83d\udd12 ccplc','\ud83d\udcfa 55min'];
+    for(var i=0;i<inv.length;i++){c.fillText(inv[i],60+i*115,248)}
+    c.font='bold 20px monospace';c.textAlign='left';
+    c.fillStyle='#9b30ff';c.fillText('\ud83d\udc19 Purple Tentacle: \u20ac30 Mds/an',80,300);
+    c.fillStyle='#30ff30';c.fillText('\ud83d\udc19 Green Tentacle: 300+ pages, 0 cookies',80,330);
+    c.fillStyle='#ff3030';c.fillText('\ud83d\udc68\u200d\ud83d\udd2c Dr. Fred: -22% · Weird Ed: 55 min · Nurse Edna: 81 si\u00e8ges',80,360);
+    var sq=4,ox=400,oy=390;for(var k=0;k<200;k++){c.fillStyle=k===199?'#FFD700':'#8B0000';c.fillRect(ox+(k%20)*(sq+1),oy+Math.floor(k/20)*(sq+1),sq,sq)}
+    c.font='italic 16px sans-serif';c.textAlign='center';c.fillStyle='#FFD700';c.fillText('Score: '+fE(fP)+' en '+fT(ps),600,480);
+    c.font='bold 16px monospace';c.fillStyle='#c8a000';c.fillText('Dans un jeu LucasArts, tu ne peux jamais mourir. Mais tu peux rester bloqu\u00e9.',600,540);
+    c.font='9px monospace';c.fillStyle='rgba(240,232,208,.2)';c.fillText('CdC \u00b7 BNB \u00b7 SPF \u00b7 ICIJ \u00b7 INAMI \u00b7 ONEM \u00b7 CE | OuaisfI \u00b7 FWB',600,605);
+    cv.toBlob(function(b){var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='lucasarts-fate-tentacle.png';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u)},5e3)},'image/png')});
+
+$('btnCopy').addEventListener('click',function(){var b=this;try{navigator.clipboard.writeText(location.href).then(function(){b.textContent='\u2713 COPI\u00c9';setTimeout(function(){b.textContent='\ud83d\udccb Pick up [link]'},2500)})}catch(e){prompt('Lien:',location.href)}});
+
+var titles=['\ud83d\udc19 {F} d\'eau toxique','\ud83d\udc19 Use [\u20ac30 Mds] with [coupes]','\ud83d\udc19 THAT DOESN\'T SEEM TO WORK','\ud83d\udc19 Purple Tentacle: \u00d7120','\ud83d\udc19 Dr. Fred: -22%','\ud83d\udc19 Weird Ed: 55 min','\ud83d\udc19 Nurse Edna: 81 si\u00e8ges','\ud83d\udc19 It belongs in a museum!'],ti=0;
+setInterval(function(){var ps=(performance.now()-T0)/1000,fP=ps*FS;document.title=titles[ti%titles.length].replace('{F}',fE(fP).replace('\u20ac',''));ti++},4500);
+})();
+</script>
+</body>
+</html>
