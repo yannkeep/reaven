@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROTOCOLE KEYM — Dossier Patient #010180</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Creepster&display=swap');
+
+:root {
+  --phosphor: #33ff33;
+  --phosphor-dim: #1a8a1a;
+  --phosphor-glow: #00ff0044;
+  --amber: #ffaa00;
+  --amber-dim: #885500;
+  --blood: #8b0000;
+  --blood-bright: #cc0000;
+  --static: #222;
+  --void: #0a0a0a;
+  --paper: #f4e8c1;
+  --ink: #2c1810;
+  --scan-speed: 8s;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { font-size: 16px; }
+
+body {
+  background: var(--void);
+  color: var(--phosphor);
+  font-family: 'VT323', monospace;
+  overflow-x: hidden;
+  min-height: 100vh;
+  cursor: crosshair;
+}
+
+/* CRT OVERLAY */
+.crt-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: 
+    repeating-linear-gradient(
+      0deg,
+      rgba(0,0,0,0.15) 0px,
+      rgba(0,0,0,0.15) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+}
+
+.crt-overlay::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0,255,0,0.03) 50%,
+    transparent 100%
+  );
+  animation: scanline var(--scan-speed) linear infinite;
+  height: 100px;
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100px); }
+  100% { transform: translateY(100vh); }
+}
+
+/* GLITCH EFFECTS */
+@keyframes glitch {
+  0%, 90%, 100% { transform: translate(0); filter: none; }
+  91% { transform: translate(-2px, 1px); filter: hue-rotate(90deg); }
+  92% { transform: translate(2px, -1px); filter: hue-rotate(-90deg); }
+  93% { transform: translate(-1px, 2px); }
+  94% { transform: translate(1px, -2px); filter: hue-rotate(180deg); }
+}
+
+@keyframes flicker {
+  0%, 97%, 100% { opacity: 1; }
+  98% { opacity: 0.8; }
+  99% { opacity: 0.9; }
+}
+
+@keyframes vhs-track {
+  0%, 100% { background-position: 0 0; }
+  50% { background-position: 3px 0; }
+}
+
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink-cursor {
+  0%, 100% { border-right-color: var(--phosphor); }
+  50% { border-right-color: transparent; }
+}
+
+@keyframes pulse-blood {
+  0%, 100% { text-shadow: 0 0 5px var(--blood); }
+  50% { text-shadow: 0 0 20px var(--blood-bright), 0 0 40px var(--blood); }
+}
+
+@keyframes static-noise {
+  0% { background-position: 0 0; }
+  100% { background-position: 100% 100%; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.05); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.08); }
+  56% { transform: scale(1); }
+}
+
+/* BOOT SCREEN */
+#boot-screen {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--void);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.1rem;
+  animation: flicker 4s infinite;
+  transition: opacity 1.5s ease;
+}
+
+#boot-screen.off {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.boot-line {
+  opacity: 0;
+  margin: 2px 0;
+  text-align: left;
+  width: 600px;
+  max-width: 90vw;
+}
+
+.boot-line.visible {
+  opacity: 1;
+  animation: fade-in-up 0.3s ease;
+}
+
+.boot-line.error { color: var(--blood-bright); }
+.boot-line.warn { color: var(--amber); }
+
+/* MAIN CONTAINER */
+#main-container {
+  display: none;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  animation: flicker 6s infinite;
+}
+
+#main-container.active { display: block; }
+
+/* HEADER */
+.header-block {
+  border: 1px solid var(--phosphor-dim);
+  padding: 20px;
+  margin-bottom: 30px;
+  position: relative;
+  background: rgba(0,255,0,0.02);
+}
+
+.header-block::before {
+  content: '█ CONFIDENTIEL — PROTOCOLE KEYM — NIVEAU D\'ACCÈS: PATIENT █';
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  background: var(--void);
+  padding: 0 10px;
+  font-size: 0.8rem;
+  color: var(--blood-bright);
+  animation: pulse-blood 3s infinite;
+}
+
+.header-title {
+  font-family: 'Creepster', cursive;
+  font-size: 2.5rem;
+  text-align: center;
+  margin: 15px 0;
+  color: var(--phosphor);
+  text-shadow: 0 0 10px var(--phosphor-glow), 0 0 30px var(--phosphor-glow);
+  animation: glitch 8s infinite;
+  letter-spacing: 4px;
+}
+
+.header-sub {
+  text-align: center;
+  color: var(--amber);
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+}
+
+.patient-info {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--phosphor-dim);
+  border-top: 1px dashed var(--phosphor-dim);
+  padding-top: 15px;
+  margin-top: 15px;
+}
+
+.patient-info span.val {
+  color: var(--phosphor);
+}
+
+.patient-info span.redacted {
+  background: var(--phosphor-dim);
+  color: var(--phosphor-dim);
+  padding: 0 30px;
+  cursor: pointer;
+  transition: all 0.5s;
+  user-select: none;
+}
+
+.patient-info span.redacted:hover {
+  background: transparent;
+  color: var(--blood-bright);
+}
+
+/* SESSION NAVIGATION */
+.session-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 25px 0;
+  justify-content: center;
+}
+
+.session-btn {
+  font-family: 'VT323', monospace;
+  font-size: 1rem;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--phosphor-dim);
+  color: var(--phosphor-dim);
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  text-transform: uppercase;
+}
+
+.session-btn:hover, .session-btn.active {
+  border-color: var(--phosphor);
+  color: var(--phosphor);
+  background: rgba(0,255,0,0.08);
+  text-shadow: 0 0 8px var(--phosphor-glow);
+}
+
+.session-btn.locked {
+  color: var(--static);
+  border-color: var(--static);
+  cursor: not-allowed;
+}
+
+.session-btn.locked::after {
+  content: ' 🔒';
+}
+
+.session-btn.corrupted {
+  animation: glitch 2s infinite;
+  color: var(--blood-bright);
+  border-color: var(--blood);
+}
+
+/* SESSION CONTENT */
+.session-content {
+  display: none;
+  animation: fade-in-up 0.8s ease;
+}
+
+.session-content.active {
+  display: block;
+}
+
+.session-header {
+  font-family: 'Creepster', cursive;
+  font-size: 1.8rem;
+  margin: 20px 0 5px 0;
+  color: var(--amber);
+  text-shadow: 0 0 10px rgba(255,170,0,0.3);
+}
+
+.session-date {
+  font-size: 0.85rem;
+  color: var(--phosphor-dim);
+  margin-bottom: 20px;
+}
+
+.session-epigraph {
+  font-family: 'Special Elite', cursive;
+  font-size: 1.15rem;
+  color: var(--amber);
+  border-left: 3px solid var(--amber-dim);
+  padding: 15px 20px;
+  margin: 20px 0;
+  background: rgba(255,170,0,0.03);
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.session-epigraph .source {
+  display: block;
+  margin-top: 8px;
+  font-style: normal;
+  color: var(--amber-dim);
+  font-size: 0.9rem;
+}
+
+/* NARRATIVE BLOCKS */
+.narrative {
+  font-family: 'Courier Prime', monospace;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--phosphor);
+  margin: 15px 0;
+}
+
+.narrative p { margin-bottom: 12px; }
+
+.analyst-note {
+  font-family: 'Special Elite', cursive;
+  background: rgba(139,0,0,0.1);
+  border: 1px solid var(--blood);
+  padding: 15px;
+  margin: 20px 0;
+  color: var(--blood-bright);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  position: relative;
+}
+
+.analyst-note::before {
+  content: '⚠ NOTE ANALYSTE — Dr. ████████';
+  display: block;
+  font-family: 'VT323', monospace;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  color: var(--blood);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.memory-fragment {
+  background: rgba(0,255,0,0.03);
+  border: 1px dashed var(--phosphor-dim);
+  padding: 15px;
+  margin: 15px 0;
+  position: relative;
+}
+
+.memory-fragment::before {
+  content: '◈ FRAGMENT MNÉSIQUE';
+  display: block;
+  font-size: 0.75rem;
+  color: var(--phosphor-dim);
+  margin-bottom: 8px;
+  letter-spacing: 3px;
+}
+
+.memory-fragment.corrupted {
+  animation: vhs-track 0.5s infinite;
+  position: relative;
+}
+
+.memory-fragment.corrupted::after {
+  content: '▓▓▓ DONNÉES CORROMPUES — RECONSTRUCTION PARTIELLE ▓▓▓';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  background: var(--blood);
+  color: white;
+  text-align: center;
+  font-size: 0.7rem;
+  padding: 3px;
+  letter-spacing: 2px;
+}
+
+/* CHOICE SYSTEM */
+.choice-block {
+  margin: 25px 0;
+  padding: 15px;
+  border: 1px solid var(--amber-dim);
+  background: rgba(255,170,0,0.03);
+}
+
+.choice-block .prompt {
+  color: var(--amber);
+  margin-bottom: 15px;
+  font-size: 1.05rem;
+}
+
+.choice-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-family: 'VT323', monospace;
+  font-size: 1rem;
+  padding: 10px 15px;
+  margin: 5px 0;
+  background: transparent;
+  border: 1px solid var(--phosphor-dim);
+  color: var(--phosphor);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.choice-option:hover {
+  background: rgba(0,255,0,0.1);
+  border-color: var(--phosphor);
+  padding-left: 25px;
+}
+
+.choice-option.selected {
+  border-color: var(--amber);
+  color: var(--amber);
+  background: rgba(255,170,0,0.08);
+}
+
+.choice-option .key {
+  color: var(--amber);
+  margin-right: 10px;
+}
+
+.choice-result {
+  display: none;
+  margin-top: 15px;
+  padding: 15px;
+  border-top: 1px dashed var(--phosphor-dim);
+  animation: fade-in-up 0.6s ease;
+}
+
+.choice-result.visible { display: block; }
+
+/* DIAGNOSTIC BAR */
+.diag-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(10,10,10,0.95);
+  border-top: 1px solid var(--phosphor-dim);
+  padding: 8px 20px;
+  font-size: 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+  backdrop-filter: blur(5px);
+}
+
+.diag-item { color: var(--phosphor-dim); }
+.diag-item .label { color: var(--phosphor); }
+.diag-item.danger .label { color: var(--blood-bright); animation: pulse-blood 2s infinite; }
+
+.trauma-meter {
+  width: 120px;
+  height: 8px;
+  background: var(--static);
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  overflow: hidden;
+}
+
+.trauma-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--phosphor), var(--amber), var(--blood-bright));
+  transition: width 1s ease;
+  animation: heartbeat 2s infinite;
+}
+
+/* POP CULTURE TOOLTIP */
+.ref {
+  color: var(--amber);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: help;
+  position: relative;
+}
+
+.ref:hover::after {
+  content: attr(data-ref);
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  background: var(--void);
+  border: 1px solid var(--amber);
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  z-index: 50;
+  color: var(--amber);
+  max-width: 300px;
+  white-space: normal;
+}
+
+/* BACHELET COUNTER */
+.bachelet-counter {
+  text-align: center;
+  margin: 30px 0;
+  padding: 20px;
+  border: 2px solid var(--amber-dim);
+  background: rgba(255,170,0,0.03);
+}
+
+.bachelet-counter .years {
+  font-family: 'Creepster', cursive;
+  font-size: 3rem;
+  color: var(--amber);
+  text-shadow: 0 0 15px rgba(255,170,0,0.5);
+}
+
+.bachelet-counter .subtitle {
+  font-family: 'Special Elite', cursive;
+  color: var(--blood-bright);
+  margin-top: 5px;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--void); }
+::-webkit-scrollbar-thumb { background: var(--phosphor-dim); }
+::-webkit-scrollbar-thumb:hover { background: var(--phosphor); }
+
+/* RESPONSIVE */
+@media (max-width: 700px) {
+  .header-title { font-size: 1.6rem; }
+  .session-nav { gap: 4px; }
+  .session-btn { font-size: 0.85rem; padding: 6px 10px; }
+  .diag-bar { font-size: 0.65rem; flex-wrap: wrap; gap: 5px; }
+  .header-block::before { font-size: 0.6rem; }
+}
+
+/* PRINT/PAPER MODE for analyst notes */
+.paper-insert {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Special Elite', cursive;
+  padding: 25px;
+  margin: 20px 0;
+  transform: rotate(-0.5deg);
+  box-shadow: 3px 3px 10px rgba(0,0,0,0.5);
+  line-height: 1.7;
+  position: relative;
+}
+
+.paper-insert::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+.paper-insert .stamp {
+  color: var(--blood);
+  font-family: 'VT323', monospace;
+  font-size: 1.4rem;
+  transform: rotate(-12deg);
+  display: inline-block;
+  border: 3px solid var(--blood);
+  padding: 3px 12px;
+  margin: 10px 0;
+  letter-spacing: 3px;
+}
+
+.hidden-text {
+  color: var(--void);
+  transition: color 2s ease;
+  cursor: pointer;
+}
+
+.hidden-text:hover, .hidden-text.revealed {
+  color: var(--blood-bright);
+}
+
+/* MARGIN ANNOTATIONS */
+.margin-note {
+  font-family: 'Special Elite', cursive;
+  color: var(--blood);
+  font-size: 0.8rem;
+  float: right;
+  width: 150px;
+  margin-left: 15px;
+  margin-bottom: 10px;
+  padding-left: 10px;
+  border-left: 2px solid var(--blood);
+  opacity: 0.7;
+  transform: rotate(1deg);
+}
+
+.progress-section {
+  margin-bottom: 80px;
+}
+</style>
+</head>
+<body>
+
+<div class="crt-overlay"></div>
+
+<!-- BOOT SEQUENCE -->
+<div id="boot-screen">
+  <div class="boot-line" id="b0">BIOS THERAPEUTIK v6.66 — Initialisation...</div>
+  <div class="boot-line" id="b1">Mémoire conventionnelle: 640K <span style="color:var(--amber)">[ÇA DEVRAIT SUFFIRE]</span></div>
+  <div class="boot-line" id="b2">Chargement module FREUD.SYS.............. OK</div>
+  <div class="boot-line" id="b3">Chargement module LACAN.DLL.............. OK</div>
+  <div class="boot-line" id="b4">Chargement module WINNICOTT.EXE.......... OK</div>
+  <div class="boot-line warn" id="b5">⚠ ATTENTION: BELGIQUE.GOV non trouvé — gouvernement absent depuis 613 jours</div>
+  <div class="boot-line" id="b6">Indexation traumatismes.................. <span id="trauma-count">████</span></div>
+  <div class="boot-line error" id="b7">✖ ERREUR CRITIQUE: Le patient a manqué le repas de midi le 01/01/1980</div>
+  <div class="boot-line error" id="b8">✖ ERREUR: Inscription symbolique dans l'ordre du manque — CONFIRMÉE</div>
+  <div class="boot-line" id="b9">Calibration <span class="ref" data-ref="Bachelet, 1980">indice nostalgique</span>... <span style="color:var(--amber)">DANGEREUX</span></div>
+  <div class="boot-line" id="b10">Reconstruction chronologique: 1980 ➜ 2026</div>
+  <div class="boot-line warn" id="b11">⚠ ALERTE: La dystopie n'est pas un scénario. C'est un diagnostic.</div>
+  <div class="boot-line" id="b12" style="margin-top:15px; text-align:center; color:var(--blood-bright)">
+    ▓▓▓ APPUYEZ SUR UNE TOUCHE POUR ENTRER EN ANALYSE ▓▓▓
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="main-container">
+
+  <!-- HEADER -->
+  <div class="header-block">
+    <div class="header-title">PROTOCOLE KEYM</div>
+    <div class="header-sub">Archéologie Psychique d'un Citoyen Belge — Dossier #010180-WB</div>
+    <div class="patient-info">
+      SUJET: <span class="val">████████</span>, né le <span class="val">01/01/1980</span> à <span class="val">12:31</span> — clinique d'Ixelles<br>
+      LIEU D'ORIGINE: <span class="val">Place Keym, Watermael-Boitsfort (1170)</span><br>
+      STATUT NUTRITIONNEL INITIAL: <span class="val" style="color:var(--blood-bright)">REPAS DE MIDI MANQUÉ — Trauma fondateur identifié</span><br>
+      DIAGNOSTIC PRÉLIMINAIRE: <span class="redacted" title="Survolez pour déclassifier">Syndrome post-particratique avec dissociation ludique compensatoire</span><br>
+      NIVEAU DE DANGER: <span class="val" style="color:var(--amber)">ÉLEVÉ — Le sujet commence à comprendre</span><br>
+      ANALYSTE: <span class="val">Dr. <span class="redacted">Nom classifié par arrêté royal</span></span><br>
+      PROTOCOLE: <span class="val">Rétro-Analyse Ludique en Milieu Dystopique (RALMD)</span>
+    </div>
+  </div>
+
+  <!-- BACHELET COUNTER -->
+  <div class="bachelet-counter">
+    <div style="font-size:0.85rem; color:var(--phosphor-dim); margin-bottom:5px;">
+      Pierre Bachelet chantait "Quand on aura 20 ans, on sera en l'an 2000"
+    </div>
+    <div class="years">46 ANS — AN 2026</div>
+    <div class="subtitle">Le futur est arrivé. Il n'a pas tenu ses promesses.</div>
+    <div style="font-size:0.8rem; color:var(--phosphor-dim); margin-top:8px;">
+      Bachelet est mort en 2005. Il n'a pas vu l'Arizona. Lucky bastard.
+    </div>
+  </div>
+
+  <!-- SESSION NAVIGATION -->
+  <div class="session-nav">
+    <button class="session-btn active" onclick="showSession(0)">Séance 0: Genèse</button>
+    <button class="session-btn" onclick="showSession(1)">Séance 1: La Buvette</button>
+    <button class="session-btn" onclick="showSession(2)">Séance 2: Insert Coin</button>
+    <button class="session-btn" onclick="showSession(3)">Séance 3: L'An 2000</button>
+    <button class="session-btn" onclick="showSession(4)">Séance 4: La Chute</button>
+    <button class="session-btn" onclick="showSession(5)">Séance 5: Le Réveil</button>
+    <button class="session-btn corrupted" onclick="showSession(6)">Séance ∞: 2026</button>
+  </div>
+
+  <!-- ========================= -->
+  <!-- SÉANCE 0: GENÈSE -->
+  <!-- ========================= -->
+  <div class="session-content active" id="session-0">
+    <div class="session-header">Séance 0 — Genèse du Manque</div>
+    <div class="session-date">Timestamp: 01/01/1980 12:31:00 CET — Coordonnées: 50°48'N 4°24'E</div>
+
+    <div class="session-epigraph">
+      « Quand on aura vingt ans, on sera en l'an 2000 / On aura bien le temps de s'aimer en chemin / La vie sera plus belle, je te le dis d'avance... »
+      <span class="source">— Pierre Bachelet, 1980. Spoiler: non.</span>
+    </div>
+
+    <div class="narrative">
+      <p>Dehors, Bruxelles gèle. La nuit du réveillon 1979 a engendré sa propre mythologie : les derniers feux d'une décennie disco s'éteignent dans la fumée des Belga et des frites Maison Antoine. <span class="ref" data-ref="L'année de Coluche à Bobino, de Joy Division, et de l'invasion soviétique en Afghanistan">L'année qui commence</span> ne sait pas encore qu'elle accouchera de Pac-Man, de CNN, et de la mort de Bon Scott.</p>
+
+      <p>Le sujet naît à 12h31. Précision chirurgicale du destin : la cantine hospitalière a fermé à midi. <span class="ref" data-ref="Winnicott : le nourrisson qui ne trouve pas le sein crée le monde">Sa mère</span>, épuisée, attend un plateau qui n'arrivera qu'à 14h. Premier apprentissage du sujet : <em>le monde est un endroit où la bouffe arrive trop tard</em>.</p>
+
+      <div class="margin-note">cf. Lacan : le manque est structurant. Ici, littéralement.</div>
+
+      <p>Place Keym. Pour les non-initiés : un carrefour arboré de <span class="ref" data-ref="Watermael-Boitsfort : seule commune bruxelloise à majorité francophone sans tension communautaire majeure — un miracle belge">Watermael-Boitsfort</span> où la petite bourgeoisie bruxelloise cultive l'illusion d'un village. Les enfants y grandissent entre la <span class="ref" data-ref="La Forêt de Soignes, 4.421 hectares de hêtres cathédrale — le dernier poumon avant l'asphyxie institutionnelle">Forêt de Soignes</span> et les nappes à carreaux des brasseries. C'est propre. C'est calme. C'est le genre d'endroit qui produit soit des comptables, soit des révolutionnaires.</p>
+    </div>
+
+    <div class="analyst-note">
+      Le trauma fondateur du sujet est d'ordre nutritionnel ET temporel. Naître le 1er janvier — jour de l'universel recommencement — et MANQUER LE REPAS : c'est l'allégorie parfaite du citoyen belge. On lui promet le festin démocratique. Il arrive toujours après le service. Le buffet a été vidé par les partis. Il reste les miettes et la TVA à 21%.
+    </div>
+
+    <div class="memory-fragment">
+      <p>Le salon. 1983 ou 84. Papier peint marron à motifs géométriques. La télé — un Philips massif, meuble en teck — diffuse <span class="ref" data-ref="Télé diffusée sur la BRT/RTBF avant que la Belgique ne sépare même ses programmes pour enfants">Goldorak</span>. Le sujet ne comprend pas encore le japonais doublé en français, mais il comprend une chose : il y a des géants, et il y a ceux qui montent dedans pour se battre.</p>
+      <p>Dehors, <span class="ref" data-ref="Wilfried Martens, 1979-1992 : Premier ministre pendant 12 ans. 12 ans. Les Belges ont la mémoire d'un poisson rouge constitutionnel">Martens gouverne</span>. Le sujet n'en saura rien avant vingt ans. C'est peut-être mieux ainsi.</p>
+    </div>
+
+    <div class="choice-block">
+      <div class="prompt">► PROTOCOLE INTERACTIF — Première association libre :</div>
+      <div class="prompt" style="font-size:0.85rem; color:var(--phosphor-dim)">Le sujet, nourrisson, manque son premier repas. Quel mécanisme de défense s'active ?</div>
+      <button class="choice-option" onclick="choose(this, 0, 'a')">
+        <span class="key">[A]</span> Le cri — exiger ce qui est dû (proto-syndicalisme)
+      </button>
+      <button class="choice-option" onclick="choose(this, 0, 'b')">
+        <span class="key">[B]</span> Le sommeil — fuir dans l'inconscient (proto-gaming)
+      </button>
+      <button class="choice-option" onclick="choose(this, 0, 'c')">
+        <span class="key">[C]</span> Le regard — observer et attendre (proto-intelligence citoyenne)
+      </button>
+      <div class="choice-result" id="result-0-a">
+        <p style="color:var(--amber)">► PROFIL: L'INDIGNÉ PRÉCOCE</p>
+        <p>Le cri du nouveau-né résonne dans le couloir de la maternité comme une motion de méfiance. Personne ne l'entend. <span class="ref" data-ref="Les pétitions citoyennes en Belgique n'ont aucune valeur contraignante. Comme le cri d'un bébé dans une cantine fermée.">Bienvenue en démocratie belge.</span> Quarante-six ans plus tard, l'Arizona lui apprendra que crier ne sert à rien dans une particratie. Mais le réflexe est posé.</p>
+      </div>
+      <div class="choice-result" id="result-0-b">
+        <p style="color:var(--amber)">► PROFIL: L'ÉVADÉ STRATÉGIQUE</p>
+        <p>Le sommeil comme premier <span class="ref" data-ref="Concept freudien : la fuite dans la satisfaction hallucinatoire, ancêtre du gaming">hack cognitif</span>. Quand le réel ne fournit pas, on se construit un monde alternatif. Le sujet vient d'inventer le principe du jeu vidéo avant d'avoir vu un écran. Dans quelques années, un <span class="ref" data-ref="Commodore 64, commercialisé en 1982 — 17 millions d'unités vendues">Commodore 64</span> confirmera cette intuition.</p>
+      </div>
+      <div class="choice-result" id="result-0-c">
+        <p style="color:var(--amber)">► PROFIL: LA VIGIE</p>
+        <p>Observer. Cartographier. Comprendre pourquoi la bouffe n'arrive pas, qui l'a mangée, et comment modifier le système pour que ça n'arrive plus. Le sujet vient, sans le savoir, de poser les bases d'une <span class="ref" data-ref="Intelligence citoyenne : transposition de l'intelligence économique au service de la société civile">intelligence citoyenne</span>. Le problème : quarante-six ans d'observation mènent à la conclusion que le système est conçu pour que la bouffe n'arrive jamais.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- SÉANCE 1: LA BUVETTE -->
+  <!-- ========================= -->
+  <div class="session-content" id="session-1">
+    <div class="session-header">Séance 1 — La Buvette (Matrice des Possibles)</div>
+    <div class="session-date">Timestamp: ~1987-1993 — Coordonnées: gymnase communal, WB</div>
+
+    <div class="session-epigraph">
+      « Le baby-foot est le seul parlement où chaque joueur a le même poids. Sauf les gardiens : ceux-là sont vissés. Comme les citoyens belges. »
+      <span class="source">— Note de séance, Dr. ████████</span>
+    </div>
+
+    <div class="narrative">
+      <p>Les parents jouent au volley. Tous les mercredis. Tous les samedis. Le gymnase sent le parquet ciré et la transpiration institutionnalisée. Mais le sujet n'est pas sur le terrain. Le sujet est à la <em>buvette</em>.</p>
+
+      <p>La buvette du club de volley, circa 1987 : un comptoir en formica, des <span class="ref" data-ref="Jupiler : brassée à Jupille-sur-Meuse. 'Jupiler, les hommes savent pourquoi.' Les enfants ne savent pas encore.">casiers de Jupiler</span>, un frigo Côte d'Or, et — l'autel — le <span class="ref" data-ref="Flipper : descendant mécanique du pachinko, ancêtre spirituel du jeu vidéo. Le tilt comme métaphore de la limite démocratique.">flipper</span>. Un Williams ou un Bally, le souvenir est flou. Ce qui n'est pas flou : le son. Le <em>CLACK</em> de la bille qui part. Le <em>DING-DING-DING</em> des bumpers. Le <em>TILT</em> quand on secoue trop fort.</p>
+
+      <div class="margin-note">Le flipper est la première expérience du citoyen : on peut agir sur les flippers (gauche/droite), mais la bille va où la gravité (le système) l'envoie.</div>
+
+      <p>Le sujet apprend trois choses fondamentales à la buvette :</p>
+
+      <p><strong>1. Le temps des adultes est élastique</strong> — un match de volley dure théoriquement 45 minutes. En réalité, avec les sets, les prolongations, et les <span class="ref" data-ref="La 'troisième mi-temps' : institution sacrée du sport amateur belge. Plus de bières que de sets.">troisièmes mi-temps</span>, un enfant de buvette dispose de 2 à 4 heures d'autonomie non supervisée. C'est l'équivalent ludique de la <span class="ref" data-ref="Belgique : 541 jours sans gouvernement en 2010-2011. Le pays fonctionne mieux sans.">Belgique sans gouvernement</span> : ça tourne mieux sans autorité.</p>
+
+      <p><strong>2. L'argent est un jeu</strong> — les pièces de 5 francs. Lourdes, argentées, <span class="ref" data-ref="Le franc belge : disparu en 2002. La pièce de 5 francs portait le profil de Baudouin. Même le roi avait l'air de s'ennuyer.">frappées du profil de Baudouin</span>. Chaque pièce = une partie. L'économie de la buvette enseigne le calcul coût/plaisir plus efficacement que n'importe quel cours de math. Un <span class="ref" data-ref="Carambar : contient des blagues à l'intérieur. Certaines sont plus drôles que la politique belge. Certaines.">Carambar</span> ou une partie de flipper ? <span class="ref" data-ref="Le dilemme du prisonnier, version enfantine">Le dilemme</span> fondateur.</p>
+
+      <p><strong>3. Le monde a des règles cachées</strong> — Le flipper a un <em>match</em>. Un score qui, atteint, offre une partie gratuite. Personne ne te dit le score. Il faut observer. Compter. Déduire. Le sujet vient d'apprendre l'<span class="ref" data-ref="OSINT : Open Source Intelligence. L'art de trouver ce qui est caché dans ce qui est visible.">OSINT</span> en culottes courtes.</p>
+    </div>
+
+    <div class="paper-insert">
+      <div class="stamp">ARCHIVES — WB VOLLEY</div>
+      <br>
+      Inventaire buvette — saison 87/88 :<br><br>
+      1x flipper (modèle: ██████)<br>
+      1x baby-foot Bonzini (2 barres tordues)<br>
+      1x TV Grundig (pour les matchs des <span class="ref" data-ref="Les Diables Rouges : éternels espoirs du football belge. Comme les citoyens : toujours qualifiés, jamais champions.">Diables</span>)<br>
+      ~47 dessins d'enfants scotchés au mur<br>
+      1x affiche Tournoi de Pentecôte (encadrement carton)<br>
+      ∞ capsules de Jupiler derrière le comptoir<br><br>
+      <em>Note du trésorier : les gosses ont encore vidé les Carambar. Mettre un cadenas sur le bocal.</em>
+    </div>
+
+    <div class="memory-fragment">
+      <p>Le son spécifique d'une buvette belge un samedi après-midi : <span class="ref" data-ref="Radio Contact, NRJ, Bel RTL — la bande FM comme bruit blanc de l'enfance">la radio</span> qui joue du <span class="ref" data-ref="Jean-Jacques Goldman, 'Quand la musique est bonne', 1982 — hymne officieux des buvettes sportives francophones">Goldman</span> ou du <span class="ref" data-ref="Lio, 'Banana Split', 1979 — la chanson la plus innocemment suggestive jamais diffusée devant des enfants">Lio</span>, les cris étouffés du gymnase, le <em>clac</em> des billes de baby-foot, quelqu'un qui appelle « DEUX JUPILER ET UN FANTA ! », et en fond — toujours — <span class="ref" data-ref="Le compresseur du frigo à boissons : fréquence basse constante, le mantra mécanique de toute buvette belge">le ronronnement du frigo</span>.</p>
+      <p>Le sujet n'a pas de mot pour ça. Plus tard, il apprendra que ça s'appelle <em>le bonheur</em>. Encore plus tard, il apprendra que ça s'appelle <em>la nostalgie</em>. En 2026, il apprendra que ça s'appelle <em>un monde disparu</em>.</p>
+    </div>
+
+    <div class="choice-block">
+      <div class="prompt">► Le sujet a 7 ans. Dernière pièce de 5 francs. Que fait-il ?</div>
+      <button class="choice-option" onclick="choose(this, 1, 'a')">
+        <span class="key">[A]</span> Flipper — la bille ne ment jamais
+      </button>
+      <button class="choice-option" onclick="choose(this, 1, 'b')">
+        <span class="key">[B]</span> Carambar — la blague à l'intérieur est une forme de vérité
+      </button>
+      <button class="choice-option" onclick="choose(this, 1, 'c')">
+        <span class="key">[C]</span> Il la garde — la thésaurisation comme résistance
+      </button>
+      <div class="choice-result" id="result-1-a">
+        <p style="color:var(--amber)">► DIAGNOSTIC: Le joueur investit dans l'expérience plutôt que dans l'objet.</p>
+        <p>La partie dure 4 minutes et 12 secondes. Il n'atteint pas le match. Mais pendant 4 minutes et 12 secondes, il a été <em>souverain</em>. Les flippers répondent à <em>ses</em> impulsions. La bille obéit à <em>sa</em> physique. Aucun parti, aucun pilier, aucune coalition n'interfère. C'est la <span class="ref" data-ref="Démocratie directe : système où le citoyen agit sans intermédiaire. N'existe qu'en Suisse et au flipper.">seule démocratie directe</span> qu'il connaîtra jamais.</p>
+      </div>
+      <div class="choice-result" id="result-1-b">
+        <p style="color:var(--amber)">► DIAGNOSTIC: Le sujet cherche du sens dans l'emballage du divertissement.</p>
+        <p>La blague : « Que fait une fraise sur un cheval ? — Tagada tagada. » Il ne rit pas. Il ne comprend pas pourquoi les adultes rient. Il vient de faire sa première expérience de la <span class="ref" data-ref="Absurdisme belge : tradition nationale. De Magritte ('Ceci n'est pas une pipe') aux formations gouvernementales ('Ceci n'est pas une démocratie').">culture de l'absurde</span>. Trente ans plus tard, il entendra les mêmes blagues au Parlement. Même niveau de rire. Même absence de sens.</p>
+      </div>
+      <div class="choice-result" id="result-1-c">
+        <p style="color:var(--amber)">► DIAGNOSTIC: Pulsion d'accumulation précoce — méfiance systémique installée.</p>
+        <p>Il met la pièce dans sa poche. Il la touche régulièrement pour vérifier qu'elle est là. Ce geste — <span class="ref" data-ref="Objet transitionnel (Winnicott) : l'objet qui permet de supporter l'absence de la mère/de la sécurité">l'objet transitionnel monétaire</span> — survivra à la conversion en euros. En 2026, il vérifie son compte en banque avec la même fréquence et la même anxiété. La pièce a changé de forme. L'angoisse est restée.</p>
+      </div>
+    </div>
+
+    <div class="analyst-note">
+      La buvette est l'espace transitionnel par excellence : ni dehors ni dedans, ni sport ni repos, ni enfant ni surveillé. C'est la <span class="ref" data-ref="Winnicott : l'espace transitionnel comme lieu de créativité et de jeu">zone tampon</span> où le sujet apprend simultanément le jeu, l'économie, l'autonomie et la sociabilité. Tout ce que l'école échouera à lui enseigner plus tard, la buvette le lui a donné en quatre ans de samedis après-midi. Le système éducatif belge investit des milliards. La buvette du club de volley n'a coûté que des Carambars et de l'usure de flippers.
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- SÉANCE 2: INSERT COIN -->
+  <!-- ========================= -->
+  <div class="session-content" id="session-2">
+    <div class="session-header">Séance 2 — Insert Coin (L'Éveil Numérique)</div>
+    <div class="session-date">Timestamp: ~1988-1995 — Coordonnées: chambre du sujet, Place Keym</div>
+
+    <div class="session-epigraph">
+      « In the year 2000, we'll all have computers, and they'll set us free. »
+      <span class="source">— Publicité Commodore, 1984. En 2026, l'ordinateur nous surveille pour l'INAMI.</span>
+    </div>
+
+    <div class="narrative">
+      <p>Le <span class="ref" data-ref="Commodore 64 : 64 Ko de RAM. L'intégralité de la Constitution belge tient dans 64 Ko. Coïncidence ?">Commodore 64</span> arrive comme un monolithe de <span class="ref" data-ref="2001, L'Odyssée de l'espace, Kubrick, 1968 — le monolithe qui accélère l'évolution. Le C64 est le monolithe de la génération 80.">Kubrick</span> dans le salon familial. Beige. Massif. Le clavier est intégré à l'unité — comme si la machine disait : <em>ici, pour recevoir, il faut d'abord écrire</em>.</p>
+
+      <p>Premier jeu : <span class="ref" data-ref="International Karate +, System 3, 1987 — deux combattants, un coucher de soleil, et le sample 'FIGHT' le plus iconique du 8-bit">International Karate+</span>. Le sujet apprend que la violence est esthétique quand elle est pixelisée. Que la victoire s'obtient par la répétition des patterns. Que <em>chaque ennemi a une faille exploitable</em>.</p>
+
+      <div class="margin-note">cf. Le gaming comme proto-hacking : chercher la faille dans le code. Le sujet appliquera ce réflexe aux institutions.</div>
+
+      <p>Puis la <span class="ref" data-ref="Game Boy, Nintendo, 1989 — l'écran vert-gris, le son 8-bit, le cartouche qu'on souffle quand ça marche pas. Comme la démocratie belge : on souffle dessus et on réessaye.">Game Boy</span>. <span class="ref" data-ref="Tetris, Alexey Pajitnov, 1984 — un jeu soviétique vendu par Nintendo. Le capitalisme récupère tout, même les puzzles communistes.">Tetris</span> dans le noir sous la couette. Le sujet apprend la leçon la plus cruelle du jeu vidéo — et de la vie : <em>les erreurs s'accumulent, les succès disparaissent</em>. Chaque ligne complète s'efface. Chaque ligne incomplète reste. C'est la mécanique exacte de la <span class="ref" data-ref="Belgique : les réussites sociales (sécurité sociale, enseignement) sont considérées comme acquises et oubliées. Les échecs (Dutroux, dioxine, BHV) s'empilent dans la mémoire collective.">mémoire collective belge</span>.</p>
+
+      <p><span class="ref" data-ref="Super Nintendo, 1992 en Europe. 16 bits, Mode 7, et la certitude que le progrès technique résoudrait tout.">La Super Nintendo</span> change tout. <span class="ref" data-ref="Street Fighter II, Capcom, 1991 — Hadouken! Le cri qui a défini une génération. Chaque gosse de buvette a essayé de le reproduire dans la cour de récré.">Street Fighter II</span> à la buvette. <span class="ref" data-ref="The Legend of Zelda: A Link to the Past, 1991 — le monde lumineux et le monde des ténèbres coexistent. Comme Bruxelles et son infrastructure souterraine de pouvoirs.">Zelda</span> seul dans sa chambre. Le sujet navigue entre deux modes : le <em>compétitif-social</em> (buvette, tournois de Street Fighter, engueulades sur qui joue <span class="ref" data-ref="Ken vs. Ryu : le choix fondateur. Ken = cheveux blonds, attaque flash. Ryu = discipline, austérité. La droite et la gauche du beat'em up.">Ken ou Ryu</span>) et l'<em>exploratoire-solitaire</em> (Zelda, seul, minuit, le monde des ténèbres).</p>
+    </div>
+
+    <div class="memory-fragment corrupted">
+      <p>Écran bleu. <span class="ref" data-ref="L'Amiga 500, 1987 — la machine des démos, des crackers, et des gens qui refusaient le monopole IBM. Les premiers hackers de salon.">L'Amiga</span> du copain de classe. L'écran de boot — la main qui tient la disquette — est la <span class="ref" data-ref="Magritte encore : l'image d'un objet n'est pas l'objet. L'image d'un ordinateur qui démarre est la promesse d'un monde.">Trahison des Images</span> de leur génération. Le sujet découvre les <span class="ref" data-ref="Demos : programmes de démonstration technique créés par des collectifs de hackers/artistes. La scène demo belge était parmi les meilleures d'Europe.">démos</span>. Des programmes qui ne servent à rien sauf à prouver que c'est possible. L'art pour l'art version binaire. La <span class="ref" data-ref="L'art pour l'art : théorie de Théophile Gautier. Les demosceners ne l'avaient pas lu mais l'appliquaient.">beauté inutile</span> comme acte de résistance au productivisme.</p>
+    </div>
+
+    <div class="analyst-note">
+      Le gaming n'est pas une fuite. C'est un entraînement. Chaque jeu vidéo est un système clos avec des règles explicites — l'exact inverse de la politique belge où les règles sont implicites, changeantes, et décidées dans des bureaux que le citoyen ne voit jamais. Le sujet cherche inconsciemment des systèmes où l'effort produit un résultat mesurable. En 2026, cela explique sa fascination pour l'OSINT et les données ouvertes : il cherche encore le score caché, la partie gratuite, le cheat code de la démocratie.
+    </div>
+
+    <div class="choice-block">
+      <div class="prompt">► Le sujet a 12 ans. Il trouve une disquette piratée. Le label dit : "NE PAS COPIER." Que fait-il ?</div>
+      <button class="choice-option" onclick="choose(this, 2, 'a')">
+        <span class="key">[A]</span> Il copie — l'information veut être libre
+      </button>
+      <button class="choice-option" onclick="choose(this, 2, 'b')">
+        <span class="key">[B]</span> Il ne copie pas — les règles existent pour une raison
+      </button>
+      <button class="choice-option" onclick="choose(this, 2, 'c')">
+        <span class="key">[C]</span> Il copie ET il garde l'original — Fork. Hack. Spread.
+      </button>
+      <div class="choice-result" id="result-2-a">
+        <p style="color:var(--amber)">► Le sujet copie. DISKCOPY A: A:.</p>
+        <p>Le bruit du lecteur de disquette — <em>grrrr-clac-grrrr-clac</em> — est le son de la liberté. Chaque copie est un acte de désobéissance civile miniature. <span class="ref" data-ref="Aaron Swartz : 'Information is power. But like all power, there are those who want to keep it for themselves.' Mort en 2013 à 26 ans.">L'information veut être libre</span>. Le sujet ne le sait pas encore, mais il vient de comprendre le principe fondamental du <span class="ref" data-ref="Creative Commons : licences de partage libre. CC BY-NC = partage autorisé, usage commercial interdit. La licence de ceux qui refusent que le savoir soit une marchandise.">copyleft</span>.</p>
+      </div>
+      <div class="choice-result" id="result-2-b">
+        <p style="color:var(--amber)">► Le sujet ne copie pas. Il repose la disquette.</p>
+        <p>Et il regrettera ce moment toute sa vie. Non pas la disquette — mais le réflexe. Ce réflexe d'obéissance qui fera de lui un contribuable exemplaire, un électeur ponctuel, un citoyen <em>modèle</em>. Le mot « modèle » : <span class="ref" data-ref="Modèle : du latin 'modulus', petite mesure. Être un citoyen modèle, c'est être réduit à sa plus petite mesure.">étymologiquement, une réduction</span>. Le système préfère les citoyens réduits. Ils tiennent mieux dans les cases de la <span class="ref" data-ref="Tax-on-web : la plateforme qui a réussi l'exploit de rendre l'impôt encore plus déprimant qu'il ne l'était déjà.">déclaration fiscale</span>.</p>
+      </div>
+      <div class="choice-result" id="result-2-c">
+        <p style="color:var(--amber)">► Le sujet a trouvé sa philosophie : FORK · HACK · SPREAD</p>
+        <p>Copier, modifier, redistribuer. Le sujet vient d'inventer — à 12 ans, devant un <span class="ref" data-ref="Amstrad CPC ou Commodore 64 ? La guerre de religion des cours de récré belges des années 80. Pire que le clivage communautaire.">8-bit</span> qui grince — le principe qui régira sa vie. <span class="ref" data-ref="Linus Torvalds, créateur de Linux, 1991 : 'I'm doing a (free) operating system — just a hobby, won't be big.' Linux fait tourner 96% des serveurs mondiaux.">Open source</span> avant l'heure. <span class="ref" data-ref="Fork : en informatique, copier un projet pour le modifier. En politique belge, c'est ce que chaque parti fait avec les promesses électorales.">Fork</span> le code. <span class="ref" data-ref="Hack : pas pirater. Comprendre un système et le modifier de l'intérieur. Le contraire du vandalisme. Le contraire de la politique.">Hack</span> le système. <span class="ref" data-ref="Spread : propager. La seule arme du citoyen non-marchand est la propagation de la connaissance.">Spread</span> la connaissance. Tout le reste est du bruit.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- SÉANCE 3: L'AN 2000 -->
+  <!-- ========================= -->
+  <div class="session-content" id="session-3">
+    <div class="session-header">Séance 3 — L'An 2000 (Le Bug du Millénaire)</div>
+    <div class="session-date">Timestamp: 31/12/1999 23:59:59 — Coordonnées: quelque part à Bruxelles</div>
+
+    <div class="session-epigraph">
+      « On sera en l'an 2000 / Et l'on aura tout l'or du temps / Pour rattraper le temps perdu... »
+      <span class="source">— Pierre Bachelet, qui mourra cinq ans plus tard sans avoir rattrapé quoi que ce soit.</span>
+    </div>
+
+    <div class="narrative">
+      <p>Le sujet a 20 ans. <em>Exactement</em> 20 ans. Bachelet avait chanté pour lui — pour <em>eux</em>, cette génération née dans les limbes entre deux décennies, trop jeunes pour le punk, trop vieux pour le <span class="ref" data-ref="Napster, 1999 : le premier service de partage de musique peer-to-peer. L'industrie musicale n'a jamais compris que le piratage était de l'amour mal exprimé.">piratage massif de Napster</span>.</p>
+
+      <p>Le <span class="ref" data-ref="Bug de l'An 2000 (Y2K) : la panique mondiale parce que les programmeurs des années 60 n'avaient pas prévu que l'an 2000 arriverait un jour. Comme les politiciens belges n'ont pas prévu que les citoyens se réveilleraient.">Y2K</span> n'a pas eu lieu. Les avions ne sont pas tombés. Les centrales nucléaires n'ont pas explosé. <span class="ref" data-ref="Doel et Tihange : centrales nucléaires belges, parmi les plus vieilles d'Europe. Fissures détectées en 2012 dans les cuves. Le vrai Y2K belge est en cours.">Doel tourne encore</span>. Le monde n'a pas redémarré. C'est peut-être ça, le vrai bug : le monde <em>aurait dû</em> redémarrer et il ne l'a pas fait.</p>
+
+      <div class="margin-note">Le bug Y2K est la métaphore parfaite de la promesse belge : panique maximale, résultat nul, tout continue comme avant.</div>
+
+      <p>Le sujet a 20 ans et Bruxelles est une fête. <span class="ref" data-ref="Le Fuse, Rue Blaes : ouvert en 1994, premier club techno de Belgique. La new beat est morte, la techno a pris la relève. Bruxelles danse sur les ruines de l'industrie.">Le Fuse</span> pulse. Les cafés de la Place du Jeu de Balle sentent la gueuze et la promesse. <span class="ref" data-ref="L'euro arrive en 2002. Le franc belge disparaît. Personne ne pleure un roi sur une pièce, mais tout le monde se plaint que les prix ont doublé.">L'euro</span> n'est pas encore là. Le franc belge — lourd, tactile, <em>réel</em> — achète encore des frites à 60 francs le cornet. Le sujet ne sait pas que c'est la fin d'un monde.</p>
+
+      <p><span class="ref" data-ref="The Matrix, Wachowski, 1999 : 'Tu prends la pilule bleue, tu te réveilles dans ton lit et tu crois ce que tu veux croire. Tu prends la pilule rouge...'">La pilule rouge ou la pilule bleue ?</span> En 1999, la question est rhétorique. Tout le monde prend la bleue. La fête continue. <span class="ref" data-ref="dEUS, 'Nothing Really Ends', 1999 — groupe anversois, la preuve que la Belgique produit des génies quand elle n'est pas occupée à se déchirer sur la longueur des autoroutes flamandes.">dEUS</span> joue à l'Ancienne Belgique. <span class="ref" data-ref="Arno Hintjens, 1949-2022 : le Tom Waits belge, le poète des trottoirs bruxellois. 'Oh la la la la vie en rose / le beau voyage que c'est...' Il ne le pensait pas.">Arno</span> gueule dans un micro quelque part entre Ostende et l'éternité. <span class="ref" data-ref="Hooverphonic, 'Mad About You', 2000 : la bande-son de la fin du millénaire belge. Trip-hop pour une nation en trip permanent.">Hooverphonic</span> fait du trip-hop comme on fait du deuil : élégamment.</p>
+    </div>
+
+    <div class="memory-fragment">
+      <p>Quelque part entre le 31 décembre 1999 et le 1er janvier 2000, le sujet pense à Bachelet. Pas consciemment. C'est un écho — « <em>on sera en l'an 2000</em> » — qui résonne dans le cortex comme un <span class="ref" data-ref="Sample : extrait sonore réutilisé dans un nouveau contexte musical. La nostalgie est un sample permanent dans le cerveau des enfants des années 80.">sample</span> mal effacé. Il réalise, entre deux verres de <span class="ref" data-ref="Kriek : bière belge à la cerise. Rouge sang. Sucrée. Comme les promesses politiques.">Kriek</span>, que la chanson mentait. Pas méchamment. Comme mentent toutes les chansons d'espoir : par omission.</p>
+      <p>Bachelet avait promis que ce serait beau. C'est... correct. La Belgique est correcte. Le mot le plus dévastateur du vocabulaire belge : <em>correct</em>. Ni bien ni mal. <span class="ref" data-ref="Magritte : 'Ceci n'est pas une pipe.' La Belgique : 'Ceci n'est pas une dystopie.' Même technique, même mensonge.">Ceci n'est pas un avenir</span>. C'est une prolongation.</p>
+    </div>
+
+    <div class="analyst-note">
+      L'An 2000, pour le sujet, n'est pas un tournant mais un <em>non-événement structurant</em>. Toute sa génération a été construite sur la promesse du millénaire : le futur serait différent. Le futur est arrivé le 1er janvier 2000, à 00:00:01, et il ressemblait exactement au passé avec un chiffre de plus. Ce traumatisme — l'arrivée du futur sans futur — explique la dissociation chronique du sujet : il vit en 2026 avec les attentes de 1995 et les outils de 2020. Le décalage est la pathologie. La normalité est le symptôme.
+    </div>
+
+    <div class="choice-block">
+      <div class="prompt">► 1er janvier 2000. 00:00:01. Le sujet a exactement 20 ans. Que ressent-il ?</div>
+      <button class="choice-option" onclick="choose(this, 3, 'a')">
+        <span class="key">[A]</span> Euphorie — le futur est maintenant
+      </button>
+      <button class="choice-option" onclick="choose(this, 3, 'b')">
+        <span class="key">[B]</span> Rien — le futur ressemble au passé
+      </button>
+      <button class="choice-option" onclick="choose(this, 3, 'c')">
+        <span class="key">[C]</span> Vertige — le futur n'existe pas, il n'y a que le présent qui s'allonge
+      </button>
+      <div class="choice-result" id="result-3-a">
+        <p style="color:var(--amber)">► DIAGNOSTIC: Déni productif. Phase terminale de l'optimisme.</p>
+        <p>L'euphorie de l'An 2000 est la dernière grande euphorie collective avant le <span class="ref" data-ref="11 septembre 2001 : le jour où le XXIe siècle a vraiment commencé. Pas par l'espoir mais par la terreur.">11 septembre</span>. Le sujet danse. Tout le monde danse. Même les Flamands et les Wallons dansent ensemble — preuve que l'euphorie est un état altéré de conscience incompatible avec la politique belge. Le 2 janvier, tout redeviendra normal. « Normal » en Belgique : <span class="ref" data-ref="Jean-Claude Van Cauwenberghe, ministre-président wallon 2000-2005. Qui s'en souvient ? Personne. C'est ça, la normalité belge.">personne ne se souvient de qui gouverne</span>.</p>
+      </div>
+      <div class="choice-result" id="result-3-b">
+        <p style="color:var(--amber)">► DIAGNOSTIC: Lucidité précoce. Risque de cynisme chronique.</p>
+        <p>Rien. Le mot le plus honnête de la langue française. Le sujet, à 20 ans, a déjà compris ce que <span class="ref" data-ref="Cioran, Syllogismes de l'amertume, 1952 : 'Le fait d'être né est le plus grand de nos deuils.' Cioran était roumain mais aurait pu être belge.">Cioran</span> a mis une vie à formuler : l'avenir n'est pas devant nous, il est déjà derrière. Chaque nouvel an est un reboot du même système d'exploitation. Windows 2000, <span class="ref" data-ref="Windows ME (Millennium Edition), 2000 : le système d'exploitation le plus instable jamais créé par Microsoft. La métaphore parfaite du millénaire.">Windows ME</span>, Windows XP — le papier peint change, le kernel est le même.</p>
+      </div>
+      <div class="choice-result" id="result-3-c">
+        <p style="color:var(--amber)">► DIAGNOSTIC: Insight existentiel. Le sujet touche le réel.</p>
+        <p>Le vertige de l'éternel présent. Le sujet comprend — flash de lucidité entre deux <span class="ref" data-ref="Duvel : bière belge à 8,5%. 'Duvel' signifie 'diable' en dialecte flamand. On peut avoir le diable ou le bon Dieu, mais pas les deux. Sauf en Belgique, où on a ni l'un ni l'autre.">Duvels</span> — que le temps est un flipper. La bille est lancée, les bumpers font <em>ding</em>, et la gravité fait le reste. Il n'y a pas de futur. Il y a un score qui augmente et une bille qui finit toujours par tomber. <span class="ref" data-ref="Tetris encore : les lignes complètes disparaissent. Seules restent les erreurs. Et la vitesse augmente.">Tetris accélère</span>. Toujours.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- SÉANCE 4: LA CHUTE -->
+  <!-- ========================= -->
+  <div class="session-content" id="session-4">
+    <div class="session-header">Séance 4 — La Chute (Chronique de la Désillusion)</div>
+    <div class="session-date">Timestamp: 2000-2024 — Coordonnées: Belgique, Union Européenne, Multivers</div>
+
+    <div class="session-epigraph">
+      « L'histoire se répète, la première fois comme tragédie, la seconde fois comme formation gouvernementale belge. »
+      <span class="source">— Karl Marx, adapté pour le Plat Pays</span>
+    </div>
+
+    <div class="narrative">
+      <p>Le XXIe siècle belge se déroule comme une partie de <span class="ref" data-ref="Civilization, Sid Meier, 1991 : jeu de stratégie où on construit une civilisation de l'âge de pierre à l'ère spatiale. La Belgique est bloquée à l'ère des négociations.">Civilization</span> jouée par un enfant de 6 ans : des constructions aléatoires, des guerres absurdes, et un invariable « <em>just one more turn</em> » qui justifie de ne jamais aller se coucher.</p>
+
+      <p><strong>2001</strong> — Les tours tombent. Le sujet a 21 ans. Il regarde <span class="ref" data-ref="CNN et la RTBF diffusent en boucle. Le sujet découvre que le monde peut changer en 102 minutes. Il faut 541 jours pour former un gouvernement belge.">la télé en boucle</span>. Le monde se fissure. La Belgique, elle, reste intacte — non par solidité mais par insignifiance. Personne n'attaque un pays que personne ne sait placer sur une carte.</p>
+
+      <p><strong>2007</strong> — <span class="ref" data-ref="Crise BHV (Bruxelles-Hal-Vilvorde) : guerre politico-linguistique sur la scission d'un arrondissement électoral. Durée du conflit : des décennies. Nombre de citoyens qui ont compris l'enjeu : approximativement zéro.">BHV</span>. Le sujet apprend que la Belgique peut s'entredéchirer sur la cartographie d'un arrondissement électoral que 99% des citoyens ne peuvent pas situer. C'est du <span class="ref" data-ref="Borges, 'De la rigueur de la science', 1946 : l'empire qui dresse une carte si détaillée qu'elle recouvre le territoire. La Belgique fait l'inverse : elle se déchire sur des cartes que personne ne lit.">Borges</span> écrit par des fonctionnaires flamands.</p>
+
+      <p><strong>2010-2011</strong> — <span class="ref" data-ref="541 jours sans gouvernement fédéral. Record mondial. Pendant ce temps, le pays fonctionne. Conclusion logique : soit le gouvernement est inutile, soit les fonctionnaires sont des héros. Probablement les deux.">541 jours sans gouvernement</span>. Le sujet a 30 ans. Il observe que la Belgique fonctionne <em>mieux</em> sans gouvernement. C'est la révélation la plus terrifiante de sa vie politique : si le gouvernement est inutile, alors pour qui vote-t-on ? Si le gouvernement est utile, alors pourquoi ça marche sans ? Le <span class="ref" data-ref="Paradoxe du chat de Schrödinger : le chat est à la fois vivant et mort tant qu'on n'ouvre pas la boîte. Le gouvernement belge est à la fois nécessaire et inutile tant qu'on n'ouvre pas la Constitution.">paradoxe de Schrödinger</span> version institutionnelle.</p>
+
+      <p><strong>2016</strong> — <span class="ref" data-ref="Attentats de Bruxelles, 22 mars 2016 : Zaventem et Maelbeek. 32 morts. Le sujet prend le métro chaque jour. Le métro est devenu un acte de foi.">Maelbeek</span>. Le métro que le sujet prend chaque jour. La station qu'il traverse chaque matin. La Belgique découvre qu'elle est vulnérable. Le sujet découvre qu'il est mortel. Les deux informations sont nouvelles et anciennes en même temps.</p>
+
+      <p><strong>2020</strong> — <span class="ref" data-ref="COVID-19 : la Belgique a le taux de mortalité par habitant parmi les plus élevés d'Europe. Parce qu'elle comptait honnêtement, dira le gouvernement. Comme si l'honnêteté excusait l'incompétence.">La pandémie</span>. Le sujet est confiné. Comme tout le monde. Sauf que le sujet, lui, est <em>entraîné</em>. Vingt ans de gaming l'ont préparé au confinement. Il sait rester seul devant un écran pendant des heures. Il sait survivre avec de la nourriture livrée. Il sait que le <span class="ref" data-ref="Respawn : revenir à la vie après être mort dans un jeu vidéo. Le COVID a fait 26.000 morts en Belgique. Pas de respawn.">respawn</span> n'existe pas IRL.</p>
+    </div>
+
+    <div class="memory-fragment corrupted">
+      <p>Les images se superposent comme des calques de <span class="ref" data-ref="Photoshop : logiciel de manipulation d'images. Aussi : logiciel de manipulation de la réalité. Chaque photo officielle est un Photoshop. Chaque communiqué est un filtre.">Photoshop</span> mal alignés. L'affaire <span class="ref" data-ref="Affaire Dutroux, 1996 : le traumatisme fondateur de la Belgique moderne. 300.000 personnes à la Marche Blanche. Le système judiciaire n'a pas changé. Les 300.000 sont rentrés chez eux.">Dutroux</span>, la <span class="ref" data-ref="Crise de la dioxine, 1999 : poulets contaminés, gouvernement tombé, confiance détruite. La Belgique découvre qu'on ne peut pas faire confiance aux poulets. Ni aux politiciens.">dioxine</span>, <span class="ref" data-ref="Fortis/Dexia, 2008 : nationalisation des banques privées. Les profits étaient privés. Les pertes sont publiques. La plus vieille arnaque du capitalisme, exécutée avec une précision belge.">Fortis-Dexia</span>, les <span class="ref" data-ref="Panama Papers, 2016 : révélation des montages d'évasion fiscale. Des politiciens belges impliqués. Conséquences : zéro. Comme d'habitude.">Panama Papers</span>, le <span class="ref" data-ref="Publifin/Nethys, 2016 : scandale d'intercommunales liégeoises. Rémunérations délirantes, mandats fantômes. La particratie dans sa forme la plus pure.">Publifin</span>... Chaque scandale est un niveau de jeu. Chaque niveau est plus absurde que le précédent. Et — c'est ça l'horreur — <em>le boss de fin ne meurt jamais</em>.</p>
+    </div>
+
+    <div class="analyst-note">
+      La séquence 2000-2024 est un <span class="ref" data-ref="Dark Souls, FromSoftware, 2011 : le jeu vidéo le plus punitif jamais créé. Le slogan officieux : 'You Died.' Comme le slogan officieux de la vie en Belgique : 'Vous avez voté. Ça n'a rien changé.'">Dark Souls</span> politique. Le sujet meurt symboliquement à chaque scandale, chaque crise, chaque formation gouvernementale interminable. Il respawn. Il recommence. Il apprend les patterns de l'ennemi (la particratie). Mais contrairement à Dark Souls, le niveau de difficulté augmente sans que le sujet ne gagne d'XP. Le système est conçu pour que le joueur-citoyen ne progresse jamais. « Git gud » ne fonctionne pas en démocratie belge, parce que « gud » n'est pas un paramètre du système.
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- SÉANCE 5: LE RÉVEIL -->
+  <!-- ========================= -->
+  <div class="session-content" id="session-5">
+    <div class="session-header">Séance 5 — Le Réveil (Power-Up)</div>
+    <div class="session-date">Timestamp: 2024-2025 — Coordonnées: quelque part dans le réseau</div>
+
+    <div class="session-epigraph">
+      « Dans le jeu vidéo, le moment où le joueur comprend qu'il est DANS le jeu est le moment où il commence vraiment à jouer. »
+      <span class="source">— Aucun game designer n'a dit ça. Mais c'est vrai.</span>
+    </div>
+
+    <div class="narrative">
+      <p>Le sujet a 44 ans quand il comprend. Pas une illumination — une <em>compilation</em>. Quarante-quatre ans de données enfin indexées. Le flipper de la buvette. Le score caché. Les règles que personne n'explique. La disquette piratée. <span class="ref" data-ref="Le pattern recognition : compétence fondamentale du gamer ET de l'analyste en intelligence citoyenne. Voir le système. Voir les failles. Agir.">Le pattern est clair.</span></p>
+
+      <p>La <span class="ref" data-ref="Coalition Arizona (N-VA/MR/CD&V/Vooruit/Les Engagés), 2025 : la coalition qui promet de 'réformer' la Belgique. Traduction : couper dans le social, protéger le capital, et appeler ça du courage.">coalition Arizona</span> se forme comme un boss final se matérialise : lentement, par phases, avec des attaques de zone qui touchent tout le monde. Le sujet regarde le programme et voit ce qu'il a toujours vu dans les jeux vidéo : <em>un pattern exploitable</em>.</p>
+
+      <p><span class="ref" data-ref="184.000+ personnes exclues du chômage prévues d'ici 2027. Ce n'est pas une réforme. C'est un game over pour 184.000 joueurs.">184.000 personnes</span> à exclure du chômage. Le chiffre clignote dans sa tête comme un score dans un <span class="ref" data-ref="Shoot'em up (shmup) : genre de jeu vidéo où des vagues d'ennemis arrivent de droite et le joueur les abat depuis la gauche. La métaphore politique est trop facile.">shoot'em up</span>. Ce ne sont pas des statistiques. Ce sont des <em>vies</em>. Des vies avec des buvettes, des flippers, des Carambars, des couchers de soleil sur la Forêt de Soignes, des parties de Street Fighter perdues et gagnées.</p>
+
+      <div class="margin-note">Le sujet passe de joueur à game designer. Il ne subit plus le système : il le déconstruit.</div>
+
+      <p>Le <span class="ref" data-ref="Voir-Penser-Agir : méthodologie d'éducation permanente. VOIR les données. PENSER les structures. AGIR sur le réel. Le triangle de la résistance citoyenne.">déclic VPA</span> : Voir. Penser. Agir. Le sujet cesse d'être un joueur passif du système politique belge et devient ce que le gaming l'a toujours entraîné à être : un <span class="ref" data-ref="Speedrunner : joueur qui cherche à terminer un jeu le plus vite possible en exploitant toutes les failles. Le speedrunner démocratique cherche les raccourcis institutionnels.">speedrunner institutionnel</span>. Quelqu'un qui connaît les failles, les glitches, les raccourcis — et qui les <em>documente</em> pour que d'autres puissent les utiliser.</p>
+    </div>
+
+    <div class="paper-insert">
+      <div class="stamp">FORK · HACK · SPREAD</div>
+      <br>
+      MANIFESTE — version 1.0<br><br>
+      1. FORK le savoir institutionnel — il appartient au citoyen<br>
+      2. HACK les mécanismes d'exclusion — chaque bug est une porte<br>
+      3. SPREAD la connaissance — l'intelligence citoyenne n'est pas un luxe, c'est un droit<br><br>
+      Budget opérationnel : 29€/mois<br>
+      Tracking : ZÉRO<br>
+      Licence : CC BY-NC<br>
+      Ennemi : la particratie<br>
+      Arme : l'information vérifiable<br><br>
+      <em>Signé : un gosse de buvette qui a grandi</em>
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- SÉANCE ∞: 2026 -->
+  <!-- ========================= -->
+  <div class="session-content" id="session-6">
+    <div class="session-header" style="color:var(--blood-bright); animation: pulse-blood 2s infinite;">Séance ∞ — Février 2026 (Le Level Actuel)</div>
+    <div class="session-date">Timestamp: NOW — Coordonnées: ICI — Statut: EN COURS</div>
+
+    <div class="session-epigraph" style="border-color: var(--blood); color: var(--blood-bright); background: rgba(139,0,0,0.05);">
+      « Quand on aura vingt ans... »
+      <span class="source">— Pierre, on a 46 ans. L'or du temps est un NFT dévalué. La vie n'est pas plus belle. Tu avais tort. Et on t'aimait quand même.</span>
+    </div>
+
+    <div class="narrative">
+      <p>Février 2026. Le sujet est assis devant un écran. Comme toujours. Comme depuis la buvette. Mais l'écran a changé. Le flipper est devenu un <span class="ref" data-ref="CMS : Content Management System. L'outil du citoyen-éditeur. Grav, Hugo, Jekyll — les armes silencieuses d'une guerre civique.">CMS</span>. Le Carambar est devenu un <span class="ref" data-ref="SEO/GEO : Search Engine Optimization / Generative Engine Optimization. Faire en sorte que la vérité apparaisse quand quelqu'un cherche.">score SEO</span>. La pièce de 5 francs est devenue un <span class="ref" data-ref="29€/mois : le budget total d'exploitation d'ouaisfieu. Moins qu'un abonnement Netflix. Plus dangereux pour la particratie qu'un million d'euros de lobbying.">abonnement à 29€/mois</span>.</p>
+
+      <p>La <span class="ref" data-ref="RTL-TVI, 'Tous Fraudeurs', janvier 2026 : documentaire présentant les allocataires sociaux comme des parasites. Diffusé en prime time. Le timing — juste avant les coupes Arizona — n'est pas une coïncidence. C'est du game design politique.">propagande télévisuelle</span> diffuse des documentaires qui dépeignent les pauvres comme des fraudeurs. L'<span class="ref" data-ref="Arizona : pas l'État américain. La coalition fédérale belge qui gouverne par la peur et la réduction des droits sociaux.">Arizona</span> coupe. La <span class="ref" data-ref="Article 23 de la Constitution belge : droit à la dignité humaine, incluant le droit au travail, à la sécurité sociale, à un logement décent. Texte magnifique. Application : en cours de suppression.">Constitution</span> est piétinée avec le sourire de ceux qui savent que personne ne la lira.</p>
+
+      <p>Mais le sujet a appris. Du flipper : <em>les règles sont exploitables</em>. Du gaming : <em>chaque boss a un pattern</em>. De la buvette : <em>la communauté se construit dans les marges</em>. De la disquette piratée : <em>l'information est un bien commun</em>. De Tetris : <em>les erreurs restent, les succès disparaissent — donc il faut documenter les succès</em>. De Street Fighter : <em>Hadouken</em>.</p>
+
+      <p>La question n'est plus « Quand on aura vingt ans ». La question est : <em>qu'est-ce qu'on fait avec quarante-six ans de données accumulées, un cerveau formaté par le gaming, et 29 euros par mois ?</em></p>
+
+      <p style="color:var(--amber); font-size:1.2rem; text-align:center; margin:30px 0; animation: pulse-blood 3s infinite;">
+        On construit une contre-institution. On fork le système.<br>On hack la particratie. On spread la vérité.<br><br>
+        GAME ON.
+      </p>
+    </div>
+
+    <div class="bachelet-counter" style="border-color: var(--blood); background: rgba(139,0,0,0.05);">
+      <div style="font-size:0.85rem; color:var(--phosphor-dim); margin-bottom:5px;">
+        MISE À JOUR DU DIAGNOSTIC
+      </div>
+      <div class="years" style="color:var(--blood-bright);">LE PATIENT N'EST PAS MALADE</div>
+      <div class="subtitle" style="color: var(--amber)">C'est le système qui est pathologique.</div>
+      <div style="font-size:0.85rem; color:var(--phosphor-dim); margin-top:10px;">
+        Fin du protocole thérapeutique. Début du protocole opérationnel.<br>
+        <span style="color:var(--phosphor)">PROTOCOLE KEYM — STATUT: ACTIF</span>
+      </div>
+    </div>
+
+    <div class="analyst-note" style="border-color: var(--phosphor); color: var(--phosphor);">
+      <span style="display:block; font-family:'VT323',monospace; margin-bottom:8px; font-size:0.85rem; color:var(--phosphor-dim); text-transform:uppercase; letter-spacing:2px;">⚠ NOTE FINALE — Dr. ████████ — CONFIDENTIEL</span>
+      Le sujet ne nécessite plus d'analyse. Le sujet EST l'analyse. Quarante-six ans de gaming, d'observation, de frustration accumulée et de données compilées ont produit quelque chose que le protocole n'avait pas prévu : un citoyen opérationnel. Pas un électeur. Pas un militant. Pas un consommateur de politique. Un opérateur. Quelqu'un qui a compris que la démocratie belge est un jeu vidéo truqué — et qui, au lieu de quitter la partie, a décidé de publier le code source.<br><br>
+      <strong>RECOMMANDATION:</strong> Cesser l'analyse. Commencer la résistance.<br>
+      <strong>PRONOSTIC:</strong> Le sujet survivra. Le système, peut-être pas.<br>
+      <strong>PRESCRIPTION:</strong> 29€/mois. Fork. Hack. Spread. <em>Hadouken</em>.
+    </div>
+  </div>
+
+  <!-- DIAGNOSTIC BAR -->
+  <div class="diag-bar">
+    <div class="diag-item">
+      <span class="label">SESSION:</span> <span id="diag-session">0/∞</span>
+    </div>
+    <div class="diag-item">
+      <span class="label">TRAUMA:</span>
+      <div class="trauma-meter"><div class="trauma-fill" id="trauma-bar" style="width:15%"></div></div>
+    </div>
+    <div class="diag-item">
+      <span class="label">LUCIDITÉ:</span> <span id="diag-lucidity">12%</span>
+    </div>
+    <div class="diag-item danger">
+      <span class="label">STATUT:</span> <span id="diag-status">EN ANALYSE</span>
+    </div>
+  </div>
+
+  <div class="progress-section"></div>
+</div>
+
+<script>
+// BOOT SEQUENCE
+const bootLines = document.querySelectorAll('.boot-line');
+let bootIndex = 0;
+
+function showBootLine() {
+  if (bootIndex < bootLines.length) {
+    bootLines[bootIndex].classList.add('visible');
+    bootIndex++;
+    const delay = bootIndex === bootLines.length ? 0 : 300 + Math.random() * 400;
+    if (bootIndex < bootLines.length) {
+      setTimeout(showBootLine, delay);
+    }
+  }
+}
+
+// Trauma counter animation
+setTimeout(() => {
+  const counter = document.getElementById('trauma-count');
+  if (counter) {
+    let count = 0;
+    const interval = setInterval(() => {
+      count += Math.floor(Math.random() * 50) + 10;
+      if (count > 16847) {
+        counter.textContent = '16.847 — INDEXATION COMPLÈTE';
+        counter.style.color = '#cc0000';
+        clearInterval(interval);
+      } else {
+        counter.textContent = count.toLocaleString('fr-BE');
+      }
+    }, 100);
+  }
+}, 2000);
+
+setTimeout(showBootLine, 500);
+
+// Click/key to enter
+document.getElementById('boot-screen').addEventListener('click', enterMain);
+document.addEventListener('keydown', function bootKey(e) {
+  enterMain();
+  document.removeEventListener('keydown', bootKey);
+});
+
+function enterMain() {
+  const boot = document.getElementById('boot-screen');
+  if (!boot.classList.contains('off')) {
+    boot.classList.add('off');
+    setTimeout(() => {
+      boot.style.display = 'none';
+      document.getElementById('main-container').classList.add('active');
+    }, 1500);
+  }
+}
+
+// SESSION NAVIGATION
+const sessions = document.querySelectorAll('.session-content');
+const sessionBtns = document.querySelectorAll('.session-btn');
+
+const sessionData = [
+  { trauma: 15, lucidity: 12, status: 'EN ANALYSE', label: '0/∞' },
+  { trauma: 28, lucidity: 25, status: 'NOSTALGIE ACTIVE', label: '1/∞' },
+  { trauma: 40, lucidity: 38, status: 'ÉVEIL NUMÉRIQUE', label: '2/∞' },
+  { trauma: 55, lucidity: 52, status: 'DÉSILLUSION Y2K', label: '3/∞' },
+  { trauma: 78, lucidity: 65, status: 'ACCUMULATION CRITIQUE', label: '4/∞' },
+  { trauma: 85, lucidity: 82, status: 'POWER-UP', label: '5/∞' },
+  { trauma: 100, lucidity: 100, status: 'OPÉRATIONNEL', label: '∞/∞' },
+];
+
+function showSession(index) {
+  sessions.forEach(s => s.classList.remove('active'));
+  sessionBtns.forEach(b => b.classList.remove('active'));
+  
+  sessions[index].classList.add('active');
+  sessionBtns[index].classList.add('active');
+  
+  const data = sessionData[index];
+  document.getElementById('trauma-bar').style.width = data.trauma + '%';
+  document.getElementById('diag-lucidity').textContent = data.lucidity + '%';
+  document.getElementById('diag-status').textContent = data.status;
+  document.getElementById('diag-session').textContent = data.label;
+  
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// CHOICE SYSTEM
+function choose(btn, session, choice) {
+  const block = btn.parentElement;
+  const options = block.querySelectorAll('.choice-option');
+  options.forEach(o => {
+    o.classList.remove('selected');
+    o.style.pointerEvents = 'none';
+    o.style.opacity = '0.5';
+  });
+  btn.classList.add('selected');
+  btn.style.opacity = '1';
+  
+  const resultId = `result-${session}-${choice}`;
+  const result = document.getElementById(resultId);
+  if (result) {
+    result.classList.add('visible');
+    setTimeout(() => {
+      result.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 200);
+  }
+}
+
+// REDACTED TEXT REVEAL
+document.querySelectorAll('.redacted').forEach(el => {
+  el.addEventListener('click', function() {
+    this.style.background = 'transparent';
+    this.style.color = '#cc0000';
+  });
+});
+
+// HIDDEN TEXT REVEAL
+document.querySelectorAll('.hidden-text').forEach(el => {
+  el.addEventListener('click', function() {
+    this.classList.toggle('revealed');
+  });
+});
+
+// RANDOM GLITCH EFFECT
+setInterval(() => {
+  if (Math.random() > 0.95) {
+    document.body.style.filter = 'hue-rotate(90deg)';
+    setTimeout(() => {
+      document.body.style.filter = 'none';
+    }, 100);
+  }
+}, 3000);
+
+// KONAMI CODE EASTER EGG
+let konamiIndex = 0;
+const konamiCode = [38,38,40,40,37,39,37,39,66,65];
+document.addEventListener('keydown', (e) => {
+  if (e.keyCode === konamiCode[konamiIndex]) {
+    konamiIndex++;
+    if (konamiIndex === konamiCode.length) {
+      document.body.style.transition = 'all 1s';
+      document.body.style.filter = 'invert(1) hue-rotate(180deg)';
+      setTimeout(() => {
+        alert('🎮 CHEAT CODE ACTIVÉ\n\n30 VIES SUPPLÉMENTAIRES\n\nMais en Belgique, même avec des vies infinies,\nle game over est systémique.\n\n— Konami, 1986 / Particratie, depuis toujours');
+        document.body.style.filter = 'none';
+      }, 1000);
+      konamiIndex = 0;
+    }
+  } else {
+    konamiIndex = 0;
+  }
+});
+</script>
+
+</body>
+</html>
