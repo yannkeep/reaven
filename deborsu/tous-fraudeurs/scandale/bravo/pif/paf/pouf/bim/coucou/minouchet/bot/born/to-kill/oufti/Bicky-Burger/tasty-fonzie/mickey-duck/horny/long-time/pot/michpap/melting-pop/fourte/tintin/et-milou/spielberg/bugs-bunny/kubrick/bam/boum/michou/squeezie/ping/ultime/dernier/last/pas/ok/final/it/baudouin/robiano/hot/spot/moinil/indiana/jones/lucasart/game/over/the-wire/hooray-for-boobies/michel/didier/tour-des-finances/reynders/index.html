@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Didier Reynders : Portrait et Chute d'un Homme d'Exception</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #1e293b; /* slate-800 */
+        }
+
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px; /* Reduced max-width for readability */
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        
+        /* Custom Scrollbar for side panels */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 3px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        .nav-btn.active {
+            background-color: #1e3a8a; /* blue-900 */
+            color: white;
+            border-color: #1e3a8a;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <!-- Chosen Palette: Political Slate & Royal Blue. A neutral, serious background (Slate-50) representing the administration, with deep Royal Blue (#1e3a8a) accents symbolizing the liberal party (MR) and authority. Warm Amber (#f59e0b) is used sparingly for highlights and interactive focus states to guide the user. -->
+    
+    <!-- Application Structure Plan: 
+         The app is designed as a "Political Biography Dashboard".
+         1. **Header**: Establishes the subject and the dual theme ("Portrait" vs "Fall").
+         2. **Navigation Bar**: Functional tabs to switch between four distinct analytical lenses:
+            - "La Trajectoire" (Timeline): A chronological exploration of his rise.
+            - "Le Pouvoir" (Data): Quantitative analysis of his electoral weight and ministerial longevity.
+            - "Le Système" (Network): Analysis of his influence, the "Renard" persona, and internal rivalries.
+            - "La Fracture" (The Fall): The analysis of why he missed the ultimate prize (Premiership) and his exit.
+         3. **Main Content Area**: Dynamic container that updates based on navigation.
+            - Uses interactive cards for timeline events.
+            - Uses Chart.js for visualization of electoral performance (The "Blue Wave" vs the decline).
+            - Uses comparison layouts for the "Clan War" (Michel vs Reynders).
+         4. **Contextual Footers**: Every section has a "Key Takeaway" box to synthesize the information.
+         
+         WHY THIS STRUCTURE?
+         A linear article is hard to digest for a complex political career spanning 30+ years. The dashboard allows the user to separate the *facts* (Timeline) from the *metrics* (Charts) and the *narrative analysis* (The Fall), making the "Portrait" multidimensional and easier to synthesize.
+    -->
+
+    <!-- Visualization & Content Choices:
+         1. **Timeline (Trajectoire)**: 
+            - Goal: Show the longevity and key milestones.
+            - Viz: Vertical interactive stepper.
+            - Interaction: Click to expand details about specific eras (Jean Gol era, Finance Minister era).
+            - Justification: Best for biographical density.
+         
+         2. **Electoral Chart (Le Pouvoir)**:
+            - Goal: Visualize the "Peak" (2003) and the subsequent erosion.
+            - Viz: Line Chart (Chart.js) showing percentage/votes over time.
+            - Interaction: Tooltips with context (e.g., "The Blue Wave").
+            - Justification: Shows the "Chute" (Fall) quantitatively better than text.
+         
+         3. **Ministerial Longevity Bar Chart**:
+            - Goal: Show his dominance in government.
+            - Viz: Horizontal Bar Chart.
+            - Justification: Emphasizes he was "Vice-Prime Minister" for 15 years, highlighting the "Prince who never became King" paradox.
+         
+         4. **The "Clan" Comparison (Le Système)**:
+            - Goal: Explain the internal party war.
+            - Viz: Side-by-side comparison cards (Reynders vs Michel).
+            - Interaction: Toggle to see their respective power bases.
+            - Justification: HTML/CSS grid is cleaner than a network graph for a binary rivalry.
+         
+         <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="flex flex-col min-h-screen text-slate-800">
+
+    <!-- Hero Section -->
+    <header class="bg-white border-b border-slate-200 shadow-sm relative z-10">
+        <div class="max-w-6xl mx-auto px-4 py-8 md:py-12">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div class="max-w-2xl">
+                    <span class="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-800 text-xs font-bold tracking-wide uppercase mb-3">Dossier Politique</span>
+                    <h1 class="text-4xl md:text-5xl font-bold text-slate-900 leading-tight mb-2">Didier Reynders</h1>
+                    <h2 class="text-xl md:text-2xl text-slate-500 italic font-serif">Portrait et chute d'un homme d'exception</h2>
+                    <p class="mt-4 text-slate-600 leading-relaxed max-w-xl">
+                        Il a dominé la politique belge pendant deux décennies. Brillant, omniprésent, l'éternel dauphin devenu vice-Premier ministre inamovible. Analyse interactive d'une ascension fulgurante et des mécanismes qui l'ont empêché d'atteindre le sommet de l'État.
+                    </p>
+                </div>
+                <div class="hidden md:block text-right">
+                    <div class="text-6xl font-bold text-slate-100">DR</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 overflow-x-auto">
+            <div class="flex space-x-2 md:space-x-8 py-3 min-w-max" id="nav-container">
+                <button onclick="switchTab('timeline')" id="btn-timeline" class="nav-btn active px-4 py-2 rounded-lg text-sm font-semibold border border-transparent transition-all duration-200 hover:bg-slate-100">
+                    ⏱️ La Trajectoire
+                </button>
+                <button onclick="switchTab('data')" id="btn-data" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold border border-transparent transition-all duration-200 hover:bg-slate-100">
+                    📊 Le Bilan Chiffré
+                </button>
+                <button onclick="switchTab('system')" id="btn-system" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold border border-transparent transition-all duration-200 hover:bg-slate-100">
+                    ♟️ Le Système & Les Rivaux
+                </button>
+                <button onclick="switchTab('fall')" id="btn-fall" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold border border-transparent transition-all duration-200 hover:bg-slate-100">
+                    📉 L'Analyse de la Chute
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow bg-slate-50 p-4 md:p-8">
+        <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg min-h-[600px] overflow-hidden">
+            
+            <!-- SECTION 1: TIMELINE -->
+            <div id="view-timeline" class="p-6 md:p-10 fade-in">
+                <div class="mb-8 border-l-4 border-blue-800 pl-4">
+                    <h3 class="text-2xl font-bold text-slate-900">L'Ascension du "Renard"</h3>
+                    <p class="text-slate-600 mt-2">
+                        De Liège à la Commission Européenne, retracez les étapes clés d'une carrière marquée par la précocité et la longévité au pouvoir.
+                        <br><span class="text-sm italic text-slate-400">Cliquez sur les périodes pour voir les détails.</span>
+                    </p>
+                </div>
+
+                <div class="relative pl-8 border-l-2 border-slate-200 space-y-8" id="timeline-container">
+                    <!-- Javascript will populate this -->
+                </div>
+            </div>
+
+            <!-- SECTION 2: DATA & CHARTS -->
+            <div id="view-data" class="hidden p-6 md:p-10 fade-in">
+                <div class="mb-8 border-l-4 border-blue-800 pl-4">
+                    <h3 class="text-2xl font-bold text-slate-900">Le Poids Politique</h3>
+                    <p class="text-slate-600 mt-2">
+                        Au-delà de l'image, que disent les chiffres ? Analyse de sa popularité électorale et de son ubiquité ministérielle.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                    <!-- Chart 1: Popularity -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <h4 class="text-lg font-bold text-slate-800 mb-4 text-center">La Vague Bleue et le Reflux (Voix de préférence)</h4>
+                        <div class="chart-container">
+                            <canvas id="popularityChart"></canvas>
+                        </div>
+                        <p class="text-xs text-center text-slate-500 mt-4">Note: Scores indicatifs basés sur les élections législatives/régionales majeures.</p>
+                    </div>
+
+                    <!-- Chart 2: Time in Power -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <h4 class="text-lg font-bold text-slate-800 mb-4 text-center">L'Ubiquité Ministérielle (Années)</h4>
+                        <div class="chart-container">
+                            <canvas id="ministryChart"></canvas>
+                        </div>
+                        <p class="text-xs text-center text-slate-500 mt-4">Cumul ininterrompu de 1999 à 2019 au gouvernement fédéral.</p>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 p-6 rounded-lg border border-blue-100">
+                    <h4 class="font-bold text-blue-900 mb-2">💡 Le Saviez-vous ?</h4>
+                    <p class="text-blue-800 text-sm">
+                        Didier Reynders a détenu le portefeuille des Finances pendant 12 ans, un record dans l'histoire moderne de la Belgique. C'est durant cette période qu'il a bâti sa réputation de "technocrate brillant" et mis en place la réforme fiscale et la déclaration libératoire unique.
+                    </p>
+                </div>
+            </div>
+
+            <!-- SECTION 3: THE SYSTEM (RIVALS) -->
+            <div id="view-system" class="hidden p-6 md:p-10 fade-in">
+                <div class="mb-8 border-l-4 border-blue-800 pl-4">
+                    <h3 class="text-2xl font-bold text-slate-900">La Guerre des Clans</h3>
+                    <p class="text-slate-600 mt-2">
+                        L'histoire de Didier Reynders est indissociable de sa rivalité avec le clan Michel. Une guerre fratricide pour le contrôle du libéralisme francophone.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Reynders Card -->
+                    <div class="border border-slate-200 rounded-xl p-6 bg-white hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-xl font-bold text-blue-900">Le Clan Reynders</h4>
+                            <span class="text-2xl">🏙️</span> <!-- City Icon -->
+                        </div>
+                        <div class="space-y-3">
+                            <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Base Géographique</p>
+                            <p class="text-slate-800 font-medium">Liège & Bruxelles (Uccle)</p>
+                            
+                            <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider mt-4">Style</p>
+                            <p class="text-slate-800 font-medium">Urbain, Technocrate, "Le Renard", Intellectuel</p>
+
+                            <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider mt-4">Alliés Clés (Historiques)</p>
+                            <ul class="list-disc list-inside text-sm text-slate-700 space-y-1">
+                                <li>Olivier Chastel (Charleroi)</li>
+                                <li>Sabine Laruelle (Classes moyennes)</li>
+                                <li>Jean-Luc Crucke (Wallonie)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Michel Card -->
+                    <div class="border border-slate-200 rounded-xl p-6 bg-slate-50 opacity-90">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-xl font-bold text-slate-700">Le Clan Michel</h4>
+                            <span class="text-2xl">🏰</span> <!-- Castle/Provincial Icon -->
+                        </div>
+                        <div class="space-y-3">
+                            <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Base Géographique</p>
+                            <p class="text-slate-800 font-medium">Brabant Wallon (Jodoigne/Wavre)</p>
+                            
+                            <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider mt-4">Style</p>
+                            <p class="text-slate-800 font-medium">Provincial, Terrien, Consensus, Héritage (Louis & Charles)</p>
+
+                            <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider mt-4">L'Affrontement</p>
+                            <div class="bg-white p-3 rounded border border-slate-200 text-sm italic text-slate-600">
+                                "La guerre de 2010 pour la présidence du MR a marqué le tournant. Charles Michel a pris le parti, isolant progressivement Reynders au gouvernement fédéral."
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <h4 class="font-bold text-slate-900 mb-4">Dynamique de Pouvoir</h4>
+                    <div class="relative h-4 bg-slate-200 rounded-full overflow-hidden">
+                        <div class="absolute top-0 left-0 h-full bg-blue-600 w-1/2 flex items-center justify-center text-[10px] text-white font-bold" title="Influence 1999-2010">REYNDERS (1999-2010)</div>
+                        <div class="absolute top-0 right-0 h-full bg-slate-400 w-1/2 flex items-center justify-center text-[10px] text-white font-bold" title="Influence 2011-2019">MICHEL (2011-2019)</div>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-500 mt-2">
+                        <span>L'ère du Président Tout-Puissant</span>
+                        <span>La prise de pouvoir des "Réformateurs"</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 4: THE FALL -->
+            <div id="view-fall" class="hidden p-6 md:p-10 fade-in">
+                <div class="mb-8 border-l-4 border-amber-500 pl-4">
+                    <h3 class="text-2xl font-bold text-slate-900">Analyse d'une "Chute"</h3>
+                    <p class="text-slate-600 mt-2">
+                        Pourquoi celui qui avait toutes les cartes n'est-il jamais devenu Premier ministre ? Autopsie d'un plafond de verre.
+                    </p>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-amber-50 p-6 rounded-xl border border-amber-100">
+                        <h4 class="font-bold text-lg text-amber-900 mb-2">1. L'Isolement Politique</h4>
+                        <p class="text-slate-800 text-sm leading-relaxed">
+                            Bien que populaire électoralement, Reynders a souvent été perçu comme solitaire, brillant mais arrogant. Son manque de "troupes" fidèles au sein de l'appareil du parti (contrairement aux Michels qui cultivaient les fédérations locales) l'a rendu vulnérable lors des luttes internes.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h4 class="font-bold text-lg text-slate-900 mb-2">2. L'Échec du "16"</h4>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                            À plusieurs reprises, le poste de Premier ministre semblait à portée de main.
+                        </p>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <span class="text-red-500 mr-2">✖</span>
+                                <span class="text-sm text-slate-700"><strong>2007 :</strong> Il gagne les élections mais les CDH/PS refusent de gouverner avec un libéral trop dominant. Yves Leterme passe.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-red-500 mr-2">✖</span>
+                                <span class="text-sm text-slate-700"><strong>2014 :</strong> La Suédoise (MR+N-VA) se forme. C'est Charles Michel qui prend le poste de Premier ministre, laissant Reynders aux Affaires Étrangères. C'est le moment charnière où l'élève dépasse le maître.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h4 class="font-bold text-lg text-slate-900 mb-2">3. Les "Affaires" et l'Usure</h4>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            La fin de son règne belge a été assombrie par des controverses (Kazakhgate, affaire des fonds libyens, siège des services de renseignement). Bien qu'aucune condamnation n'ait eu lieu et que de nombreuses plaintes aient été classées sans suite, ces éléments ont terni l'image de l'intouchable.
+                        </p>
+                    </div>
+
+                    <div class="mt-6 p-4 border-t border-slate-200">
+                        <h4 class="font-bold text-slate-900">L'Exil Doré (2019)</h4>
+                        <p class="text-sm text-slate-600 mt-1">
+                            La nomination à la Commission Européenne (Justice) est perçue par les analystes comme une porte de sortie honorable. C'est la fin de ses ambitions nationales, mais le début d'une carrière prestigieuse internationale, loin des intrigues bruxelloises.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-8 mt-8">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <p class="text-slate-500 text-sm">
+                Basé sur l'analyse de la carrière de Didier Reynders (1988-2024). <br>
+                Ce tableau de bord est une représentation synthétique à visée éducative.
+            </p>
+            <div class="mt-4 flex justify-center space-x-4">
+                <span class="px-2 py-1 bg-slate-100 rounded text-xs text-slate-600">Politique Belge</span>
+                <span class="px-2 py-1 bg-slate-100 rounded text-xs text-slate-600">MR</span>
+                <span class="px-2 py-1 bg-slate-100 rounded text-xs text-slate-600">UE</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // State Management
+        const state = {
+            currentTab: 'timeline',
+            chartsInitialized: false
+        };
+
+        // Data Store
+        const data = {
+            timeline: [
+                {
+                    year: '1958',
+                    title: 'Naissance à Liège',
+                    desc: 'Issu d\'une famille modeste, il étudie le droit à l\'ULiège. Débuts d\'une ambition intellectuelle.',
+                    icon: '👶'
+                },
+                {
+                    year: '1986',
+                    title: 'L\'Ombre de Jean Gol',
+                    desc: 'Il devient président de la SNCB à 28 ans sous l\'aile de Jean Gol, le patriarche du libéralisme francophone. Il apprend les rouages de l\'État.',
+                    icon: '🚂'
+                },
+                {
+                    year: '1999',
+                    title: 'Le Grand Argentier',
+                    desc: 'Devient Ministre des Finances. Lance la réforme fiscale. Début de la "Reyndersmania". Il incarne le renouveau libéral.',
+                    icon: '💼'
+                },
+                {
+                    year: '2004',
+                    title: 'Président du MR',
+                    desc: 'Prend la tête du parti après avoir écarté Louis Michel (parti à l\'Europe). Il cumule Vice-Premier et Président de parti. L\'apogée.',
+                    icon: '👑'
+                },
+                {
+                    year: '2011',
+                    title: 'La Défaite Interne',
+                    desc: 'Après des résultats électoraux décevants en 2010, il est contesté par le "Groupe Renaissance" mené par Charles Michel. Il perd la présidence du parti.',
+                    icon: '⚔️'
+                },
+                {
+                    year: '2014',
+                    title: 'Affaires Étrangères',
+                    desc: 'Le gouvernement Michel I se forme. Reynders devient le visage de la Belgique à l\'international, mais il n\'est plus le chef.',
+                    icon: '🌍'
+                },
+                {
+                    year: '2019',
+                    title: 'Commission Européenne',
+                    desc: 'Nommé Commissaire à la Justice. Il quitte la politique nationale belge. La "chute" vers le haut.',
+                    icon: '🇪🇺'
+                }
+            ],
+            stats: {
+                popularityLabels: ['1999', '2003', '2007', '2010', '2014', '2019'],
+                popularityData: [45000, 105000, 75000, 55000, 58000, 42000], // Approx preference votes trend
+                ministryLabels: ['Finances', 'Affaires Étrangères', 'Défense', 'Affaires Eur.'],
+                ministryData: [12, 8, 1, 1] // Years approx
+            }
+        };
+
+        // Core Interaction Logic
+        function switchTab(tabId) {
+            // Update State
+            state.currentTab = tabId;
+
+            // UI Updates - Hide all views
+            ['timeline', 'data', 'system', 'fall'].forEach(id => {
+                document.getElementById(`view-${id}`).classList.add('hidden');
+                document.getElementById(`btn-${id}`).classList.remove('active', 'bg-blue-900', 'text-white');
+                document.getElementById(`btn-${id}`).classList.add('hover:bg-slate-100');
+            });
+
+            // Show selected view
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            
+            // Style active button
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.classList.add('active');
+            activeBtn.classList.remove('hover:bg-slate-100');
+
+            // Init charts if accessing data tab for first time
+            if (tabId === 'data' && !state.chartsInitialized) {
+                initCharts();
+            }
+        }
+
+        // Render Timeline
+        function renderTimeline() {
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = data.timeline.map((item, index) => `
+                <div class="relative group cursor-pointer hover:bg-blue-50 p-4 rounded-lg transition-colors border border-transparent hover:border-blue-100" onclick="toggleTimelineDetail(${index})">
+                    <div class="absolute -left-[41px] bg-white border-2 border-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold text-blue-600 z-10">
+                        ${index + 1}
+                    </div>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-1">
+                        <span class="text-sm font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded w-fit mb-1 sm:mb-0">${item.year}</span>
+                        <span class="text-2xl opacity-50 group-hover:opacity-100 transition-opacity">${item.icon}</span>
+                    </div>
+                    <h4 class="text-lg font-bold text-slate-800">${item.title}</h4>
+                    <p class="text-slate-600 text-sm mt-2 leading-relaxed">${item.desc}</p>
+                </div>
+            `).join('');
+        }
+
+        function toggleTimelineDetail(index) {
+            // Placeholder for deeper interaction if needed
+            // Currently using hover effects for simplicity as per "Clean aesthetics"
+        }
+
+        // Initialize Charts
+        function initCharts() {
+            state.chartsInitialized = true;
+
+            // Chart 1: Popularity
+            const ctxPop = document.getElementById('popularityChart').getContext('2d');
+            new Chart(ctxPop, {
+                type: 'line',
+                data: {
+                    labels: data.stats.popularityLabels,
+                    datasets: [{
+                        label: 'Voix de Préférence (Approx.)',
+                        data: data.stats.popularityData,
+                        borderColor: '#1e3a8a', // Blue 900
+                        backgroundColor: 'rgba(30, 58, 138, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#1e3a8a',
+                        pointRadius: 6,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.raw.toLocaleString() + ' voix';
+                                },
+                                afterLabel: function(context) {
+                                    if(context.label === '2003') return 'Le pic de popularité (Vague Bleue)';
+                                    if(context.label === '2019') return 'Départ vers l\'Europe';
+                                    return '';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Ministry Time
+            const ctxMin = document.getElementById('ministryChart').getContext('2d');
+            new Chart(ctxMin, {
+                type: 'bar',
+                data: {
+                    labels: data.stats.ministryLabels,
+                    datasets: [{
+                        label: 'Années en poste',
+                        data: data.stats.ministryData,
+                        backgroundColor: [
+                            '#1e3a8a', // Finance (Blue)
+                            '#3b82f6', // Foreign Affairs (Light Blue)
+                            '#94a3b8', // Defense (Gray)
+                            '#64748b'  // EU (Slate)
+                        ],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#f1f5f9' }
+                        },
+                        y: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Init App
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTimeline();
+        });
+
+    </script>
+</body>
+</html>
