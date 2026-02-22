@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Guide Ultime du Durum à Bruxelles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Warm Neutrals & Spicy Accents -->
+    <!-- Application Structure Plan: 
+         1. Hero Section: Sets the context of the "Search for the Holy Grail".
+         2. The Dashboard (Control Center): Filters for Neighborhood and Vibe to sort the data.
+         3. The Leaderboard (Cards): Interactive list of the top spots found in the report.
+         4. Analytics Hub:
+            - Radar Chart: Breakdown of quality criteria (Meat, Bread, Sauce, etc.).
+            - Scatter Plot: Price vs. Rating analysis.
+         5. The Anatomy: A conceptual text/visual breakdown of the Brussels style.
+         Rationale: The structure allows users to quickly find a spot nearby (utility) while also understanding the 'science' behind the ratings (analysis).
+    -->
+
+    <!-- Visualization & Content Choices:
+         - Goal: Compare Top Spots -> Viz: Interactive Cards & Radar Chart -> Interaction: Filtering cards updates chart data -> Justification: Radar charts are excellent for comparing multi-variable food scores (meat, bread, sauce).
+         - Goal: Price Analysis -> Viz: Scatter Plot (Chart.js) -> Interaction: Hover for details -> Justification: Visualizes value for money effectively.
+         - Goal: Navigation -> Viz: Sticky Filter Bar -> Interaction: Immediate sorting -> Justification: Essential for mobile users looking for food quickly.
+         - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FFF7ED; /* Warm Orange-White (Bread) */
+            color: #431407; /* Dark Brown (Meat) */
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .active-filter {
+            background-color: #EA580C; /* Orange-600 */
+            color: white;
+            border-color: #EA580C;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Header / Hero -->
+    <header class="bg-white border-b-4 border-orange-500 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0 text-center md:text-left">
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-orange-600 tracking-tight">Kebab<span class="text-gray-800">Quest</span> BXL</h1>
+                    <p class="mt-2 text-lg text-gray-600 font-medium">Analyse et Classement des Meilleurs Durums de la Capitale</p>
+                </div>
+                <div class="text-4xl">
+                    🥙🇧🇪
+                </div>
+            </div>
+            <p class="mt-4 text-gray-500 max-w-2xl text-sm md:text-base leading-relaxed">
+                Basé sur une compilation de critiques locales, de notes agrégées et d'inspections de qualité. 
+                Ce rapport interactif décompose la scène du kebab bruxellois pour vous aider à trouver votre 
+                prochain repas, qu'il soit 3h du matin ou pour un déjeuner gourmet.
+            </p>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-6xl mx-auto w-full px-4 py-8 space-y-12">
+
+        <!-- Introduction to Section 1 -->
+        <section>
+            <h2 class="text-2xl font-bold text-gray-800 border-l-4 border-orange-500 pl-4 mb-4">Exploration & Filtrage</h2>
+            <p class="text-gray-600 mb-6">
+                Utilisez les filtres ci-dessous pour naviguer dans notre base de données. 
+                Le "Score Global" est une moyenne pondérée tenant compte de la qualité de la viande, 
+                de la fraîcheur du pain et de la variété des sauces.
+            </p>
+
+            <!-- Control Dashboard -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-orange-100">
+                <div class="flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
+                    
+                    <!-- Neighborhood Filter -->
+                    <div class="w-full md:w-auto">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Quartier</label>
+                        <div class="flex flex-wrap gap-2" id="neighborhood-filters">
+                            <button class="filter-btn active-filter px-4 py-2 rounded-full border border-gray-300 text-sm transition-all" data-filter="all">Tous</button>
+                            <button class="filter-btn px-4 py-2 rounded-full border border-gray-300 text-sm hover:bg-orange-50 transition-all" data-filter="Schaerbeek">Schaerbeek</button>
+                            <button class="filter-btn px-4 py-2 rounded-full border border-gray-300 text-sm hover:bg-orange-50 transition-all" data-filter="Centre">Centre</button>
+                            <button class="filter-btn px-4 py-2 rounded-full border border-gray-300 text-sm hover:bg-orange-50 transition-all" data-filter="Ixelles">Ixelles</button>
+                            <button class="filter-btn px-4 py-2 rounded-full border border-gray-300 text-sm hover:bg-orange-50 transition-all" data-filter="Saint-Josse">Saint-Josse</button>
+                        </div>
+                    </div>
+
+                    <!-- Stats Summary -->
+                    <div class="flex gap-4 border-l border-gray-200 pl-0 md:pl-6">
+                        <div class="text-center">
+                            <span class="block text-2xl font-bold text-orange-600" id="count-display">0</span>
+                            <span class="text-xs text-gray-500 uppercase tracking-wide">Lieux</span>
+                        </div>
+                        <div class="text-center">
+                            <span class="block text-2xl font-bold text-gray-800" id="avg-price-display">0€</span>
+                            <span class="text-xs text-gray-500 uppercase tracking-wide">Prix Moyen</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- The List (Grid) -->
+        <section id="restaurant-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Cards will be injected here by JS -->
+        </section>
+
+        <!-- Detailed Analytics Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
+            
+            <!-- Comparison Chart -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <div class="mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">Analyse des Forces</h3>
+                    <p class="text-sm text-gray-500">Comparaison des attributs clés des 3 meilleurs durums visibles.</p>
+                </div>
+                <!-- Chart Container as required -->
+                <div class="chart-container flex items-center justify-center">
+                    <canvas id="radarChart"></canvas>
+                </div>
+                <div class="mt-4 text-xs text-center text-gray-400">
+                    *Données basées sur l'analyse sensorielle du rapport
+                </div>
+            </div>
+
+            <!-- Price vs Quality -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <div class="mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">Le Ratio Prix/Plaisir</h3>
+                    <p class="text-sm text-gray-500">Positionnement des établissements (Prix vs Note Globale).</p>
+                </div>
+                <!-- Chart Container as required -->
+                <div class="chart-container flex items-center justify-center">
+                    <canvas id="scatterChart"></canvas>
+                </div>
+                <div class="mt-4 text-xs text-center text-gray-400">
+                    Haut-Gauche = Meilleur rapport qualité/prix
+                </div>
+            </div>
+        </section>
+
+        <!-- The Anatomy Section -->
+        <section class="bg-orange-100 rounded-2xl p-8 border border-orange-200">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">L'Anatomie d'un Classique Bruxellois</h2>
+            <p class="text-gray-700 mb-6">
+                Le rapport identifie 4 piliers essentiels qui définissent l'expérience durum à Bruxelles. 
+                Cliquez sur chaque pilier pour voir les détails.
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <button onclick="updateAnatomy('bread')" class="anatomy-btn bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition text-left border-l-4 border-yellow-500">
+                    <div class="font-bold text-gray-800">1. Le Pain</div>
+                    <div class="text-xs text-gray-500 mt-1">Cuit maison vs Industriel</div>
+                </button>
+                <button onclick="updateAnatomy('meat')" class="anatomy-btn bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition text-left border-l-4 border-red-700">
+                    <div class="font-bold text-gray-800">2. La Viande</div>
+                    <div class="text-xs text-gray-500 mt-1">Montage manuel vs Surgelé</div>
+                </button>
+                <button onclick="updateAnatomy('sauce')" class="anatomy-btn bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition text-left border-l-4 border-orange-500">
+                    <div class="font-bold text-gray-800">3. La Sauce</div>
+                    <div class="text-xs text-gray-500 mt-1">Andalouse, Samouraï, Blanche...</div>
+                </button>
+                <button onclick="updateAnatomy('garniture')" class="anatomy-btn bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition text-left border-l-4 border-green-500">
+                    <div class="font-bold text-gray-800">4. La Fraîcheur</div>
+                    <div class="text-xs text-gray-500 mt-1">Crudités et frites</div>
+                </button>
+            </div>
+
+            <div id="anatomy-detail" class="mt-6 bg-white/50 p-6 rounded-lg text-gray-800 italic border-l-4 border-gray-400">
+                Sélectionnez un élément ci-dessus pour découvrir les standards de qualité.
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-gray-300 py-8 mt-auto">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <p class="font-semibold">Généré à partir des données agrégées "Source Report: Bruxelles Street Food 2024"</p>
+            <p class="text-sm mt-2 text-gray-500">Les prix et horaires sont sujets à changement. Bon appétit !</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Data Source ---
+        // Contains the "Source Report" findings.
+        const durumSpots = [
+            {
+                id: 1,
+                name: "Tekince Kebap",
+                neighborhood: "Schaerbeek",
+                rating: 4.8,
+                price: 12.00, // Slightly higher end
+                tags: ["Fait Maison", "Authentique", "Assis"],
+                description: "Souvent cité comme le meilleur de Bruxelles. Pain fait minute, viande de veau montée à la main.",
+                stats: { meat: 5, bread: 5, sauce: 4, fries: 4, quantity: 4.5 },
+                address: "Av. Maréchal Foch"
+            },
+            {
+                id: 2,
+                name: "Snack Anatolia",
+                neighborhood: "Saint-Josse",
+                rating: 4.6,
+                price: 8.50,
+                tags: ["Populaire", "Spicy", "Rapide"],
+                description: "Une institution à Saint-Josse. Connu pour sa générosité et ses piments verts grillés offerts.",
+                stats: { meat: 4.5, bread: 4, sauce: 5, fries: 4, quantity: 5 },
+                address: "Rue de la Limite"
+            },
+            {
+                id: 3,
+                name: "L'Express",
+                neighborhood: "Centre",
+                rating: 4.2,
+                price: 9.00,
+                tags: ["Tard", "Touristique", "Fiable"],
+                description: "Le sauveur des nuits bruxelloises. Situé près de la Grand Place, ouvert très tard.",
+                stats: { meat: 3.5, bread: 4, sauce: 4.5, fries: 4, quantity: 4 },
+                address: "Rue des Chapeliers"
+            },
+            {
+                id: 4,
+                name: "Miyala",
+                neighborhood: "Ixelles",
+                rating: 4.5,
+                price: 10.00,
+                tags: ["Jeune", "Moderne", "Qualité"],
+                description: "Très populaire auprès des étudiants. Excellent rapport qualité/prix et service rapide.",
+                stats: { meat: 4, bread: 4.5, sauce: 5, fries: 4.5, quantity: 4 },
+                address: "Cimetière d'Ixelles"
+            },
+            {
+                id: 5,
+                name: "Pita de la Chapelle",
+                neighborhood: "Centre",
+                rating: 4.3,
+                price: 8.00,
+                tags: ["Classique", "Marolles", "Convivial"],
+                description: "Un classique dans le quartier des Marolles. Ambiance bruxelloise typique.",
+                stats: { meat: 4, bread: 3.5, sauce: 4, fries: 4, quantity: 4.5 },
+                address: "Place de la Chapelle"
+            },
+            {
+                id: 6,
+                name: "Kebab Beyzade",
+                neighborhood: "Schaerbeek",
+                rating: 4.7,
+                price: 11.00,
+                tags: ["Grillade", "Famille", "Frais"],
+                description: "Un concurrent sérieux à Tekince. Des grillades au feu de bois exceptionnelles.",
+                stats: { meat: 5, bread: 4.5, sauce: 4, fries: 4, quantity: 4 },
+                address: "Chaussée de Haecht"
+            }
+        ];
+
+        const anatomyDetails = {
+            bread: "Le pain est la fondation. Les meilleurs établissements (comme à Schaerbeek) cuisent leur pain 'lavash' ou 'pide' à la commande dans un four à bois. Un pain industriel fait perdre 2 points au score global.",
+            meat: "La broche doit être 'montée main' chaque matin, visible par ses couches irrégulières de viande (souvent veau ou poulet marinés). La viande reconstituée industrielle est pénalisée dans ce rapport.",
+            sauce: "Bruxelles est la capitale de la sauce. Andalouse, Samouraï, Brasil, Cocktail... La variété et la texture (pas trop liquide) sont cruciales. Le mélange viande-sauce doit être homogène.",
+            garniture: "Salade, Tomates, Oignons (STO) est la base. Certains ajoutent du chou rouge ou blanc, de la feta ou des piments grillés. Les frites doivent être dorées et croustillantes, jamais molles."
+        };
+
+        // --- State Management ---
+        let currentFilter = 'all';
+        let charts = {};
+
+        // --- Core Functions ---
+
+        function init() {
+            renderGrid(durumSpots);
+            updateStats(durumSpots);
+            initCharts();
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
+            const buttons = document.querySelectorAll('#neighborhood-filters button');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    // UI Update
+                    buttons.forEach(b => b.classList.remove('active-filter'));
+                    buttons.forEach(b => b.classList.add('hover:bg-orange-50'));
+                    e.target.classList.add('active-filter');
+                    e.target.classList.remove('hover:bg-orange-50');
+
+                    // Filter Logic
+                    currentFilter = e.target.getAttribute('data-filter');
+                    const filteredData = currentFilter === 'all' 
+                        ? durumSpots 
+                        : durumSpots.filter(spot => spot.neighborhood === currentFilter);
+                    
+                    renderGrid(filteredData);
+                    updateStats(filteredData);
+                    updateCharts(filteredData);
+                });
+            });
+        }
+
+        function renderGrid(data) {
+            const grid = document.getElementById('restaurant-grid');
+            grid.innerHTML = '';
+
+            data.forEach(spot => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow border border-gray-100 p-5 card-hover transition duration-300 flex flex-col h-full';
+                
+                // Tags HTML
+                const tagsHtml = spot.tags.map(tag => 
+                    `<span class="text-xs font-medium bg-orange-100 text-orange-800 px-2 py-1 rounded-full">${tag}</span>`
+                ).join('');
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 leading-tight">${spot.name}</h3>
+                            <p class="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                                📍 ${spot.neighborhood}
+                            </p>
+                        </div>
+                        <div class="bg-orange-500 text-white font-bold px-2 py-1 rounded text-sm shadow-sm">
+                            ${spot.rating}/5
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2 mb-4 mt-2">
+                        ${tagsHtml}
+                    </div>
+
+                    <p class="text-gray-600 text-sm mb-4 flex-grow italic">"${spot.description}"</p>
+
+                    <div class="border-t border-gray-100 pt-4 mt-auto flex justify-between items-center">
+                        <span class="font-semibold text-gray-800">Prix env. ${spot.price.toFixed(2)}€</span>
+                        <button class="text-orange-600 font-semibold text-sm hover:underline" onclick="highlightChart('${spot.name}')">
+                            Voir Analyse →
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function updateStats(data) {
+            document.getElementById('count-display').innerText = data.length;
+            const avgPrice = data.reduce((acc, curr) => acc + curr.price, 0) / data.length;
+            document.getElementById('avg-price-display').innerText = isNaN(avgPrice) ? "0€" : avgPrice.toFixed(2) + "€";
+        }
+
+        function updateAnatomy(key) {
+            const detailBox = document.getElementById('anatomy-detail');
+            const text = anatomyDetails[key];
+            detailBox.innerHTML = `<span class="font-bold text-lg block mb-2 capitalize">${key}</span> ${text}`;
+            detailBox.classList.remove('border-gray-400');
+            detailBox.classList.add('bg-white', 'shadow-sm');
+            
+            // simple visual feedback
+            const colors = {
+                bread: 'border-yellow-500',
+                meat: 'border-red-700',
+                sauce: 'border-orange-500',
+                garniture: 'border-green-500'
+            };
+            detailBox.className = `mt-6 bg-white p-6 rounded-lg text-gray-800 border-l-4 shadow-sm ${colors[key]}`;
+        }
+
+        function highlightChart(name) {
+            alert(`Focus sur ${name} activé dans les graphiques (simulation). Observez le graphique radar pour les détails.`);
+            // In a full app, this would highlight the specific dataset in ChartJS
+        }
+
+        // --- Charts Implementation ---
+
+        function initCharts() {
+            // Radar Chart Configuration
+            const ctxRadar = document.getElementById('radarChart').getContext('2d');
+            
+            // Take top 3 for initial comparison to avoid clutter
+            const topSpots = [...durumSpots].sort((a,b) => b.rating - a.rating).slice(0, 3);
+
+            const datasets = topSpots.map((spot, index) => {
+                const colors = [
+                    'rgba(234, 88, 12, 0.2)', // Orange
+                    'rgba(22, 163, 74, 0.2)', // Green
+                    'rgba(37, 99, 235, 0.2)'  // Blue
+                ];
+                const borders = [
+                    'rgba(234, 88, 12, 1)',
+                    'rgba(22, 163, 74, 1)',
+                    'rgba(37, 99, 235, 1)'
+                ];
+                return {
+                    label: spot.name,
+                    data: [spot.stats.meat, spot.stats.bread, spot.stats.sauce, spot.stats.fries, spot.stats.quantity],
+                    fill: true,
+                    backgroundColor: colors[index % 3],
+                    borderColor: borders[index % 3],
+                    pointBackgroundColor: borders[index % 3],
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: borders[index % 3]
+                };
+            });
+
+            charts.radar = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Viande', 'Pain', 'Sauce', 'Frites', 'Quantité'],
+                    datasets: datasets
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    elements: {
+                        line: { borderWidth: 2 }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0,0,0,0.1)' },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            pointLabels: {
+                                font: { size: 12, family: 'Inter' },
+                                color: '#4b5563'
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 5,
+                            ticks: { display: false } // Hide numbers for cleaner look
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } }
+                    }
+                }
+            });
+
+            // Scatter Plot Configuration
+            const ctxScatter = document.getElementById('scatterChart').getContext('2d');
+            const scatterData = durumSpots.map(spot => ({
+                x: spot.price,
+                y: spot.rating,
+                name: spot.name
+            }));
+
+            charts.scatter = new Chart(ctxScatter, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Durums',
+                        data: scatterData,
+                        backgroundColor: 'rgba(234, 88, 12, 0.7)',
+                        borderColor: 'rgba(234, 88, 12, 1)',
+                        borderWidth: 1,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Prix (€)' },
+                            grid: { display: false }
+                        },
+                        y: {
+                            title: { display: true, text: 'Note / 5' },
+                            min: 3,
+                            max: 5
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const point = context.raw;
+                                    return `${point.name}: ${point.y}/5 (${point.x}€)`;
+                                }
+                            }
+                        },
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function updateCharts(filteredData) {
+            // Update Scatter
+            const newScatterData = filteredData.map(spot => ({
+                x: spot.price,
+                y: spot.rating,
+                name: spot.name
+            }));
+            charts.scatter.data.datasets[0].data = newScatterData;
+            charts.scatter.update();
+
+            // Update Radar (Limit to top 3 of filtered results to prevent mess)
+            const topFiltered = [...filteredData].sort((a,b) => b.rating - a.rating).slice(0, 3);
+            const newRadarDatasets = topFiltered.map((spot, index) => {
+                const colors = ['rgba(234, 88, 12, 0.2)', 'rgba(22, 163, 74, 0.2)', 'rgba(37, 99, 235, 0.2)'];
+                const borders = ['rgba(234, 88, 12, 1)', 'rgba(22, 163, 74, 1)', 'rgba(37, 99, 235, 1)'];
+                return {
+                    label: spot.name,
+                    data: [spot.stats.meat, spot.stats.bread, spot.stats.sauce, spot.stats.fries, spot.stats.quantity],
+                    fill: true,
+                    backgroundColor: colors[index % 3] || colors[0],
+                    borderColor: borders[index % 3] || borders[0],
+                    pointBackgroundColor: borders[index % 3] || borders[0],
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: borders[index % 3] || borders[0]
+                };
+            });
+            charts.radar.data.datasets = newRadarDatasets;
+            charts.radar.update();
+        }
+
+        // Initialize App
+        window.addEventListener('load', init);
+
+    </script>
+</body>
+</html>
