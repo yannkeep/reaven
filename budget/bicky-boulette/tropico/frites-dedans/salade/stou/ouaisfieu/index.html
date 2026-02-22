@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit E-Réputation: Yannkeep.github.io</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Chosen Palette: Warm Neutrals & Digital Clay -->
+    <!-- 
+        Background: #fdfbf7 (Warm White)
+        Surface: #f3f0e9 (Soft Clay)
+        Primary Text: #1a1a1a (Soft Black)
+        Accent 1: #d97757 (Terracotta - Alert/High Impact)
+        Accent 2: #5c7c8a (Slate Blue - Data/Tech)
+        Accent 3: #e0c097 (Sand - Neutral UI)
+    -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bg: '#fdfbf7',
+                        surface: '#f3f0e9',
+                        surfaceHover: '#e8e4db',
+                        text: '#1a1a1a',
+                        textMuted: '#6b6b6b',
+                        accent: '#d97757',
+                        secondary: '#5c7c8a',
+                        neutral: '#e0c097',
+                    },
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #fdfbf7;
+            color: #1a1a1a;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f3f0e9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e0c097; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d97757; 
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            height: 300px;
+            max-height: 400px;
+            margin: 0 auto;
+        }
+
+        /* Segment Item Transition */
+        .segment-item {
+            transition: all 0.2s ease-in-out;
+        }
+        .segment-item:hover {
+            transform: translateX(4px);
+            background-color: #e8e4db;
+        }
+        .segment-item.active {
+            border-left: 4px solid #d97757;
+            background-color: #f3f0e9;
+            font-weight: 600;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <!-- Application Structure Plan: 
+         1. Header: Executive summary of the "Incident".
+         2. Layout: Two-column responsive grid. 
+            - Left: The "Chain of Chaos" (Navigation through the URL segments).
+            - Right: Analytical Dashboard (Details of selected segment + Macro Charts).
+         3. Logic: The long URL is parsed into a data array. Clicking a segment updates the "Forensic Detail" view.
+         4. Visualization: 
+            - Doughnut Chart for "Keyword Taxonomy" (Politics vs Pop Culture).
+            - Line Chart for "Desperation Intensity" (Depth vs Absurdity).
+         Why: This structure allows the user to traverse the linear "journey" of the URL while understanding the aggregate data behind the strategy.
+    -->
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header Section -->
+    <header class="bg-surface border-b border-neutral px-6 py-6 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <div class="text-xs font-bold tracking-widest text-accent uppercase mb-1">Rapport Confidentiel #404</div>
+                <h1 class="text-3xl font-bold text-text">Audit de Découvrabilité: L'Anomalie Yannkeep</h1>
+                <p class="text-textMuted mt-2 text-sm max-w-2xl">
+                    Analyse forensique de la stratégie de "Deep-Linking" désespérée observée sur le domaine <span class="font-mono bg-white px-1 rounded border border-neutral">yannkeep.github.io</span>.
+                    Cas d'étude : <span class="italic text-accent">L'incident "Tous Fraudeurs"</span>.
+                </p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="app.setFilter('all')" class="px-4 py-2 bg-text text-bg rounded-lg text-sm font-medium hover:bg-accent transition-colors">Vue Globale</button>
+                <button onclick="app.scrollToCharts()" class="px-4 py-2 bg-white border border-neutral text-text rounded-lg text-sm font-medium hover:bg-surface transition-colors">Métriques</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-grow max-w-7xl mx-auto w-full p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: The URL Wormhole (Navigation) -->
+        <section class="lg:col-span-4 flex flex-col h-[85vh] sticky top-4">
+            <div class="bg-white rounded-xl shadow-sm border border-neutral overflow-hidden flex flex-col h-full">
+                
+                <!-- Intro to Section -->
+                <div class="p-4 border-b border-neutral bg-surface">
+                    <h2 class="font-bold text-lg flex items-center gap-2">
+                        <span class="text-accent text-xl">⚓</span> Séquence URL
+                    </h2>
+                    <p class="text-xs text-textMuted mt-1 leading-relaxed">
+                        Exploration verticale de la structure de lien. Chaque segment représente une tentative de ciblage sémantique. Cliquez pour analyser.
+                    </p>
+                    <div class="mt-3 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                        <!-- Filter Chips -->
+                        <button onclick="app.setFilter('all')" class="whitespace-nowrap px-3 py-1 rounded-full text-xs border border-neutral hover:bg-neutral transition">Tous</button>
+                        <button onclick="app.setFilter('Politique')" class="whitespace-nowrap px-3 py-1 rounded-full text-xs border border-neutral hover:bg-neutral transition">🇧🇪 Politique</button>
+                        <button onclick="app.setFilter('Pop Culture')" class="whitespace-nowrap px-3 py-1 rounded-full text-xs border border-neutral hover:bg-neutral transition">🍿 Pop Culture</button>
+                        <button onclick="app.setFilter('Nonsense')" class="whitespace-nowrap px-3 py-1 rounded-full text-xs border border-neutral hover:bg-neutral transition">🤪 Chaos</button>
+                    </div>
+                </div>
+
+                <!-- Scrollable List -->
+                <div id="url-sequence-list" class="flex-grow overflow-y-auto p-2 space-y-1">
+                    <!-- Javascript will populate this -->
+                    <div class="text-center p-4 text-textMuted">Chargement des données forensiques...</div>
+                </div>
+
+                <!-- Footer Stats -->
+                <div class="p-3 bg-surface border-t border-neutral text-xs text-center font-mono text-textMuted">
+                    Profondeur totale: <span id="total-depth-val" class="font-bold text-text">0</span> niveaux
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: Analysis Dashboard -->
+        <section class="lg:col-span-8 flex flex-col gap-6 overflow-y-auto pr-1">
+            
+            <!-- Context Block: Introduction -->
+            <div class="bg-white p-6 rounded-xl border border-neutral shadow-sm">
+                <h3 class="text-xl font-bold mb-3 text-secondary">Contexte de l'Incident</h3>
+                <p class="text-textMuted leading-relaxed">
+                    Le sujet "Yannkeep" a déployé une stratégie de référencement dite de la <strong>"Terre Brûlée"</strong>. En générant une URL d'une longueur excessive contenant des mots-clés disparates (allant de la politique belge locale aux références cinématographiques américaines), le sujet tente de manipuler les algorithmes d'indexation. Cette section détaille l'analyse sémantique du segment sélectionné.
+                </p>
+            </div>
+
+            <!-- Detail Card (Dynamic) -->
+            <div id="detail-card" class="bg-surface p-6 rounded-xl border-l-4 border-accent shadow-sm fade-in">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <span id="detail-category" class="px-2 py-1 rounded bg-white text-xs font-bold text-textMuted uppercase tracking-wide border border-neutral">Sélectionnez un segment</span>
+                        <h2 id="detail-segment" class="text-4xl font-bold text-text mt-2 break-all">...</h2>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-textMuted uppercase">Position</div>
+                        <div id="detail-index" class="text-2xl font-mono font-bold text-secondary">--/--</div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div>
+                        <h4 class="font-bold text-sm text-textMuted mb-2">Analyse Sémantique</h4>
+                        <p id="detail-analysis" class="text-text leading-relaxed">
+                            Veuillez sélectionner un segment dans la colonne de gauche pour afficher l'analyse détaillée de la stratégie employée.
+                        </p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-sm text-textMuted mb-2">Impact Probable</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span>Pertinence SEO</span>
+                                    <span id="score-seo-val">0%</span>
+                                </div>
+                                <div class="w-full bg-white rounded-full h-2">
+                                    <div id="score-seo-bar" class="bg-secondary h-2 rounded-full" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span>Niveau de Désespoir</span>
+                                    <span id="score-desp-val">0%</span>
+                                </div>
+                                <div class="w-full bg-white rounded-full h-2">
+                                    <div id="score-desp-bar" class="bg-accent h-2 rounded-full" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div id="charts-area" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Taxonomy Chart -->
+                <div class="bg-white p-5 rounded-xl border border-neutral shadow-sm flex flex-col">
+                    <div class="mb-4">
+                        <h3 class="font-bold text-lg">Taxonomie des Mots-Clés</h3>
+                        <p class="text-xs text-textMuted">Répartition thématique des segments de l'URL.</p>
+                    </div>
+                    <!-- Chart Container 1 -->
+                    <div class="chart-container flex-grow">
+                        <canvas id="taxonomyChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Timeline Chart -->
+                <div class="bg-white p-5 rounded-xl border border-neutral shadow-sm flex flex-col">
+                    <div class="mb-4">
+                        <h3 class="font-bold text-lg">Indice de Volatilité</h3>
+                        <p class="text-xs text-textMuted">Évolution du "Sérieux" vs "Absurde" au fil de la profondeur.</p>
+                    </div>
+                    <!-- Chart Container 2 -->
+                    <div class="chart-container flex-grow">
+                        <canvas id="volatilityChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Conclusion Text -->
+            <div class="bg-secondary text-white p-6 rounded-xl shadow-md mt-4">
+                <h3 class="text-lg font-bold mb-2">Conclusion de l'Audit</h3>
+                <p class="text-sm opacity-90 leading-relaxed">
+                    L'analyse confirme une tentative de "Bourrage de mots-clés" (Keyword Stuffing) de haute intensité. La juxtaposition d'entités politiques belges ("Reynders", "Tour des Finances") avec des éléments de pop culture ("Batman", "Bicky Burger") indique une absence de stratégie éditoriale cohérente, typique d'une initiative de découvrabilité de dernier recours. Recommandation : Refonte complète de l'architecture de l'information.
+                </p>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-surface py-6 text-center text-xs text-textMuted border-t border-neutral mt-8">
+        <p>Généré par Canvas Forensics Engine &copy; 2024 | Basé sur le rapport d'incident Yannkeep.</p>
+    </footer>
+
+    <!-- Visualization & Content Choices:
+         1. Data Source: The provided long URL string is the primary dataset.
+         2. Categorization: I manually mapped keywords to categories (Politics, Pop Culture, etc.) in the JS to enable meaningful analysis.
+         3. Interactions: Clicking segments (Drill-down) updates the detail view. This is "Goal: Inform".
+         4. Charts: 
+            - Doughnut Chart (Goal: Inform/Compare) for Category breakdown.
+            - Line Chart (Goal: Change/Trends) to show how the URL gets "crazier" the deeper it goes.
+         5. No SVG/Mermaid: Only Chart.js canvas and Tailwind styling used.
+    -->
+
+    <script>
+        // --- 1. DATA PREPARATION ---
+        const rawUrlPath = "reaven/deborsu/tous-fraudeurs/scandale/bravo/pif/paf/pouf/bim/coucou/minouchet/bot/born/to-kill/oufti/Bicky-Burger/tasty-fonzie/mickey-duck/horny/long-time/pot/michpap/melting-pop/fourte/tintin/et-milou/spielberg/bugs-bunny/kubrick/bam/boum/michou/squeezie/ping/ultime/dernier/last/pas/ok/final/it/baudouin/robiano/hot/spot/moinil/indiana/jones/lucasart/game/over/the-wire/hooray-for-boobies/michel/didier/tour-des-finances/reynders/salut/poto/qui-est-la-taupe/confidentiel/i-love-you/batman/merci/korben/index.html";
+        
+        const segments = rawUrlPath.split('/').filter(s => s !== "index.html");
+
+        // Knowledge Base for categorization and "analysis" text
+        const analysisDB = {
+            "reaven": { cat: "Tech", text: "Terme racine, possible référence tech ou nom de code projet.", seo: 20, desp: 10 },
+            "deborsu": { cat: "Politique", text: "Référence probable au journaliste politique belge Christophe Deborsu.", seo: 80, desp: 40 },
+            "tous-fraudeurs": { cat: "Scandale", text: "Accroche 'Clickbait' agressive accusatoire.", seo: 90, desp: 80 },
+            "scandale": { cat: "Scandale", text: "Mot-clé générique à fort volume de recherche.", seo: 70, desp: 60 },
+            "bravo": { cat: "Emotion", text: "Interjection positive, tentative d'humanisation du lien.", seo: 10, desp: 30 },
+            "pif": { cat: "Nonsense", text: "Onomatopée (1/3). Rythme narratif chaotique.", seo: 5, desp: 50 },
+            "paf": { cat: "Nonsense", text: "Onomatopée (2/3).", seo: 5, desp: 50 },
+            "pouf": { cat: "Nonsense", text: "Onomatopée (3/3). Effondrement sémantique.", seo: 5, desp: 50 },
+            "minouchet": { cat: "Identité", text: "Diminutif affectueux ou nom d'animal. Hors contexte.", seo: 15, desp: 60 },
+            "bot": { cat: "Tech", text: "Indicateur technique. Le sujet s'identifie-t-il comme une machine ?", seo: 40, desp: 20 },
+            "born": { cat: "Culture", text: "Partie de 'Born to Kill' (Full Metal Jacket).", seo: 30, desp: 40 },
+            "to-kill": { cat: "Culture", text: "Suite de la référence cinématographique Kubrickienne.", seo: 30, desp: 40 },
+            "oufti": { cat: "Belgicismes", text: "Exclamation liégeoise typique. Ciblage géographique précis.", seo: 60, desp: 20 },
+            "Bicky-Burger": { cat: "Food", text: "Symbole de la gastronomie de friture belge. Mot-clé à haute valeur culturelle.", seo: 85, desp: 10 },
+            "tasty-fonzie": { cat: "Food", text: "Référence obscure possible à une marque ou un lieu.", seo: 20, desp: 70 },
+            "mickey-duck": { cat: "Pop Culture", text: "Confusion intentionnelle entre Mickey Mouse et Donald Duck ? Hybridation de copyright.", seo: 50, desp: 80 },
+            "tintin": { cat: "Pop Culture", text: "Icône belge majeure. Aimant à trafic.", seo: 95, desp: 10 },
+            "et-milou": { cat: "Pop Culture", text: "Complément inséparable de Tintin.", seo: 80, desp: 10 },
+            "spielberg": { cat: "Pop Culture", text: "Nom de réalisateur. Tentative de captation d'aura cinéphile.", seo: 80, desp: 30 },
+            "kubrick": { cat: "Pop Culture", text: "Réalisateur culte. Voir 'Born to Kill'.", seo: 80, desp: 30 },
+            "michou": { cat: "Pop Culture", text: "Youtuber célèbre ou cabaret parisien. Ambiguïté calculée.", seo: 90, desp: 50 },
+            "squeezie": { cat: "Pop Culture", text: "Youtuber n°1 FR. Tentative flagrante de captation d'audience jeune.", seo: 95, desp: 90 },
+            "baudouin": { cat: "Politique", text: "Référence royale (Roi Baudouin) ou toponymique.", seo: 60, desp: 20 },
+            "robiano": { cat: "Lieu", text: "Lycée/Place à Bruxelles. Ancrage local.", seo: 50, desp: 20 },
+            "moinil": { cat: "Politique", text: "Référence politique belge obscure.", seo: 40, desp: 40 },
+            "indiana": { cat: "Pop Culture", text: "Partie de la franchise Lucasfilm.", seo: 70, desp: 20 },
+            "jones": { cat: "Pop Culture", text: "Suite franchise Lucasfilm.", seo: 60, desp: 20 },
+            "lucasart": { cat: "Pop Culture", text: "Studio de jeu vidéo légendaire. Nostalgie bait.", seo: 75, desp: 30 },
+            "game": { cat: "Tech", text: "Composant 'Game Over'.", seo: 50, desp: 20 },
+            "over": { cat: "Tech", text: "Fin de partie.", seo: 50, desp: 20 },
+            "the-wire": { cat: "Pop Culture", text: "Série TV culte HBO. Signal de bon goût.", seo: 80, desp: 10 },
+            "hooray-for-boobies": { cat: "Culture", text: "Album de Bloodhound Gang. Référence années 90/2000.", seo: 60, desp: 70 },
+            "michel": { cat: "Politique", text: "Prénom politique fréquent (Louis, Charles...).", seo: 50, desp: 40 },
+            "didier": { cat: "Politique", text: "Didier Reynders ? Prénom politique.", seo: 50, desp: 40 },
+            "tour-des-finances": { cat: "Lieu", text: "Gratte-ciel bruxellois, siège du SPF Finances.", seo: 70, desp: 10 },
+            "reynders": { cat: "Politique", text: "Homme politique belge majeur. Mot-clé 'Hard News'.", seo: 90, desp: 30 },
+            "qui-est-la-taupe": { cat: "Scandale", text: "Question rhétorique paranoïaque ou référence TV.", seo: 60, desp: 80 },
+            "confidentiel": { cat: "Scandale", text: "Marqueur de secret pour inciter au clic.", seo: 85, desp: 60 },
+            "batman": { cat: "Pop Culture", text: "Super-héros DC. Mot-clé universel.", seo: 90, desp: 50 },
+            "korben": { cat: "Tech", text: "Korben Dallas (5e Élément) ou le blogueur Tech Korben.info.", seo: 70, desp: 30 }
+        };
+
+        // Fallback for unknown segments
+        const defaultAnalysis = { cat: "Divers", text: "Segment de remplissage ou connecteur logique.", seo: 10, desp: 40 };
+
+        // Enrich Data
+        const urlData = segments.map((seg, index) => {
+            const info = analysisDB[seg] || defaultAnalysis;
+            return {
+                id: index,
+                segment: seg,
+                category: info.cat,
+                analysis: info.text,
+                seoScore: info.seo,
+                desperationScore: info.desp
+            };
+        });
+
+        // --- 2. STATE MANAGEMENT ---
+        const app = {
+            state: {
+                selectedId: 0,
+                filter: 'all'
+            },
+
+            // --- 3. DOM ELEMENTS ---
+            els: {
+                list: document.getElementById('url-sequence-list'),
+                detailSegment: document.getElementById('detail-segment'),
+                detailCategory: document.getElementById('detail-category'),
+                detailIndex: document.getElementById('detail-index'),
+                detailAnalysis: document.getElementById('detail-analysis'),
+                seoVal: document.getElementById('score-seo-val'),
+                seoBar: document.getElementById('score-seo-bar'),
+                despVal: document.getElementById('score-desp-val'),
+                despBar: document.getElementById('score-desp-bar'),
+                totalDepth: document.getElementById('total-depth-val'),
+                chartsArea: document.getElementById('charts-area')
+            },
+
+            // --- 4. INIT ---
+            init() {
+                this.els.totalDepth.textContent = urlData.length;
+                this.renderList();
+                this.renderDetails(0);
+                this.initCharts();
+            },
+
+            // --- 5. RENDER FUNCTIONS ---
+            renderList() {
+                this.els.list.innerHTML = '';
+                
+                urlData.forEach((item, index) => {
+                    // Filter Logic
+                    if (this.state.filter !== 'all' && this.mapCategoryGroup(item.category) !== this.state.filter) return;
+
+                    const el = document.createElement('div');
+                    el.className = `segment-item cursor-pointer p-3 rounded-lg border-l-4 border-transparent text-sm font-mono flex items-center gap-3 ${index === this.state.selectedId ? 'active' : ''}`;
+                    
+                    // Icon based on category
+                    const icon = this.getIconForCategory(item.category);
+                    
+                    el.innerHTML = `
+                        <span class="text-neutral opacity-50 text-xs w-6">${index + 1}.</span>
+                        <span class="flex-grow truncate text-text">${item.segment}</span>
+                        <span class="text-xs opacity-70">${icon}</span>
+                    `;
+
+                    el.onclick = () => {
+                        this.state.selectedId = index;
+                        this.renderList(); // Re-render to update active class
+                        this.renderDetails(index);
+                    };
+
+                    this.els.list.appendChild(el);
+                });
+            },
+
+            renderDetails(index) {
+                const data = urlData[index];
+                
+                // Animate text change
+                this.els.detailSegment.textContent = `/${data.segment}`;
+                this.els.detailCategory.textContent = data.category;
+                this.els.detailIndex.textContent = `${index + 1}/${urlData.length}`;
+                this.els.detailAnalysis.textContent = data.analysis;
+
+                // Bars
+                this.els.seoVal.textContent = `${data.seoScore}%`;
+                this.els.seoBar.style.width = `${data.seoScore}%`;
+                
+                this.els.despVal.textContent = `${data.desperationScore}%`;
+                this.els.despBar.style.width = `${data.desperationScore}%`;
+
+                // Color coding header
+                this.els.detailCategory.className = `px-2 py-1 rounded bg-white text-xs font-bold uppercase tracking-wide border border-neutral text-${this.getColorForCategory(data.category)}`;
+            },
+
+            setFilter(filterName) {
+                this.state.filter = filterName;
+                this.renderList();
+            },
+
+            scrollToCharts() {
+                this.els.chartsArea.scrollIntoView({ behavior: 'smooth' });
+            },
+
+            // --- 6. HELPERS ---
+            getIconForCategory(cat) {
+                const map = {
+                    'Politique': '🇧🇪', 'Lieu': '📍', 'Pop Culture': '🍿', 'Food': '🍟', 
+                    'Tech': '🤖', 'Nonsense': '🤪', 'Scandale': '⚠️', 'Culture': '🎬', 'Identité': '👤'
+                };
+                return map[cat] || '📄';
+            },
+
+            mapCategoryGroup(cat) {
+                if (['Politique', 'Lieu'].includes(cat)) return 'Politique';
+                if (['Pop Culture', 'Culture', 'Food', 'Tech'].includes(cat)) return 'Pop Culture';
+                if (['Nonsense', 'Scandale', 'Emotion', 'Identité', 'Divers'].includes(cat)) return 'Nonsense';
+                return 'Autre';
+            },
+
+            getColorForCategory(cat) {
+                // Tailwind color mapping (simplified)
+                return 'text'; 
+            },
+
+            // --- 7. CHARTS ---
+            initCharts() {
+                // Prepare Data
+                const categories = {};
+                urlData.forEach(d => {
+                    const group = this.mapCategoryGroup(d.category);
+                    categories[group] = (categories[group] || 0) + 1;
+                });
+
+                // Chart 1: Taxonomy (Doughnut)
+                new Chart(document.getElementById('taxonomyChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(categories),
+                        datasets: [{
+                            data: Object.values(categories),
+                            backgroundColor: ['#5c7c8a', '#d97757', '#e0c097'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'right' }
+                        }
+                    }
+                });
+
+                // Chart 2: Volatility (Line)
+                // Maps "Desperation" score over index
+                const labels = urlData.map(d => d.id);
+                const desperationData = urlData.map(d => d.desperationScore);
+                const seoData = urlData.map(d => d.seoScore);
+
+                new Chart(document.getElementById('volatilityChart'), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Niveau de Désespoir',
+                                data: desperationData,
+                                borderColor: '#d97757',
+                                tension: 0.4,
+                                pointRadius: 1
+                            },
+                            {
+                                label: 'Potentiel SEO',
+                                data: seoData,
+                                borderColor: '#5c7c8a',
+                                tension: 0.4,
+                                pointRadius: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { display: false }, // Hide x axis labels for cleaner look on long data
+                            y: { beginAtZero: true, max: 100 }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    title: (ctx) => `Segment: /${urlData[ctx[0].dataIndex].segment}`
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        };
+
+        // Start App
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+
+    </script>
+    
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</body>
+</html>
