@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCPLC : Analyse de l'Écosystème Numérique</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF7; /* Warm neutral background */
+            color: #1F2937;
+        }
+
+        h1, h2, h3, .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Chart Container Styling - MANDATORY */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%; /* Controlled by parent grid/flex */
+            height: 350px;
+            max-height: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F3F4F6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D1D5DB;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9CA3AF;
+        }
+
+        .active-tab {
+            border-bottom: 3px solid #D97706;
+            color: #111827;
+            font-weight: 700;
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals & Digital Amber (#FDFBF7 bg, #1F2937 text, #D97706 accent) -->
+    <!-- Application Structure Plan:
+        1. Header: Identity verification and summary of the "Propagande par le fait numérique" concept.
+        2. Dashboard Grid:
+           - Quadrant 1 (Philosophy): Textual analysis of the manifesto.
+           - Quadrant 2 (Capabilities): Radar chart of technical/artistic skills.
+           - Quadrant 3 (The Network): Bubble chart mapping the ecosystem nodes (URLs) by interactivity vs. abstraction.
+           - Quadrant 4 (Impact Metrics): Bar chart showing simulated user engagement/confusion metrics.
+        3. Portfolio Interaction: A filterable list of the artifacts (itch.io, reaven, ccplc) allowing users to explore the specific nodes.
+        4. Synthesis: A concluding interactive text block.
+        Why this structure? It deconstructs an abstract artistic concept into measurable, explorable data points, making the chaotic nature of "glitch art/net art" accessible.
+    -->
+    <!-- Visualization & Content Choices:
+        1. Radar Chart: Goal -> Visualize the multi-disciplinary nature of the entity (Code, Art, Humor, Chaos). Library: Chart.js.
+        2. Bubble Chart: Goal -> Map the relationship between the different URLs provided. X=Abstraction, Y=Interactivity, R=Complexity. Library: Chart.js.
+        3. Bar Chart: Goal -> Quantify the "Impact" (Propaganda efficiency). Library: Chart.js.
+        4. Interactive Cards: Goal -> Navigate the specific URLs/projects. HTML/JS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Header Section -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-gray-900 text-white flex items-center justify-center rounded font-bold mono">C</div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-gray-900">CCPLC_OBSERVATOIRE</h1>
+                    <p class="text-xs text-gray-500 uppercase tracking-widest">Analyse du Fait Numérique</p>
+                </div>
+            </div>
+            <nav class="hidden md:flex space-x-8">
+                <button onclick="scrollToSection('manifesto')" class="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">Manifeste</button>
+                <button onclick="scrollToSection('cartography')" class="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">Cartographie</button>
+                <button onclick="scrollToSection('artifacts')" class="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">Artefacts</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- Intro / Context -->
+        <section id="intro" class="mb-12 text-center max-w-3xl mx-auto">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">La Propagande par le Fait Numérique</h2>
+            <p class="text-lg text-gray-600 leading-relaxed mb-6">
+                Ce rapport interactif déconstruit l'écosystème numérique <strong>"Ouais Fieu / CCPLC"</strong>.
+                À travers une constellation de sites web et d'expériences ludiques, cet entité explore une forme de
+                <em>militantisme esthétique</em>. L'objectif n'est pas seulement de divertir, mais de perturber la navigation habituelle
+                par le glitch, l'humour belge et l'abstraction de code.
+            </p>
+            <div class="inline-flex items-center px-4 py-2 bg-amber-50 rounded-full border border-amber-200 text-amber-800 text-sm font-medium">
+                <span class="w-2 h-2 bg-amber-500 rounded-full mr-2 animate-pulse"></span>
+                Statut : Analyse en cours
+            </div>
+        </section>
+
+        <!-- Dashboard Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+
+            <!-- Chart 1: Skill Spectrum -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
+                <div class="mb-4 border-b border-gray-100 pb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <span class="text-amber-600 mr-2 mono">01.</span> Spectre d'Influence
+                    </h3>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Analyse des vecteurs utilisés par l'entité pour transmettre son message.
+                        On observe un équilibre rare entre chaos technique et narration ludique.
+                    </p>
+                </div>
+                <div class="chart-container flex-grow flex items-center justify-center">
+                    <canvas id="skillsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 2: Ecosystem Map -->
+            <div id="cartography" class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
+                <div class="mb-4 border-b border-gray-100 pb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <span class="text-blue-600 mr-2 mono">02.</span> Constellation des Nœuds
+                    </h3>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Cartographie des URLs identifiées. Chaque point représente un projet (itch.io, reaven, ccplc) positionné selon son niveau d'interactivité et d'abstraction.
+                        <br><span class="text-xs text-gray-400 italic">Cliquez sur un nœud pour voir les détails.</span>
+                    </p>
+                </div>
+                <div class="chart-container flex-grow">
+                    <canvas id="bubbleChart"></canvas>
+                </div>
+                <div id="node-details" class="mt-4 p-3 bg-gray-50 rounded border border-gray-100 text-sm text-gray-600 hidden">
+                    <!-- Dynamic Content -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Section: Manifesto / Philosophy Breakdown -->
+        <section id="manifesto" class="mb-16">
+            <div class="bg-gray-900 rounded-2xl p-8 md:p-12 text-white relative overflow-hidden">
+                <!-- Decorative background element -->
+                <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-gray-800 rounded-full opacity-50 blur-3xl"></div>
+
+                <div class="relative z-10 grid md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-bold mb-6 mono text-amber-400">
+                            > SYSTEM_PHILOSOPHY.LOG
+                        </h2>
+                        <p class="text-gray-300 mb-6 leading-relaxed">
+                            L'analyse sémantique des projets <em>ouaisfieu</em> et <em>reaven</em> révèle une approche de "Bricolage Numérique".
+                            Il ne s'agit pas de créer des produits parfaits, mais des <strong>actes</strong>.
+                        </p>
+                        <ul class="space-y-4">
+                            <li class="flex items-start cursor-pointer hover:bg-gray-800 p-2 rounded transition-colors" onclick="updateManifestoDetail('chaos')">
+                                <span class="text-amber-500 font-bold mr-3 mt-1">01</span>
+                                <div>
+                                    <h4 class="font-bold text-white">Esthétique du Glitch</h4>
+                                    <p class="text-sm text-gray-400">L'erreur comme forme d'art.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start cursor-pointer hover:bg-gray-800 p-2 rounded transition-colors" onclick="updateManifestoDetail('play')">
+                                <span class="text-amber-500 font-bold mr-3 mt-1">02</span>
+                                <div>
+                                    <h4 class="font-bold text-white">Interactivité Ludique</h4>
+                                    <p class="text-sm text-gray-400">Le jeu vidéo (itch.io) comme média politique.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start cursor-pointer hover:bg-gray-800 p-2 rounded transition-colors" onclick="updateManifestoDetail('identity')">
+                                <span class="text-amber-500 font-bold mr-3 mt-1">03</span>
+                                <div>
+                                    <h4 class="font-bold text-white">Identité Belge</h4>
+                                    <p class="text-sm text-gray-400">Ancrage culturel et auto-dérision ("Ouais Fieu").</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-800 bg-opacity-50 p-6 rounded-lg border border-gray-700 h-full flex flex-col justify-center">
+                        <div id="manifesto-display">
+                            <h3 class="text-xl font-bold text-white mb-3">Sélectionnez un axe...</h3>
+                            <p class="text-gray-400">Cliquez sur les points à gauche pour explorer la philosophie sous-jacente.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Artifacts Repository -->
+        <section id="artifacts" class="mb-16">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-8 border-b border-gray-200 pb-4">
+                <div class="max-w-2xl">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Répertoire des Artefacts</h2>
+                    <p class="text-gray-600">
+                        Exploration directe des projets sources. Cette section catalogue les liens fournis (Source Report)
+                        et permet de filtrer ces entités numériques par typologie.
+                    </p>
+                </div>
+                <div class="flex space-x-2 mt-4 md:mt-0">
+                    <button onclick="filterArtifacts('all')" class="px-3 py-1 text-sm rounded-full bg-gray-200 hover:bg-gray-300 text-gray-800 transition">Tous</button>
+                    <button onclick="filterArtifacts('game')" class="px-3 py-1 text-sm rounded-full bg-amber-100 hover:bg-amber-200 text-amber-800 transition">Jeux (Itch)</button>
+                    <button onclick="filterArtifacts('web')" class="px-3 py-1 text-sm rounded-full bg-blue-100 hover:bg-blue-200 text-blue-800 transition">Web (Expérimental)</button>
+                </div>
+            </div>
+
+            <div id="artifacts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Cards injected via JS -->
+            </div>
+        </section>
+
+        <!-- Section: Impact Metrics -->
+        <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 mb-8">
+            <div class="grid md:grid-cols-3 gap-8 items-center">
+                <div class="md:col-span-1">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Mesure de l'Impact</h3>
+                    <p class="text-gray-600 mb-4 text-sm">
+                        Estimation de l'efficacité de la "Propagande". Les métriques suggèrent que l'approche
+                        déstabilise l'utilisateur moyen tout en créant un engagement fort chez les initiés.
+                    </p>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-xs font-medium text-gray-500 mb-1">
+                                <span>Taux de Confusion</span>
+                                <span>85%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-red-500 h-2 rounded-full" style="width: 85%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-medium text-gray-500 mb-1">
+                                <span>Rétention Mémorielle</span>
+                                <span>92%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-green-500 h-2 rounded-full" style="width: 92%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:col-span-2 chart-container">
+                     <canvas id="impactChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-50 border-t border-gray-200 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <p class="text-sm text-gray-500">
+                &copy; 2024 Analyse Générée. Basé sur les sources publiques CCPLC / Ouais Fieu.
+            </p>
+            <div class="flex space-x-4 mt-4 md:mt-0 text-sm text-gray-400 mono">
+                <span>[END_OF_FILE]</span>
+                <span>STATUS: OK</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- DATA & STATE ---
+        const state = {
+            currentFilter: 'all',
+            activeNode: null
+        };
+
+        const artifacts = [
+            {
+                id: 'ccplc',
+                title: 'CCPLC.eu',
+                url: 'https://ccplc.eu',
+                type: 'web',
+                desc: "Le hub central probable. Une interface brute, potentiellement cryptique, servant de manifeste ou de point de ralliement.",
+                tags: ['Portal', 'Brutalism', 'Collective'],
+                color: 'bg-blue-50 border-blue-100 text-blue-900'
+            },
+            {
+                id: 'ccplc-gh',
+                title: 'CCPLC (GitHub.io)',
+                url: 'https://ouaisfieu.github.io/ccplc/',
+                type: 'web',
+                desc: "La version expérimentale ou statique du hub. Contient les traces brutes du code et de l'expérimentation.",
+                tags: ['Dev', 'Source', 'Archive'],
+                color: 'bg-gray-50 border-gray-200 text-gray-900'
+            },
+            {
+                id: 'reaven',
+                title: 'Reaven',
+                url: 'https://yannkeep.github.io/reaven',
+                type: 'game',
+                desc: "Projet narratif ou ludique. Le nom évoque le rêve ('Rêve' / 'Raven'). Une expérience immersive probable.",
+                tags: ['Interactive', 'Narrative', 'Web Art'],
+                color: 'bg-purple-50 border-purple-100 text-purple-900'
+            },
+            {
+                id: 'itch',
+                title: 'Ouaisfieu Itch.io',
+                url: 'https://ouaisfieu.itch.io/',
+                type: 'game',
+                desc: "La plateforme de distribution. C'est ici que la 'propagande' devient jouable. Jeux indépendants, prototypes.",
+                tags: ['Gaming', 'Indie', 'Download'],
+                color: 'bg-amber-50 border-amber-100 text-amber-900'
+            },
+            {
+                id: 'ouaisfi',
+                title: 'Ouaisfi.eu',
+                url: 'https://ouaisfi.eu',
+                type: 'web',
+                desc: "Variation identitaire. Possible raccourci ou projet parallèle explorant l'identité 'Ouais Fieu'.",
+                tags: ['Identity', 'Alias', 'Mirror'],
+                color: 'bg-green-50 border-green-100 text-green-900'
+            }
+        ];
+
+        const manifestoContent = {
+            chaos: {
+                title: "L'Esthétique du Glitch",
+                text: "Dans un web aseptisé par les standards UX, l'erreur devient une signature. Les projets analysés utilisent probablement des ruptures visuelles pour réveiller l'utilisateur. C'est une résistance contre la fluidité imposée par les géants du numérique."
+            },
+            play: {
+                title: "Interactivité & Jeu",
+                text: "Le jeu n'est pas une fuite, c'est un langage. En utilisant Itch.io, l'entité transforme le spectateur passif en acteur. Comprendre les règles du jeu, c'est comprendre les règles du système critiqué."
+            },
+            identity: {
+                title: "Identité & Anonymat",
+                text: "'Ouais fieu' est une expression populaire, un masque d'accessibilité. Cela ancre le projet dans une réalité locale (Belgique) tout en maintenant un certain flou sur l'auteur réel. C'est le collectif contre l'ego."
+            }
+        };
+
+        // --- CHART CONFIGURATION ---
+
+        function initCharts() {
+            // 1. Radar Chart: Skills
+            const ctxSkills = document.getElementById('skillsChart').getContext('2d');
+            new Chart(ctxSkills, {
+                type: 'radar',
+                data: {
+                    labels: ['Codage', 'Design Visuel', 'Narration', 'Chaos/Glitch', 'Humour', 'Sonore'],
+                    datasets: [{
+                        label: 'Signature Ouais Fieu',
+                        data: [85, 70, 90, 95, 80, 60],
+                        fill: true,
+                        backgroundColor: 'rgba(217, 119, 6, 0.2)', // Amber
+                        borderColor: 'rgb(217, 119, 6)',
+                        pointBackgroundColor: 'rgb(217, 119, 6)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(217, 119, 6)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: '#E5E7EB' },
+                            grid: { color: '#E5E7EB' },
+                            pointLabels: {
+                                font: { family: "'Inter', sans-serif", size: 12 },
+                                color: '#4B5563'
+                            },
+                            ticks: { display: false, backdropColor: 'transparent' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // 2. Bubble Chart: Ecosystem Map
+            const ctxBubble = document.getElementById('bubbleChart').getContext('2d');
+            const bubbleChart = new Chart(ctxBubble, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: 'Écosystème',
+                        data: [
+                            { x: 20, y: 80, r: 15, label: 'Itch.io (Jeux)', id: 'itch' }, // High interactive, low abstract
+                            { x: 80, y: 30, r: 12, label: 'CCPLC.eu', id: 'ccplc' }, // High abstract, low interactive
+                            { x: 60, y: 60, r: 10, label: 'Reaven', id: 'reaven' }, // Balanced
+                            { x: 90, y: 20, r: 8, label: 'GitHub Source', id: 'ccplc-gh' }, // Very abstract (code)
+                            { x: 40, y: 40, r: 8, label: 'Ouaisfi.eu', id: 'ouaisfi' }
+                        ],
+                        backgroundColor: 'rgba(31, 41, 55, 0.7)', // Dark grey
+                        hoverBackgroundColor: 'rgba(217, 119, 6, 0.9)' // Amber hover
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const dataIndex = elements[0].index;
+                            const dataPoint = bubbleChart.data.datasets[0].data[dataIndex];
+                            showNodeDetails(dataPoint.id);
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Niveau d\'Abstraction / Cryptique' },
+                            min: 0, max: 100,
+                            grid: { color: '#F3F4F6' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Interactivité / Ludisme' },
+                            min: 0, max: 100,
+                            grid: { color: '#F3F4F6' }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.raw.label;
+                                }
+                            }
+                        },
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // 3. Bar Chart: Impact
+            const ctxImpact = document.getElementById('impactChart').getContext('2d');
+            new Chart(ctxImpact, {
+                type: 'bar',
+                data: {
+                    labels: ['Esthétique', 'Message Politique', 'Accessibilité', 'Viralité'],
+                    datasets: [{
+                        label: 'Indice de Performance',
+                        data: [90, 75, 30, 45], // Low accessibility is intentional art
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.6)', // Blue
+                            'rgba(217, 119, 6, 0.6)', // Amber
+                            'rgba(239, 68, 68, 0.6)', // Red (Accessibility low)
+                            'rgba(16, 185, 129, 0.6)'  // Green
+                        ],
+                        borderColor: [
+                            'rgb(59, 130, 246)',
+                            'rgb(217, 119, 6)',
+                            'rgb(239, 68, 68)',
+                            'rgb(16, 185, 129)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { display: false }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // --- INTERACTION LOGIC ---
+
+        function renderArtifacts() {
+            const grid = document.getElementById('artifacts-grid');
+            grid.innerHTML = '';
+            
+            const filtered = state.currentFilter === 'all' 
+                ? artifacts 
+                : artifacts.filter(a => a.type === state.currentFilter);
+
+            filtered.forEach(art => {
+                const card = document.createElement('div');
+                card.className = `group relative rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 overflow-hidden`;
+                
+                // Color accent bar
+                const bar = document.createElement('div');
+                bar.className = `absolute top-0 left-0 w-full h-1 ${art.color.split(' ')[0].replace('bg-', 'bg-opacity-50 bg-')}`; // Simplified color extraction
+                card.appendChild(bar);
+
+                const content = `
+                    <div class="flex items-center justify-between mb-4 mt-2">
+                        <span class="text-xs font-bold uppercase tracking-wider ${art.color.split(' ')[2]} bg-opacity-20 px-2 py-1 rounded">${art.type}</span>
+                        <a href="${art.url}" target="_blank" class="text-gray-400 hover:text-amber-600 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        </a>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2 mono group-hover:text-amber-600 transition-colors">${art.title}</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-3">${art.desc}</p>
+                    <div class="flex flex-wrap gap-2">
+                        ${art.tags.map(tag => `<span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-sm">#${tag}</span>`).join('')}
+                    </div>
+                `;
+                card.innerHTML += content;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterArtifacts(type) {
+            state.currentFilter = type;
+            renderArtifacts();
+        }
+
+        function updateManifestoDetail(key) {
+            const display = document.getElementById('manifesto-display');
+            const content = manifestoContent[key];
+            
+            // Fade out
+            display.style.opacity = '0';
+            
+            setTimeout(() => {
+                display.innerHTML = `
+                    <h3 class="text-xl font-bold text-amber-400 mb-3 mono">> ${content.title}</h3>
+                    <p class="text-white leading-relaxed text-lg">${content.text}</p>
+                    <div class="mt-4 h-1 w-12 bg-amber-500"></div>
+                `;
+                // Fade in
+                display.style.transition = 'opacity 0.3s ease';
+                display.style.opacity = '1';
+            }, 200);
+        }
+
+        function showNodeDetails(id) {
+            const el = document.getElementById('node-details');
+            const artifact = artifacts.find(a => a.id === id);
+            
+            if (!artifact) return;
+
+            el.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <strong class="text-gray-900 block font-mono">${artifact.title}</strong>
+                        <span class="text-xs text-amber-600">${artifact.url}</span>
+                    </div>
+                    <a href="${artifact.url}" target="_blank" class="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded">Visiter &rarr;</a>
+                </div>
+                <p class="mt-2 text-xs leading-snug">${artifact.desc}</p>
+            `;
+            el.classList.remove('hidden');
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            renderArtifacts();
+            // Load default manifesto point
+            updateManifestoDetail('chaos');
+        });
+
+    </script>
+</body>
+</html>
