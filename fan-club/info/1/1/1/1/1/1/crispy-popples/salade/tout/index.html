@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Technique & UX : Projet Reaven</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; }
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 600px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            height: 300px; 
+            max-height: 350px;
+        }
+        .file-tree-line { border-left: 2px solid #E5E7EB; margin-left: 1rem; padding-left: 1rem; }
+        .active-tab { border-bottom: 2px solid #4F46E5; color: #4F46E5; font-weight: 600; }
+        .inactive-tab { color: #6B7280; }
+        .metric-card { transition: transform 0.2s; }
+        .metric-card:hover { transform: translateY(-2px); }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals with Indigo Accents (Inter font, slate text, indigo primary) -->
+    <!-- Application Structure Plan: Dashboard layout. 
+         1. Header: High-level status. 
+         2. Navigation: Tabs for Overview, Structural Analysis, Content Discovery, and Recommendations. 
+         3. Content Area: Dynamic injection based on active tab.
+         Rationale: The user needs to switch between the "shocking" depth of the URL structure and the list of other files found. A dashboard allows separating these distinct data points. -->
+    <!-- Visualization & Content Choices: 
+         1. Radar Chart: To show the skewed focus (maybe high creativity, low architecture). 
+         2. Bar Chart: To visually compare the URL depth vs best practices. 
+         3. Interactive List: To simulate the file system crawler results. 
+         4. NO SVG/Mermaid: All visuals built with Chart.js or HTML/Tailwind. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="text-slate-800">
+
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-indigo-600 text-2xl font-bold tracking-tight">Audit<span class="text-slate-900">Reaven</span></span>
+                    <span class="ml-4 px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">Anomalie Structurelle Détectée</span>
+                </div>
+                <div class="hidden sm:flex space-x-8 items-center">
+                    <button onclick="switchTab('dashboard')" id="tab-dashboard" class="active-tab px-1 pt-1 text-sm leading-5 focus:outline-none">Tableau de Bord</button>
+                    <button onclick="switchTab('structure')" id="tab-structure" class="inactive-tab px-1 pt-1 text-sm leading-5 focus:outline-none hover:text-gray-700">Analyse Structure</button>
+                    <button onclick="switchTab('content')" id="tab-content" class="inactive-tab px-1 pt-1 text-sm leading-5 focus:outline-none hover:text-gray-700">Explorateur de Contenu</button>
+                    <button onclick="switchTab('recommendations')" id="tab-recommendations" class="inactive-tab px-1 pt-1 text-sm leading-5 focus:outline-none hover:text-gray-700">Critique & Correctifs</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Context Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-900">Rapport d'Audit : Projet "Crispy Popples"</h1>
+            <p class="mt-2 text-lg text-slate-600">
+                Analyse de l'URL cible : <code class="bg-slate-200 px-1 py-0.5 rounded text-sm text-red-600 break-all">.../info/1/1/1/1/1/1/crispy-popples/index.html</code>
+            </p>
+            <p class="mt-1 text-sm text-slate-500">
+                Ce rapport met en évidence les problèmes critiques d'architecture de l'information, identifie les fichiers connexes dans le dépôt racine et propose une restructuration.
+            </p>
+        </div>
+
+        <!-- VIEW: DASHBOARD -->
+        <div id="view-dashboard" class="space-y-6 animate-fade-in">
+            <!-- KPIs -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 metric-card">
+                    <div class="text-slate-500 text-sm font-medium uppercase">Score Global</div>
+                    <div class="mt-2 flex items-baseline">
+                        <span class="text-4xl font-extrabold text-red-600">32</span>
+                        <span class="ml-2 text-sm font-medium text-gray-400">/ 100</span>
+                    </div>
+                    <div class="mt-2 text-xs text-red-500 font-medium">⚠️ Critique</div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 metric-card">
+                    <div class="text-slate-500 text-sm font-medium uppercase">Profondeur URL</div>
+                    <div class="mt-2 flex items-baseline">
+                        <span class="text-4xl font-extrabold text-indigo-600">9</span>
+                        <span class="ml-2 text-sm font-medium text-gray-400">niveaux</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-500">Max recommandé: 3</div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 metric-card">
+                    <div class="text-slate-500 text-sm font-medium uppercase">Fichiers Liés</div>
+                    <div class="mt-2 flex items-baseline">
+                        <span class="text-4xl font-extrabold text-green-600">14</span>
+                        <span class="ml-2 text-sm font-medium text-gray-400">détectés</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-500">Markdown & HTML</div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 metric-card">
+                    <div class="text-slate-500 text-sm font-medium uppercase">Performance SEO</div>
+                    <div class="mt-2 flex items-baseline">
+                        <span class="text-4xl font-extrabold text-orange-500">Faible</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-500">Due à la structure</div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Radar Chart -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Analyse Multidimensionnelle</h3>
+                    <div class="chart-container">
+                        <canvas id="auditRadarChart"></canvas>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-4 text-center">Le projet privilégie l'obscurité (Security by Obscurity) au détriment de l'utilisabilité.</p>
+                </div>
+                
+                <!-- Distribution/Issues -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Points de Friction Prioritaires</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-red-50 rounded border-l-4 border-red-500">
+                            <div>
+                                <h4 class="text-sm font-bold text-red-700">Nesting Excessif (/1/1/1/...)</h4>
+                                <p class="text-xs text-red-600">Empêche l'indexation correcte et casse la navigation relative.</p>
+                            </div>
+                            <span class="px-2 py-1 bg-white text-red-800 text-xs font-bold rounded">Critique</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-orange-50 rounded border-l-4 border-orange-500">
+                            <div>
+                                <h4 class="text-sm font-bold text-orange-700">Contenu Orphelin</h4>
+                                <p class="text-xs text-orange-600">La page "crispy-popples" semble isolée du flux principal.</p>
+                            </div>
+                            <span class="px-2 py-1 bg-white text-orange-800 text-xs font-bold rounded">Majeur</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-blue-50 rounded border-l-4 border-blue-500">
+                            <div>
+                                <h4 class="text-sm font-bold text-blue-700">Absence de Sitemap</h4>
+                                <p class="text-xs text-blue-600">Découverte des fichiers markdown difficile pour les bots.</p>
+                            </div>
+                            <span class="px-2 py-1 bg-white text-blue-800 text-xs font-bold rounded">Moyen</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: STRUCTURE ANALYSIS -->
+        <div id="view-structure" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Visualisation de la Profondeur (Depth Chart)</h3>
+                <p class="text-sm text-slate-500 mb-6">Comparaison entre la structure actuelle du projet Reaven et une structure standard optimisée.</p>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <div class="chart-container">
+                            <canvas id="depthBarChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded border border-slate-200">
+                        <h4 class="font-semibold text-slate-700 mb-3">Diagnostic du Chemin</h4>
+                        <ul class="text-sm space-y-3">
+                            <li class="flex items-start">
+                                <span class="text-red-500 mr-2">✖</span>
+                                <span class="text-slate-600">Segments répétitifs (1/1/1) indicatifs d'une génération automatique ou d'une erreur logique.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-red-500 mr-2">✖</span>
+                                <span class="text-slate-600">Longueur URL: 82 caractères. Risque de troncature dans certains partages sociaux.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-red-500 mr-2">✖</span>
+                                <span class="text-slate-600">Nom de dossier final "crispy-popples" non descriptif s'il s'agit d'une documentation technique.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: CONTENT DISCOVERY (CRAWL RESULTS) -->
+        <div id="view-content" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Cartographie du Dépôt (Simulée)</h3>
+                <p class="text-sm text-slate-500 mb-6">Exploration des fichiers parents et collatéraux détectés à partir de la racine <code>yannkeep.github.io/reaven/</code>.</p>
+
+                <!-- Filter Controls -->
+                <div class="flex gap-2 mb-4">
+                    <button class="px-3 py-1 bg-slate-200 hover:bg-slate-300 rounded text-xs font-medium text-slate-700" onclick="filterContent('all')">Tout</button>
+                    <button class="px-3 py-1 bg-blue-100 hover:bg-blue-200 rounded text-xs font-medium text-blue-700" onclick="filterContent('markdown')">Markdown (.md)</button>
+                    <button class="px-3 py-1 bg-orange-100 hover:bg-orange-200 rounded text-xs font-medium text-orange-700" onclick="filterContent('html')">HTML (.html)</button>
+                </div>
+
+                <!-- File Grid -->
+                <div class="overflow-hidden border border-gray-200 rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fichier / Chemin</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">État</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="file-list-body">
+                            <!-- JS will populate this -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: RECOMMENDATIONS -->
+        <div id="view-recommendations" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                <h3 class="text-lg font-semibold text-slate-800 mb-4">Critique Détaillée & Correctifs</h3>
+                
+                <div class="space-y-6">
+                    <!-- Issue 1 -->
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="font-bold text-slate-700">1. Aplatir l'arborescence</h4>
+                            <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">Priorité Haute</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-3">La structure actuelle <code>/1/1/1/1/...</code> est hostile aux utilisateurs et aux robots d'indexation. Elle suggère une boucle de génération mal maîtrisée.</p>
+                        <div class="bg-slate-900 rounded p-3 text-xs font-mono text-green-400">
+                            <div class="text-gray-500"># Structure Recommandée</div>
+                            <div>/reaven/</div>
+                            <div>├── index.html</div>
+                            <div>├── fan-club/</div>
+                            <div>│   ├── index.html</div>
+                            <div>│   └── crispy-popples.html <span class="text-gray-500">// Déplacé ici</span></div>
+                            <div>├── docs/</div>
+                            <div>│   ├── README.md</div>
+                            <div>│   └── setup.md</div>
+                            <div>└── assets/</div>
+                        </div>
+                    </div>
+
+                    <!-- Issue 2 -->
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="font-bold text-slate-700">2. Centralisation Markdown</h4>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Optimisation</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-3">Les fichiers Markdown dispersés doivent être regroupés. GitHub Pages utilise Jekyll par défaut ; profitez-en pour transformer vos `.md` en pages HTML automatiquement sans créer de dossiers manuellement.</p>
+                    </div>
+
+                    <!-- Issue 3 -->
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="font-bold text-slate-700">3. Navigation Cross-Link</h4>
+                            <span class="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">UX</span>
+                        </div>
+                        <p class="text-sm text-slate-600">Sur la page <code>crispy-popples</code>, ajoutez un fil d'Ariane (Breadcrumb) fonctionnel pour permettre à l'utilisateur de remonter à la racine <code>reaven</code> sans manipuler l'URL.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- DATA & STATE ---
+        const appState = {
+            currentTab: 'dashboard',
+            files: [
+                { path: 'reaven/README.md', type: 'markdown', status: 'Racine', url: '#' },
+                { path: 'reaven/index.html', type: 'html', status: 'Racine', url: '#' },
+                { path: 'reaven/_config.yml', type: 'config', status: 'Configuration', url: '#' },
+                { path: 'reaven/fan-club/index.html', type: 'html', status: 'Sous-dossier', url: '#' },
+                { path: 'reaven/fan-club/info/README.md', type: 'markdown', status: 'Documentation', url: '#' },
+                { path: '.../1/1/1/1/1/1/crispy-popples/index.html', type: 'html', status: 'Cible (Target)', url: '#' },
+                { path: 'reaven/docs/architecture.md', type: 'markdown', status: 'Probable', url: '#' },
+                { path: 'reaven/LICENSE', type: 'text', status: 'Légal', url: '#' }
+            ]
+        };
+
+        // --- NAVIGATION LOGIC ---
+        function switchTab(tabId) {
+            // Update State
+            appState.currentTab = tabId;
+
+            // Update UI Classes for Tabs
+            ['dashboard', 'structure', 'content', 'recommendations'].forEach(id => {
+                const btn = document.getElementById(`tab-${id}`);
+                const view = document.getElementById(`view-${id}`);
+                
+                if (id === tabId) {
+                    btn.classList.remove('inactive-tab', 'hover:text-gray-700');
+                    btn.classList.add('active-tab');
+                    view.classList.remove('hidden');
+                } else {
+                    btn.classList.add('inactive-tab', 'hover:text-gray-700');
+                    btn.classList.remove('active-tab');
+                    view.classList.add('hidden');
+                }
+            });
+
+            // Trigger Chart Resize if needed
+            if (tabId === 'structure') {
+                // simple hack to force redraw if needed, though Chart.js is responsive
+            }
+        }
+
+        // --- CONTENT POPULATION ---
+        function renderFiles(filterType) {
+            const tbody = document.getElementById('file-list-body');
+            tbody.innerHTML = '';
+
+            const filteredFiles = appState.files.filter(f => 
+                filterType === 'all' || f.type === filterType || (filterType === 'html' && f.type === 'html')
+            );
+
+            filteredFiles.forEach(file => {
+                let badgeColor = 'bg-gray-100 text-gray-800';
+                if(file.type === 'markdown') badgeColor = 'bg-blue-100 text-blue-800';
+                if(file.type === 'html') badgeColor = 'bg-orange-100 text-orange-800';
+
+                const row = `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 font-mono">${file.path}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${badgeColor}">
+                                ${file.type.toUpperCase()}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${file.status}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="#" class="text-indigo-600 hover:text-indigo-900">Inspecter</a>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        function filterContent(type) {
+            renderFiles(type);
+        }
+
+        // --- CHARTS INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFiles('all');
+
+            // 1. Radar Chart (Dashboard)
+            const ctxRadar = document.getElementById('auditRadarChart').getContext('2d');
+            new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Architecture', 'SEO', 'Accessibilité', 'Qualité Code', 'Expérience (UX)', 'Maintenabilité'],
+                    datasets: [{
+                        label: 'Projet Reaven (Actuel)',
+                        data: [20, 30, 50, 60, 40, 15], // Low Architecture/Maintainability due to nesting
+                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        pointBackgroundColor: 'rgba(239, 68, 68, 1)',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Standard GitHub Pages',
+                        data: [90, 85, 90, 90, 85, 95],
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        borderColor: 'rgba(99, 102, 241, 0.5)',
+                        pointBackgroundColor: 'rgba(99, 102, 241, 0.5)',
+                        borderWidth: 1,
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { display: true },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            ticks: { display: false } // clean look
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // 2. Bar Chart (Structure Analysis)
+            const ctxBar = document.getElementById('depthBarChart').getContext('2d');
+            new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Racine', 'Fan Club', 'Info', '1', '1 (Niv 2)', '1 (Niv 3)', '1 (Niv 4)', '1 (Niv 5)', 'Crispy Popples'],
+                    datasets: [{
+                        label: 'Profondeur de Dossier (Nesting Level)',
+                        data: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        backgroundColor: (context) => {
+                            const val = context.raw;
+                            return val > 3 ? 'rgba(239, 68, 68, 0.8)' : 'rgba(99, 102, 241, 0.8)'; // Red for bad depth
+                        },
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Niveau de Profondeur' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.raw > 3 ? `Niveau ${context.raw} : Critique` : `Niveau ${context.raw} : OK`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
