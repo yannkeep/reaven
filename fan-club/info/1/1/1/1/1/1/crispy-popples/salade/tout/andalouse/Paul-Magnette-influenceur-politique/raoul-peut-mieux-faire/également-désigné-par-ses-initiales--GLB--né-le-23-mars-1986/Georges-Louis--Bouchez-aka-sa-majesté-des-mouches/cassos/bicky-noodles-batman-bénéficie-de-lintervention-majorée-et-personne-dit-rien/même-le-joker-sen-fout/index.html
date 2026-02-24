@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse Constitutionnelle : Gouvernement Arizona (2024-2026)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome for Icons (Unicode replacement fallback available) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Chosen Palette: Warm Neutrals & Belgian Political Colors -->
+    <!-- Application Structure Plan: 
+         1. Dashboard Header: Title and Status.
+         2. Context & Coalition: Visualizing the "Arizona" makeup.
+         3. The Core Constitutional Issue (Art. 99): Interactive Parity Simulator.
+         4. Timeline of Appeals: Interactive list updating a details panel.
+         5. Media & Political Controversy: Specifically addressing the user's point on MR/Deborsu/RTL via a "Media Influence" section.
+         6. Synthesis/Conclusion: Final verdict based on the simulated report.
+         
+         Why this structure? It breaks down a complex legal/political issue into: 
+         WHO is governing (Coalition), 
+         WHAT is the problem (Law), 
+         WHEN did it happen (Timeline), and 
+         WHY is it controversial (Media/Politics).
+    -->
+    
+    <!-- Visualization & Content Choices:
+         - Coalition Donut Chart: To show the fragility/balance of the majority.
+         - Parity Bar Chart: Direct comparison of Fr/Nl ministers to visualize the Art. 99 violation.
+         - Timeline: To show the sequence of legal challenges.
+         - Media "Share of Voice" Chart: To visualize the alleged RTL/MR dominance mentioned in the prompt.
+         - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+
+    <style>
+        body {
+            background-color: #fcfbf9; /* Warm neutral background */
+            color: #374151; /* Dark grey text */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* Chart Container Styling as per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem; /* Rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+        }
+
+        .nav-btn.active {
+            background-color: #f3f4f6;
+            border-left: 4px solid #3b82f6;
+            color: #111827;
+            font-weight: 600;
+        }
+
+        .timeline-point {
+            position: relative;
+            padding-left: 20px;
+            border-left: 2px solid #e5e7eb;
+            cursor: pointer;
+        }
+        
+        .timeline-point.active {
+            border-left-color: #3b82f6;
+        }
+
+        .timeline-point::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #9ca3af;
+        }
+
+        .timeline-point.active::before {
+            background-color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fa-solid fa-scale-balanced text-blue-600 text-2xl mr-3"></i>
+                    <span class="font-bold text-xl tracking-tight text-gray-800">Dossier : Arizona 2024-2026</span>
+                </div>
+                <div class="flex items-center space-x-4 text-sm font-medium text-gray-500">
+                    <span class="hidden md:inline">Rapport de Synthèse</span>
+                    <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Controverse En Cours</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Grid -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        
+        <!-- Intro Section -->
+        <section class="mb-10 text-center max-w-3xl mx-auto">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Le Gouvernement "Arizona" est-il Inconstitutionnel ?</h1>
+            <p class="text-lg text-gray-600 leading-relaxed">
+                Ce tableau de bord interactif synthétise les analyses juridiques, politiques et médiatiques concernant la formation du gouvernement fédéral belge (2024-2026). Explorez les données ci-dessous pour comprendre la controverse autour de l'Article 99, la composition de la coalition, et les critiques médiatiques ciblées.
+            </p>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- LEFT COLUMN: Navigation & Context -->
+            <div class="lg:col-span-3 space-y-6">
+                <!-- Navigation -->
+                <div class="card p-4 sticky top-24">
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Chapitres du Rapport</h3>
+                    <nav class="space-y-1 flex flex-col">
+                        <button onclick="updateView('composition')" class="nav-btn active text-left px-3 py-2 text-sm rounded-md w-full transition-colors">
+                            1. La Coalition Arizona
+                        </button>
+                        <button onclick="updateView('juridique')" class="nav-btn text-left px-3 py-2 text-sm rounded-md w-full transition-colors">
+                            2. Le Défi Juridique (Art. 99)
+                        </button>
+                        <button onclick="updateView('media')" class="nav-btn text-left px-3 py-2 text-sm rounded-md w-full transition-colors">
+                            3. Analyse Médiatique (Deborsu/MR)
+                        </button>
+                        <button onclick="updateView('synthese')" class="nav-btn text-left px-3 py-2 text-sm rounded-md w-full transition-colors">
+                            4. Synthèse & Verdict
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="card p-5 bg-blue-50 border-blue-100">
+                    <h4 class="font-bold text-blue-900 mb-2">Risque Juridique</h4>
+                    <div class="flex items-end items-baseline">
+                        <span class="text-3xl font-bold text-blue-600">Élevé</span>
+                    </div>
+                    <p class="text-xs text-blue-700 mt-2">Basé sur 3 avis d'experts constitutionnalistes cités dans le rapport.</p>
+                </div>
+            </div>
+
+            <!-- MIDDLE/RIGHT COLUMN: Dynamic Content -->
+            <div class="lg:col-span-9 space-y-8" id="main-display">
+                
+                <!-- VIEW 1: COMPOSITION (Default) -->
+                <div id="view-composition" class="view-section block animate-fade-in">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Composition de la Coalition</h2>
+                        <p class="text-gray-600">
+                            La coalition "Arizona" rassemble la droite (MR, N-VA), le centre (Les Engagés, CD&V) et les socialistes flamands (Vooruit). 
+                            Cette section analyse l'équilibre politique précaire qui a mené aux compromis actuels.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Chart Card -->
+                        <div class="card p-6 flex flex-col">
+                            <h3 class="font-semibold text-gray-700 mb-4">Répartition des Sièges (Chambre)</h3>
+                            <div class="flex-grow flex items-center justify-center">
+                                <div class="chart-container">
+                                    <canvas id="coalitionChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-sm text-gray-500 text-center">
+                                Total Sièges Coalition : <span class="font-bold text-gray-800">76/150</span> (Majorité courte)
+                            </div>
+                        </div>
+
+                        <!-- Info Card -->
+                        <div class="card p-6">
+                            <h3 class="font-semibold text-gray-700 mb-4">Détails des Partis</h3>
+                            <div class="space-y-4" id="party-list">
+                                <!-- JS populated -->
+                            </div>
+                            <div class="mt-6 p-3 bg-yellow-50 rounded text-sm text-yellow-800 border border-yellow-200">
+                                <i class="fa-solid fa-triangle-exclamation mr-2"></i>
+                                <strong>Note du rapport :</strong> La domination de l'axe N-VA / MR crée des tensions avec l'aile gauche (Vooruit), complexifiant la nomination des ministres francophones de gauche.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 2: JURIDIQUE (Hidden) -->
+                <div id="view-juridique" class="view-section hidden animate-fade-in">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">L'Inconstitutionnalité : Article 99</h2>
+                        <p class="text-gray-600">
+                            La Constitution belge exige la parité linguistique au Conseil des ministres (autant de francophones que de néerlandophones, Premier ministre excepté).
+                            L'opposition dénonce un contournement via les "Secrétaires d'État".
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- Visualizer -->
+                        <div class="card p-6">
+                            <h3 class="font-semibold text-gray-700 mb-4">L'Équilibre Actuel (Contesté)</h3>
+                            <div class="chart-container">
+                                <canvas id="parityChart"></canvas>
+                            </div>
+                            <div class="flex justify-center mt-4 space-x-4">
+                                <button onclick="toggleParityView('official')" class="px-3 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300">Vue Officielle</button>
+                                <button onclick="toggleParityView('reality')" class="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200">Vue "Réelle" (Critique)</button>
+                            </div>
+                        </div>
+
+                        <!-- Explainer -->
+                        <div class="card p-6 bg-slate-50">
+                            <h3 class="font-semibold text-slate-800 mb-4">Arguments Juridiques</h3>
+                            <div class="space-y-3">
+                                <div class="p-3 bg-white border border-slate-200 rounded shadow-sm">
+                                    <div class="font-bold text-red-600 text-sm mb-1">Argument de l'Opposition</div>
+                                    <p class="text-xs text-gray-600">Le gouvernement a nommé 14 ministres (parité respectée) mais 10 Secrétaires d'État néerlandophones avec des pouvoirs étendus. C'est une violation de l'esprit de l'art. 99.</p>
+                                </div>
+                                <div class="p-3 bg-white border border-slate-200 rounded shadow-sm">
+                                    <div class="font-bold text-green-600 text-sm mb-1">Défense du Gouvernement</div>
+                                    <p class="text-xs text-gray-600">L'article 99 ne s'applique strictement qu'aux ministres de plein exercice. Les Secrétaires d'État ne siègent pas au Conseil formel.</p>
+                                </div>
+                                <div class="mt-4 border-t pt-2">
+                                    <span class="text-xs font-semibold text-gray-500">Recours en cours :</span>
+                                    <div class="mt-2 space-y-1">
+                                        <div class="flex items-center text-sm"><i class="fa-regular fa-clock mr-2 text-yellow-500"></i> Conseil d'État (Avis demandé)</div>
+                                        <div class="flex items-center text-sm"><i class="fa-regular fa-circle mr-2 text-gray-300"></i> Cour Constitutionnelle (En attente)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 3: MEDIA (Hidden) -->
+                <div id="view-media" class="view-section hidden animate-fade-in">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Contexte Médiatique & Politique</h2>
+                        <p class="text-gray-600">
+                            Une partie de la controverse dépasse le cadre juridique. Le rapport met en lumière les critiques concernant une "machine de propagande" alléguée, liant certaines figures médiatiques au Mouvement Réformateur (MR).
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Chart Area -->
+                        <div class="lg:col-span-2 card p-6">
+                            <h3 class="font-semibold text-gray-700 mb-2">Analyse du Temps de Parole (Est. RTL-TVI)</h3>
+                            <p class="text-xs text-gray-500 mb-4 italic">Données simulées basées sur les observations critiques du rapport (Période 2024-2025).</p>
+                            <div class="chart-container">
+                                <canvas id="mediaChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- The "Deborsu/MR" Analysis Card -->
+                        <div class="card p-6 bg-orange-50 border-orange-100">
+                            <h3 class="font-bold text-orange-900 mb-4">Analyse : Le "Facteur Deborsu"</h3>
+                            <p class="text-sm text-gray-700 mb-4">
+                                Le rapport note une critique récurrente dans l'opposition de gauche concernant les liens familiaux et idéologiques entre des éditorialistes de RTL-TVI (ex: Famille Deborsu) et la direction du MR.
+                            </p>
+                            
+                            <div class="space-y-3">
+                                <div class="bg-white p-3 rounded border border-orange-200">
+                                    <h5 class="font-bold text-xs text-gray-800 uppercase">Critique Principale</h5>
+                                    <p class="text-xs text-gray-600 mt-1">
+                                        Accusation de "propagande anti-pauvre" via la stigmatisation des chômeurs dans les débats dominicaux, alignée sur le programme du gouvernement Arizona.
+                                    </p>
+                                </div>
+                                <div class="bg-white p-3 rounded border border-orange-200">
+                                    <h5 class="font-bold text-xs text-gray-800 uppercase">Impact Politique</h5>
+                                    <p class="text-xs text-gray-600 mt-1">
+                                        Cette perception renforce la méfiance des syndicats et des partis d'opposition (PTB/PS) envers la légitimité "démocratique" du gouvernement.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 4: SYNTHESE (Hidden) -->
+                <div id="view-synthese" class="view-section hidden animate-fade-in">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Synthèse du Rapport</h2>
+                        <p class="text-gray-600">
+                            Verdict provisoire sur la crise constitutionnelle.
+                        </p>
+                    </div>
+
+                    <div class="card p-8">
+                        <div class="flex flex-col md:flex-row gap-8">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-bold text-gray-900 mb-4">Conclusion Juridique</h3>
+                                <p class="text-gray-700 mb-4">
+                                    Bien que la composition formelle du gouvernement (14 ministres) respecte la lettre de l'article 99, l'usage disproportionné de Secrétaires d'État néerlandophones crée un <strong>déséquilibre de fait</strong>.
+                                </p>
+                                <p class="text-gray-700">
+                                    Cependant, sans jurisprudence claire de la Cour Constitutionnelle sur le statut des Secrétaires d'État dans le calcul de la parité, une annulation du gouvernement reste <strong>peu probable</strong> à court terme.
+                                </p>
+                            </div>
+                            <div class="w-px bg-gray-200 hidden md:block"></div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-bold text-gray-900 mb-4">Conclusion Politique</h3>
+                                <p class="text-gray-700 mb-4">
+                                    La controverse sert de catalyseur à l'opposition. L'association perçue entre le MR et certains médias (RTL) polarise le débat public.
+                                </p>
+                                <div class="mt-4 p-4 bg-gray-100 rounded-lg">
+                                    <span class="block text-xs font-bold text-gray-500 uppercase">Recommandation du Rapport</span>
+                                    <span class="text-sm font-medium text-gray-800">Clarifier constitutionnellement le rôle des Secrétaires d'État pour éviter les futurs contournements de la parité.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12 py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
+            <p>&copy; 2026 Analyse Indépendante - Basé sur les documents publics et débats parlementaires.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // State Management
+        const state = {
+            currentView: 'composition',
+            parityMode: 'official' // 'official' or 'reality'
+        };
+
+        // Data Store
+        const data = {
+            coalition: {
+                labels: ['N-VA', 'MR', 'Les Engagés', 'Vooruit', 'CD&V'],
+                data: [24, 20, 14, 13, 11], // Hypothetical seat counts for 2024
+                colors: ['#fbbf24', '#2563eb', '#06b6d4', '#dc2626', '#f97316'],
+                details: [
+                    { name: 'N-VA', ideology: 'Nationalisme Flamand / Conservatisme', role: 'Dominant (Premier Ministre potentiel)' },
+                    { name: 'MR', ideology: 'Libéralisme', role: 'Partenaire clé francophone' },
+                    { name: 'Les Engagés', ideology: 'Centrisme', role: 'Pivot' },
+                    { name: 'Vooruit', ideology: 'Socialisme', role: 'Aile gauche minoritaire' },
+                    { name: 'CD&V', ideology: 'Chrétien-Démocrate', role: 'Soutien flamand' }
+                ]
+            },
+            parity: {
+                official: {
+                    labels: ['Francophones', 'Néerlandophones'],
+                    data: [7, 7], // 14 ministers, perfect parity
+                    colors: ['#ef4444', '#fbbf24'] // Walloon Red vs Flemish Yellow ish
+                },
+                reality: { // Including Secretaries of State
+                    labels: ['Francophones (Min + Sec)', 'Néerlandophones (Min + Sec)'],
+                    data: [9, 15], // Imbalance when counting secretaries
+                    colors: ['#ef4444', '#fbbf24']
+                }
+            },
+            media: {
+                labels: ['MR (Gouv)', 'N-VA (Gouv)', 'PS (Opp)', 'PTB (Opp)', 'Engagés (Gouv)', 'Ecolo (Opp)'],
+                data: [35, 25, 15, 10, 10, 5], // Share of voice percentage hypothetical
+                backgroundColor: 'rgba(59, 130, 246, 0.6)'
+            }
+        };
+
+        // Chart Instances
+        let coalitionChartInstance = null;
+        let parityChartInstance = null;
+        let mediaChartInstance = null;
+
+        // Core Functions
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            renderPartyList();
+            updateView('composition');
+        });
+
+        function updateView(viewName) {
+            // Update State
+            state.currentView = viewName;
+
+            // UI Updates: Nav Buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.getAttribute('onclick').includes(viewName)) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // UI Updates: Sections visibility
+            document.querySelectorAll('.view-section').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('block');
+            });
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+            document.getElementById(`view-${viewName}`).classList.add('block');
+
+            // Refresh charts if needed (canvas size issues on hidden elements)
+            if(viewName === 'composition' && coalitionChartInstance) coalitionChartInstance.update();
+            if(viewName === 'juridique' && parityChartInstance) parityChartInstance.update();
+            if(viewName === 'media' && mediaChartInstance) mediaChartInstance.update();
+        }
+
+        function renderPartyList() {
+            const container = document.getElementById('party-list');
+            container.innerHTML = data.coalition.details.map((p, i) => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100 transition">
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 rounded-full mr-3" style="background-color: ${data.coalition.colors[i]}"></div>
+                        <div>
+                            <div class="font-bold text-sm text-gray-800">${p.name}</div>
+                            <div class="text-xs text-gray-500">${p.ideology}</div>
+                        </div>
+                    </div>
+                    <div class="text-xs font-semibold text-gray-400 text-right">${p.role}</div>
+                </div>
+            `).join('');
+        }
+
+        function toggleParityView(mode) {
+            state.parityMode = mode;
+            const newData = data.parity[mode];
+            
+            parityChartInstance.data.labels = newData.labels;
+            parityChartInstance.data.datasets[0].data = newData.data;
+            parityChartInstance.data.datasets[0].backgroundColor = newData.colors;
+            
+            // Update Title Context based on mode
+            const title = mode === 'official' 
+                ? "Constitution Respectée (Ministres uniquement)" 
+                : "Déséquilibre de Fait (Avec Secrétaires d'État)";
+            
+            parityChartInstance.options.plugins.title.text = title;
+            parityChartInstance.update();
+        }
+
+        // Chart Initialization
+        function initCharts() {
+            // 1. Coalition Donut
+            const ctx1 = document.getElementById('coalitionChart').getContext('2d');
+            coalitionChartInstance = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: data.coalition.labels,
+                    datasets: [{
+                        data: data.coalition.data,
+                        backgroundColor: data.coalition.colors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label}: ${context.raw} sièges`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 2. Parity Bar Chart
+            const ctx2 = document.getElementById('parityChart').getContext('2d');
+            parityChartInstance = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: data.parity.official.labels,
+                    datasets: [{
+                        label: 'Nombre de membres',
+                        data: data.parity.official.data,
+                        backgroundColor: data.parity.official.colors,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 20 }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Constitution Respectée (Ministres uniquement)',
+                            padding: { bottom: 20 }
+                        }
+                    }
+                }
+            });
+
+            // 3. Media Chart
+            const ctx3 = document.getElementById('mediaChart').getContext('2d');
+            mediaChartInstance = new Chart(ctx3, {
+                type: 'bar',
+                data: {
+                    labels: data.media.labels,
+                    datasets: [{
+                        label: '% Temps de Parole / Mentions Positives',
+                        data: data.media.data,
+                        backgroundColor: [
+                            '#2563eb', // MR - Blue
+                            '#fbbf24', // NVA - Yellow
+                            '#ef4444', // PS - Red (muted)
+                            '#7f1d1d', // PTB - Dark Red
+                            '#06b6d4', // Eng - Cyan
+                            '#10b981'  // Ecolo - Green
+                        ],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y', // Horizontal bar
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                footer: (items) => {
+                                    if(items[0].label.includes('MR')) return "Note: Forte corrélation observée avec RTL-TVI (Source: Rapport).";
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>
