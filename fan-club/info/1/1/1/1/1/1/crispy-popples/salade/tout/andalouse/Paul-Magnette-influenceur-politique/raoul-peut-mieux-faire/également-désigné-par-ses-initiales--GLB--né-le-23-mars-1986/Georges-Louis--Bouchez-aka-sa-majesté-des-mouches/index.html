@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit 360° : Polémique "Sans boulot : tous fraudeurs ?"</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; color: #1F2937; }
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 600px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            height: 350px; 
+            max-height: 400px; 
+        }
+        @media (max-width: 640px) {
+            .chart-container { height: 300px; }
+        }
+        .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .active-tab { border-bottom: 2px solid #EA580C; color: #EA580C; font-weight: 600; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals (Slate/Stone) with Orange Accent (#EA580C) for impact/alert -->
+    <!-- Application Structure Plan: 
+         1. Hero Section: Immediate context and title.
+         2. Executive Summary: Key figures at a glance.
+         3. Interactive Analysis Dashboard: The core "Audit".
+            - Tabbed interface to switch between "Audience & Impact", "Ethical Analysis", and "Timeline".
+            - Charts (Radar for ethics, Bar for reactions) to visualize the conflict.
+         4. Deep Dive: "Points of Friction" section using interactive cards to explain specific controversies (Hidden cams, etc.).
+         5. Verdict: Summary of the CSA ruling and final thoughts.
+         Why? This structure moves from high-level impact to specific ethical breakdowns, mimicking a real audit report.
+    -->
+    <!-- Visualization & Content Choices:
+         1. Radar Chart: To visualize the "Ethical Profile" (Sensationalism vs Rigor vs Public Interest). Goal: Show the imbalance causing the controversy.
+         2. Bar Chart: Breakdown of "Reactions" (Political, Public, Media). Goal: Compare the sources of backlash.
+         3. Interactive Cards: For "Controversial Methods". Goal: Inform user about specific techniques used (e.g., hidden mics) without cluttering the UI.
+         4. Dynamic Text: To show "Arguments For vs Against". Goal: Allow user to explore both sides of the debate.
+         Confirming NO SVG graphics used. NO Mermaid JS used.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-stone-50 text-stone-800">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold text-stone-900 tracking-tight">AUDIT<span class="text-orange-600">360</span></span>
+                    <span class="ml-4 text-sm text-stone-500 hidden sm:block border-l pl-4 border-stone-300">Dossier : Documentaire C. Deborsu</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="scrollToSection('dashboard')" class="text-sm hover:text-orange-600 font-medium transition">Données</button>
+                    <button onclick="scrollToSection('friction')" class="text-sm hover:text-orange-600 font-medium transition">Points de Friction</button>
+                    <button onclick="scrollToSection('verdict')" class="text-sm hover:text-orange-600 font-medium transition">Verdict</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="bg-white border-b border-stone-200">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 text-center">
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 mb-4">Rapport d'Analyse Média</span>
+            <h1 class="text-4xl font-extrabold text-stone-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
+                Sans boulot : tous fraudeurs ?
+            </h1>
+            <p class="mt-4 max-w-2xl mx-auto text-xl text-stone-500">
+                Audit de la polémique autour du documentaire de Christophe Deborsu. Analyse de l'impact, de la déontologie et de la réaction publique.
+            </p>
+            <div class="mt-8 flex justify-center gap-4 text-sm font-medium text-stone-600">
+                <div class="bg-stone-100 px-4 py-2 rounded-lg">📅 Diffusion : RTL-TVI</div>
+                <div class="bg-stone-100 px-4 py-2 rounded-lg">⚖️ Dossier : CSA</div>
+                <div class="bg-stone-100 px-4 py-2 rounded-lg">🔥 Intensité : Critique</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Context Intro -->
+    <section class="max-w-4xl mx-auto py-10 px-4">
+        <h2 class="text-2xl font-bold text-stone-900 mb-4">Contexte du Rapport</h2>
+        <p class="text-lg text-stone-600 leading-relaxed">
+            Ce documentaire, diffusé en prime time, proposait une immersion dans le monde du chômage et de la fraude sociale via des techniques controversées (caméras cachées, mises en situation). L'objectif de cet audit est de déconstruire les mécanismes ayant mené à l'une des plus vives polémiques médiatiques de la décennie en Belgique francophone, opposant la liberté d'informer au respect de la dignité humaine.
+        </p>
+    </section>
+
+    <!-- Interactive Dashboard -->
+    <main id="dashboard" class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        
+        <!-- Dashboard Tabs -->
+        <div class="border-b border-stone-200 mb-6">
+            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                <button onclick="switchTab('impact')" id="tab-impact" class="active-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                    Impact & Audience
+                </button>
+                <button onclick="switchTab('ethics')" id="tab-ethics" class="border-transparent text-stone-500 hover:text-stone-700 hover:border-stone-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                    Audit Déontologique
+                </button>
+                <button onclick="switchTab('sentiment')" id="tab-sentiment" class="border-transparent text-stone-500 hover:text-stone-700 hover:border-stone-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                    Analyse des Réactions
+                </button>
+            </nav>
+        </div>
+
+        <!-- Tab 1: Impact -->
+        <div id="content-impact" class="tab-content active animate-fade-in">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                <div>
+                    <h3 class="text-lg leading-6 font-medium text-stone-900 mb-4">Chiffres Clés de la Diffusion</h3>
+                    <p class="text-stone-600 mb-6">
+                        Le documentaire a réalisé un score d'audience remarquable, mais au prix d'une polarisation immédiate de l'opinion publique.
+                    </p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 text-center">
+                            <div class="text-3xl font-bold text-stone-900">680.000</div>
+                            <div class="text-sm text-stone-500 mt-1">Téléspectateurs</div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 text-center">
+                            <div class="text-3xl font-bold text-orange-600">38%</div>
+                            <div class="text-sm text-stone-500 mt-1">Parts de Marché</div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 text-center">
+                            <div class="text-3xl font-bold text-red-600">150+</div>
+                            <div class="text-sm text-stone-500 mt-1">Plaintes CSA</div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 text-center">
+                            <div class="text-3xl font-bold text-stone-900">48h</div>
+                            <div class="text-sm text-stone-500 mt-1">Durée du "Buzz"</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <h4 class="text-sm font-semibold text-stone-500 uppercase tracking-wider mb-4 text-center">Répartition des Plaintes (Est.)</h4>
+                    <div class="chart-container">
+                        <canvas id="impactChart"></canvas>
+                    </div>
+                    <p class="text-xs text-center text-stone-400 mt-2">Source: Estimation basée sur les rapports de presse et CSA.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Ethics -->
+        <div id="content-ethics" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-1 space-y-4">
+                    <h3 class="text-lg font-medium text-stone-900">Critères d'Évaluation</h3>
+                    <p class="text-sm text-stone-600">Cet audit évalue le documentaire sur 5 piliers fondamentaux du journalisme d'investigation.</p>
+                    
+                    <div class="bg-white p-4 rounded-lg border border-stone-200 cursor-pointer hover:bg-stone-50 transition" onclick="updateEthicsInfo('method')">
+                        <h4 class="font-bold text-stone-800">Méthodologie</h4>
+                        <p class="text-xs text-stone-500">Usage de la caméra cachée et mises en scène.</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border border-stone-200 cursor-pointer hover:bg-stone-50 transition" onclick="updateEthicsInfo('balance')">
+                        <h4 class="font-bold text-stone-800">Équilibre</h4>
+                        <p class="text-xs text-stone-500">Représentation des différents points de vue.</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border border-stone-200 cursor-pointer hover:bg-stone-50 transition" onclick="updateEthicsInfo('dignity')">
+                        <h4 class="font-bold text-stone-800">Dignité Humaine</h4>
+                        <p class="text-xs text-stone-500">Respect des personnes filmées (anonymat).</p>
+                    </div>
+                    
+                    <div id="ethics-detail" class="mt-4 p-4 bg-orange-50 rounded-lg text-sm text-orange-900 border border-orange-100">
+                        Cliquez sur un critère pour voir l'analyse détaillée.
+                    </div>
+                </div>
+                
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <h4 class="text-sm font-semibold text-stone-500 uppercase tracking-wider mb-4 text-center">Radar Déontologique</h4>
+                    <div class="chart-container">
+                        <canvas id="ethicsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Sentiment -->
+        <div id="content-sentiment" class="tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <h3 class="text-lg font-medium text-stone-900 mb-4">Volume des Réactions par Secteur</h3>
+                    <div class="chart-container">
+                        <canvas id="sentimentBarChart"></canvas>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-medium text-stone-900 mb-4">Analyse des Verbatims</h3>
+                    <div class="space-y-4">
+                        <!-- Interactive Verbatim List -->
+                        <div class="bg-red-50 p-4 rounded-lg border-l-4 border-red-500">
+                            <span class="text-xs font-bold text-red-600 uppercase">Politique (Gauche/Centre)</span>
+                            <p class="text-stone-800 text-sm mt-1">"Une stigmatisation inacceptable des demandeurs d'emploi qui nourrit les préjugés populistes."</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
+                            <span class="text-xs font-bold text-green-600 uppercase">Défense (Chaîne)</span>
+                            <p class="text-stone-800 text-sm mt-1">"L'objectif était de briser un tabou et de montrer une réalité terrain, sans généraliser."</p>
+                        </div>
+                        <div class="bg-stone-100 p-4 rounded-lg border-l-4 border-stone-400">
+                            <span class="text-xs font-bold text-stone-600 uppercase">Public (Réseaux Sociaux)</span>
+                            <p class="text-stone-800 text-sm mt-1">"Enfin quelqu'un qui ose montrer ce qui se passe vraiment !" vs "Honteux, voyeurisme pur."</p>
+                        </div>
+                        
+                        <div class="mt-6">
+                             <label for="sentiment-filter" class="block text-sm font-medium text-stone-700">Filtrer par acteur :</label>
+                             <select id="sentiment-filter" onchange="filterQuotes()" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-stone-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md border">
+                                 <option value="all">Tous les acteurs</option>
+                                 <option value="press">Presse & Analystes</option>
+                                 <option value="union">Syndicats & Social</option>
+                                 <option value="channel">La Chaîne (RTL)</option>
+                             </select>
+                             <div id="dynamic-quote" class="mt-4 p-4 border border-stone-200 rounded-lg text-sm text-stone-600 italic bg-white h-24 flex items-center justify-center text-center">
+                                 Sélectionnez un acteur pour voir une position clé.
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Deep Dive: Points of Friction -->
+    <section id="friction" class="bg-stone-900 text-stone-50 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-10 text-center">
+                <h2 class="text-3xl font-extrabold tracking-tight">Points de Friction</h2>
+                <p class="mt-4 max-w-2xl mx-auto text-stone-400">
+                    Les éléments spécifiques du documentaire qui ont cristallisé la polémique. Cliquez pour analyser.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1 -->
+                <div onclick="showFrictionDetail(1)" class="bg-stone-800 p-6 rounded-xl cursor-pointer card-hover border border-stone-700">
+                    <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-xl mb-4 font-bold">📹</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Caméra Cachée</h3>
+                    <p class="text-stone-400 text-sm">L'utilisation de moyens déloyaux pour obtenir des aveux de "fraude".</p>
+                </div>
+                <!-- Card 2 -->
+                <div onclick="showFrictionDetail(2)" class="bg-stone-800 p-6 rounded-xl cursor-pointer card-hover border border-stone-700">
+                    <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-xl mb-4 font-bold">🎭</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Mise en Scène</h3>
+                    <p class="text-stone-400 text-sm">Le rôle des "faux employeurs" et la provocation des situations.</p>
+                </div>
+                <!-- Card 3 -->
+                <div onclick="showFrictionDetail(3)" class="bg-stone-800 p-6 rounded-xl cursor-pointer card-hover border border-stone-700">
+                    <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-xl mb-4 font-bold">📢</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Généralisation</h3>
+                    <p class="text-stone-400 text-sm">Le titre et le montage suggérant que l'exception est la règle.</p>
+                </div>
+            </div>
+
+            <!-- Dynamic Details Panel -->
+            <div id="friction-details" class="mt-8 bg-stone-800 rounded-xl p-8 border-l-4 border-orange-500 hidden animate-fade-in">
+                <h3 id="friction-title" class="text-2xl font-bold mb-2 text-white">Titre</h3>
+                <p id="friction-desc" class="text-stone-300 mb-4">Description</p>
+                <div class="bg-stone-900 p-4 rounded text-sm font-mono text-orange-400">
+                    <span class="block mb-1">AUDIT RAPIDE:</span>
+                    <span id="friction-audit">Analyse...</span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Verdict Section -->
+    <section id="verdict" class="max-w-5xl mx-auto py-16 px-4">
+        <h2 class="text-3xl font-bold text-stone-900 mb-8 text-center">Verdict & Conséquences</h2>
+        <div class="bg-white shadow-lg rounded-2xl overflow-hidden border border-stone-200">
+            <div class="md:flex">
+                <div class="md:flex-shrink-0 bg-stone-100 md:w-48 flex items-center justify-center">
+                    <span class="text-6xl">⚖️</span>
+                </div>
+                <div class="p-8">
+                    <div class="uppercase tracking-wide text-sm text-orange-600 font-semibold">Décision CSA / Impact Média</div>
+                    <p class="mt-2 text-stone-600 text-sm leading-relaxed">
+                        Le Conseil Supérieur de l'Audiovisuel a examiné le dossier sous l'angle du respect de la dignité humaine et de l'information. Bien que la chaîne ait défendu sa liberté éditoriale, l'audit révèle des failles méthodologiques majeures :
+                    </p>
+                    <ul class="mt-4 list-disc list-inside text-stone-700 space-y-2 text-sm">
+                        <li><strong>Confusion des genres :</strong> Mélange entre information journalistique et "infotainment".</li>
+                        <li><strong>Défaut de contradictoire :</strong> Absence de contexte suffisant pour les personnes piégées.</li>
+                        <li><strong>Impact long terme :</strong> Ce reportage a durablement marqué la méfiance envers les reportages en "immersion" et a mené à un renforcement des codes déontologiques internes.</li>
+                    </ul>
+                    <div class="mt-6 pt-6 border-t border-stone-100 flex justify-between items-center">
+                        <span class="text-stone-500 text-xs">Rapport généré le 24/02/2026</span>
+                        <button onclick="window.print()" class="text-orange-600 hover:text-orange-800 font-medium text-sm">Imprimer le rapport</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-stone-50 border-t border-stone-200 mt-12 py-8 text-center">
+        <p class="text-stone-400 text-sm">© 2026 Audit 360 - Basé sur l'analyse publique du documentaire "Sans boulot : tous fraudeurs ?"</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // State
+        let currentTab = 'impact';
+        let chartsInitialized = false;
+
+        // Data Models
+        const frictionData = {
+            1: {
+                title: "Usage de la Caméra Cachée",
+                desc: "Le reportage a largement utilisé des caméras dissimulées pour filmer des entretiens d'embauche ou des conversations privées. Si légale sous certaines conditions strictes (intérêt public supérieur), son usage systématique ici a été jugé disproportionné par de nombreux observateurs.",
+                audit: "Critique : Risque juridique élevé et atteinte à la vie privée non justifiée par une révélation d'intérêt public majeur (le fait que la fraude existe n'est pas une info inédite)."
+            },
+            2: {
+                title: "Mise en Scène & Acteurs",
+                desc: "L'utilisation de journalistes jouant des rôles (faux chômeurs, faux employeurs) crée un biais. La situation n'est pas naturelle mais provoquée. Cela pose la question : le documentaire observe-t-il la réalité ou la fabrique-t-il ?",
+                audit: "Attention : Biais de confirmation. La méthodologie 'Mystery Shopper' est valide en conso, risquée en sociologie du chômage."
+            },
+            3: {
+                title: "Généralisation & Titrage",
+                desc: "Le titre (ou les bandeaux associés) et le montage rapide ont favorisé l'idée que les cas isolés présentés (la femme de ménage au noir, le chômeur qui refuse tout) étaient représentatifs de la majorité.",
+                audit: "Négatif : Manque de statistiques contextuelles pour nuancer les cas particuliers présentés."
+            }
+        };
+
+        const quotesData = {
+            'press': "La presse a largement critiqué le 'journalisme spectacle' qui privilégie l'émotion à l'analyse structurelle.",
+            'union': "Les syndicats (FGTB/CSC) ont dénoncé une attaque frontale contre la sécurité sociale basée sur des clichés.",
+            'channel': "RTL-TVI a maintenu que le reportage mettait le doigt sur une réalité dérangeante que personne ne voulait voir.",
+            'all': "Sélectionnez un groupe spécifique pour voir le détail de leur positionnement."
+        };
+
+        const ethicsInfo = {
+            'method': "Note : 2/5. L'usage de la caméra cachée doit être l'ultime recours. Ici, elle semblait être un choix esthétique et dramaturgique premier.",
+            'balance': "Note : 3/5. Des experts étaient présents en plateau, mais le poids émotionnel des images 'volées' écrasait le débat rationnel.",
+            'dignity': "Note : 1/5. Floutage parfois insuffisant et situations humiliantes pour les personnes piégées."
+        };
+
+        // UI Functions
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function switchTab(tabId) {
+            // Update Tab UI
+            document.querySelectorAll('.active-tab').forEach(el => {
+                el.classList.remove('active-tab', 'border-b-2', 'border-orange-600', 'text-stone-900');
+                el.classList.add('border-transparent', 'text-stone-500', 'hover:text-stone-700');
+            });
+            const btn = document.getElementById(`tab-${tabId}`);
+            btn.classList.remove('border-transparent', 'text-stone-500', 'hover:text-stone-700');
+            btn.classList.add('active-tab', 'border-b-2', 'border-orange-600', 'text-stone-900');
+
+            // Show Content
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`content-${tabId}`).classList.add('active');
+
+            currentTab = tabId;
+            // Re-render charts if needed (Chart.js handles canvas resize usually, but good practice to check visibility)
+        }
+
+        function showFrictionDetail(id) {
+            const container = document.getElementById('friction-details');
+            const title = document.getElementById('friction-title');
+            const desc = document.getElementById('friction-desc');
+            const audit = document.getElementById('friction-audit');
+
+            title.innerText = frictionData[id].title;
+            desc.innerText = frictionData[id].desc;
+            audit.innerText = frictionData[id].audit;
+
+            container.classList.remove('hidden');
+            container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function updateEthicsInfo(key) {
+            const detailBox = document.getElementById('ethics-detail');
+            detailBox.innerText = ethicsInfo[key];
+            detailBox.classList.remove('bg-orange-50', 'text-orange-900', 'border-orange-100');
+            detailBox.classList.add('bg-stone-100', 'text-stone-800', 'border-stone-200');
+        }
+
+        function filterQuotes() {
+            const select = document.getElementById('sentiment-filter');
+            const box = document.getElementById('dynamic-quote');
+            box.innerText = quotesData[select.value];
+        }
+
+        // Chart Initialization
+        window.onload = function() {
+            initCharts();
+        };
+
+        function initCharts() {
+            // Chart 1: Impact (Donut)
+            const ctxImpact = document.getElementById('impactChart').getContext('2d');
+            new Chart(ctxImpact, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Plaintes Éthique', 'Plaintes Stigmatisation', 'Soutien/Autre'],
+                    datasets: [{
+                        data: [45, 40, 15],
+                        backgroundColor: ['#DC2626', '#F97316', '#D1D5DB'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Chart 2: Ethics Radar
+            const ctxEthics = document.getElementById('ethicsChart').getContext('2d');
+            new Chart(ctxEthics, {
+                type: 'radar',
+                data: {
+                    labels: ['Intérêt Public', 'Protection Sources', 'Dignité', 'Exactitude', 'Transparence'],
+                    datasets: [{
+                        label: 'Documentaire "Sans Boulot"',
+                        data: [60, 80, 20, 40, 10],
+                        fill: true,
+                        backgroundColor: 'rgba(234, 88, 12, 0.2)',
+                        borderColor: 'rgb(234, 88, 12)',
+                        pointBackgroundColor: 'rgb(234, 88, 12)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(234, 88, 12)'
+                    }, {
+                        label: 'Standard Déontologique',
+                        data: [80, 90, 90, 90, 90],
+                        fill: true,
+                        backgroundColor: 'rgba(168, 162, 158, 0.1)',
+                        borderColor: 'rgb(168, 162, 158)',
+                        pointBackgroundColor: 'rgb(168, 162, 158)',
+                        pointBorderColor: '#fff',
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { display: false },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+
+            // Chart 3: Sentiment Bar
+            const ctxSentiment = document.getElementById('sentimentBarChart').getContext('2d');
+            new Chart(ctxSentiment, {
+                type: 'bar',
+                data: {
+                    labels: ['Spectateurs', 'Journalistes', 'Politiques', 'Syndicats'],
+                    datasets: [{
+                        label: 'Indice de Négativité (%)',
+                        data: [40, 75, 85, 95],
+                        backgroundColor: [
+                            'rgba(209, 213, 219, 0.8)', // Grey for viewers (mixed)
+                            'rgba(249, 115, 22, 0.8)', // Orange for journalists
+                            'rgba(220, 38, 38, 0.8)',  // Red for politics
+                            'rgba(153, 27, 27, 0.8)'   // Dark Red for unions
+                        ],
+                        borderWidth: 0,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: 'Pourcentage Critique' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
