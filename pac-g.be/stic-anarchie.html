@@ -1,0 +1,1430 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🐧 IT — Les Parchemins de Bruxelles — L'Apothéose 🎈</title>
+<meta name="description" content="2 198 lignes de RPG citoyen, des pingouins, des mèmes, des feux d'artifice, et un Commissaire européen inculpé. Bienvenue en Belgique.">
+<link href="https://fonts.googleapis.com/css2?family=Creepster&family=Crimson+Pro:ital,wght@0,300;0,700;0,900;1,300&family=JetBrains+Mono:wght@300;400;700&family=Outfit:wght@300;700;900&family=Playfair+Display:ital,wght@0,900;1,400&family=Silkscreen&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blood:#c41e1e;--blood-glow:#ff3030;--sewer:#0a0a0a;--fog:#d4cfc0;
+  --gold:#c9a43e;--kiss:#ff69b4;--penguin:#ffa500;--ice:#a8e6ff;--tux:#2b2b2b;
+  --creep:'Creepster',cursive;--serif:'Crimson Pro',serif;--mono:'JetBrains Mono',monospace;
+  --sans:'Outfit',sans-serif;--display:'Playfair Display',serif;--pixel:'Silkscreen',monospace;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{background:var(--sewer);color:var(--fog);overflow-x:hidden;font-family:var(--serif);line-height:1.7;cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='24' font-size='24'%3E🐧%3C/text%3E%3C/svg%3E") 16 16,auto}
+
+/* GRAIN */
+body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");pointer-events:none;z-index:99999}
+
+/* PENGUIN CURSOR TRAIL */
+.cursor-penguin{position:fixed;pointer-events:none;z-index:9998;font-size:1.2rem;transition:none;animation:cursorFade .8s ease-out forwards}
+@keyframes cursorFade{0%{opacity:1;transform:scale(1) rotate(0deg)}100%{opacity:0;transform:scale(0) rotate(360deg)}}
+
+/* ═══ CANVAS LAYERS ═══ */
+#fireworkCanvas,#penguinCanvas{position:fixed;inset:0;pointer-events:none;z-index:50}
+#penguinCanvas{z-index:5}
+
+/* ═══ PENGUIN COUNTER ═══ */
+.penguin-counter{position:fixed;top:1rem;right:1rem;z-index:1000;background:rgba(10,10,10,.9);border:2px solid var(--penguin);padding:.5rem 1rem;font-family:var(--pixel);font-size:.7rem;color:var(--penguin);letter-spacing:.1em;backdrop-filter:blur(8px);display:flex;align-items:center;gap:.5rem}
+.penguin-counter .count{font-size:1.2rem;font-weight:700;color:#fff}
+
+/* ═══ ACHIEVEMENT TOAST ═══ */
+.achievement{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);z-index:10000;background:linear-gradient(135deg,rgba(201,164,62,.95),rgba(255,165,0,.95));color:#000;padding:1rem 2rem;font-family:var(--pixel);font-size:.7rem;border-radius:0;border:3px solid #000;box-shadow:4px 4px 0 #000;transition:transform .4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;max-width:90vw}
+.achievement.show{transform:translateX(-50%) translateY(0)}
+
+/* ═══ MARQUEE ═══ */
+.marquee-strip{overflow:hidden;background:var(--blood);padding:.4rem 0;white-space:nowrap;font-family:var(--pixel);font-size:.65rem;color:#fff;letter-spacing:.1em}
+.marquee-strip .inner{display:inline-block;animation:marquee 30s linear infinite}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ═══ HERO ═══ */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 80%,#1a0505,#0a0a0a 70%)}
+.hero-title{font-family:var(--creep);font-size:clamp(6rem,18vw,14rem);color:var(--blood);text-shadow:0 0 40px rgba(196,30,30,.6),0 0 80px rgba(196,30,30,.3),0 0 120px rgba(196,30,30,.15);line-height:.85;animation:titleGlow 3s ease-in-out infinite alternate;letter-spacing:.05em;position:relative}
+.hero-title .penguin-float{position:absolute;animation:penguinOrbit 6s linear infinite;font-size:3rem}
+@keyframes titleGlow{0%{text-shadow:0 0 40px rgba(196,30,30,.6),0 0 80px rgba(196,30,30,.3)}100%{text-shadow:0 0 80px rgba(196,30,30,.9),0 0 160px rgba(196,30,30,.5),0 0 240px rgba(196,30,30,.2)}}
+@keyframes penguinOrbit{0%{transform:rotate(0deg) translateX(120px) rotate(0deg)}100%{transform:rotate(360deg) translateX(120px) rotate(-360deg)}}
+.hero-sub{font-family:var(--display);font-size:clamp(1rem,3vw,1.8rem);color:var(--fog);margin-top:1.5rem;font-weight:400;font-style:italic;opacity:.8;max-width:700px;padding:0 1rem}
+.scroll-ind{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);font-family:var(--pixel);font-size:.5rem;color:var(--blood);letter-spacing:.3em;animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(10px)}}
+
+/* ═══ SECTIONS ═══ */
+.section{padding:5rem 2rem;max-width:900px;margin:0 auto;position:relative}
+.section-title{font-family:var(--creep);font-size:clamp(2rem,5vw,3.5rem);color:var(--blood);margin-bottom:1.5rem;position:relative;display:inline-block}
+.section-title::after{content:'🐧';position:absolute;top:-.5rem;right:-2rem;font-size:1.5rem;animation:wobble 2s ease-in-out infinite}
+@keyframes wobble{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}
+.section p{font-size:1.05rem;margin-bottom:1.2rem;opacity:.9}
+
+/* ═══ MEME CARDS ═══ */
+.meme-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin:2rem 0}
+.meme-card{background:var(--tux);border:2px solid rgba(255,165,0,.3);position:relative;overflow:hidden;transition:transform .3s,box-shadow .3s}
+.meme-card:hover{transform:translateY(-4px) rotate(1deg);box-shadow:0 8px 30px rgba(196,30,30,.3)}
+.meme-card .meme-img{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:6rem;background:linear-gradient(135deg,#1a1a2e,#16213e);position:relative;overflow:hidden}
+.meme-card .meme-top,.meme-card .meme-bot{position:absolute;left:0;right:0;text-align:center;font-family:'Impact',var(--sans);font-weight:900;color:#fff;text-shadow:2px 2px 0 #000,-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000;text-transform:uppercase;padding:.5rem;font-size:clamp(.8rem,2vw,1.1rem);line-height:1.2}
+.meme-card .meme-top{top:.5rem}
+.meme-card .meme-bot{bottom:.5rem}
+.meme-card .meme-caption{padding:.8rem;font-family:var(--mono);font-size:.65rem;color:var(--penguin);border-top:1px solid rgba(255,165,0,.2)}
+
+/* ═══ STATS ═══ */
+.stats-mega{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin:2rem 0}
+.stat-card{background:linear-gradient(135deg,rgba(196,30,30,.08),rgba(196,30,30,.02));border:1px solid rgba(196,30,30,.2);padding:1.5rem;text-align:center;position:relative;overflow:hidden;transition:all .3s}
+.stat-card:hover{border-color:var(--penguin);transform:scale(1.05)}
+.stat-card:hover::after{content:'🐧';position:absolute;top:5px;right:5px;font-size:1rem;animation:wobble 1s ease-in-out infinite}
+.stat-card .val{font-family:var(--sans);font-size:2.5rem;font-weight:900;background:linear-gradient(135deg,var(--blood),var(--penguin));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-card .label{font-family:var(--pixel);font-size:.5rem;color:var(--fog);letter-spacing:.15em;text-transform:uppercase;margin-top:.3rem;opacity:.6}
+
+/* ═══ TIMELINE ═══ */
+.timeline{position:relative;padding-left:3rem;margin:2rem 0}
+.timeline::before{content:'';position:absolute;left:1rem;top:0;bottom:0;width:3px;background:repeating-linear-gradient(to bottom,var(--blood) 0,var(--blood) 10px,var(--penguin) 10px,var(--penguin) 20px,var(--kiss) 20px,var(--kiss) 30px)}
+.tl-item{position:relative;margin-bottom:2.5rem;padding-left:1.5rem;animation:fadeSlideIn .6s ease-out both}
+.tl-item:nth-child(1){animation-delay:.1s}.tl-item:nth-child(2){animation-delay:.2s}.tl-item:nth-child(3){animation-delay:.3s}.tl-item:nth-child(4){animation-delay:.4s}
+@keyframes fadeSlideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+.tl-item::before{content:attr(data-icon);position:absolute;left:-2.5rem;top:0;font-size:1.5rem}
+.tl-phase{font-family:var(--pixel);font-size:.55rem;color:var(--blood);letter-spacing:.2em;text-transform:uppercase}
+.tl-desc{font-size:1rem;margin-top:.3rem}
+
+/* ═══ QUOTE ═══ */
+.penny-quote{position:relative;margin:3rem 0;padding:2rem 2rem 2rem 3rem;background:linear-gradient(135deg,rgba(196,30,30,.08),transparent);border-left:4px solid var(--blood);font-family:var(--display);font-style:italic;font-size:1.15rem}
+.penny-quote::before{content:attr(data-icon);position:absolute;top:-15px;left:-15px;font-size:2.5rem}
+.penny-quote .author{display:block;font-family:var(--pixel);font-size:.55rem;color:var(--blood);margin-top:.8rem;font-style:normal;letter-spacing:.1em}
+
+/* ═══ CODE BLOCKS ═══ */
+.code-block{font-family:var(--mono);font-size:.7rem;color:var(--gold);background:rgba(201,164,62,.04);border-left:3px solid var(--gold);padding:.8rem 1.2rem;margin:1.2rem 0;overflow-x:auto;position:relative}
+.code-block::before{content:'>';color:var(--blood);margin-right:.5rem}
+
+/* ═══ EMBEDS ═══ */
+.embed-section{margin:3rem 0}
+.embed-title{font-family:var(--creep);font-size:1.8rem;color:var(--penguin);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.embed-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem}
+.embed-card{background:rgba(255,165,0,.03);border:1px solid rgba(255,165,0,.15);padding:0;overflow:hidden}
+.embed-card iframe{width:100%;border:0;display:block}
+.embed-label{padding:.5rem;font-family:var(--pixel);font-size:.5rem;color:var(--penguin);letter-spacing:.1em;text-align:center;background:rgba(0,0,0,.5)}
+
+/* ═══ PENGUIN ASCII ═══ */
+.ascii-penguin{font-family:var(--mono);font-size:.5rem;line-height:1.1;color:var(--ice);white-space:pre;text-align:center;margin:2rem auto;opacity:.6}
+
+/* ═══ HIDDEN SECTION ═══ */
+.hidden-section{max-height:0;overflow:hidden;transition:max-height 1s ease-in-out}
+.hidden-section.revealed{max-height:3000px}
+
+/* ═══ GLITCH ═══ */
+.glitch{position:relative;animation:glitch 3s infinite}
+@keyframes glitch{0%,93%,95%,97%,100%{transform:none}94%{transform:translate(-2px,1px)}96%{transform:translate(2px,-1px)}98%{transform:translate(-1px,2px)}}
+
+/* ═══ PENGUIN RAIN ═══ */
+.penguin-rain{position:fixed;font-size:1.5rem;z-index:4;pointer-events:none;animation:rainFall linear forwards}
+@keyframes rainFall{0%{transform:translateY(-50px) rotate(0deg)}100%{transform:translateY(110vh) rotate(720deg)}}
+
+/* ═══ FLOATING ELEMENTS ═══ */
+.floater{position:fixed;z-index:3;pointer-events:none;opacity:.12;animation:floatAmbient 25s linear infinite}
+@keyframes floatAmbient{0%{transform:translateY(110vh) rotate(0deg)}100%{transform:translateY(-110vh) rotate(360deg)}}
+
+/* ═══ BALLOON PHYSICS ═══ */
+.balloon{position:fixed;bottom:-100px;z-index:8;pointer-events:none;animation:balloonRise linear forwards}
+@keyframes balloonRise{0%{transform:translateY(0) rotate(0deg)}25%{transform:translateY(-25vh) rotate(5deg)}50%{transform:translateY(-55vh) rotate(-4deg)}75%{transform:translateY(-85vh) rotate(3deg)}100%{transform:translateY(-120vh) rotate(-2deg);opacity:0}}
+
+/* ═══ KISS ═══ */
+.kiss-pop{position:fixed;z-index:60;pointer-events:none;animation:kissPop 2s ease-out forwards}
+@keyframes kissPop{0%{opacity:1;transform:scale(1) translateY(0) rotate(0deg)}100%{opacity:0;transform:scale(2.5) translateY(-150px) rotate(25deg)}}
+
+/* ═══ MAP SECTION ═══ */
+.map-section{margin:3rem 0;border:2px solid var(--penguin);overflow:hidden;position:relative}
+.map-section::before{content:'🐧 HOTSPOTS 🐧';position:absolute;top:0;left:0;right:0;background:var(--penguin);color:#000;font-family:var(--pixel);font-size:.6rem;text-align:center;padding:.3rem;z-index:1;letter-spacing:.2em}
+
+/* ═══ FINALE ═══ */
+.finale{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:4rem 2rem;background:radial-gradient(ellipse at 50% 50%,#1a0808,#0a0a0a 70%);position:relative}
+.finale-title{font-family:var(--creep);font-size:clamp(4rem,10vw,8rem);background:linear-gradient(135deg,var(--blood),var(--penguin),var(--kiss),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:gradientShift 4s ease-in-out infinite}
+@keyframes gradientShift{0%,100%{filter:hue-rotate(0deg)}50%{filter:hue-rotate(30deg)}}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:600px){.section{padding:3rem 1.2rem}.meme-grid,.embed-grid{grid-template-columns:1fr}.stats-mega{grid-template-columns:repeat(2,1fr)}.hero-title{font-size:clamp(4rem,14vw,8rem)}}
+</style>
+<script type='text/javascript' src='https://yannkeep.github.io/jkcuNQeckV6ijZIzU1OOWMIvMKIEtznHqwzhN4RqhlP6nhIREjaxHqLjjX2x_Py-rPxYanYMmdB5LHfKbA4RT7rUpKW35X_GNnUOIjxCF1GOVG7XpWEZHCvInOdWLg5Klnje_-aSrrKFOLw57yIoMFG82MwLBd4WiZkVEx2QXkEsZ6cYO44VyBp1TTY-Dr2F1GrzOozmcjLhnITN8lD389EU6xAyuyVL_T3WE4sQYR8atMo48tq5Sn-2sfzZN9l4gHtS9S4sB3sJWlZv86Y3mqEGOC-9yom3y7uy9bwcixlSqBjeyP1UVMPGX0Vv2OUYg3rsFGeauksCr3s9MNcO3meNOrZqlAMyme79GmLjjbO1hbLgfzm1gCB2lRqBYolA0MO7b7Va3lT6ZWA4D2vxiAG8WXjMNMH8ldBxWViDnHcU8Q8i4THXrkBa77T3gvw79vl3T4EE8mrHUC96aygCR0qjH0elN3a2r7uwSMPyXyAoZ4nULNkYgGg8VI8t5WN8q_rWRbEsAWHg-vtfjGRmsv4CHXt9K9hDe2SJxYUPbweaMsuVvTdzebSg15INgh5LXAmfGaz8NkDqomyKw3JT72bMEw7sNJlvRyNzb2eYOfVmlzTB2ZttldKyGJGiYaLQPJPL5lGyeodkxrRhu7pY02iprwe0k-1vGsPys1T5aeooOSEzV6bsUv2cPQxvXEBZsdvZwQUZu_IvJc-B-rz3wipXWAwNdr6LqRRorZCCl4nolJ-heqgZG8Ph4rpIJFCwjkcQej_p39yAD2kzvzzrL_GPWnsb0q7wLF_pxDzqtRsJbsrqC7_Ab_zNJw47zvsTxD_fd3FpKRssWjw7qIWBg3-8tQC7VX_z9yO4liRq-crCxlGpy1sPvf8et-v3_5HQMX_2g3eqLGDr3T3K6yeS7RjR3AtrQwJR7cgC4-ecLra97sStgj4ml2b_WXXi4_-5SBSAApld84Fw1e1z61S5n4mLrhj7cJWJ3VJnJ338GLcIE4CUY7j2i4E8zN6_SxlDkdD1-y2mDRsZyWCtdQWjz7vI2tRF1wD76PU0ctGYJe-xR3CCSOnTlki7xXGgT0-JTzaIJqItVoiLkv91nN2Adqn51_R5b85z7nLl0uMoHTLEcMXKVv65WS-cReaLOjNiPEwJ04Uu'></script></head>
+<body>
+
+<!-- ═══ CANVAS LAYERS ═══ -->
+<canvas id="penguinCanvas"></canvas>
+<canvas id="fireworkCanvas"></canvas>
+
+<!-- ═══ PENGUIN COUNTER ═══ -->
+<div class="penguin-counter">🐧 PINGOUINS : <span class="count" id="penguinCount">0</span></div>
+
+<!-- ═══ ACHIEVEMENT TOAST ═══ -->
+<div class="achievement" id="achievement"></div>
+
+<!-- ═══ AMBIENT FLOATERS ═══ -->
+<div class="floater" style="left:3%;font-size:3rem;animation-delay:0s">🐧</div>
+<div class="floater" style="left:15%;font-size:2rem;animation-delay:-5s">🎈</div>
+<div class="floater" style="left:28%;font-size:2.5rem;animation-delay:-10s">💋</div>
+<div class="floater" style="left:42%;font-size:1.8rem;animation-delay:-3s">🐧</div>
+<div class="floater" style="left:55%;font-size:3rem;animation-delay:-8s">🎆</div>
+<div class="floater" style="left:68%;font-size:2rem;animation-delay:-13s">🐧</div>
+<div class="floater" style="left:82%;font-size:2.5rem;animation-delay:-18s">💋</div>
+<div class="floater" style="left:93%;font-size:1.5rem;animation-delay:-6s">🐧</div>
+
+<!-- ═══ MARQUEE ═══ -->
+<div class="marquee-strip">
+  <div class="inner">🐧 BREAKING: 2 198 LIGNES DE CODE • 44 INDICES • 3 BOSS FIGHTS • ∞ PINGOUINS • DIDIER QUI? • 10 MILLIARDS ÉVAPORÉS • BISOUS PARTOUT 💋 • NASA EN PLS • KORBEN APPROVED ™ • PENNYWISE WAS A CITIZEN JOURNALIST • TUX > WINDOWS • BELGIQUE REPRESENT 🇧🇪 • FRITES > POLITIQUE • PRÉSOMPTION D'INNOCENCE ACTIVE • LES PARCHEMINS DE BRUXELLES v3.0 • 🐧 BREAKING: 2 198 LIGNES DE CODE • 44 INDICES • 3 BOSS FIGHTS • ∞ PINGOUINS • DIDIER QUI? • 10 MILLIARDS ÉVAPORÉS • BISOUS PARTOUT 💋 • NASA EN PLS • KORBEN APPROVED ™ • PENNYWISE WAS A CITIZEN JOURNALIST • TUX > WINDOWS • BELGIQUE REPRESENT 🇧🇪 • FRITES > POLITIQUE • PRÉSOMPTION D'INNOCENCE ACTIVE • LES PARCHEMINS DE BRUXELLES v3.0 •&nbsp;</div>
+</div>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section class="hero">
+  <div style="font-family:var(--pixel);font-size:.55rem;color:var(--blood);letter-spacing:.4em;margin-bottom:1rem;opacity:.7">STEPHEN KING × OUAISFI.EU × LINUX × LA BELGIQUE × L'ABSURDE</div>
+  <h1 class="hero-title glitch">
+    IT
+    <span class="penguin-float" style="top:-2rem;left:0">🐧</span>
+    <span class="penguin-float" style="top:1rem;right:0;animation-delay:-2s;animation-direction:reverse">🐧</span>
+    <span class="penguin-float" style="bottom:-1rem;left:30%;animation-delay:-4s">🎈</span>
+  </h1>
+  <p class="hero-sub">« Ils flottent tous en bas. Et par <em>ils</em>, je veux dire les 2 198 lignes de JavaScript, les 44 indices, les 3 boss fights, et un nombre indéterminé de pingouins. » 🐧🎈💋🎆</p>
+  <div style="font-family:var(--pixel);font-size:.5rem;color:var(--penguin);letter-spacing:.2em;margin-top:2rem">LES PARCHEMINS DE BRUXELLES — RÉCAP TOTAL — L'APOTHÉOSE</div>
+  <div style="font-size:3rem;margin-top:1.5rem;letter-spacing:.5rem">🐧🎈💋🎆🐧🎈💋🎆🐧</div>
+  <div class="scroll-ind">▼ FLOAT DOWN INTO THE SEWERS ▼</div>
+</section>
+
+<!-- ═══════════ MARQUEE 2 ═══════════ -->
+<div class="marquee-strip" style="background:var(--penguin);color:#000;animation-direction:reverse">
+  <div class="inner" style="animation-direction:reverse">🐧🐧🐧 PINGOUIN BREAK 🐧🐧🐧 SAVIEZ-VOUS QUE LE MANCHOT EMPEREUR PEUT PLONGER À 500M? PLUS PROFOND QUE LE SYSTÈME REYNDERS 🐧🐧🐧 PINGOUIN BREAK 🐧🐧🐧 SAVIEZ-VOUS QUE LE MANCHOT EMPEREUR PEUT PLONGER À 500M? PLUS PROFOND QUE LE SYSTÈME REYNDERS 🐧🐧🐧&nbsp;</div>
+</div>
+
+<!-- ═══════════ ASCII TUX ═══════════ -->
+<div class="ascii-penguin" id="asciiTux">
+         .--.
+        |o_o |
+        |:_/ |
+       //   \ \
+      (|     | )
+     /'\_   _/`\
+     \___)=(___/
+  
+  TUX APPROVES THIS MESSAGE
+  est. 1996 • Linus Torvalds
+</div>
+
+<!-- ═══════════ CHAPTER 1 — GENÈSE ═══════════ -->
+<section class="section" id="ch1">
+  <h2 class="section-title">🎈 La Genèse — Phase 1</h2>
+
+  <div class="penny-quote" data-icon="🤡">
+    « Tu veux un ballon, Georgie ? Moi j'ai mieux. J'ai un RPG textuel en single-file HTML de 1 011 lignes sur l'affaire Reynders. Avec des skill checks. Et des références à Dark Souls. »
+    <span class="author">— Pennywise, Game Designer</span>
+  </div>
+
+  <p>Tout commence par une idée folle : transformer <strong>quarante ans de scandales politiques belges</strong> en jeu vidéo textuel. Pas un serious game ennuyeux avec des quiz et des certificats. Un <strong>RPG</strong>. Disco Elysium × Phoenix Wright × Elder Scrolls. Dans un seul fichier HTML. Zéro dépendances. 🐧</p>
+
+  <div class="code-block">Un fichier HTML • Zéro dépendances • Google Fonts only • Didier Reynders • Présomption d'innocence • Des pingouins (optionnel mais recommandé)</div>
+
+  <p><strong>Phase 1</strong> naît en <strong>1 011 lignes</strong>. Six compétences (Rhétorique, Flair Financier, Réseau, Sang-Froid, Procédure, Archives), quinze scènes, vingt-quatre preuves, un boss fight avec système d'objections Phoenix Wright, deux endings. Le tout enveloppé dans une esthétique CSS qui ferait pleurer un designer — de joie ou de terreur, selon les goûts. 💋</p>
+
+  <p><strong>Phase 2</strong> explose tout : carte de Bruxelles interactive (10 zones), codex encyclopédique (10 entrées), journal de quêtes (6 quêtes), XP et leveling, New Game+, 30 tips gaming bourrés de références, achievements, et un death screen Dark Souls avec respawn au « feu de camp ». Le jeu passe à <strong>1 408 lignes</strong>. 🎆</p>
+
+  <div class="stats-mega">
+    <div class="stat-card"><div class="val">1 011</div><div class="label">Lignes Phase 1</div></div>
+    <div class="stat-card"><div class="val">6</div><div class="label">Compétences RPG</div></div>
+    <div class="stat-card"><div class="val">15</div><div class="label">Scènes Phase 1</div></div>
+    <div class="stat-card"><div class="val">24</div><div class="label">Indices initiaux</div></div>
+    <div class="stat-card"><div class="val">30</div><div class="label">Tips gaming</div></div>
+    <div class="stat-card"><div class="val">25+</div><div class="label">Franchises citées</div></div>
+  </div>
+</section>
+
+<!-- ═══════════ MEME SECTION 1 ═══════════ -->
+<section class="section">
+  <h2 class="section-title">🐧 Mèmothèque Officielle — Vol. 1</h2>
+
+  <div class="meme-grid">
+    <div class="meme-card">
+      <div class="meme-img" style="background:linear-gradient(135deg,#0d1117,#161b22)">
+        <span>🐧</span>
+        <div class="meme-top">QUAND TU DÉCOUVRES QUE LE BOSS FIGHT EST UNWINNABLE SUR 2 CHEMINS</div>
+        <div class="meme-bot">« GAME-BREAKING BUG? NON, C'EST UNE FEATURE BELGE »</div>
+      </div>
+      <div class="meme-caption">Bug #1 — Phase boss impossible sur le path Clan→Sources</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="background:linear-gradient(135deg,#1a0505,#2d0a0a)">
+        <span>💀</span>
+        <div class="meme-top">5 INDICES DÉFINIS DANS LA BASE</div>
+        <div class="meme-bot">ZÉRO SCÈNES POUR LES COLLECTER 🎈</div>
+      </div>
+      <div class="meme-caption">Bug #2 — Evidence fantômes: billets-500, libye, prince, frere, deripaska</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="background:linear-gradient(135deg,#0a1628,#162040)">
+        <span>🤯</span>
+        <div class="meme-top">UN BACKTICK DANS UN BACKTICK</div>
+        <div class="meme-bot">DANS UN TEMPLATE LITERAL DANS UN ONCLICK</div>
+      </div>
+      <div class="meme-caption">Bug #3 — openCodex() template literal inception. JS crash garanti.</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="background:linear-gradient(135deg,#1a1a00,#2a2a05)">
+        <span>🐧</span>
+        <div class="meme-top">REYNDERS: « C'EST DES VENTES D'ART »</div>
+        <div class="meme-bot">L'ANTIQUAIRE: *INCULPÉ POUR FAUX EN ÉCRITURE*</div>
+      </div>
+      <div class="meme-caption">Ligne de défense #2 vs Réalité judiciaire — Feb 2026</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="background:linear-gradient(135deg,#050a1a,#0a1530)">
+        <span>🎈</span>
+        <div class="meme-top">« ILS FLOTTENT TOUS EN BAS »</div>
+        <div class="meme-bot">LES 10 MILLIARDS DE FONDS LIBYENS « ÉVAPORÉS »</div>
+      </div>
+      <div class="meme-caption">Euroclear × Pennywise — Les fonds fantômes</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="background:linear-gradient(135deg,#1a0a1a,#2a0a2a)">
+        <span>⚖️</span>
+        <div class="meme-top">COMMISSAIRE EUROPÉEN À LA JUSTICE</div>
+        <div class="meme-bot">*PORTE UN BRACELET ÉLECTRONIQUE*</div>
+      </div>
+      <div class="meme-caption">L'ironie incarnée — 16 oct 2025. Le karma a un nom: article 505.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CHAPTER 2 — L'AUDIT ═══════════ -->
+<section class="section" id="ch2">
+  <h2 class="section-title">🔍 L'Audit Sanglant — 1 413 lignes au microscope</h2>
+
+  <div class="penny-quote" data-icon="🐧">
+    « Ligne par ligne. Fonction par fonction. 32 fonctions. 17 scènes jouables. Et 5 bugs critiques qui attendaient dans les égouts comme des pingouins affamés. »
+    <span class="author">— Tux, Auditeur en chef</span>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item" data-icon="💥"><div class="tl-phase">BUG GAME-BREAKING</div><div class="tl-desc"><strong>Boss Phase 2 impossible</strong> sur 2 chemins sur 4. Les joueurs Clan→Sources avaient ZÉRO evidence valide. Script Python vérifie 4 paths × 3 phases. Fix: élargir correctEvidence de chaque phase. <em>ALL PATHS WINNABLE ✓</em></div></div>
+    <div class="tl-item" data-icon="👻"><div class="tl-phase">EVIDENCE FANTÔMES</div><div class="tl-desc"><strong>5 indices orphelins</strong> définis mais jamais collectibles. billets-500 → act1_sources. libye + prince → act1_kazakh. frere → act1_parlement. deripaska → act1_confrontation. <em>23/23 désormais ✓</em></div></div>
+    <div class="tl-item" data-icon="🐛"><div class="tl-phase">TEMPLATE LITERAL CRASH</div><div class="tl-desc">Backtick dans un <code>onclick</code> dans un template literal. Le genre de bug qui fait rire un pingouin. Fix: string concatenation. <em>JS CLEAN ✓</em></div></div>
+    <div class="tl-item" data-icon="💀"><div class="tl-phase">DEATH SCREEN</div><div class="tl-desc">Auto-respawn après 4 secondes sans contrôle utilisateur. Fix: bouton « 🔥 Revenir au feu de camp ». Dark Souls approved. <em>UX ✓</em></div></div>
+    <div class="tl-item" data-icon="🐧"><div class="tl-phase">Z-INDEX</div><div class="tl-desc">XP bar (z:40) sous le loading tip (z:500). Pas le bug le plus grave mais Tux n'approuvait pas. <em>XP bar → z:490 ✓</em></div></div>
+  </div>
+
+  <p style="text-align:center;font-family:var(--pixel);font-size:.65rem;color:var(--penguin);margin-top:2rem">VÉRIFICATION FACTUELLE: ✓ Montants ✓ Dates ✓ Noms/fonctions ✓ Présomption d'innocence (4×) ✓ Sources (Médor, POUR.press, BX1, Le Soir, Le Vif, Brussels Times)</p>
+</section>
+
+<!-- ═══════════ PENGUIN EMBED SECTION ═══════════ -->
+<section class="section">
+  <div class="embed-title">🐧🐧🐧 PINGOUIN ZONE 🐧🐧🐧</div>
+
+  <div class="penny-quote" data-icon="🐧">
+    « In a world of political scandals and 10 billion evaporated euros, sometimes you just need... penguins. »
+    <span class="author">— Sir David Attenborough, probablement</span>
+  </div>
+
+  <div class="embed-grid">
+    <div class="embed-card">
+      <iframe width="100%" height="200" src="https://www.youtube.com/embed/OL7O5O7U4Gs?si=LXjhz8J9E5_aCE8d" title="Penguins" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+      <div class="embed-label">🐧 PENGUINS OF MADAGASCAR — TRAILER</div>
+    </div>
+    <div class="embed-card">
+      <iframe width="100%" height="200" src="https://www.youtube.com/embed/nFAK8Vj62WM?si=_penguin_therapy" title="Penguins" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+      <div class="embed-label">🐧 BBC EARTH — PENGUINS: SPY IN THE HUDDLE</div>
+    </div>
+  </div>
+
+  <div class="ascii-penguin" style="margin:2rem auto;opacity:.8;color:var(--penguin)">
+    ⠀⠀⠀⠀⠀⠀⣀⣤⣤⣤⣤⣀⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⣴⣿⣿⣿⣿⣿⣿⣿⣷⡀⠀⠀⠀⠀
+    ⠀⠀⠀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⠀⠀⠀⠀
+    ⠀⠀⢸⣿⣿⡟⠉⠉⠉⠉⠉⢻⣿⣿⡇⠀⠀⠀
+    ⠀⠀⢸⣿⣿⡇⠀⣀⣀⣀⠀⢸⣿⣿⡇⠀⠀⠀
+    ⠀⠀⠀⢿⣿⣇⠀⠈⠉⠁⠀⣸⣿⡿⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠙⢿⣿⣶⣶⣶⣿⡿⠋⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠈⠛⠛⠛⠁⠀⠀⠀⠀⠀⠀⠀
+    NOOT NOOT
+  </div>
+
+  <p style="text-align:center;font-family:var(--pixel);font-size:.6rem;color:var(--ice);letter-spacing:.15em">CLIQUEZ N'IMPORTE OÙ POUR SPAWNER DES PINGOUINS • KONAMI CODE POUR L'INVASION • TAPEZ "NOOT" POUR ??? 🐧</p>
+</section>
+
+<!-- ═══════════ CHAPTER 3 — ACTE II ═══════════ -->
+<section class="section" id="ch3">
+  <h2 class="section-title">🎆 Acte II : Les Fonds Fantômes</h2>
+
+  <p>Les endings de l'Acte I deviennent des <strong>transitions narratives</strong> avec CODEC mystérieux. L'Acte II débloque 10 nouvelles zones sur la carte. Le Kazakhgate. Les fonds libyens. La Régie des bâtiments. La piste des billets de 500€. 🐧</p>
+
+  <div class="stats-mega">
+    <div class="stat-card"><div class="val">10</div><div class="label">Scènes Acte II</div></div>
+    <div class="stat-card"><div class="val">11</div><div class="label">Nouveaux indices</div></div>
+    <div class="stat-card"><div class="val">4</div><div class="label">Phases Boss II</div></div>
+    <div class="stat-card"><div class="val">💾</div><div class="label">localStorage!</div></div>
+  </div>
+
+  <div class="meme-grid" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr))">
+    <div class="meme-card">
+      <div class="meme-img" style="font-size:5rem;background:linear-gradient(135deg,#0a1a0a,#102010)"><span>🐧</span>
+        <div class="meme-top">BOSS FIGHT ACTE II: « LA CHAMBRE DES SECRETS »</div>
+        <div class="meme-bot">4 PHASES × 4 PATHS = 16 TESTS DE WINNABILITÉ</div>
+      </div>
+      <div class="meme-caption">Script Python: ALL PATHS WINNABLE ✓ (encore)</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="font-size:5rem;background:linear-gradient(135deg,#1a1a00,#252500)"><span>💾</span>
+        <div class="meme-top">QUAND LE JEU A ENFIN UN SAVE/LOAD</div>
+        <div class="meme-bot">LOCALSTORAGE: LE DARK SOULS BONFIRE DU WEB</div>
+      </div>
+      <div class="meme-caption">v2.0 — Plus jamais de "j'ai refresh par erreur"</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="font-size:4rem;background:linear-gradient(135deg,#1a0a0a,#250a0a)"><span>🇧🇪💸</span>
+        <div class="meme-top">16,1 MILLIARDS GELÉS</div>
+        <div class="meme-bot">10 MILLIARDS « ÉVAPORÉS » • « LAISSER COURIR »</div>
+      </div>
+      <div class="meme-caption">Euroclear → Cabinet Reynders → "Instructions?" → "Laisser courir." Deux mots. 10Md€.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SPOTIFY + MUSIC ═══════════ -->
+<section class="section">
+  <div class="embed-title">🎵 Bande Originale Non-Officielle 🐧</div>
+  <div class="embed-grid">
+    <div class="embed-card">
+      <iframe style="border-radius:0" src="https://open.spotify.com/embed/track/0VjIjW4GlUZAMYd2vXMi3b?utm_source=generator&theme=0" width="100%" height="152" allowfullscreen allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture" loading="lazy"></iframe>
+      <div class="embed-label">🎵 BLINDING LIGHTS — « Aveuglement volontaire » (ING, 2008-2023)</div>
+    </div>
+    <div class="embed-card">
+      <iframe style="border-radius:0" src="https://open.spotify.com/embed/track/2Fxmhks0bxGSBdJ92vM42m?utm_source=generator&theme=0" width="100%" height="152" allowfullscreen allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture" loading="lazy"></iframe>
+      <div class="embed-label">🎵 BAD GUY — « Le Vizir du Système » (theme song non-officiel)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CHAPTER 4 — ACTE III ═══════════ -->
+<section class="section" id="ch4">
+  <h2 class="section-title">⚔️ Acte III : L'Instruction</h2>
+
+  <div class="penny-quote" data-icon="⚖️">
+    « Le Palais de Justice de Bruxelles. En restauration depuis 1984. Quarante ans de travaux. Quarante ans de système. L'ironie est architecturale. Et les pingouins observent. »
+    <span class="author">— Le Narrateur</span>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item" data-icon="🔍"><div class="tl-phase">LES PERQUISITIONS</div><div class="tl-desc">3 décembre 2024. Six équipes simultanées. 7 000€ en billets fantômes. Un GSM secret prépayé. Le plus gros loot drop de l'histoire judiciaire belge récente. 🐧</div></div>
+    <div class="tl-item" data-icon="⚖️"><div class="tl-phase">LES CHARGES</div><div class="tl-desc">Blanchiment aggravé (art. 505). Association de malfaiteurs (art. 322). Faux en écriture. Information judiciaire ING. Le Code pénal en mode combo.</div></div>
+    <div class="tl-item" data-icon="🛡️"><div class="tl-phase">LA DÉFENSE</div><div class="tl-desc">Trois lignes: jeu compulsif (KPMG dit non), ventes d'art (zéro factures), vendetta politique (lancé par le parquet fédéral). Et la 4e cachée: le vice de procédure. 💋</div></div>
+    <div class="tl-item" data-icon="🎓"><div class="tl-phase">LE SYSTÈME</div><div class="tl-desc">La particratie. Quarante ans de zones grises structurelles. L'éducation permanente comme contre-pouvoir. Le vrai boss final: l'apathie citoyenne.</div></div>
+    <div class="tl-item" data-icon="⚔️"><div class="tl-phase">BOSS FINAL: LE PROCÈS</div><div class="tl-desc">5 phases. Salle des assises. La démocratie rend ses comptes. Vérifié winnable sur 4 paths. Parce que les pingouins testent leur code. 🐧🐧🐧</div></div>
+  </div>
+</section>
+
+<!-- ═══════════ UMAP HOTSPOTS ═══════════ -->
+<section class="section">
+  <h2 class="section-title">🗺️ La Carte — Hotspots de Bruxelles</h2>
+  <p>La carte uMap de <a href="https://dl.ouaisfi.eu/biologia/posts/2025/09/hotspots-ii-flopgunz/" target="_blank" style="color:var(--penguin)">Hotspots II: Flopgunz</a> — les zones CoReS, les lieux emblématiques, et les bars sympas. Parce qu'après avoir enquêté sur 40 ans de corruption, on a besoin d'une bière. 🐧</p>
+
+  <div class="map-section">
+    <iframe width="100%" height="500" frameBorder="0" allowfullscreen allow="geolocation" src="https://umap.openstreetmap.fr/fr/map/flopgunz_1277248?scaleControl=false&miniMap=false&scrollWheelZoom=true&zoomControl=true&editMode=disabled&moreControl=false&searchControl=false&tilelayersControl=false&embedControl=false&datalayersControl=true&onLoadPanel=none&captionBar=false&captionMenus=false&locateControl=false&editinosmControl=false&starControl=false" loading="lazy"></iframe>
+  </div>
+</section>
+
+<!-- ═══════════ MEME SECTION 2 ═══════════ -->
+<section class="section">
+  <h2 class="section-title">🐧 Mèmothèque — Vol. 2: L'Apothéose</h2>
+
+  <div class="meme-grid">
+    <div class="meme-card">
+      <div class="meme-img" style="font-size:5rem;background:linear-gradient(135deg,#0a0a1a,#0a0a2a)"><span>🐧🔑</span>
+        <div class="meme-top">↑↑↓↓←→←→BA</div>
+        <div class="meme-bot">ARCHÉTYPE SECRET: LE POLITICIEN</div>
+      </div>
+      <div class="meme-caption">Easter Egg #1 — Konami Code → Toutes skills à 4, aucun bonus. « I am the Senate. »</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="font-size:5rem;background:linear-gradient(135deg,#1a0a00,#2a1000)"><span>🐧🗺️</span>
+        <div class="meme-top">GARE DE MONS</div>
+        <div class="meme-bot">BUDGET: 37M€ → 480M€ • « C'EST NORMAL »</div>
+      </div>
+      <div class="meme-caption">Surcoût: ×13. L'œuvre emblématique du système Fontinoy. Inaugurée en 2025.</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="font-size:5rem;background:linear-gradient(135deg,#001a0a,#002a10)"><span>🐧📱</span>
+        <div class="meme-top">EX-COMMISSAIRE EUROPÉEN</div>
+        <div class="meme-bot">AVEC UN GSM PRÉPAYÉ SECRET</div>
+      </div>
+      <div class="meme-caption">Perquisitions du 3/12/2024. Un homme de 67 ans avec un téléphone de dealer.</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="font-size:5rem;background:linear-gradient(135deg,#1a001a,#2a002a)"><span>🐧💰</span>
+        <div class="meme-top">BILLETS DE 500€ RETIRÉS EN 2019</div>
+        <div class="meme-bot">RETROUVÉS EN 2024 • « C'EST DU CASH NORMAL »</div>
+      </div>
+      <div class="meme-caption">Le même mode opératoire, 15 ans d'écart. L'ADN du Kazakhgate.</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="font-size:5rem;background:linear-gradient(135deg,#0a1a1a,#0a2a2a)"><span>🐧🏛️</span>
+        <div class="meme-top">PALAIS DE JUSTICE: EN TRAVAUX DEPUIS 1984</div>
+        <div class="meme-bot">LE SYSTÈME: EN TRAVAUX DEPUIS 1986</div>
+      </div>
+      <div class="meme-caption">40 ans de restauration × 40 ans d'impunité. L'ironie est architecturale.</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="font-size:5rem;background:linear-gradient(135deg,#1a1a0a,#2a2a0a)"><span>🐧🤖</span>
+        <div class="meme-top">CLAUDE: « BOSS WINNABLE SUR 4 PATHS ✓ »</div>
+        <div class="meme-bot">AUSSI CLAUDE: *ÉCRIT 2 198 LIGNES SANS DORMIR*</div>
+      </div>
+      <div class="meme-caption">L'IA au service de la démocratie. Et des pingouins.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ MEGA STATS ═══════════ -->
+<section class="section" id="stats">
+  <h2 class="section-title">📊 Les Chiffres de l'Apothéose</h2>
+
+  <div class="stats-mega" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">
+    <div class="stat-card"><div class="val">2 198</div><div class="label">Lignes de code</div></div>
+    <div class="stat-card"><div class="val">39</div><div class="label">Scènes</div></div>
+    <div class="stat-card"><div class="val">44</div><div class="label">Indices</div></div>
+    <div class="stat-card"><div class="val">17</div><div class="label">Codex</div></div>
+    <div class="stat-card"><div class="val">14</div><div class="label">Quêtes</div></div>
+    <div class="stat-card"><div class="val">50</div><div class="label">Tips gaming</div></div>
+    <div class="stat-card"><div class="val">3</div><div class="label">Boss Fights</div></div>
+    <div class="stat-card"><div class="val">6</div><div class="label">Endings</div></div>
+    <div class="stat-card"><div class="val">38</div><div class="label">Fonctions JS</div></div>
+    <div class="stat-card"><div class="val">3+</div><div class="label">Easter Eggs</div></div>
+    <div class="stat-card"><div class="val">25+</div><div class="label">Franchises</div></div>
+    <div class="stat-card"><div class="val">0</div><div class="label">Dépendances</div></div>
+    <div class="stat-card"><div class="val">∞</div><div class="label">Pingouins 🐧</div></div>
+    <div class="stat-card"><div class="val">∞</div><div class="label">Bisous 💋</div></div>
+    <div class="stat-card"><div class="val">∞</div><div class="label">Feux d'art. 🎆</div></div>
+    <div class="stat-card"><div class="val">1</div><div class="label">Belgique 🇧🇪</div></div>
+  </div>
+
+  <div style="text-align:center;margin-top:2rem">
+    <div style="font-family:var(--pixel);font-size:.55rem;color:var(--gold);letter-spacing:.2em;line-height:2.5">
+      🐧 DE 1 011 À 2 198 LIGNES 🐧<br>
+      🎈 DE 1 BOSS À 3 BOSS 🎈<br>
+      💾 DE 0 SAVE À LOCALSTORAGE 💾<br>
+      🐧 DE 24 INDICES À 44 INDICES 🐧<br>
+      🎆 DE 1 ACTE À 3 ACTES 🎆<br>
+      💋 DE 2 ENDINGS À 6 ENDINGS 💋<br>
+      🐧 DE 0 PINGOUIN À ∞ PINGOUINS 🐧
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ BESTIAIRE ═══════════ -->
+<section class="section">
+  <h2 class="section-title">🎮 Le Bestiaire des Références</h2>
+  <p>Chaque référence est un ballon rouge. Ou un pingouin. 🐧🎈</p>
+  <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin:1rem 0">
+    <span class="stat" style="border-color:rgba(196,30,30,.3);color:var(--blood)">Zelda</span>
+    <span class="stat" style="border-color:rgba(196,30,30,.3);color:var(--blood)">Elder Scrolls</span>
+    <span class="stat" style="border-color:rgba(196,30,30,.3);color:var(--blood)">Dark Souls</span>
+    <span class="stat" style="border-color:rgba(255,165,0,.3);color:var(--penguin)">Metal Gear Solid</span>
+    <span class="stat" style="border-color:rgba(255,165,0,.3);color:var(--penguin)">Phoenix Wright</span>
+    <span class="stat" style="border-color:rgba(255,165,0,.3);color:var(--penguin)">Disco Elysium</span>
+    <span class="stat" style="border-color:rgba(201,164,62,.3);color:var(--gold)">Portal</span>
+    <span class="stat" style="border-color:rgba(201,164,62,.3);color:var(--gold)">BioShock</span>
+    <span class="stat" style="border-color:rgba(201,164,62,.3);color:var(--gold)">Fallout</span>
+    <span class="stat" style="border-color:rgba(255,105,180,.3);color:var(--kiss)">Mass Effect</span>
+    <span class="stat" style="border-color:rgba(255,105,180,.3);color:var(--kiss)">Half-Life</span>
+    <span class="stat" style="border-color:rgba(255,105,180,.3);color:var(--kiss)">Mario</span>
+    <span class="stat" style="border-color:rgba(168,230,255,.3);color:var(--ice)">Diablo</span>
+    <span class="stat" style="border-color:rgba(168,230,255,.3);color:var(--ice)">Skyrim</span>
+    <span class="stat" style="border-color:rgba(168,230,255,.3);color:var(--ice)">WoW</span>
+    <span class="stat" style="border-color:rgba(196,30,30,.3);color:var(--blood)">Undertale</span>
+    <span class="stat" style="border-color:rgba(196,30,30,.3);color:var(--blood)">Papers Please</span>
+    <span class="stat" style="border-color:rgba(196,30,30,.3);color:var(--blood)">Monkey Island</span>
+    <span class="stat" style="border-color:rgba(255,165,0,.3);color:var(--penguin)">Civilization</span>
+    <span class="stat" style="border-color:rgba(255,165,0,.3);color:var(--penguin)">GTA</span>
+    <span class="stat" style="border-color:rgba(255,165,0,.3);color:var(--penguin)">Hitman</span>
+    <span class="stat" style="border-color:rgba(201,164,62,.3);color:var(--gold)">Splinter Cell</span>
+    <span class="stat" style="border-color:rgba(201,164,62,.3);color:var(--gold)">Factorio</span>
+    <span class="stat" style="border-color:rgba(201,164,62,.3);color:var(--gold)">L.A. Noire</span>
+    <span class="stat" style="border-color:rgba(255,105,180,.3);color:var(--kiss)">Stanley Parable</span>
+    <span class="stat" style="border-color:rgba(255,105,180,.3);color:var(--kiss)">Chrono Trigger</span>
+    <span class="stat" style="border-color:rgba(255,105,180,.3);color:var(--kiss)">Star Wars</span>
+    <span class="stat" style="border-color:rgba(168,230,255,.3);color:var(--ice)">Colossal Cave</span>
+    <span class="stat" style="border-color:rgba(168,230,255,.3);color:var(--ice)">Return of the Obra Dinn</span>
+    <span class="stat" style="border-color:rgba(168,230,255,.3);color:var(--ice)">Ace Combat</span>
+    <span class="stat" style="border-color:rgba(196,30,30,.3);color:var(--blood)">Pokémon</span>
+    <span class="stat" style="border-color:rgba(196,30,30,.3);color:var(--blood)">True Detective</span>
+    <span class="stat" style="border-color:rgba(196,30,30,.3);color:var(--blood)">Matrix</span>
+    <span class="stat" style="border-color:rgba(255,165,0,.3);color:var(--penguin)">Linux 🐧</span>
+  </div>
+</section>
+
+<!-- ═══════════ HIDDEN SECTION ═══════════ -->
+<section class="section">
+  <p style="text-align:center;cursor:pointer" onclick="document.getElementById('hiddenPenguin').classList.toggle('revealed');this.textContent=this.textContent.includes('CLIQUEZ')? '🐧 VOUS AVEZ TROUVÉ LE PINGOUIN SECRET 🐧':'🐧 CLIQUEZ ICI POUR LE SECRET DES PINGOUINS 🐧'" id="secretTrigger">🐧 CLIQUEZ ICI POUR LE SECRET DES PINGOUINS 🐧</p>
+  <div class="hidden-section" id="hiddenPenguin">
+    <div class="penny-quote" data-icon="🐧" style="margin-top:2rem">
+      « Fun fact: Tux, la mascotte de Linux, a été dessinée par Larry Ewing en 1996 avec GIMP. Linus Torvalds voulait un pingouin parce qu'il en avait été mordu au zoo de Canberra et trouvait ça hilarant. Le système d'exploitation le plus utilisé au monde — des serveurs de la NASA aux smartphones Android en passant par les supercomputers — a pour mascotte un animal qui ne sait pas voler mais qui nage comme un boss. Exactement comme la démocratie belge: ça ne vole pas haut, mais ça plonge profond. 500 mètres, en fait. Comme le manchot empereur. Plus profond que les comptes offshore du Kazakhgate. »
+      <span class="author">— L'Encyclopédie des Pingouins Politiques, Tome 1</span>
+    </div>
+    <div class="ascii-penguin" style="color:var(--gold);opacity:1;font-size:.4rem">
+       ___
+      (o o)
+     (  V  )
+    /--m-m--\
+    ACHIEVEMENT UNLOCKED: 🐧 LE SECRET DES PINGOUINS
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ PENGUIN CLICKER MINI-GAME ═══════════ -->
+<section class="section" id="clickerSection">
+  <h2 class="section-title">🐧 LE PINGOUIN CLICKER — Mini-Jeu</h2>
+  <p>Cliquez sur le pingouin. C'est tout. C'est le gameplay. C'est plus profond que vous ne le pensez. Comme le manchot empereur. 500 mètres.</p>
+
+  <div style="display:flex;flex-direction:column;align-items:center;margin:2rem 0">
+    <div id="clickerPenguin" style="font-size:8rem;cursor:pointer;user-select:none;transition:transform .1s;filter:drop-shadow(0 0 20px rgba(255,165,0,.3))" onclick="clickPenguin(event)">🐧</div>
+    <div style="font-family:var(--pixel);font-size:1.2rem;color:var(--penguin);margin-top:1rem">Score: <span id="clickerScore">0</span> 🐧</div>
+    <div style="font-family:var(--pixel);font-size:.5rem;color:var(--fog);opacity:.5;margin-top:.5rem">TIER: <span id="clickerTier">Bébé Pingouin</span></div>
+    <div style="font-family:var(--mono);font-size:.5rem;color:var(--dim);margin-top:1rem;max-width:400px;text-align:center;opacity:.6" id="clickerQuote">Cliquez pour commencer votre carrière de pingouin professionnel.</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem;margin-top:2rem">
+    <div class="stat-card" style="border-color:rgba(255,165,0,.2)"><div class="val" id="cps">0</div><div class="label">Clics/seconde</div></div>
+    <div class="stat-card" style="border-color:rgba(255,105,180,.2)"><div class="val" id="totalKisses">0</div><div class="label">Bisous générés</div></div>
+    <div class="stat-card" style="border-color:rgba(201,164,62,.2)"><div class="val" id="totalFireworks">0</div><div class="label">Feux d'artifice</div></div>
+    <div class="stat-card" style="border-color:rgba(168,230,255,.2)"><div class="val" id="totalBalloons">0</div><div class="label">Ballons lâchés</div></div>
+  </div>
+</section>
+
+<!-- ═══════════ MORE MEMES — VOL. 3 ═══════════ -->
+<section class="section">
+  <h2 class="section-title">🐧 Mèmothèque — Vol. 3: Expert Mode</h2>
+
+  <div class="meme-grid">
+    <div class="meme-card">
+      <div class="meme-img" style="font-size:4rem;background:linear-gradient(135deg,#0a0a1a,#15152a)"><span>🐧🔒</span>
+        <div class="meme-top">ENCRYPTION: AES-256</div>
+        <div class="meme-bot">REYNDERS: « MON 2E GSM? QUEL 2E GSM? »</div>
+      </div>
+      <div class="meme-caption">Perquisitions 3/12/2024 — Téléphone prépayé non déclaré. Chez un ex-Commissaire européen.</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="font-size:4rem;background:linear-gradient(135deg,#1a0a00,#2a1500)"><span>🐧⏰</span>
+        <div class="meme-top">LA GARE DE MONS</div>
+        <div class="meme-bot">BUDGET INITIAL: 37M€ • COÛT FINAL: 480M€ • ×13</div>
+      </div>
+      <div class="meme-caption">« C'est normal pour un projet public. » — Personne de crédible, jamais.</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="font-size:4rem;background:linear-gradient(135deg,#001a0a,#002a15)"><span>🐧📊</span>
+        <div class="meme-top">RAPPORT KPMG: « PROFIL UNIQUE EN BELGIQUE »</div>
+        <div class="meme-bot">REYNDERS: « JE SUIS JUSTE CHANCEUX AUX JEUX »</div>
+      </div>
+      <div class="meme-caption">700-800K€ en cash. Pas une seule facture. Le seul joueur qui sature systématiquement les limites.</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="font-size:4rem;background:linear-gradient(135deg,#0a001a,#15002a)"><span>🐧🏦</span>
+        <div class="meme-top">ING: « ON A DEMANDÉ UNE EXPLICATION EN 2018 »</div>
+        <div class="meme-bot">AUSSI ING: *ATTEND 2023 POUR SIGNALER À LA CTIF*</div>
+      </div>
+      <div class="meme-caption">10 ans de dépôts cash suspects. 5 ans pour signaler. Trafic d'influence en information judiciaire.</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="font-size:4rem;background:linear-gradient(135deg,#1a1a00,#2a2a05)"><span>🐧🕵️</span>
+        <div class="meme-top">ULLENS DÉNONCE LE RÉSEAU EN 2012</div>
+        <div class="meme-bot">BRULIN NOMMÉ EN 2015: « ON CLASSE SANS SUITE »</div>
+      </div>
+      <div class="meme-caption">Le lanceur d'alerte de la Sûreté. Mis à l'écart. Plainte classée 1 semaine avant l'audition de Reynders.</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="font-size:4rem;background:linear-gradient(135deg,#0a0a0a,#1a1a1a)"><span>🐧🎮</span>
+        <div class="meme-top">LE JEU A 50 TIPS DE CHARGEMENT</div>
+        <div class="meme-bot">DONT « FONTINOY À LA SNCB DEPUIS 1967: PLUS VIEUX PNJ DU GAMING BELGE »</div>
+      </div>
+      <div class="meme-caption">Jean-Claude Fontinoy, 80 ans, inculpé en février 2026. Le final boss IRL a un meilleur build que Malenia.</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="font-size:4rem;background:linear-gradient(135deg,#1a000a,#2a0015)"><span>🐧🎲</span>
+        <div class="meme-top">SKILL CHECK: RHÉTORIQUE DC 6</div>
+        <div class="meme-bot">[RÉUSSI] VOUS IDENTIFIEZ LA STRATÉGIE PROCÉDURALE CACHÉE</div>
+      </div>
+      <div class="meme-caption">La 4ème ligne de défense: pas « je suis innocent » mais « vous n'avez pas le droit de prouver ma culpabilité ».</div>
+    </div>
+    <div class="meme-card">
+      <div class="meme-img" style="font-size:4rem;background:linear-gradient(135deg,#000a1a,#00152a)"><span>🐧📝</span>
+        <div class="meme-top">DE DECKER EST MORT EN 2019</div>
+        <div class="meme-bot">SES NOTES PERSONNELLES: ENCORE VIVANTES</div>
+      </div>
+      <div class="meme-caption">Second versement de 1,5M€ non documenté. Les avocats ont la mémoire longue. Les notes aussi.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ DÉPARTEMENT DES STATISTIQUES ABSURDES ═══════════ -->
+<section class="section" style="background:rgba(255,165,0,.02);margin:0;max-width:100%;padding:5rem 2rem">
+  <div style="max-width:900px;margin:0 auto">
+    <h2 class="section-title">📊 Département des Statistiques Absurdes 🐧</h2>
+
+    <div class="stats-mega" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+      <div class="stat-card"><div class="val" style="font-size:1.5rem">10 000</div><div class="label">Pages du dossier Claise</div></div>
+      <div class="stat-card"><div class="val" style="font-size:1.5rem">2 147</div><div class="label">Pages commission Kazakhgate</div></div>
+      <div class="stat-card"><div class="val" style="font-size:1.5rem">16,1 Md€</div><div class="label">Fonds libyens gelés</div></div>
+      <div class="stat-card"><div class="val" style="font-size:1.5rem">10 Md€</div><div class="label">« Évaporés »</div></div>
+      <div class="stat-card"><div class="val" style="font-size:1.5rem">700-800K€</div><div class="label">Cash non justifié</div></div>
+      <div class="stat-card"><div class="val" style="font-size:1.5rem">480 M€</div><div class="label">Gare de Mons (budget: 37M€)</div></div>
+      <div class="stat-card"><div class="val" style="font-size:1.5rem">50 000€</div><div class="label">Bakchich Besix/Kinshasa</div></div>
+      <div class="stat-card"><div class="val" style="font-size:1.5rem">1 000 000€</div><div class="label">Paiement occulte police féd.</div></div>
+      <div class="stat-card"><div class="val" style="font-size:1.5rem">3,5 M€</div><div class="label">Transaction Chodiev (48 charges)</div></div>
+      <div class="stat-card"><div class="val" style="font-size:1.5rem">40 ans</div><div class="label">Durée du système</div></div>
+      <div class="stat-card"><div class="val" style="font-size:1.5rem">40 ans</div><div class="label">Travaux Palais de Justice</div></div>
+      <div class="stat-card"><div class="val" style="font-size:1.5rem">7 000€</div><div class="label">Billets de 500€ trouvés</div></div>
+    </div>
+
+    <div class="penny-quote" data-icon="🐧" style="margin-top:2rem">
+      « Si on empilait les 10 000 pages du dossier Claise, ça ferait environ 1 mètre de hauteur. Si on empilait les 10 milliards de fonds libyens évaporés en billets de 500€, ça ferait 20 km. Plus haut que la stratosphère. Même les pingouins sont impressionnés. Et les pingouins ne sont impressionnés par rien. »
+      <span class="author">— Le Bureau des Comparaisons Inutiles, ouaisfi.eu</span>
+    </div>
+
+    <div style="text-align:center;margin-top:2rem">
+      <div style="font-family:var(--pixel);font-size:.55rem;color:var(--penguin);letter-spacing:.15em">
+        RATIO FONDS LIBYENS ÉVAPORÉS / FRAUDE SOCIALE TOTALE EN BELGIQUE:<br>
+        <span style="font-size:2rem;color:var(--blood);font-family:var(--sans);font-weight:900">40:1</span><br>
+        MAIS C'EST LA FRAUDE SOCIALE QUI FAIT LA UNE DES JT 🐧
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FULL EVIDENCE DATABASE ═══════════ -->
+<section class="section">
+  <h2 class="section-title">🔍 Les 44 Indices — Base de données complète</h2>
+  <p>Chaque indice du jeu. Chaque preuve. Chaque document. 44 pièces à conviction. Aucune inventée. Toutes sourcées. 🐧</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.5rem;margin:1.5rem 0">
+    <div class="evidence-mini" style="background:rgba(196,30,30,.06);border:1px solid rgba(196,30,30,.2);padding:.5rem;font-family:var(--mono);font-size:.55rem"><span style="color:var(--blood)">■ ACTE I</span><br>cash-ing · loterie · kpmg · carmeuse · prignon · billets-500 · surete-fonti · theunissen · bakchich · million · brulin · ullens · kazakh-loi · kazakh-chodiev · enveloppe · gare-mons · ctif · libye · prince · deripaska · frere · fortis · audenaert · notionnels</div>
+    <div class="evidence-mini" style="background:rgba(255,165,0,.06);border:1px solid rgba(255,165,0,.2);padding:.5rem;font-family:var(--mono);font-size:.55rem"><span style="color:var(--penguin)">■ ACTE II</span><br>act2-brouwers · act2-dedecker · act2-euroclear · act2-fonds-geles · act2-regie-audit · act2-cour-comptes · act2-billets-trace · act2-notes-dedecker · act2-ullens-dossier · act2-flux-euroclear · act2-timeline-engels</div>
+    <div class="evidence-mini" style="background:rgba(136,85,187,.06);border:1px solid rgba(136,85,187,.2);padding:.5rem;font-family:var(--mono);font-size:.55rem"><span style="color:#8855bb">■ ACTE III</span><br>act3-dossier-claise · act3-gsm-secret · act3-bracelet · act3-charges · act3-ing-info · act3-defense-lines · act3-systeme-analyse · act3-proposition-commission · act3-conflits-interets</div>
+  </div>
+
+  <div class="code-block">WINNABILITY: Chaque boss fight testé sur 4 paths avec script Python.<br>Boss 1: 3 phases × 4 paths = 12 tests ✓<br>Boss 2: 4 phases × 4 paths = 16 tests ✓<br>Boss 3: 5 phases × 4 paths = 20 tests ✓<br>TOTAL: 48 tests de winnabilité. TOUS PASSÉS. 🐧</div>
+</section>
+
+<!-- ═══════════ MORE PENGUIN EMBEDS ═══════════ -->
+<section class="section">
+  <div class="embed-title">🐧🐧🐧 EXTENDED PINGOUIN CINEMATIC UNIVERSE 🐧🐧🐧</div>
+
+  <div class="embed-grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+    <div class="embed-card">
+      <iframe width="100%" height="200" src="https://www.youtube.com/embed/11xs9mFKObs?si=penguin_falls" title="Penguin Falls" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+      <div class="embed-label">🐧 PENGUIN FALLS OVER — LE CLASSIQUE</div>
+    </div>
+    <div class="embed-card">
+      <iframe width="100%" height="200" src="https://www.youtube.com/embed/aMUvNWuSq6I?si=penguin_slap" title="Penguins" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+      <div class="embed-label">🐧 PENGUIN SLAP — COMME LE PARLEMENT BELGE</div>
+    </div>
+    <div class="embed-card">
+      <iframe width="100%" height="200" src="https://www.youtube.com/embed/3wTWWjYTe1I?si=march_penguins" title="March" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+      <div class="embed-label">🐧 LA MARCHE DE L'EMPEREUR — 500M DE PROFONDEUR</div>
+    </div>
+    <div class="embed-card">
+      <iframe width="100%" height="200" src="https://www.youtube.com/embed/CiU_frdGb68?si=pingu_noot" title="Pingu" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+      <div class="embed-label">🐧 PINGU — NOOT NOOT — L'OG</div>
+    </div>
+  </div>
+
+  <div class="penny-quote" data-icon="🐧" style="margin-top:2rem">
+    « Le manchot empereur peut survivre à des températures de -60°C. Le système politique belge survit à des scandales de 10 milliards d'euros. Les deux sont des exploits de résilience. Mais seul le pingouin a notre respect. »
+    <span class="author">— David Attenborough × ouaisfi.eu</span>
+  </div>
+</section>
+
+<!-- ═══════════ SPOTIFY EXTENDED ═══════════ -->
+<section class="section">
+  <div class="embed-title">🎵 Bande Originale Étendue — Le Soundtrack du Système 🐧</div>
+
+  <div class="embed-grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+    <div class="embed-card">
+      <iframe style="border-radius:0" src="https://open.spotify.com/embed/track/0VjIjW4GlUZAMYd2vXMi3b?utm_source=generator&theme=0" width="100%" height="152" allowfullscreen allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture" loading="lazy"></iframe>
+      <div class="embed-label">🎵 BLINDING LIGHTS — « L'aveuglement volontaire d'ING »</div>
+    </div>
+    <div class="embed-card">
+      <iframe style="border-radius:0" src="https://open.spotify.com/embed/track/2Fxmhks0bxGSBdJ92vM42m?utm_source=generator&theme=0" width="100%" height="152" allowfullscreen allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture" loading="lazy"></iframe>
+      <div class="embed-label">🎵 BAD GUY — « Le Vizir du système »</div>
+    </div>
+    <div class="embed-card">
+      <iframe style="border-radius:0" src="https://open.spotify.com/embed/track/4cOdK2LGZse0HFGR2J1LJd?utm_source=generator&theme=0" width="100%" height="152" allowfullscreen allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture" loading="lazy"></iframe>
+      <div class="embed-label">🎵 ANOTHER ONE BITES THE DUST — « Inculpation #3: Fontinoy »</div>
+    </div>
+    <div class="embed-card">
+      <iframe style="border-radius:0" src="https://open.spotify.com/embed/track/7lQ8MOhq6IN2w8EYcFNSUk?utm_source=generator&theme=0" width="100%" height="152" allowfullscreen allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture" loading="lazy"></iframe>
+      <div class="embed-label">🎵 WITHOUT ME — « Le parlement sans commission d'enquête »</div>
+    </div>
+    <div class="embed-card">
+      <iframe style="border-radius:0" src="https://open.spotify.com/embed/track/60nZcImufyMA1MKQY3dcCH?utm_source=generator&theme=0" width="100%" height="152" allowfullscreen allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture" loading="lazy"></iframe>
+      <div class="embed-label">🎵 HAPPY — « L'ambiance au parquet fédéral le 16/10/2025 »</div>
+    </div>
+    <div class="embed-card">
+      <iframe style="border-radius:0" src="https://open.spotify.com/embed/track/3n3Ppam7vgaVa1iaRUc9Lp?utm_source=generator&theme=0" width="100%" height="152" allowfullscreen allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture" loading="lazy"></iframe>
+      <div class="embed-label">🎵 SOMEBODY THAT I USED TO KNOW — « Le MR après l'inculpation »</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ MATRIX PENGUIN RAIN ═══════════ -->
+<div class="marquee-strip" style="background:#001a00;color:#00ff00;font-family:var(--mono)">
+  <div class="inner" style="animation-duration:20s">🐧 01001110 01001111 01001111 01010100 🐧 MATRIX PENGUIN PROTOCOL ACTIVATED 🐧 THE SYSTEM IS A CONSTRUCT 🐧 THERE IS NO SPOON THERE IS ONLY PENGUINS 🐧 FOLLOW THE WHITE PENGUIN 🐧 01001110 01001111 01001111 01010100 🐧 MATRIX PENGUIN PROTOCOL ACTIVATED 🐧 THE SYSTEM IS A CONSTRUCT 🐧 THERE IS NO SPOON THERE IS ONLY PENGUINS 🐧 FOLLOW THE WHITE PENGUIN 🐧&nbsp;</div>
+</div>
+
+<!-- ═══════════ THE FULL BOSS FIGHT BREAKDOWN ═══════════ -->
+<section class="section">
+  <h2 class="section-title">⚔️ Les 3 Boss Fights — Analyse Complète</h2>
+
+  <div style="margin:2rem 0">
+    <div style="font-family:var(--creep);font-size:1.8rem;color:var(--blood);margin-bottom:1rem">BOSS I — La Confrontation</div>
+    <div style="display:grid;gap:.5rem">
+      <div class="code-block">Phase 1: « Pas de preuve de source illicite » → OBJECTION: rapport KPMG + CTIF | DMG: 35</div>
+      <div class="code-block">Phase 2: « Mon client nie formellement » → OBJECTION: réseau Fontinoy + ING complice | DMG: 35</div>
+      <div class="code-block">Phase 3: « Enquête motivée politiquement » → OBJECTION: commission Kazakhgate + Ullens | DMG: 40</div>
+    </div>
+    <div style="font-family:var(--pixel);font-size:.55rem;color:var(--penguin);margin-top:.5rem">BOSS HP: 100 • 3 PHASES • LOCATIONS: Palais de Justice, Commission parlementaire</div>
+  </div>
+
+  <div style="margin:2rem 0">
+    <div style="font-family:var(--creep);font-size:1.8rem;color:var(--penguin);margin-bottom:1rem">BOSS II — La Chambre des Secrets 🐧</div>
+    <div style="display:grid;gap:.5rem">
+      <div class="code-block">Phase 1: Fonds libyens → OBJECTION: Euroclear + 10Md évaporés | DMG: 25</div>
+      <div class="code-block">Phase 2: Kazakhgate → OBJECTION: Brouwers + De Decker + 1,5M non documenté | DMG: 25</div>
+      <div class="code-block">Phase 3: Marchés publics → OBJECTION: Régie + Cour des comptes + 480M Mons | DMG: 25</div>
+      <div class="code-block">Phase 4: Méthode → OBJECTION: KPMG + Ullens + Engels timeline + billets 500€ | DMG: 35</div>
+    </div>
+    <div style="font-family:var(--pixel);font-size:.55rem;color:var(--penguin);margin-top:.5rem">BOSS HP: 100 • 4 PHASES • LOCATION: Commission Spéciale</div>
+  </div>
+
+  <div style="margin:2rem 0">
+    <div style="font-family:var(--creep);font-size:1.8rem;color:var(--gold);margin-bottom:1rem">BOSS III — LE PROCÈS ⚖️🐧</div>
+    <div style="display:grid;gap:.5rem">
+      <div class="code-block">Phase 1: « Argent légal » → OBJECTION: cash ING + KPMG + GSM secret + billets 500€ | DMG: 20</div>
+      <div class="code-block">Phase 2: « Amitié pas crime » → OBJECTION: Sûreté + bakchich + Mons 480M + faux écriture | DMG: 20</div>
+      <div class="code-block">Phase 3: « Res judicata Kazakhgate » → OBJECTION: commission ≠ tribunal + notes De Decker | DMG: 20</div>
+      <div class="code-block">Phase 4: « Procédure légitime Libye » → OBJECTION: Euroclear instructions + 50K€ pot-de-vin | DMG: 20</div>
+      <div class="code-block">Phase 5: « Spéculation journalistique » → OBJECTION: 10 000 pages Claise + 4 institutions | DMG: 30</div>
+    </div>
+    <div style="font-family:var(--pixel);font-size:.55rem;color:var(--gold);margin-top:.5rem">BOSS HP: 100 • 5 PHASES • LOCATION: Salle des assises, Palais de Justice • 4 ENDINGS POSSIBLES</div>
+  </div>
+</section>
+
+<!-- ═══════════ THE 4+2 ENDINGS ═══════════ -->
+<section class="section">
+  <h2 class="section-title">🏁 Les 6 Endings — Du meilleur au pire</h2>
+
+  <div style="display:grid;gap:1.5rem;margin:1.5rem 0">
+    <div style="background:linear-gradient(135deg,rgba(201,164,62,.1),transparent);border:2px solid var(--gold);padding:1.5rem">
+      <div style="font-family:var(--creep);font-size:1.3rem;color:var(--gold)">🏆 ENDING 6 — Coupable</div>
+      <div style="font-family:var(--mono);font-size:.55rem;color:var(--penguin);margin:.3rem 0">BOSS 3 VICTORY · ACTE III</div>
+      <p style="font-size:.9rem;opacity:.8">Le tribunal condamne. Reynders: blanchiment aggravé. Fontinoy + Theunissen: association de malfaiteurs. ING: trafic d'influence. Première dans l'histoire belge. Le Palais de Justice rend son verdict. 🐧</p>
+    </div>
+    <div style="background:linear-gradient(135deg,rgba(136,85,187,.1),transparent);border:2px solid #8855bb;padding:1.5rem">
+      <div style="font-family:var(--creep);font-size:1.3rem;color:#8855bb">⚖️ ENDING 5 — Acquittement</div>
+      <div style="font-family:var(--mono);font-size:.55rem;color:var(--penguin);margin:.3rem 0">BOSS 3 DEFEAT · ACTE III</div>
+      <p style="font-size:.9rem;opacity:.8">Le tribunal acquitte. Mais les 10 000 pages sont publiques. L'acquittement n'est pas l'innocence. « La vérité ne prescrit jamais. »</p>
+    </div>
+    <div style="background:linear-gradient(135deg,rgba(196,30,30,.08),transparent);border:1px solid rgba(196,30,30,.3);padding:1.2rem">
+      <div style="font-family:var(--mono);font-size:.8rem;color:var(--blood)">TRANSITION 4 — Le Système Tombe (Boss 2 Victory → Acte III)</div>
+    </div>
+    <div style="background:linear-gradient(135deg,rgba(196,30,30,.05),transparent);border:1px solid rgba(196,30,30,.2);padding:1.2rem">
+      <div style="font-family:var(--mono);font-size:.8rem;color:var(--blood)">TRANSITION 3 — L'Instruction Continue (Boss 2 Defeat → Acte III)</div>
+    </div>
+    <div style="background:linear-gradient(135deg,rgba(255,165,0,.05),transparent);border:1px solid rgba(255,165,0,.2);padding:1.2rem">
+      <div style="font-family:var(--mono);font-size:.8rem;color:var(--penguin)">TRANSITION 2 — Commission votée (Boss 1 Victory → Acte II)</div>
+    </div>
+    <div style="background:linear-gradient(135deg,rgba(168,230,255,.05),transparent);border:1px solid rgba(168,230,255,.2);padding:1.2rem">
+      <div style="font-family:var(--mono);font-size:.8rem;color:var(--ice)">TRANSITION 1 — Le système résiste (Boss 1 Defeat → Acte II)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ EASTER EGG GUIDE ═══════════ -->
+<section class="section">
+  <h2 class="section-title">🥚 Guide des Easter Eggs</h2>
+
+  <div style="display:grid;gap:1rem;margin:1.5rem 0">
+    <div style="background:rgba(255,165,0,.04);border:1px solid rgba(255,165,0,.15);padding:1rem;display:grid;grid-template-columns:3rem 1fr;gap:1rem;align-items:start">
+      <span style="font-size:2rem">🎮</span>
+      <div><div style="font-family:var(--pixel);font-size:.65rem;color:var(--penguin)">KONAMI CODE</div><div style="font-family:var(--mono);font-size:.7rem;color:var(--fog);margin-top:.3rem">↑↑↓↓←→←→BA — Sur l'écran titre du jeu: archétype secret « Le Politicien ». Sur cette page: invasion de 100 pingouins + feux d'artifice.</div></div>
+    </div>
+    <div style="background:rgba(255,165,0,.04);border:1px solid rgba(255,165,0,.15);padding:1rem;display:grid;grid-template-columns:3rem 1fr;gap:1rem;align-items:start">
+      <span style="font-size:2rem">🪄</span>
+      <div><div style="font-family:var(--pixel);font-size:.65rem;color:var(--penguin)">XYZZY</div><div style="font-family:var(--mono);font-size:.7rem;color:var(--fog);margin-top:.3rem">Tapez "xyzzy" — Colossal Cave Adventure (1977). « Nothing happens. » Mais vous avez les pingouins.</div></div>
+    </div>
+    <div style="background:rgba(255,165,0,.04);border:1px solid rgba(255,165,0,.15);padding:1rem;display:grid;grid-template-columns:3rem 1fr;gap:1rem;align-items:start">
+      <span style="font-size:2rem">🐧</span>
+      <div><div style="font-family:var(--pixel);font-size:.65rem;color:var(--penguin)">NOOT</div><div style="font-family:var(--mono);font-size:.7rem;color:var(--fog);margin-top:.3rem">Tapez "noot" — Pingu (1986). 50 pingouins. Curseur géant. NOOT NOOT.</div></div>
+    </div>
+    <div style="background:rgba(255,165,0,.04);border:1px solid rgba(255,165,0,.15);padding:1rem;display:grid;grid-template-columns:3rem 1fr;gap:1rem;align-items:start">
+      <span style="font-size:2rem">🇧🇪</span>
+      <div><div style="font-family:var(--pixel);font-size:.65rem;color:var(--penguin)">TOTO</div><div style="font-family:var(--mono);font-size:.7rem;color:var(--fog);margin-top:.3rem">Tapez "toto" — Blague belge. « C'est l'histoire d'un pingouin qui entre au Palais de Justice... »</div></div>
+    </div>
+    <div style="background:rgba(255,165,0,.04);border:1px solid rgba(255,165,0,.15);padding:1rem;display:grid;grid-template-columns:3rem 1fr;gap:1rem;align-items:start">
+      <span style="font-size:2rem">🖱️</span>
+      <div><div style="font-family:var(--pixel);font-size:.65rem;color:var(--penguin)">DOUBLE-CLIC</div><div style="font-family:var(--mono);font-size:.7rem;color:var(--fog);margin-top:.3rem">Double-cliquez n'importe où — son « NOOT » via Web Audio API. Oui, c'est synthétisé en temps réel.</div></div>
+    </div>
+    <div style="background:rgba(255,165,0,.04);border:1px solid rgba(255,165,0,.15);padding:1rem;display:grid;grid-template-columns:3rem 1fr;gap:1rem;align-items:start">
+      <span style="font-size:2rem">🐧</span>
+      <div><div style="font-family:var(--pixel);font-size:.65rem;color:var(--penguin)">ASCII TUX</div><div style="font-family:var(--mono);font-size:.7rem;color:var(--fog);margin-top:.3rem">Cliquez sur l'ASCII Tux en haut de page → 42 pingouins (la réponse à tout).</div></div>
+    </div>
+    <div style="background:rgba(255,165,0,.04);border:1px solid rgba(255,165,0,.15);padding:1rem;display:grid;grid-template-columns:3rem 1fr;gap:1rem;align-items:start">
+      <span style="font-size:2rem">🔮</span>
+      <div><div style="font-family:var(--pixel);font-size:.65rem;color:var(--penguin)">LE SECRET DES PINGOUINS</div><div style="font-family:var(--mono);font-size:.7rem;color:var(--fog);margin-top:.3rem">Section cachée révélant la vraie histoire de Tux: mordu par un pingouin au zoo de Canberra.</div></div>
+    </div>
+    <div style="background:rgba(255,165,0,.04);border:1px solid rgba(255,165,0,.15);padding:1rem;display:grid;grid-template-columns:3rem 1fr;gap:1rem;align-items:start">
+      <span style="font-size:2rem">🏆</span>
+      <div><div style="font-family:var(--pixel);font-size:.65rem;color:var(--penguin)">SCROLL ACHIEVEMENTS</div><div style="font-family:var(--mono);font-size:.7rem;color:var(--fog);margin-top:.3rem">25% / 50% / 75% / Finale — 4 achievements de scroll. Le dernier déclenche un MEGA BURST.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CREDITS ROLL ═══════════ -->
+<section class="section" style="text-align:center">
+  <h2 class="section-title" style="display:block;text-align:center">🎬 Générique</h2>
+
+  <div style="font-family:var(--serif);font-size:1rem;color:var(--fog);line-height:2.5;opacity:.7;margin:2rem 0">
+    <div style="font-family:var(--creep);font-size:1.5rem;color:var(--blood);margin-bottom:1rem">LES PARCHEMINS DE BRUXELLES</div>
+    <div>Un jeu de <span style="color:var(--gold)">ouaisfi.eu</span></div>
+    <div>Avec l'assistance de <span style="color:var(--penguin)">Claude (Anthropic)</span></div>
+    <div style="margin-top:1rem"><span style="font-family:var(--pixel);font-size:.5rem;color:var(--dim)">GAME DESIGN</span><br>Yan × Claude</div>
+    <div style="margin-top:.5rem"><span style="font-family:var(--pixel);font-size:.5rem;color:var(--dim)">NARRATIVE DESIGN</span><br>Basé sur les travaux de Philippe Engels (Médor)</div>
+    <div style="margin-top:.5rem"><span style="font-family:var(--pixel);font-size:.5rem;color:var(--dim)">QA & AUDIT</span><br>Python × Node.js × Tux 🐧</div>
+    <div style="margin-top:.5rem"><span style="font-family:var(--pixel);font-size:.5rem;color:var(--dim)">SOURCES JOURNALISTIQUES</span><br>Médor · POUR.press · BX1 · Le Soir · Le Vif · De Standaard · De Tijd · Brussels Times · RTBF</div>
+    <div style="margin-top:.5rem"><span style="font-family:var(--pixel);font-size:.5rem;color:var(--dim)">SOURCES JUDICIAIRES</span><br>Parquet fédéral · Commission Kazakhgate · Cour des comptes · CTIF · Sûreté de l'État</div>
+    <div style="margin-top:.5rem"><span style="font-family:var(--pixel);font-size:.5rem;color:var(--dim)">PINGOUINS</span><br>∞</div>
+    <div style="margin-top:.5rem"><span style="font-family:var(--pixel);font-size:.5rem;color:var(--dim)">BISOUS</span><br>∞</div>
+    <div style="margin-top:.5rem"><span style="font-family:var(--pixel);font-size:.5rem;color:var(--dim)">FEUX D'ARTIFICE</span><br>∞</div>
+    <div style="margin-top:.5rem"><span style="font-family:var(--pixel);font-size:.5rem;color:var(--dim)">BALLONS</span><br>∞ (rouges, comme dans le film)</div>
+    <div style="margin-top:1.5rem;font-family:var(--pixel);font-size:.5rem;color:var(--blood);letter-spacing:.2em">PRÉSOMPTION D'INNOCENCE POUR TOUTES LES PERSONNES MENTIONNÉES</div>
+    <div style="margin-top:.5rem;font-family:var(--pixel);font-size:.5rem;color:var(--dim);letter-spacing:.2em">AUCUN PINGOUIN N'A ÉTÉ BLESSÉ PENDANT LA PRODUCTION</div>
+    <div style="font-family:var(--pixel);font-size:.5rem;color:var(--dim);letter-spacing:.2em">SAUF CELUI QUI A MORDU LINUS TORVALDS</div>
+  </div>
+</section>
+
+<!-- ═══════════ FINALE ═══════════ -->
+<section class="finale" id="finale">
+  <div style="font-size:4rem;margin-bottom:1rem;letter-spacing:.3rem">🐧🎈💋🎆🐧🎈💋🎆🐧🎈💋🎆</div>
+  <h2 class="finale-title">FIN</h2>
+  <p style="font-family:var(--display);font-size:1.3rem;color:var(--fog);max-width:700px;font-style:italic;opacity:.8;margin:1rem auto">
+    « Ce jeu est basé sur des faits réels. Toutes les informations proviennent de sources judiciaires et médiatiques publiques. Présomption d'innocence pour toutes les personnes mentionnées. »
+  </p>
+  <p style="font-family:var(--display);font-size:1.1rem;color:var(--kiss);margin:1rem 0">
+    Et plein de ballons. Et des bisous. Et des feux d'artifice. Et des pingouins. Surtout des pingouins. 🐧💋🎈🎆
+  </p>
+  <div style="display:flex;flex-wrap:wrap;gap:.8rem;justify-content:center;margin:2rem 0">
+    <span style="font-family:var(--pixel);font-size:.6rem;padding:.5rem 1rem;border:2px solid var(--blood);color:var(--blood)">🎈 Ballons: ∞</span>
+    <span style="font-family:var(--pixel);font-size:.6rem;padding:.5rem 1rem;border:2px solid var(--kiss);color:var(--kiss)">💋 Bisous: ∞</span>
+    <span style="font-family:var(--pixel);font-size:.6rem;padding:.5rem 1rem;border:2px solid var(--gold);color:var(--gold)">🎆 Feux d'art.: ∞</span>
+    <span style="font-family:var(--pixel);font-size:.6rem;padding:.5rem 1rem;border:2px solid var(--penguin);color:var(--penguin)">🐧 Pingouins: ∞</span>
+    <span style="font-family:var(--pixel);font-size:.6rem;padding:.5rem 1rem;border:2px solid var(--ice);color:var(--ice)">📄 Lignes: 2 198</span>
+    <span style="font-family:var(--pixel);font-size:.6rem;padding:.5rem 1rem;border:2px solid var(--fog);color:var(--fog)">🤡 Pennywise: 1</span>
+  </div>
+  <div style="font-size:3rem;margin:1.5rem 0;letter-spacing:.2rem">🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧🐧</div>
+  <p style="font-family:var(--mono);font-size:.6rem;color:var(--fog);opacity:.5">
+    📖 <a href="https://medor.coop" target="_blank" style="color:var(--gold)">Médor</a> · <a href="https://pour.press" target="_blank" style="color:var(--gold)">POUR.press</a> · <a href="https://bx1.be" target="_blank" style="color:var(--gold)">BX1</a> · <a href="https://ouaisfi.eu" target="_blank" style="color:var(--gold)">ouaisfi.eu</a>
+  </p>
+  <p style="font-family:var(--pixel);font-size:.45rem;color:var(--blood);letter-spacing:.2em;margin-top:2rem">
+    LES PARCHEMINS DE BRUXELLES v3.0 · CC BY-SA 4.0 · MADE WITH 🐧 AND ❤️ · NASA EN PLS · KORBEN APPROVED™
+  </p>
+</section>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// 🐧 THE ULTIMATE ENGINE — PENGUINS, BALLOONS, FIREWORKS, KISSES, MEMES
+// ═══════════════════════════════════════════════════════
+
+let penguinCount = 0;
+const penguinEl = document.getElementById('penguinCount');
+function addPenguin(n=1) {
+  penguinCount += n;
+  penguinEl.textContent = penguinCount;
+}
+
+// ═══ ACHIEVEMENT SYSTEM ═══
+const achieved = new Set();
+function showAchievement(text) {
+  if(achieved.has(text)) return;
+  achieved.add(text);
+  const el = document.getElementById('achievement');
+  el.textContent = '🏆 ' + text;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ═══ FIREWORK CANVAS ═══
+const fwCanvas = document.getElementById('fireworkCanvas');
+const fwCtx = fwCanvas.getContext('2d');
+let fireworks = [];
+let particles = [];
+
+function resizeCanvases() {
+  fwCanvas.width = window.innerWidth;
+  fwCanvas.height = window.innerHeight;
+}
+resizeCanvases();
+window.addEventListener('resize', resizeCanvases);
+
+class Particle {
+  constructor(x, y, color) {
+    this.x = x; this.y = y;
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 1 + Math.random() * 5;
+    this.vx = Math.cos(angle) * speed;
+    this.vy = Math.sin(angle) * speed;
+    this.alpha = 1;
+    this.color = color;
+    this.size = 1 + Math.random() * 2;
+    this.decay = 0.01 + Math.random() * 0.02;
+    this.gravity = 0.03;
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.vy += this.gravity;
+    this.alpha -= this.decay;
+    this.size *= 0.99;
+  }
+  draw(ctx) {
+    ctx.globalAlpha = Math.max(0, this.alpha);
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+class Firework {
+  constructor(x, targetY) {
+    this.x = x;
+    this.y = window.innerHeight;
+    this.targetY = targetY;
+    this.speed = 3 + Math.random() * 3;
+    this.color = ['#ff0','#0ff','#f0f','#ff3030','#30ff30','#ff69b4','#ffa500','#fff','#c9a43e'][Math.floor(Math.random() * 9)];
+    this.alive = true;
+    this.trail = [];
+  }
+  update() {
+    this.trail.push({x:this.x, y:this.y, alpha:1});
+    if(this.trail.length > 8) this.trail.shift();
+    this.trail.forEach(t => t.alpha -= 0.12);
+    this.y -= this.speed;
+    if(this.y <= this.targetY) {
+      this.alive = false;
+      for(let i = 0; i < 40 + Math.random() * 30; i++) {
+        particles.push(new Particle(this.x, this.y, this.color));
+      }
+    }
+  }
+  draw(ctx) {
+    this.trail.forEach(t => {
+      ctx.globalAlpha = Math.max(0, t.alpha);
+      ctx.fillStyle = this.color;
+      ctx.fillRect(t.x - 1, t.y - 1, 2, 2);
+    });
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = this.color;
+    ctx.fillRect(this.x - 1.5, this.y - 1.5, 3, 3);
+  }
+}
+
+function animateFireworks() {
+  fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+  fireworks = fireworks.filter(f => f.alive);
+  fireworks.forEach(f => { f.update(); f.draw(fwCtx); });
+  particles = particles.filter(p => p.alpha > 0);
+  particles.forEach(p => { p.update(); p.draw(fwCtx); });
+  fwCtx.globalAlpha = 1;
+  requestAnimationFrame(animateFireworks);
+}
+animateFireworks();
+
+function launchFirework() {
+  fireworks.push(new Firework(
+    100 + Math.random() * (window.innerWidth - 200),
+    50 + Math.random() * (window.innerHeight * 0.5)
+  ));
+}
+setInterval(launchFirework, 2000);
+setTimeout(() => { for(let i = 0; i < 8; i++) setTimeout(launchFirework, i * 300); }, 1500);
+
+// ═══ BALLOON FACTORY ═══
+const BCOLORS = ['#c41e1e','#ff3030','#ffa500','#ff69b4','#00ccff','#66ff33','#c9a43e','#ff1493','#8855bb','#33aaaa'];
+function spawnBalloon() {
+  const b = document.createElement('div');
+  b.className = 'balloon';
+  const color = BCOLORS[Math.floor(Math.random() * BCOLORS.length)];
+  const size = 35 + Math.random() * 35;
+  b.style.left = Math.random() * (window.innerWidth - 50) + 'px';
+  b.style.animationDuration = (8 + Math.random() * 14) + 's';
+  b.innerHTML = `<svg viewBox="0 0 50 70" width="${size}" height="${size*1.4}">
+    <defs><radialGradient id="b${Date.now()}${Math.random()}" cx="35%" cy="30%"><stop offset="0%" stop-color="${color}" stop-opacity=".9"/><stop offset="100%" stop-color="${color}" stop-opacity=".5"/></radialGradient></defs>
+    <ellipse cx="25" cy="28" rx="20" ry="26" fill="url(#b${Date.now()}${Math.random()})"/>
+    <ellipse cx="18" cy="18" rx="5" ry="7" fill="rgba(255,255,255,.25)" transform="rotate(-20 18 18)"/>
+    <polygon points="25,54 22,60 28,60" fill="${color}" opacity=".7"/>
+    <line x1="25" y1="60" x2="25" y2="85" stroke="rgba(255,255,255,.2)" stroke-width=".7"/>
+  </svg>`;
+  document.body.appendChild(b);
+  const dur = parseFloat(b.style.animationDuration) * 1000;
+  setTimeout(() => b.remove(), dur + 500);
+}
+setInterval(spawnBalloon, 1200);
+for(let i = 0; i < 12; i++) setTimeout(spawnBalloon, i * 150);
+
+// ═══ KISS FACTORY ═══
+function spawnKiss(x, y) {
+  const k = document.createElement('div');
+  k.className = 'kiss-pop';
+  k.style.left = x + 'px'; k.style.top = y + 'px';
+  k.style.fontSize = (1.5 + Math.random() * 2) + 'rem';
+  k.textContent = ['💋','😘','💕','💗','💖','💝','❤️‍🔥','😽','🥰'][Math.floor(Math.random() * 9)];
+  document.body.appendChild(k);
+  setTimeout(() => k.remove(), 2000);
+}
+setInterval(() => spawnKiss(Math.random() * window.innerWidth, Math.random() * window.innerHeight), 4000);
+
+// ═══ PENGUIN RAIN ═══
+function spawnPenguinRain() {
+  const p = document.createElement('div');
+  p.className = 'penguin-rain';
+  p.style.left = Math.random() * window.innerWidth + 'px';
+  p.style.animationDuration = (4 + Math.random() * 6) + 's';
+  p.textContent = ['🐧','🐧','🐧','🐧','🐧','🐧','🐧','🐧','🐧','🐧','🐧','🐧','🎈'][Math.floor(Math.random() * 13)];
+  document.body.appendChild(p);
+  addPenguin(p.textContent === '🐧' ? 1 : 0);
+  const dur = parseFloat(p.style.animationDuration) * 1000;
+  setTimeout(() => p.remove(), dur + 500);
+}
+setInterval(spawnPenguinRain, 600);
+
+// ═══ CLICK HANDLER — SPAWN EVERYTHING ═══
+document.addEventListener('click', e => {
+  // Kisses
+  for(let i = 0; i < 4; i++) {
+    setTimeout(() => spawnKiss(e.clientX + (Math.random()-.5)*100, e.clientY + (Math.random()-.5)*100), i * 80);
+  }
+  // Penguin cursor trail
+  const p = document.createElement('div');
+  p.className = 'cursor-penguin';
+  p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
+  p.textContent = '🐧';
+  document.body.appendChild(p);
+  addPenguin();
+  setTimeout(() => p.remove(), 800);
+  // Mini firework at click
+  for(let i = 0; i < 15; i++) {
+    particles.push(new Particle(e.clientX, e.clientY, BCOLORS[Math.floor(Math.random() * BCOLORS.length)]));
+  }
+});
+
+// ═══ CURSOR TRAIL ═══
+let lastTrail = 0;
+document.addEventListener('mousemove', e => {
+  if(Date.now() - lastTrail < 80) return;
+  lastTrail = Date.now();
+  if(Math.random() > 0.5) return;
+  const t = document.createElement('div');
+  t.className = 'cursor-penguin';
+  t.style.left = e.clientX + 'px'; t.style.top = e.clientY + 'px';
+  t.style.fontSize = '.8rem';
+  t.textContent = ['🐧','❄️','💋','🎈','✨'][Math.floor(Math.random() * 5)];
+  document.body.appendChild(t);
+  if(t.textContent === '🐧') addPenguin();
+  setTimeout(() => t.remove(), 800);
+});
+
+// ═══ KONAMI CODE → PENGUIN INVASION ═══
+const KONAMI = [38,38,40,40,37,39,37,39,66,65];
+let konamiIdx = 0;
+document.addEventListener('keydown', e => {
+  if(e.keyCode === KONAMI[konamiIdx]) {
+    konamiIdx++;
+    if(konamiIdx === KONAMI.length) {
+      konamiIdx = 0;
+      showAchievement('KONAMI CODE! 🐧 PENGUIN INVASION ACTIVÉE!');
+      // MEGA PENGUIN INVASION
+      for(let i = 0; i < 100; i++) {
+        setTimeout(() => {
+          spawnPenguinRain();
+          if(i % 3 === 0) launchFirework();
+          if(i % 5 === 0) spawnBalloon();
+          if(i % 7 === 0) spawnKiss(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
+        }, i * 50);
+      }
+    }
+  } else {
+    konamiIdx = e.keyCode === KONAMI[0] ? 1 : 0;
+  }
+});
+
+// ═══ "NOOT" EASTER EGG ═══
+let nootBuf = '';
+document.addEventListener('keypress', e => {
+  nootBuf += e.key.toLowerCase();
+  if(nootBuf.length > 4) nootBuf = nootBuf.slice(-4);
+  if(nootBuf === 'noot') {
+    nootBuf = '';
+    showAchievement('NOOT NOOT! 🐧 PINGU APPROVES!');
+    document.body.style.cursor = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\'%3E%3Ctext y=\'36\' font-size=\'36\'%3E🐧%3C/text%3E%3C/svg%3E") 24 24,auto';
+    for(let i = 0; i < 50; i++) {
+      setTimeout(spawnPenguinRain, i * 80);
+    }
+    addPenguin(50);
+  }
+});
+
+// ═══ "XYZZY" EASTER EGG ═══
+let xyzzyBuf = '';
+document.addEventListener('keypress', e => {
+  xyzzyBuf += e.key.toLowerCase();
+  if(xyzzyBuf.length > 5) xyzzyBuf = xyzzyBuf.slice(-5);
+  if(xyzzyBuf === 'xyzzy') {
+    xyzzyBuf = '';
+    showAchievement('XYZZY! 🕳️ Nothing happens... but you get penguins!');
+    for(let i = 0; i < 30; i++) setTimeout(spawnPenguinRain, i * 100);
+  }
+});
+
+// ═══ "TOTO" EASTER EGG (FR) ═══
+let totoBuf = '';
+document.addEventListener('keypress', e => {
+  totoBuf += e.key.toLowerCase();
+  if(totoBuf.length > 4) totoBuf = totoBuf.slice(-4);
+  if(totoBuf === 'toto') {
+    totoBuf = '';
+    showAchievement('🇧🇪 TOTO! C\'est l\'histoire d\'un pingouin qui entre au Palais de Justice...');
+    for(let i = 0; i < 20; i++) setTimeout(() => {
+      spawnBalloon(); spawnPenguinRain();
+    }, i * 150);
+  }
+});
+
+// ═══ SCROLL ACHIEVEMENTS ═══
+let scrollAch = { q1: false, q2: false, q3: false, finale: false };
+window.addEventListener('scroll', () => {
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+  if(pct > 0.25 && !scrollAch.q1) { scrollAch.q1 = true; showAchievement('25% SCROLLÉ — Tux serait fier 🐧'); }
+  if(pct > 0.50 && !scrollAch.q2) { scrollAch.q2 = true; showAchievement('50% — HALFWAY TO THE SEWERS 🎈'); }
+  if(pct > 0.75 && !scrollAch.q3) { scrollAch.q3 = true; showAchievement('75% — PRESQUE À L\'APOTHÉOSE 🎆'); }
+});
+
+// ═══ FINALE MEGA BURST ═══
+let finaleTriggered = false;
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting && !finaleTriggered) {
+      finaleTriggered = true;
+      showAchievement('🏆 APOTHÉOSE ATTEINTE — KORBEN APPROVED — NASA EN PLS');
+      for(let i = 0; i < 50; i++) {
+        setTimeout(() => {
+          launchFirework();
+          spawnBalloon();
+          spawnPenguinRain();
+          spawnKiss(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
+        }, i * 60);
+      }
+      addPenguin(100);
+    }
+  });
+}, { threshold: 0.2 });
+obs.observe(document.getElementById('finale'));
+
+// ═══ SECRET: CLICK ASCII TUX ═══
+document.getElementById('asciiTux').addEventListener('click', () => {
+  showAchievement('🐧 TUX CLIQUÉ — LINUX > WINDOWS CONFIRMÉ');
+  addPenguin(42); // Answer to everything
+  for(let i = 0; i < 42; i++) setTimeout(spawnPenguinRain, i * 50);
+});
+
+// ═══ SECRET: CLICK SECRET TRIGGER ═══
+document.getElementById('secretTrigger').addEventListener('click', () => {
+  showAchievement('🐧 SECRET DES PINGOUINS RÉVÉLÉ');
+  addPenguin(25);
+});
+
+// ═══ INITIAL PENGUIN COUNT ═══
+addPenguin(7); // For the 7 floating ambient penguins
+
+// ═══ ACHIEVEMENT FOR FIRST CLICK ═══
+let firstClick = false;
+document.addEventListener('click', () => {
+  if(!firstClick) { firstClick = true; showAchievement('PREMIER CLIC! 🐧 Chaque clic = 1 pingouin'); }
+}, { once: true });
+
+// ═══ PENGUIN CLICKER MINI-GAME ═══
+let clickerScore = 0;
+let clicksThisSecond = 0;
+let totalKissCount = 0;
+let totalFireworkCount = 0;
+let totalBalloonCount = 0;
+const TIERS = [
+  [0,'Bébé Pingouin','Cliquez pour commencer votre carrière de pingouin professionnel.'],
+  [10,'Pingouin Junior','« Every journey begins with a single NOOT. »'],
+  [25,'Pingouin Confirmé','Vous commencez à marcher comme un pingouin.'],
+  [50,'Pingouin Expert','Le zoo de Canberra vous propose un contrat.'],
+  [100,'Pingouin Légendaire','Linus Torvalds vous a remarqué.'],
+  [200,'Empereur','500 mètres de profondeur. Plus profond que le système Reynders.'],
+  [500,'Dieu Pingouin','Vous ÊTES le pingouin. Le pingouin EST vous.'],
+  [1000,'KORBEN','Korben approuve. La NASA est en PLS. Vous avez transcendé.'],
+  [2198,'LE JEU','Vous avez cliqué autant de fois qu\'il y a de lignes dans le jeu. Respect.'],
+  [9999,'BEYOND','Il n\'y a plus de tier. Vous êtes au-delà. Continuez.']
+];
+function clickPenguin(e) {
+  clickerScore++;
+  clicksThisSecond++;
+  const el = document.getElementById('clickerPenguin');
+  el.style.transform = 'scale(0.85)';
+  setTimeout(() => el.style.transform = 'scale(1)', 100);
+  document.getElementById('clickerScore').textContent = clickerScore;
+  addPenguin();
+  // Effects based on score
+  spawnKiss(e.clientX + (Math.random()-.5)*100, e.clientY + (Math.random()-.5)*100);
+  totalKissCount++;
+  if(clickerScore % 5 === 0) { spawnBalloon(); totalBalloonCount++; }
+  if(clickerScore % 10 === 0) { launchFirework(); totalFireworkCount++; }
+  if(clickerScore % 25 === 0) { for(let i=0;i<5;i++) setTimeout(()=>{launchFirework();totalFireworkCount++;},i*200); }
+  if(clickerScore % 100 === 0) { for(let i=0;i<20;i++) setTimeout(spawnPenguinRain,i*50); }
+  // Tier check
+  let tier = TIERS[0];
+  for(const t of TIERS) { if(clickerScore >= t[0]) tier = t; }
+  document.getElementById('clickerTier').textContent = tier[1];
+  document.getElementById('clickerQuote').textContent = tier[2];
+  document.getElementById('totalKisses').textContent = totalKissCount;
+  document.getElementById('totalFireworks').textContent = totalFireworkCount;
+  document.getElementById('totalBalloons').textContent = totalBalloonCount;
+  // Achievements
+  if(clickerScore === 42) showAchievement('42 CLICS — LA RÉPONSE À LA VIE, L\'UNIVERS, ET LES PINGOUINS 🐧');
+  if(clickerScore === 100) showAchievement('100 CLICS — CENTURION DU PINGOUIN 🐧');
+  if(clickerScore === 500) showAchievement('500 CLICS — PROFONDEUR DU MANCHOT EMPEREUR 🐧');
+  if(clickerScore === 2198) showAchievement('2198 CLICS — AUTANT QUE DE LIGNES DANS LE JEU! 🐧🏆');
+}
+// CPS counter
+setInterval(() => {
+  document.getElementById('cps').textContent = clicksThisSecond;
+  clicksThisSecond = 0;
+}, 1000);
+
+// ═══ MATRIX PENGUIN RAIN (CANVAS) ═══
+const matrixCanvas = document.createElement('canvas');
+matrixCanvas.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:2;opacity:.15';
+document.body.appendChild(matrixCanvas);
+const mCtx = matrixCanvas.getContext('2d');
+function resizeMatrix() { matrixCanvas.width = window.innerWidth; matrixCanvas.height = window.innerHeight; }
+resizeMatrix();
+window.addEventListener('resize', resizeMatrix);
+const matrixChars = '🐧❄️NOOT01アカサタナハマヤラワ';
+const matrixCols = Math.floor(window.innerWidth / 20);
+const matrixDrops = Array(matrixCols).fill(0);
+function drawMatrix() {
+  mCtx.fillStyle = 'rgba(10,10,10,.08)';
+  mCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+  mCtx.font = '14px monospace';
+  for(let i = 0; i < matrixDrops.length; i++) {
+    const char = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+    const x = i * 20;
+    const y = matrixDrops[i] * 20;
+    mCtx.fillStyle = Math.random() > 0.95 ? '#ffa500' : '#00ff0044';
+    mCtx.fillText(char, x, y);
+    if(y > matrixCanvas.height && Math.random() > 0.98) matrixDrops[i] = 0;
+    matrixDrops[i]++;
+  }
+}
+setInterval(drawMatrix, 80);
+
+// ═══ ANIMATED SVG PENGUIN MARCH ═══
+let marchActive = false;
+function startMarch() {
+  if(marchActive) return;
+  marchActive = true;
+  const strip = document.createElement('div');
+  strip.style.cssText = 'position:fixed;bottom:0;left:0;right:0;height:60px;z-index:100;pointer-events:none;overflow:hidden';
+  document.body.appendChild(strip);
+  for(let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.style.cssText = `position:absolute;bottom:5px;font-size:2rem;animation:marchPenguin ${8+Math.random()*4}s linear infinite;animation-delay:${-i*0.8}s`;
+    p.textContent = '🐧';
+    strip.appendChild(p);
+  }
+  const style = document.createElement('style');
+  style.textContent = '@keyframes marchPenguin{0%{left:-40px;transform:scaleX(1)}49%{transform:scaleX(1)}50%{left:calc(100% + 40px);transform:scaleX(-1)}99%{transform:scaleX(-1)}100%{left:-40px;transform:scaleX(1)}}';
+  document.head.appendChild(style);
+  showAchievement('🐧 LA MARCHE DES PINGOUINS ACTIVÉE');
+  setTimeout(() => { strip.remove(); marchActive = false; }, 30000);
+}
+
+// ═══ "MARCH" EASTER EGG ═══
+let marchBuf = '';
+document.addEventListener('keypress', e => {
+  marchBuf += e.key.toLowerCase();
+  if(marchBuf.length > 5) marchBuf = marchBuf.slice(-5);
+  if(marchBuf === 'march') { marchBuf = ''; startMarch(); }
+});
+
+// ═══ "KORBEN" EASTER EGG ═══
+let korbenBuf = '';
+document.addEventListener('keypress', e => {
+  korbenBuf += e.key.toLowerCase();
+  if(korbenBuf.length > 6) korbenBuf = korbenBuf.slice(-6);
+  if(korbenBuf === 'korben') {
+    korbenBuf = '';
+    showAchievement('🏆 KORBEN MODE ACTIVATED — ALL THE PENGUINS');
+    document.body.style.background = '#000a00';
+    for(let i = 0; i < 200; i++) setTimeout(() => { spawnPenguinRain(); if(i%3===0)launchFirework(); }, i * 30);
+    addPenguin(200);
+    startMarch();
+  }
+});
+
+// ═══ "NASA" EASTER EGG ═══
+let nasaBuf = '';
+document.addEventListener('keypress', e => {
+  nasaBuf += e.key.toLowerCase();
+  if(nasaBuf.length > 4) nasaBuf = nasaBuf.slice(-4);
+  if(nasaBuf === 'nasa') {
+    nasaBuf = '';
+    showAchievement('🚀 NASA EN PLS — PENGUIN SPACE PROGRAM LAUNCHED');
+    for(let i = 0; i < 50; i++) {
+      setTimeout(() => {
+        launchFirework();
+        const p = document.createElement('div');
+        p.className = 'penguin-rain';
+        p.style.left = Math.random() * window.innerWidth + 'px';
+        p.style.animationDuration = '2s';
+        p.style.fontSize = '3rem';
+        p.textContent = '🚀🐧';
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 2500);
+      }, i * 60);
+    }
+    addPenguin(50);
+  }
+});
+
+// ═══ PENGUIN COUNT MILESTONES ═══
+let milestones = { m100: false, m500: false, m1000: false, m2198: false, m5000: false };
+setInterval(() => {
+  if(penguinCount >= 100 && !milestones.m100) { milestones.m100 = true; showAchievement('100 PINGOUINS 🐧 — Un petit pas pour un pingouin...'); }
+  if(penguinCount >= 500 && !milestones.m500) { milestones.m500 = true; showAchievement('500 PINGOUINS 🐧 — La profondeur du manchot empereur!'); }
+  if(penguinCount >= 1000 && !milestones.m1000) { milestones.m1000 = true; showAchievement('1000 PINGOUINS 🐧 — ARMÉE DE PINGOUINS ASSEMBLÉE'); startMarch(); }
+  if(penguinCount >= 2198 && !milestones.m2198) { milestones.m2198 = true; showAchievement('2198 PINGOUINS = 2198 LIGNES DE CODE 🐧🏆'); }
+  if(penguinCount >= 5000 && !milestones.m5000) { milestones.m5000 = true; showAchievement('5000 PINGOUINS 🐧 — KORBEN SERAIT FIER — NASA DÉPASSÉE'); }
+}, 1000);
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function noot() {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.3);
+  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.3);
+}
+// Double-click = NOOT
+document.addEventListener('dblclick', () => {
+  noot();
+  showAchievement('NOOT! 🐧 Double-clic = NOOT sonore');
+});
+</script>
+</body>
+</html>
