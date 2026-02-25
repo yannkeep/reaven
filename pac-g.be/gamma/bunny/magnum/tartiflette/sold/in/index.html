@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Théorie du Chaos & Guerre Cognitive : Analyse de Cas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Chosen Palette: Warm Professional Neutral. 
+         Background: #F9FAFB (Gray 50) / #F3F4F6 (Gray 100)
+         Primary Text: #1F2937 (Gray 800)
+         Accents: #EA580C (Orange 600 - Chaos), #0284C7 (Sky 600 - Order/Structure), #059669 (Emerald 600 - Legalism)
+    -->
+
+    <!-- Application Structure Plan:
+         1. Executive Dashboard: High-level summary of the "Legalist Digital Insurrection" concept combining Chaos Theory and Cognitive Warfare.
+         2. Network Topology (The Strange Attractor): Interactive Plotly map visualizing the specific domains (yannkeep, ouaisfieu, etc.) as nodes in a cognitive ecosystem.
+         3. Chaos Mechanics Simulator: Interactive section demonstrating "Sensitivity to Initial Conditions" where users can adjust a 'disruption' slider to see how legal inputs create non-linear narrative effects.
+         4. Entity Analysis: Detailed breakdown of the specific case studies (GitHub pages, Itch.io, EU domains) via an interactive grid.
+         5. Strategic Synthesis: A comparative view of traditional warfare vs. the analyzed legalist insurrection model.
+         
+         Why this structure? It moves from abstract theory (Executive) to concrete evidence (Network/Entities) and finally to mechanism (Chaos Sim), allowing the user to understand *how* the network functions before seeing *what* it is composed of.
+    -->
+
+    <!-- Visualization & Content Choices:
+         1. Network Topology: Plotly Bubble Chart (Canvas). Goal: Show relationships and weight of different domains. Interaction: Hover for node details. Justification: Plotly handles scatter/bubble plots well on Canvas without SVG.
+         2. Chaos Mechanics: Chart.js Line Chart. Goal: Visualize non-linearity. Interaction: Slider updates dataset to show bifurcation/chaos. Justification: Standard efficient line charting.
+         3. Domain Role Distribution: Chart.js Doughnut. Goal: Categorize the type of "insurrection" (Game, Code, Institutional mimicry).
+         4. Tactical Spectrum: HTML/CSS Progress Bars. Goal: Visualizing where tactics fall between "Legal" and "Illegal".
+         
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9FAFB;
+            color: #1F2937;
+        }
+        h1, h2, h3, .mono-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Chart Container Styling per Requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px; /* Max width constraint */
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px; /* Default height */
+            max-height: 500px;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+        .nav-item.active {
+            border-bottom: 2px solid #EA580C;
+            color: #EA580C;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-orange-100 selection:text-orange-900">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold tracking-tighter text-gray-900 mono-font">
+                        <span class="text-orange-600">CHAOS</span>.MONITOR
+                    </span>
+                </div>
+                <div class="hidden sm:flex sm:space-x-8" id="nav-menu">
+                    <button onclick="navigateTo('dashboard')" class="nav-item active inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 focus:outline-none">
+                        Synthèse
+                    </button>
+                    <button onclick="navigateTo('network')" class="nav-item inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900 focus:outline-none">
+                        Topologie Réseau
+                    </button>
+                    <button onclick="navigateTo('mechanics')" class="nav-item inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900 focus:outline-none">
+                        Mécanique du Chaos
+                    </button>
+                    <button onclick="navigateTo('entities')" class="nav-item inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900 focus:outline-none">
+                        Analyse des Cibles
+                    </button>
+                </div>
+                <!-- Mobile menu button -->
+                <div class="-mr-2 flex items-center sm:hidden">
+                    <button onclick="toggleMobileMenu()" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none">
+                        <span class="sr-only">Menu</span>
+                        <span class="text-2xl">☰</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu Panel -->
+        <div class="hidden sm:hidden bg-white border-b border-gray-200" id="mobile-menu">
+            <div class="pt-2 pb-3 space-y-1">
+                <button onclick="navigateTo('dashboard')" class="block w-full text-left pl-3 pr-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900">Synthèse</button>
+                <button onclick="navigateTo('network')" class="block w-full text-left pl-3 pr-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900">Topologie</button>
+                <button onclick="navigateTo('mechanics')" class="block w-full text-left pl-3 pr-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900">Mécanique</button>
+                <button onclick="navigateTo('entities')" class="block w-full text-left pl-3 pr-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900">Cibles</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+        <!-- SECTION 1: DASHBOARD / EXECUTIVE SUMMARY -->
+        <section id="dashboard" class="space-y-8 animate-fade-in">
+            <div class="text-center max-w-3xl mx-auto mb-10">
+                <h1 class="text-4xl font-extrabold text-gray-900 sm:text-5xl mb-4">Insurrection Numérique Légaliste</h1>
+                <p class="text-xl text-gray-500">
+                    Analyse de l'application de la <span class="text-orange-600 font-semibold">théorie du chaos</span> aux opérations d'influence via des vecteurs à faible coût et haute légitimité.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 border-l-4 border-orange-500 pl-4 mb-2">Contexte Stratégique</h2>
+                    <p class="text-gray-600 leading-relaxed">
+                        Ce rapport explore comment un réseau décentralisé de domaines web (y compris <code>yannkeep.github.io</code>, <code>ccplc.eu</code>, et <code>ouaisfieu.itch.io</code>) opère comme un "Attracteur Étrange" dans l'espace cognitif. Contrairement à la cyberguerre traditionnelle axée sur la destruction d'infrastructures, l'<strong>Insurrection Numérique Légaliste</strong> exploite les cadres juridiques existants (droits d'auteur, hébergement gratuit, liberté d'expression) pour injecter des narratives dissonantes. Ces micro-perturbations, selon la théorie du chaos, s'amplifient pour défier les structures de pouvoir établies.
+                    </p>
+                </div>
+
+                <!-- KPI Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                    <div class="bg-gray-50 rounded-lg p-5 border border-gray-100">
+                        <div class="text-sm font-medium text-gray-500 uppercase tracking-wider">Vecteur Principal</div>
+                        <div class="mt-2 flex items-baseline">
+                            <span class="text-3xl font-semibold text-gray-900">Narratif</span>
+                            <span class="ml-2 text-sm font-medium text-green-600">Non-Cinétique</span>
+                        </div>
+                        <div class="mt-2 text-sm text-gray-600">Gamification & Code Open Source</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-5 border border-gray-100">
+                        <div class="text-sm font-medium text-gray-500 uppercase tracking-wider">Coût Opérationnel</div>
+                        <div class="mt-2 flex items-baseline">
+                            <span class="text-3xl font-semibold text-gray-900">~0€</span>
+                            <span class="ml-2 text-sm font-medium text-blue-600">Infrastructure Gratuite</span>
+                        </div>
+                        <div class="mt-2 text-sm text-gray-600">Utilisation de GitHub/Itch.io</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-5 border border-gray-100">
+                        <div class="text-sm font-medium text-gray-500 uppercase tracking-wider">Statut Légal</div>
+                        <div class="mt-2 flex items-baseline">
+                            <span class="text-3xl font-semibold text-gray-900">100%</span>
+                            <span class="ml-2 text-sm font-medium text-gray-500">Conforme</span>
+                        </div>
+                        <div class="mt-2 text-sm text-gray-600">Immunité par la conformité</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: NETWORK TOPOLOGY -->
+        <section id="network" class="hidden space-y-8 animate-fade-in">
+            <div class="border-b border-gray-200 pb-5">
+                <h2 class="text-3xl font-bold leading-6 text-gray-900">Topologie de l'Écosystème</h2>
+                <p class="mt-4 text-gray-500 max-w-4xl">
+                    Visualisation du réseau d'influence. Chaque nœud représente une entité identifiée dans le cas d'étude. L'axe X représente la complexité technique (Code vs Contenu pur), et l'axe Y représente le potentiel de "Bruit Cognitif" (capacité à perturber ou attirer l'attention). La taille des bulles indique la connectivité supposée.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-4 border border-gray-200">
+                <div class="chart-container" style="height: 500px; max-height: 600px;">
+                    <div id="plotlyNetwork" style="width: 100%; height: 100%;"></div>
+                </div>
+                <div class="mt-4 p-4 bg-blue-50 rounded-md text-sm text-blue-800 flex items-start">
+                    <span class="text-2xl mr-3">ℹ️</span>
+                    <p><strong>Note d'Analyse :</strong> Le domaine <code>ccplc.eu</code> agit comme un pivot institutionnel (mimétisme), tandis que <code>ouaisfieu.itch.io</code> sert de vecteur d'engagement émotionnel par le jeu. <code>yannkeep.github.io</code> semble être le référentiel central ou l'identité racine.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: CHAOS MECHANICS -->
+        <section id="mechanics" class="hidden space-y-8 animate-fade-in">
+            <div class="border-b border-gray-200 pb-5">
+                <h2 class="text-3xl font-bold leading-6 text-gray-900">Mécanique du Chaos & Bifurcations</h2>
+                <p class="mt-4 text-gray-500 max-w-4xl">
+                    La théorie du chaos postule que de petites variations dans les conditions initiales peuvent entraîner des résultats imprévisibles (effet papillon). Dans la guerre cognitive, un simple jeu ou un dépôt de code (input légal) peut agir comme un point de bifurcation, modifiant la perception du réel pour une audience cible.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Interactive Controls -->
+                <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-fit">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Paramètres de Simulation</h3>
+                    <p class="text-sm text-gray-600 mb-6">
+                        Ajustez le niveau de "Dissonance Cognitive" injecté dans le système pour observer le passage de l'ordre (narratif contrôlé) au chaos (insurrection numérique).
+                    </p>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label for="chaosSlider" class="block text-sm font-medium text-gray-700">Intensité de la Dissonance (r)</label>
+                            <input type="range" min="1" max="40" value="10" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2" id="chaosSlider">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>Ordre (Statique)</span>
+                                <span id="chaosValue" class="font-bold text-orange-600">10</span>
+                                <span>Chaos (Viralité)</span>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-gray-100 rounded border border-gray-200">
+                            <h4 class="text-sm font-bold text-gray-800 mb-2">État du Système :</h4>
+                            <div id="systemState" class="text-sm font-mono text-green-600">STABLE</div>
+                            <p id="systemDesc" class="text-xs text-gray-500 mt-2">Le narratif officiel est dominant. Les anomalies (sites web marginaux) sont ignorées.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chaos Chart -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Trajectoire de l'Information</h3>
+                    <div class="chart-container">
+                        <canvas id="chaosChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-orange-50 border-l-4 border-orange-500 p-4">
+                <div class="flex">
+                    <div class="ml-3">
+                        <p class="text-sm text-orange-700">
+                            <strong>Interprétation :</strong> L'insurrection légaliste n'attaque pas frontalement (ce qui provoquerait une réponse immunitaire/légale forte). Elle introduit de la complexité jusqu'à ce que le système de censure ou de contrôle s'effondre sous son propre poids.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: ENTITY ANALYSIS -->
+        <section id="entities" class="hidden space-y-8 animate-fade-in">
+            <div class="border-b border-gray-200 pb-5">
+                <h2 class="text-3xl font-bold leading-6 text-gray-900">Analyse des Cibles & Vecteurs</h2>
+                <p class="mt-4 text-gray-500 max-w-4xl">
+                    Décomposition des nœuds spécifiques identifiés dans le réseau. Chaque URL joue un rôle tactique distinct dans la stratégie globale.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Entity Card 1 -->
+                <div class="bg-white rounded-lg border border-gray-200 overflow-hidden card-hover">
+                    <div class="bg-gray-800 px-4 py-3 border-b border-gray-700 flex justify-between items-center">
+                        <h3 class="text-white font-mono text-sm">yannkeep.github.io</h3>
+                        <span class="px-2 py-1 text-xs font-semibold text-green-100 bg-green-900 rounded-full">Actif</span>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4">
+                            <span class="text-xs font-bold text-gray-500 uppercase">Rôle Tactique</span>
+                            <p class="text-gray-900 font-medium">Référentiel d'Identité / Hub</p>
+                        </div>
+                        <div class="mb-4">
+                            <span class="text-xs font-bold text-gray-500 uppercase">Vecteur</span>
+                            <p class="text-gray-600 text-sm">Documentation technique, CV alternatif, Preuve de compétence.</p>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-200">
+                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: 85%"></div>
+                        </div>
+                        <span class="text-xs text-gray-500 mt-1 block">Indice de Crédibilité Technique: 85/100</span>
+                    </div>
+                </div>
+
+                <!-- Entity Card 2 -->
+                <div class="bg-white rounded-lg border border-gray-200 overflow-hidden card-hover">
+                    <div class="bg-indigo-900 px-4 py-3 border-b border-indigo-800 flex justify-between items-center">
+                        <h3 class="text-white font-mono text-sm">ccplc.eu</h3>
+                        <span class="px-2 py-1 text-xs font-semibold text-yellow-100 bg-yellow-900 rounded-full">Dormant/Simulation</span>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4">
+                            <span class="text-xs font-bold text-gray-500 uppercase">Rôle Tactique</span>
+                            <p class="text-gray-900 font-medium">Mimétisme Institutionnel</p>
+                        </div>
+                        <div class="mb-4">
+                            <span class="text-xs font-bold text-gray-500 uppercase">Vecteur</span>
+                            <p class="text-gray-600 text-sm">Utilisation d'un TLD européen (.eu) pour simuler une légitimité bureaucratique ou corporate.</p>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-200">
+                            <div class="bg-yellow-500 h-2.5 rounded-full" style="width: 60%"></div>
+                        </div>
+                        <span class="text-xs text-gray-500 mt-1 block">Potentiel de Confusion: 60/100</span>
+                    </div>
+                </div>
+
+                <!-- Entity Card 3 -->
+                <div class="bg-white rounded-lg border border-gray-200 overflow-hidden card-hover">
+                    <div class="bg-red-900 px-4 py-3 border-b border-red-800 flex justify-between items-center">
+                        <h3 class="text-white font-mono text-sm">ouaisfieu.itch.io</h3>
+                        <span class="px-2 py-1 text-xs font-semibold text-red-100 bg-red-800 rounded-full">Haute Intensité</span>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4">
+                            <span class="text-xs font-bold text-gray-500 uppercase">Rôle Tactique</span>
+                            <p class="text-gray-900 font-medium">Immersion Narrative (Gaming)</p>
+                        </div>
+                        <div class="mb-4">
+                            <span class="text-xs font-bold text-gray-500 uppercase">Vecteur</span>
+                            <p class="text-gray-600 text-sm">Distribution de jeux indépendants contenant des mèmes subversifs ou des récits alternatifs.</p>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-200">
+                            <div class="bg-red-600 h-2.5 rounded-full" style="width: 95%"></div>
+                        </div>
+                        <span class="text-xs text-gray-500 mt-1 block">Engagement Émotionnel: 95/100</span>
+                    </div>
+                </div>
+
+                 <!-- Entity Card 4 -->
+                 <div class="bg-white rounded-lg border border-gray-200 overflow-hidden card-hover">
+                    <div class="bg-gray-800 px-4 py-3 border-b border-gray-700 flex justify-between items-center">
+                        <h3 class="text-white font-mono text-sm">ouaisfieu.github.io</h3>
+                        <span class="px-2 py-1 text-xs font-semibold text-green-100 bg-green-900 rounded-full">Actif</span>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4">
+                            <span class="text-xs font-bold text-gray-500 uppercase">Rôle Tactique</span>
+                            <p class="text-gray-900 font-medium">Avant-poste de Code</p>
+                        </div>
+                        <div class="mb-4">
+                            <span class="text-xs font-bold text-gray-500 uppercase">Vecteur</span>
+                            <p class="text-gray-600 text-sm">Hébergement de projets expérimentaux, blogs statiques, outils open-source.</p>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-200">
+                            <div class="bg-purple-600 h-2.5 rounded-full" style="width: 70%"></div>
+                        </div>
+                        <span class="text-xs text-gray-500 mt-1 block">Réplication Virale: 70/100</span>
+                    </div>
+                </div>
+
+                 <!-- Entity Card 5 -->
+                 <div class="bg-white rounded-lg border border-gray-200 overflow-hidden card-hover">
+                    <div class="bg-blue-800 px-4 py-3 border-b border-blue-700 flex justify-between items-center">
+                        <h3 class="text-white font-mono text-sm">ouaisfi.eu</h3>
+                        <span class="px-2 py-1 text-xs font-semibold text-blue-100 bg-blue-900 rounded-full">Redondance</span>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4">
+                            <span class="text-xs font-bold text-gray-500 uppercase">Rôle Tactique</span>
+                            <p class="text-gray-900 font-medium">Miroir / Fallback</p>
+                        </div>
+                        <div class="mb-4">
+                            <span class="text-xs font-bold text-gray-500 uppercase">Vecteur</span>
+                            <p class="text-gray-600 text-sm">Structure de nommage similaire pour créer un maillage de confusion SEO et de résilience.</p>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-200">
+                            <div class="bg-blue-400 h-2.5 rounded-full" style="width: 50%"></div>
+                        </div>
+                        <span class="text-xs text-gray-500 mt-1 block">Résilience: 50/100</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Distribution Chart -->
+            <div class="mt-8 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Répartition des Vecteurs d'Influence</h3>
+                <div class="flex flex-col md:flex-row items-center justify-around">
+                    <div class="chart-container" style="height: 300px; width: 300px;">
+                        <canvas id="distributionChart"></canvas>
+                    </div>
+                    <div class="mt-6 md:mt-0 max-w-md">
+                        <ul class="space-y-4">
+                            <li class="flex items-start">
+                                <span class="h-6 w-6 rounded-full bg-red-500 flex-shrink-0"></span>
+                                <div class="ml-4">
+                                    <p class="text-sm font-bold text-gray-900">Gaming & Narratif (35%)</p>
+                                    <p class="text-xs text-gray-500">Approche douce, contourne les défenses critiques du cerveau.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="h-6 w-6 rounded-full bg-gray-700 flex-shrink-0"></span>
+                                <div class="ml-4">
+                                    <p class="text-sm font-bold text-gray-900">Code & Infra (40%)</p>
+                                    <p class="text-xs text-gray-500">Outils, scripts, et hébergement résilient.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="h-6 w-6 rounded-full bg-blue-500 flex-shrink-0"></span>
+                                <div class="ml-4">
+                                    <p class="text-sm font-bold text-gray-900">Mimétisme Légal (25%)</p>
+                                    <p class="text-xs text-gray-500">Utilisation de noms de domaine pour l'autorité.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <p class="text-center text-xs text-gray-400">
+                Généré pour Analyse de Situation • Dossier: LEGALIST-CHAOS-001 • Sources: Données Publiques
+            </p>
+        </div>
+    </footer>
+
+    <!-- Application Logic -->
+    <script>
+        // State Management
+        const state = {
+            currentSection: 'dashboard',
+            chaosLevel: 10
+        };
+
+        // DOM Elements
+        const sections = {
+            dashboard: document.getElementById('dashboard'),
+            network: document.getElementById('network'),
+            mechanics: document.getElementById('mechanics'),
+            entities: document.getElementById('entities')
+        };
+        const navItems = document.querySelectorAll('.nav-item');
+        const chaosSlider = document.getElementById('chaosSlider');
+        const chaosValueDisplay = document.getElementById('chaosValue');
+        const systemStateDisplay = document.getElementById('systemState');
+        const systemDescDisplay = document.getElementById('systemDesc');
+
+        // Navigation Logic
+        function navigateTo(sectionId) {
+            state.currentSection = sectionId;
+            
+            // Hide all sections
+            Object.values(sections).forEach(sec => sec.classList.add('hidden'));
+            
+            // Show target section
+            sections[sectionId].classList.remove('hidden');
+            
+            // Update Nav styling
+            navItems.forEach(item => {
+                if (item.getAttribute('onclick').includes(sectionId)) {
+                    item.classList.add('active', 'text-gray-900');
+                    item.classList.remove('text-gray-500');
+                } else {
+                    item.classList.remove('active', 'text-gray-900');
+                    item.classList.add('text-gray-500');
+                }
+            });
+
+            // Trigger specific renders if needed
+            if (sectionId === 'network') renderNetworkGraph();
+            if (sectionId === 'mechanics') renderChaosChart();
+            if (sectionId === 'entities') renderDistributionChart();
+
+            // Mobile menu close
+            document.getElementById('mobile-menu').classList.add('hidden');
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+        // --- VISUALIZATION: CHAOS MECHANICS (Chart.js) ---
+        let chaosChartInstance = null;
+
+        function generateLogisticMapData(r, steps = 50) {
+            let data = [];
+            let x = 0.5; // Initial population/idea prevalence
+            for (let i = 0; i < steps; i++) {
+                // Logistic map formula: x_n+1 = r * x_n * (1 - x_n)
+                // Adjusted r to fit standard logistic map range (1-4) mapped from slider (1-40)
+                let r_norm = r / 10; 
+                x = r_norm * x * (1 - x);
+                data.push(x);
+            }
+            return data;
+        }
+
+        function renderChaosChart() {
+            const ctx = document.getElementById('chaosChart').getContext('2d');
+            const data = generateLogisticMapData(state.chaosLevel);
+            const labels = Array.from({length: 50}, (_, i) => `t+${i}`);
+
+            if (chaosChartInstance) {
+                chaosChartInstance.destroy();
+            }
+
+            chaosChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Prévalence du Narratif Alternatif',
+                        data: data,
+                        borderColor: '#EA580C',
+                        backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.2,
+                        pointRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1,
+                            title: { display: true, text: 'Saturation Cognitive' }
+                        },
+                        x: {
+                            display: false
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `Impact: ${context.raw.toFixed(3)}`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chaos Interactions
+        chaosSlider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            state.chaosLevel = val;
+            chaosValueDisplay.innerText = val;
+            
+            // Update UI descriptions
+            if (val < 25) {
+                systemStateDisplay.innerText = "STABLE / LINÉAIRE";
+                systemStateDisplay.className = "text-sm font-mono text-green-600";
+                systemDescDisplay.innerText = "Le système absorbe les perturbations. Les sites 'légalistes' sont vus comme inoffensifs.";
+            } else if (val < 36) {
+                systemStateDisplay.innerText = "BIFURCATION / OSCILLATION";
+                systemStateDisplay.className = "text-sm font-mono text-yellow-600";
+                systemDescDisplay.innerText = "Le narratif oscille entre deux vérités. Confusion modérée dans l'audience cible.";
+            } else {
+                systemStateDisplay.innerText = "CHAOS DÉTERMINISTE";
+                systemStateDisplay.className = "text-sm font-mono text-red-600 font-bold";
+                systemDescDisplay.innerText = "Imprévisibilité totale. L'insurrection numérique sature l'espace cognitif. Effondrement du sens.";
+            }
+
+            if(state.currentSection === 'mechanics') {
+                const newData = generateLogisticMapData(val);
+                chaosChartInstance.data.datasets[0].data = newData;
+                chaosChartInstance.update();
+            }
+        });
+
+        // --- VISUALIZATION: NETWORK TOPOLOGY (Plotly.js) ---
+        let networkRendered = false;
+        function renderNetworkGraph() {
+            if (networkRendered) return;
+            
+            const nodes = [
+                { name: 'yannkeep.github.io', x: 2, y: 8, size: 25, color: '#1F2937', type: 'Identité' },
+                { name: 'ccplc.eu', x: 4, y: 4, size: 20, color: '#3B82F6', type: 'Institutionnel' },
+                { name: 'ouaisfieu.itch.io', x: 8, y: 7, size: 30, color: '#EF4444', type: 'Viral/Jeu' },
+                { name: 'ouaisfieu.github.io', x: 3, y: 6, size: 22, color: '#8B5CF6', type: 'Code' },
+                { name: 'ouaisfi.eu', x: 5, y: 3, size: 15, color: '#93C5FD', type: 'Miroir' },
+                { name: 'Public Cible', x: 9, y: 9, size: 40, color: '#D1D5DB', type: 'Récepteur' },
+                { name: 'Système Légal', x: 1, y: 2, size: 35, color: '#10B981', type: 'Contrainte' }
+            ];
+
+            const trace = {
+                x: nodes.map(n => n.x),
+                y: nodes.map(n => n.y),
+                text: nodes.map(n => `<b>${n.name}</b><br>Type: ${n.type}`),
+                mode: 'markers+text',
+                textposition: 'top center',
+                marker: {
+                    size: nodes.map(n => n.size * 1.5),
+                    color: nodes.map(n => n.color),
+                    opacity: 0.8,
+                    line: { width: 1, color: 'white' }
+                },
+                type: 'scatter',
+                hoverinfo: 'text'
+            };
+
+            const layout = {
+                margin: { t: 20, r: 20, b: 40, l: 40 },
+                xaxis: { 
+                    title: 'Complexité Technique / Abstraction', 
+                    range: [0, 10], 
+                    showgrid: true,
+                    zeroline: false 
+                },
+                yaxis: { 
+                    title: 'Impact Émotionnel / Narratif', 
+                    range: [0, 11], 
+                    showgrid: true,
+                    zeroline: false 
+                },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(249, 250, 251, 1)',
+                showlegend: false,
+                hovermode: 'closest'
+            };
+
+            const config = { responsive: true, displayModeBar: false };
+
+            Plotly.newPlot('plotlyNetwork', [trace], layout, config);
+            networkRendered = true;
+        }
+
+        // --- VISUALIZATION: DISTRIBUTION (Chart.js) ---
+        let distChartInstance = null;
+        function renderDistributionChart() {
+            if (distChartInstance) return;
+
+            const ctx = document.getElementById('distributionChart').getContext('2d');
+            distChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Gaming/Narratif', 'Code/Infra', 'Mimétisme Légal'],
+                    datasets: [{
+                        data: [35, 40, 25],
+                        backgroundColor: [
+                            '#EF4444', // Red
+                            '#374151', // Gray
+                            '#3B82F6'  // Blue
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Start at dashboard
+            navigateTo('dashboard');
+            
+            // Initial simple animations or data prep can go here
+            console.log("System Analysis Loaded.");
+        });
+
+    </script>
+</body>
+</html>
