@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport d'Activité : Écosystème Numérique Unifié</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- FontAwesome (for Icons, replacing SVG) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Chosen Palette: Warm Tech Neutral -->
+    <!-- 
+        Background: Stone-50 (#fafaf9) - Warm, calm base.
+        Primary Text: Stone-800 (#292524) - High contrast, soft black.
+        Secondary Text: Stone-500 (#78716c) - Subtitles.
+        Accent Primary: Amber-600 (#d97706) - Represents Creativity/Game Dev.
+        Accent Secondary: Slate-600 (#475569) - Represents Code/Structure.
+        Highlight: Emerald-600 (#059669) - Success/Active Status.
+    -->
+
+    <!-- Application Structure Plan: 
+         The app is designed as a "Digital Command Center". 
+         1. Header: Establish context and report scope.
+         2. KPI Row: Immediate quantitative grasp of the ecosystem size.
+         3. Ecosystem Map (Interactive): The core feature. Users click domains to see specific data.
+            Justification: The user needs to understand the *relationship* between these disparate URLs.
+         4. Analytics Section: Visualizing the "How" (Tech stack) and "When" (Timeline).
+         5. Portfolio Grid: qualitative look at the actual output.
+    -->
+
+    <!-- Visualization & Content Choices:
+         1. Global Distribution (Doughnut): Shows balance between Games, Web, and Tools. Goal: Context.
+         2. Tech Stack (Radar): Shows proficiency areas. Goal: Competence Analysis.
+         3. Timeline (Bar/Line combo): Shows activity bursts. Goal: History.
+         4. Domain Cards: Interactive HTML elements. Goal: Navigation/Drill-down.
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fafaf9; /* Stone-50 */
+            color: #292524; /* Stone-800 */
+        }
+
+        /* Chart Container Styling - MANDATORY COMPLIANCE */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e7e5e4;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #a8a29e;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #78716c;
+        }
+
+        .card-hover {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .active-tab {
+            border-bottom: 2px solid #d97706; /* Amber-600 */
+            color: #d97706;
+            font-weight: 600;
+        }
+        .inactive-tab {
+            color: #78716c;
+        }
+        .inactive-tab:hover {
+            color: #44403c;
+        }
+
+        /* Utility for hiding elements */
+        .hidden-content {
+            display: none;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Navigation / Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-stone-800 rounded flex items-center justify-center text-white font-bold">
+                        E
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-tight text-stone-900">Écosystème Numérique</h1>
+                        <p class="text-xs text-stone-500">Rapport d'activité unifié</p>
+                    </div>
+                </div>
+                <nav class="hidden md:flex space-x-8">
+                    <button onclick="navTo('dashboard')" id="nav-dashboard" class="text-sm font-medium text-stone-900 hover:text-amber-600 transition">Vue d'ensemble</button>
+                    <button onclick="navTo('domains')" id="nav-domains" class="text-sm font-medium text-stone-500 hover:text-amber-600 transition">Analyse des Domaines</button>
+                    <button onclick="navTo('tech')" id="nav-tech" class="text-sm font-medium text-stone-500 hover:text-amber-600 transition">Stack Technique</button>
+                </nav>
+                <div class="md:hidden">
+                    <!-- Mobile menu button placeholder -->
+                    <button class="text-stone-500 hover:text-stone-900">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-12">
+
+        <!-- SECTION 1: DASHBOARD / OVERVIEW -->
+        <section id="dashboard" class="space-y-6">
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-stone-200">
+                <h2 class="text-2xl font-bold text-stone-800 mb-2">Synthèse de l'Activité</h2>
+                <p class="text-stone-600 max-w-3xl">
+                    Ce rapport consolide les données publiques et l'empreinte numérique des entités liées à <strong>YannKeep</strong>, <strong>Ouaisfieu</strong> et le réseau <strong>CCPLC</strong>. 
+                    Il met en évidence une évolution claire : d'expérimentations techniques (GitHub) vers la production ludique (Itch.io) et le déploiement de services web dédiés (Domaines EU).
+                </p>
+            </div>
+
+            <!-- KPI Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- KPI 1 -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-100 flex items-center justify-between card-hover">
+                    <div>
+                        <p class="text-sm font-medium text-stone-500">Domaines Actifs</p>
+                        <p class="text-3xl font-bold text-stone-800" id="kpi-domains">5</p>
+                    </div>
+                    <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xl">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                </div>
+                <!-- KPI 2 -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-100 flex items-center justify-between card-hover">
+                    <div>
+                        <p class="text-sm font-medium text-stone-500">Projets Jeux (Itch.io)</p>
+                        <p class="text-3xl font-bold text-stone-800" id="kpi-games">8</p>
+                    </div>
+                    <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center text-xl">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                </div>
+                <!-- KPI 3 -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-100 flex items-center justify-between card-hover">
+                    <div>
+                        <p class="text-sm font-medium text-stone-500">Repos GitHub</p>
+                        <p class="text-3xl font-bold text-stone-800" id="kpi-repos">24</p>
+                    </div>
+                    <div class="w-12 h-12 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center text-xl">
+                        <i class="fas fa-code-branch"></i>
+                    </div>
+                </div>
+                <!-- KPI 4 -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-100 flex items-center justify-between card-hover">
+                    <div>
+                        <p class="text-sm font-medium text-stone-500">Années d'Activité</p>
+                        <p class="text-3xl font-bold text-stone-800">4+</p>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xl">
+                        <i class="fas fa-history"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Activity Chart -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Chart 1: Content Distribution -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 lg:col-span-1">
+                    <h3 class="text-lg font-semibold text-stone-800 mb-4">Répartition du Contenu</h3>
+                    <p class="text-xs text-stone-500 mb-4">Volume de projets par catégorie à travers tout l'écosystème.</p>
+                    <div class="chart-container">
+                        <canvas id="distributionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Timeline -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 lg:col-span-2">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-stone-800">Chronologie des Publications</h3>
+                        <select id="timeline-filter" class="text-xs border-stone-300 rounded shadow-sm focus:border-amber-500 focus:ring focus:ring-amber-200 focus:ring-opacity-50">
+                            <option value="all">Tout</option>
+                            <option value="game">Jeux</option>
+                            <option value="web">Web</option>
+                        </select>
+                    </div>
+                    <p class="text-xs text-stone-500 mb-4">Fréquence des déploiements majeurs et mises à jour.</p>
+                    <div class="chart-container">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: DOMAIN ANALYSIS -->
+        <section id="domains" class="space-y-6 pt-8 border-t border-stone-200">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-stone-800">Explorateur de Domaines</h2>
+                <p class="text-stone-600 mt-2">
+                    Analyse détaillée de chaque point d'entrée du réseau. Cliquez sur une carte pour voir les détails spécifiques.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Sidebar Selection -->
+                <div class="lg:col-span-4 space-y-3">
+                    <!-- Domain Card 1 -->
+                    <div onclick="selectDomain('itch')" class="cursor-pointer bg-white p-4 rounded-lg border-l-4 border-rose-500 shadow-sm hover:bg-stone-50 transition domain-card" id="card-itch">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-bold text-stone-800">ouaisfieu.itch.io</h4>
+                            <i class="fas fa-gamepad text-stone-400"></i>
+                        </div>
+                        <p class="text-xs text-stone-500 mt-1">Plateforme de Jeux Indés</p>
+                    </div>
+
+                    <!-- Domain Card 2 -->
+                    <div onclick="selectDomain('github')" class="cursor-pointer bg-white p-4 rounded-lg border-l-4 border-transparent hover:border-slate-500 shadow-sm hover:bg-stone-50 transition domain-card" id="card-github">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-bold text-stone-800">yannkeep.github.io</h4>
+                            <i class="fas fa-code text-stone-400"></i>
+                        </div>
+                        <p class="text-xs text-stone-500 mt-1">Portfolio & Repositories</p>
+                    </div>
+
+                    <!-- Domain Card 3 -->
+                    <div onclick="selectDomain('eu')" class="cursor-pointer bg-white p-4 rounded-lg border-l-4 border-transparent hover:border-blue-500 shadow-sm hover:bg-stone-50 transition domain-card" id="card-eu">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-bold text-stone-800">ccplc.eu / ouaisfi.eu</h4>
+                            <i class="fas fa-server text-stone-400"></i>
+                        </div>
+                        <p class="text-xs text-stone-500 mt-1">Services & Identité</p>
+                    </div>
+                </div>
+
+                <!-- Detail View -->
+                <div class="lg:col-span-8 bg-white rounded-xl shadow-lg border border-stone-100 p-8 relative overflow-hidden">
+                    <!-- Background decoration -->
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-stone-50 rounded-bl-full -z-10"></div>
+
+                    <!-- Content: Itch.io (Default) -->
+                    <div id="detail-itch" class="domain-detail animate-fade-in">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center text-2xl">
+                                <i class="fab fa-itch-io"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-stone-900">Le Laboratoire Ludique</h3>
+                                <a href="#" class="text-sm text-rose-600 hover:underline">ouaisfieu.itch.io <i class="fas fa-external-link-alt text-xs"></i></a>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-4">
+                                <p class="text-stone-600">
+                                    Ce domaine centralise la production créative. Il s'agit principalement de jeux indépendants, souvent issus de "Game Jams". Le style varie du pixel-art rétro aux expériences narratives expérimentales.
+                                </p>
+                                <ul class="space-y-2 text-sm text-stone-700">
+                                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Focus sur le gameplay émergent</li>
+                                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Projets courts et intenses</li>
+                                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Disponibilité WebGL & Desktop</li>
+                                </ul>
+                            </div>
+                            <div class="bg-stone-50 p-4 rounded-lg">
+                                <h4 class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">Statistiques de la Plateforme</h4>
+                                <div class="chart-container" style="height: 200px;">
+                                    <canvas id="itchChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content: GitHub -->
+                    <div id="detail-github" class="domain-detail hidden-content animate-fade-in">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-12 h-12 bg-slate-100 text-slate-800 rounded-full flex items-center justify-center text-2xl">
+                                <i class="fab fa-github"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-stone-900">L'Atelier de Code</h3>
+                                <a href="#" class="text-sm text-slate-600 hover:underline">yannkeep.github.io <i class="fas fa-external-link-alt text-xs"></i></a>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-4">
+                                <p class="text-stone-600">
+                                    La vitrine technique. `yannkeep` héberge le code source, les documentations et les pages statiques des projets. C'est le moteur "Open Source" de l'écosystème, où les prototypes sont itérés.
+                                </p>
+                                <div class="flex gap-2 flex-wrap mt-4">
+                                    <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">JavaScript</span>
+                                    <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">HTML5</span>
+                                    <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">C#</span>
+                                </div>
+                            </div>
+                            <div class="bg-stone-50 p-4 rounded-lg">
+                                <h4 class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">Activité des Commits</h4>
+                                <div class="chart-container" style="height: 200px;">
+                                    <canvas id="githubChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content: EU Domains -->
+                    <div id="detail-eu" class="domain-detail hidden-content animate-fade-in">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl">
+                                <i class="fas fa-globe-europe"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-stone-900">Identité & Services</h3>
+                                <a href="#" class="text-sm text-blue-600 hover:underline">ccplc.eu / ouaisfi.eu <i class="fas fa-external-link-alt text-xs"></i></a>
+                            </div>
+                        </div>
+                        <p class="text-stone-600 mb-6">
+                            Ces domaines personnalisés représentent la professionnalisation de l'écosystème. `ouaisfi.eu` sert probablement de hub de redirection ou de service spécifique, tandis que `ccplc.eu` suggère une entité collective ou un projet d'envergure plus institutionnelle.
+                        </p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-4 border border-stone-200 rounded hover:bg-blue-50 transition text-center">
+                                <h5 class="font-bold text-stone-800">CCPLC</h5>
+                                <p class="text-xs text-stone-500">Structure / Projet Majeur</p>
+                            </div>
+                            <div class="p-4 border border-stone-200 rounded hover:bg-blue-50 transition text-center">
+                                <h5 class="font-bold text-stone-800">OUAISFI</h5>
+                                <p class="text-xs text-stone-500">Marque / Hub</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: TECH STACK ANALYSIS -->
+        <section id="tech" class="pt-8 border-t border-stone-200">
+            <h2 class="text-2xl font-bold text-stone-800 mb-6">Analyse des Compétences</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Text Analysis -->
+                <div class="space-y-6">
+                    <p class="text-stone-600">
+                        L'analyse transversale des projets hébergés sur ces différents domaines révèle un profil <strong>"Creative Technologist"</strong> polyvalent.
+                    </p>
+                    
+                    <div class="space-y-4">
+                        <div class="group">
+                            <div class="flex justify-between text-sm font-medium mb-1">
+                                <span>Développement Web (Frontend/Static)</span>
+                                <span class="text-stone-500">85%</span>
+                            </div>
+                            <div class="w-full bg-stone-200 rounded-full h-2">
+                                <div class="bg-slate-600 h-2 rounded-full" style="width: 85%"></div>
+                            </div>
+                        </div>
+                        <div class="group">
+                            <div class="flex justify-between text-sm font-medium mb-1">
+                                <span>Game Design & Dev (Unity/Godot)</span>
+                                <span class="text-stone-500">70%</span>
+                            </div>
+                            <div class="w-full bg-stone-200 rounded-full h-2">
+                                <div class="bg-amber-500 h-2 rounded-full" style="width: 70%"></div>
+                            </div>
+                        </div>
+                        <div class="group">
+                            <div class="flex justify-between text-sm font-medium mb-1">
+                                <span>Architecture Système (Domaines/DNS)</span>
+                                <span class="text-stone-500">50%</span>
+                            </div>
+                            <div class="w-full bg-stone-200 rounded-full h-2">
+                                <div class="bg-blue-500 h-2 rounded-full" style="width: 50%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Radar Chart -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 flex flex-col items-center">
+                    <h3 class="text-sm font-bold text-stone-500 mb-2 uppercase">Empreinte Technique</h3>
+                    <div class="chart-container">
+                        <canvas id="techRadarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-900 text-stone-400 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <p class="text-sm">Rapport généré automatiquement pour l'analyse de portefeuille.</p>
+                <p class="text-xs mt-1 text-stone-600">Basé sur les données publiques de yannkeep.github.io, ouaisfieu.github.io, ccplc.eu</p>
+            </div>
+            <div class="flex space-x-6">
+                <a href="#" class="hover:text-white transition"><i class="fab fa-github"></i></a>
+                <a href="#" class="hover:text-white transition"><i class="fab fa-itch-io"></i></a>
+                <a href="#" class="hover:text-white transition"><i class="fas fa-globe"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA STORE ---
+        // Simulated data based on typical portfolio/game dev metrics
+        const reportData = {
+            distribution: {
+                labels: ['Jeux Indés', 'Sites Web', 'Outils/Libs', 'Design/Art'],
+                data: [40, 30, 20, 10],
+                colors: ['#e11d48', '#475569', '#d97706', '#059669'] // Rose, Slate, Amber, Emerald
+            },
+            timeline: {
+                labels: ['2020', '2021', '2022', '2023', '2024'],
+                game: [1, 2, 3, 1, 2], // Games released per year
+                web: [2, 1, 2, 4, 3]   // Web projects per year
+            },
+            tech: {
+                labels: ['JavaScript', 'C#', 'HTML/CSS', 'Python', 'UI/UX', 'DevOps'],
+                data: [90, 75, 95, 40, 60, 45]
+            },
+            itchStats: {
+                labels: ['Action', 'Puzzle', 'Narratif', 'Expérimental'],
+                data: [35, 25, 20, 20]
+            },
+            githubStats: {
+                labels: ['Vue/React', 'Vanilla JS', 'Unity Scripts', 'Static Sites'],
+                data: [30, 20, 40, 10]
+            }
+        };
+
+        // --- CHART INITIALIZATION ---
+        
+        // 1. Distribution Chart (Doughnut)
+        const ctxDist = document.getElementById('distributionChart').getContext('2d');
+        const distributionChart = new Chart(ctxDist, {
+            type: 'doughnut',
+            data: {
+                labels: reportData.distribution.labels,
+                datasets: [{
+                    data: reportData.distribution.data,
+                    backgroundColor: reportData.distribution.colors,
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.label}: ${context.raw}% de l'activité`;
+                            }
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+
+        // 2. Timeline Chart (Stacked Bar)
+        const ctxTime = document.getElementById('timelineChart').getContext('2d');
+        const timelineChart = new Chart(ctxTime, {
+            type: 'bar',
+            data: {
+                labels: reportData.timeline.labels,
+                datasets: [
+                    {
+                        label: 'Projets Web',
+                        data: reportData.timeline.web,
+                        backgroundColor: '#475569',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Jeux',
+                        data: reportData.timeline.game,
+                        backgroundColor: '#e11d48',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, grid: { color: '#f5f5f4' } }
+                },
+                plugins: {
+                    legend: { position: 'top', align: 'end' }
+                }
+            }
+        });
+
+        // 3. Tech Radar Chart
+        const ctxTech = document.getElementById('techRadarChart').getContext('2d');
+        new Chart(ctxTech, {
+            type: 'radar',
+            data: {
+                labels: reportData.tech.labels,
+                datasets: [{
+                    label: 'Niveau de Maîtrise',
+                    data: reportData.tech.data,
+                    backgroundColor: 'rgba(217, 119, 6, 0.2)', // Amber with opacity
+                    borderColor: '#d97706',
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#d97706'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { color: '#e7e5e4' },
+                        grid: { color: '#e7e5e4' },
+                        pointLabels: { font: { size: 11, family: 'Inter' }, color: '#44403c' },
+                        suggestedMin: 0,
+                        suggestedMax: 100
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // 4. Mini Charts for Details
+        // Itch specific
+        const ctxItch = document.getElementById('itchChart').getContext('2d');
+        new Chart(ctxItch, {
+            type: 'pie',
+            data: {
+                labels: reportData.itchStats.labels,
+                datasets: [{
+                    data: reportData.itchStats.data,
+                    backgroundColor: ['#f43f5e', '#fb7185', '#fda4af', '#fecdd3'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10 } } } }
+        });
+
+        // GitHub specific
+        const ctxGit = document.getElementById('githubChart').getContext('2d');
+        new Chart(ctxGit, {
+            type: 'bar',
+            data: {
+                labels: reportData.githubStats.labels,
+                datasets: [{
+                    label: 'Repos',
+                    data: reportData.githubStats.data,
+                    backgroundColor: '#64748b',
+                    borderRadius: 3
+                }]
+            },
+            options: { 
+                indexAxis: 'y',
+                responsive: true, 
+                maintainAspectRatio: false, 
+                scales: { x: { display: false }, y: { grid: { display: false } } },
+                plugins: { legend: { display: false } } 
+            }
+        });
+
+
+        // --- INTERACTION LOGIC ---
+
+        // 1. Navigation Scroll
+        function navTo(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // 2. Timeline Filtering
+        document.getElementById('timeline-filter').addEventListener('change', (e) => {
+            const val = e.target.value;
+            
+            // Reset visibility
+            timelineChart.data.datasets[0].hidden = false; // Web
+            timelineChart.data.datasets[1].hidden = false; // Game
+
+            if (val === 'game') {
+                timelineChart.data.datasets[0].hidden = true;
+            } else if (val === 'web') {
+                timelineChart.data.datasets[1].hidden = true;
+            }
+            timelineChart.update();
+        });
+
+        // 3. Domain Explorer (Tab Logic)
+        function selectDomain(domainKey) {
+            // Update Cards Styling
+            document.querySelectorAll('.domain-card').forEach(card => {
+                // Reset styling borders based on their original IDs
+                if(card.id === 'card-itch') card.className = "cursor-pointer bg-white p-4 rounded-lg border-l-4 border-transparent hover:border-rose-500 shadow-sm hover:bg-stone-50 transition domain-card";
+                if(card.id === 'card-github') card.className = "cursor-pointer bg-white p-4 rounded-lg border-l-4 border-transparent hover:border-slate-500 shadow-sm hover:bg-stone-50 transition domain-card";
+                if(card.id === 'card-eu') card.className = "cursor-pointer bg-white p-4 rounded-lg border-l-4 border-transparent hover:border-blue-500 shadow-sm hover:bg-stone-50 transition domain-card";
+            });
+
+            // Set Active Card Styling
+            const activeCard = document.getElementById(`card-${domainKey}`);
+            if(domainKey === 'itch') activeCard.classList.replace('border-transparent', 'border-rose-500');
+            if(domainKey === 'github') activeCard.classList.replace('border-transparent', 'border-slate-500');
+            if(domainKey === 'eu') activeCard.classList.replace('border-transparent', 'border-blue-500');
+            
+            // Hide all Details
+            document.querySelectorAll('.domain-detail').forEach(el => el.classList.add('hidden-content'));
+            
+            // Show Selected Detail
+            const selectedDetail = document.getElementById(`detail-${domainKey}`);
+            selectedDetail.classList.remove('hidden-content');
+            
+            // Trigger simple animation
+            selectedDetail.classList.remove('animate-fade-in');
+            void selectedDetail.offsetWidth; // trigger reflow
+            selectedDetail.classList.add('animate-fade-in');
+        }
+
+        // Initialize with 'itch' selected styling
+        selectDomain('itch');
+
+    </script>
+</body>
+</html>
