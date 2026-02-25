@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Ratio 120 : Fraude Fiscale vs Sociale en Belgique</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Chosen Palette: Corporate Slate & Alert Orange
+         Backgrounds: Warm Gray/Stone for readability.
+         Primary (Fiscal): Slate Blue (Official, cold).
+         Secondary (Social): Vibrant Orange (Human, urgent).
+         Accents: Emerald Green for 'Recovered/Solutions'.
+    -->
+
+    <!-- Application Structure Plan:
+         1. Hero Section: Defines the controversial "120" figure immediately.
+         2. The Macro View (Dashboard): A stark visual comparison of the 30B vs 0.25B figures.
+         3. Deep Dive (Analysis): Broken into two columns (Fiscal Details vs Social Details) to educate on the composition of these numbers.
+         4. The "Definition Changer" (Simulator): The core interactive element. Users can toggle "Social Dumping" (contribution fraud) into the equation to see how the ratio collapses from 120 to ~4.
+         5. Means & Control: Contextual cards explaining the difference in detection methods.
+         This structure moves from the Headline -> The Data -> The Nuance -> The Reality.
+    -->
+
+    <!-- Visualization & Content Choices:
+         - Main Ratio: Bar Chart. Goal: Inform/Shock. Shows the scale difference.
+         - Fiscal Composition: Doughnut Chart. Goal: Inform. break down the 30B (VAT, Corporate, etc.).
+         - Social Composition: Stacked Bar. Goal: Compare. Benefit Fraud vs Contribution Fraud.
+         - Simulator: Dynamic Text & Gauge logic (HTML/JS). Goal: Change/Understand.
+         - Justification: Chart.js is perfect for these standard statistical comparisons. No SVG used.
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        /* Chart Container Strategy:
+           - Responsive width (w-full)
+           - Max-width to prevent stretching on huge screens (max-w-2xl)
+           - Controlled height (h-64 to h-96)
+           - Relative positioning for chart.js
+        */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; 
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        .card-hover {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-slate-800">
+
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-stone-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-700 to-orange-600">
+                        🇧🇪 Ratio 120
+                    </span>
+                </div>
+                <div class="hidden md:flex space-x-8 items-center" id="nav-links">
+                    <!-- Links injected by JS -->
+                </div>
+                <div class="flex md:hidden items-center">
+                    <button id="mobile-menu-btn" class="text-slate-600 focus:outline-none text-2xl">☰</button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-stone-200 px-4 py-2 shadow-lg">
+            <!-- Mobile Links injected by JS -->
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16">
+
+        <!-- 1. Hero Section -->
+        <section id="intro" class="text-center space-y-6 animate-fade-in">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
+                Fraude Fiscale <span class="text-orange-600">vs</span> Fraude Sociale
+            </h1>
+            <p class="max-w-3xl mx-auto text-lg text-slate-600 leading-relaxed">
+                Le chiffre claque comme un slogan politique : <span class="font-bold text-slate-900">120</span>. Pour chaque euro perdu par l'État belge en fraude aux allocations sociales, 120 euros s'évaporeraient en fraude fiscale. Mais que cache réellement ce ratio ? S'agit-il d'une vérité économique ou d'une simplification statistique ?
+            </p>
+            <div class="flex justify-center gap-4 pt-4">
+                <button onclick="scrollToSection('dashboard')" class="bg-slate-800 text-white px-6 py-3 rounded-full font-semibold hover:bg-slate-700 transition shadow-lg">
+                    Explorer les Chiffres
+                </button>
+                <button onclick="scrollToSection('simulator')" class="bg-white text-orange-600 border border-orange-200 px-6 py-3 rounded-full font-semibold hover:bg-orange-50 transition shadow-sm">
+                    Simuler le "Vrai" Coût
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. The Dashboard (Macro View) -->
+        <section id="dashboard" class="scroll-mt-24">
+            <div class="mb-8 border-l-4 border-slate-800 pl-4">
+                <h2 class="text-3xl font-bold text-slate-900">Le Grand Écart</h2>
+                <p class="text-slate-600 mt-2">
+                    Comparaison des estimations annuelles moyennes souvent citées dans le débat public belge (Sources: Rapports académiques, Syndicats, Cour des Comptes).
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Key Stats Cards -->
+                <div class="lg:col-span-1 space-y-6">
+                    <!-- Fiscal Card -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 card-hover">
+                        <div class="text-xs font-bold tracking-wider text-slate-500 uppercase mb-1">Fraude Fiscale Estimée</div>
+                        <div class="text-4xl font-black text-slate-800">30,4 Mrd €</div>
+                        <p class="text-sm text-slate-500 mt-2">Estimation de la "grande fraude" (TVA, Impôt sociétés, Offshore).</p>
+                    </div>
+
+                    <!-- Social Card -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-orange-100 card-hover">
+                        <div class="text-xs font-bold tracking-wider text-orange-500 uppercase mb-1">Fraude aux Prestations</div>
+                        <div class="text-4xl font-black text-orange-600">0,25 Mrd €</div>
+                        <p class="text-sm text-slate-500 mt-2">Fraude aux allocations (Chômage, Maladie, CPAS) par les particuliers.</p>
+                    </div>
+
+                    <!-- Ratio Card -->
+                    <div class="bg-stone-100 p-6 rounded-xl border border-stone-200 text-center">
+                        <div class="text-lg font-semibold text-stone-600">Le Ratio Actuel</div>
+                        <div class="text-6xl font-black text-slate-900 my-2">121,6</div>
+                        <p class="text-xs text-stone-500">La fraude fiscale pèse 120x plus lourd que la fraude aux allocataires.</p>
+                    </div>
+                </div>
+
+                <!-- Main Visualization -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Visualisation de la Disproportion (Milliards €)</h3>
+                    <div class="chart-container">
+                        <canvas id="mainComparisonChart"></canvas>
+                    </div>
+                    <div class="mt-4 p-4 bg-yellow-50 rounded-lg text-sm text-yellow-800 border border-yellow-100 flex items-start gap-2">
+                        <span class="text-xl">💡</span>
+                        <p>Notez comment la barre de la fraude sociale est à peine visible à cette échelle. C'est ce qui alimente l'argument selon lequel la traque aux chômeurs est inefficace budgétairement comparée à la lutte contre la fraude fiscale.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Breakdown & Analysis -->
+        <section id="analysis" class="scroll-mt-24">
+            <div class="mb-8 border-l-4 border-blue-600 pl-4">
+                <h2 class="text-3xl font-bold text-slate-900">De quoi parle-t-on ?</h2>
+                <p class="text-slate-600 mt-2">
+                    Pour comprendre le ratio, il faut disséquer ce qui compose ces montants vertigineux. La réalité est plus nuancée qu'un simple chiffre.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <!-- Fiscal Breakdown -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2 border-b pb-2">1. La Fraude Fiscale</h3>
+                    <p class="text-sm text-slate-600 mb-6">
+                        Ce n'est pas juste l'artisan qui ne déclare pas une facture. C'est majoritairement de l'ingénierie financière complexe.
+                    </p>
+                    <div class="chart-container h-64">
+                        <canvas id="fiscalDonutChart"></canvas>
+                    </div>
+                    <ul class="mt-6 space-y-3 text-sm text-slate-700">
+                        <li class="flex items-start gap-2">
+                            <span class="bg-slate-800 w-2 h-2 rounded-full mt-1.5 shrink-0"></span>
+                            <span><strong>Carrousels TVA :</strong> Mécanismes criminels internationaux complexes.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="bg-slate-600 w-2 h-2 rounded-full mt-1.5 shrink-0"></span>
+                            <span><strong>Impôt des Sociétés :</strong> Transferts de bénéfices vers des paradis fiscaux.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="bg-slate-400 w-2 h-2 rounded-full mt-1.5 shrink-0"></span>
+                            <span><strong>Économie Souterraine :</strong> Travail au noir (perte d'impôt direct).</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Social Breakdown -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-orange-100">
+                    <h3 class="text-xl font-bold text-orange-700 mb-2 border-b border-orange-100 pb-2">2. La Fraude Sociale</h3>
+                    <p class="text-sm text-slate-600 mb-6">
+                        C'est ici que réside le piège sémantique. On confond souvent la fraude <strong>aux</strong> prestations (le citoyen) et la fraude <strong>aux</strong> cotisations (l'employeur).
+                    </p>
+                    <div class="chart-container h-64">
+                        <canvas id="socialStackChart"></canvas>
+                    </div>
+                    <div class="mt-6 space-y-4">
+                        <div class="p-3 bg-orange-50 rounded border border-orange-100">
+                            <h4 class="font-bold text-orange-800 text-sm">Fraude aux Allocations (~0.25 Mrd €)</h4>
+                            <p class="text-xs text-orange-700 mt-1">Celle utilisée pour le "Ratio 120". Chômage indu, fausse domiciliation.</p>
+                        </div>
+                        <div class="p-3 bg-stone-100 rounded border border-stone-200 opacity-75">
+                            <h4 class="font-bold text-stone-700 text-sm">Fraude aux Cotisations / Dumping (~6.8 Mrd €)</h4>
+                            <p class="text-xs text-stone-600 mt-1">Non-paiement des charges patronales, faux indépendants, détachements illégaux. Souvent exclue du ratio classique.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 4. The Interactive Simulator -->
+        <section id="simulator" class="scroll-mt-24 bg-slate-900 text-white rounded-2xl p-8 md:p-12 shadow-2xl relative overflow-hidden">
+            <!-- Background Decoration -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-orange-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+
+            <div class="relative z-10 max-w-4xl mx-auto text-center space-y-8">
+                <h2 class="text-3xl md:text-4xl font-bold">Changez la Définition, Changez le Ratio</h2>
+                <p class="text-slate-300 text-lg">
+                    Le ratio de 120 compare la fraude fiscale totale à la <em>seule</em> fraude aux allocations.
+                    Que se passe-t-il si nous incluons le "Dumping Social" (fraude aux cotisations par les employeurs) dans la définition de la fraude sociale ?
+                </p>
+
+                <div class="bg-slate-800/50 backdrop-blur-sm p-8 rounded-xl border border-slate-700 inline-block w-full md:w-auto">
+                    <div class="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
+                        
+                        <!-- Toggle Control -->
+                        <div class="flex flex-col items-center gap-3">
+                            <span class="text-sm uppercase tracking-widest text-slate-400 font-semibold">Définition de la Fraude Sociale</span>
+                            <div class="flex items-center gap-4">
+                                <span class="text-sm font-medium text-right text-orange-400">Allocations<br>Seulement</span>
+                                
+                                <label for="social-toggle" class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="social-toggle" class="sr-only peer">
+                                    <div class="w-16 h-8 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-800 rounded-full peer peer-checked:after:translate-x-8 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-7 after:w-7 after:transition-all peer-checked:bg-orange-600"></div>
+                                </label>
+                                
+                                <span class="text-sm font-medium text-left text-slate-400 peer-checked:text-white transition-colors">Inclure<br>Dumping Social</span>
+                            </div>
+                        </div>
+
+                        <!-- Result Display -->
+                        <div class="flex flex-col items-center">
+                            <div class="text-sm text-slate-400 uppercase tracking-widest mb-2">Nouveau Ratio Calculé</div>
+                            <div id="ratio-display" class="text-7xl font-black text-white transition-all duration-500 ease-out transform scale-100">120:1</div>
+                        </div>
+                    </div>
+                    
+                    <div id="ratio-explanation" class="mt-8 text-sm text-slate-300 bg-slate-900/50 p-4 rounded-lg border border-slate-700">
+                        Comparaison actuelle : <strong class="text-white">30.4 Mrd (Fisc)</strong> vs <strong class="text-orange-400">0.25 Mrd (Alloc)</strong>.
+                    </div>
+                </div>
+
+                <p class="text-sm text-slate-400 italic">
+                    "Quand on ajoute la fraude aux cotisations (travail au noir, faux statuts) estimée à ~6.8 Mrd €, l'écart se réduit drastiquement, bien que la fraude fiscale reste dominante."
+                </p>
+            </div>
+        </section>
+
+        <!-- 5. Context & Means -->
+        <section id="context" class="scroll-mt-24 pb-12">
+             <div class="mb-8 border-l-4 border-emerald-500 pl-4">
+                <h2 class="text-3xl font-bold text-slate-900">Moyens & Réalités</h2>
+                <p class="text-slate-600 mt-2">
+                    Au-delà des montants, comment l'État lutte-t-il contre ces deux phénomènes ?
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1 -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                    <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-2xl mb-4">🕵️‍♂️</div>
+                    <h3 class="font-bold text-lg mb-2 text-slate-800">Détection</h3>
+                    <p class="text-sm text-slate-600">
+                        La fraude aux allocations est facile à détecter (croisement de bases de données, visites domiciliaires). La fraude fiscale demande des enquêtes internationales complexes et des années de procédure.
+                    </p>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                    <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center text-2xl mb-4">⚖️</div>
+                    <h3 class="font-bold text-lg mb-2 text-slate-800">Sanctions</h3>
+                    <p class="text-sm text-slate-600">
+                        Le fraudeur social risque la perte immédiate de son revenu de subsistance. Le grand fraudeur fiscal bénéficie souvent de la "Transaction pénale" (payer pour éviter le procès).
+                    </p>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                    <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-2xl mb-4">💰</div>
+                    <h3 class="font-bold text-lg mb-2 text-slate-800">Rentabilité</h3>
+                    <p class="text-sm text-slate-600">
+                        Un contrôleur fiscal rapporte en moyenne beaucoup plus à l'État qu'un contrôleur social, pourtant les effectifs ne suivent pas toujours cette logique de rentabilité.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="font-semibold text-white mb-2">Analyse Interactive Ratio 120</p>
+            <p class="text-sm mb-4">Basé sur les rapports de la Cour des Comptes, les estimations du Service de lutte contre la pauvreté et les analyses syndicales (2020-2024).</p>
+            <div class="flex justify-center gap-4 text-xs">
+                <span>Chiffres à but éducatif</span>
+                <span>•</span>
+                <span>Design SPA & Tailwind</span>
+                <span>•</span>
+                <span>Analyse de Données</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- State Management ---
+        const appState = {
+            data: {
+                fiscalFraud: 30.4, // Billions
+                benefitFraud: 0.25, // Billions
+                socialDumping: 6.8 // Billions (Estimate for contribution fraud/black labor)
+            },
+            isSimulatorActive: false,
+            charts: {}
+        };
+
+        // --- Navigation ---
+        const sections = [
+            { id: 'dashboard', label: 'Vue d\'Ensemble' },
+            { id: 'analysis', label: 'Analyse' },
+            { id: 'simulator', label: 'Simulateur' },
+            { id: 'context', label: 'Contexte' }
+        ];
+
+        function initNav() {
+            const container = document.getElementById('nav-links');
+            const mobileContainer = document.getElementById('mobile-menu');
+            
+            sections.forEach(sec => {
+                // Desktop
+                const btn = document.createElement('button');
+                btn.textContent = sec.label;
+                btn.className = "text-slate-600 hover:text-orange-600 font-medium transition-colors";
+                btn.onclick = () => scrollToSection(sec.id);
+                container.appendChild(btn);
+
+                // Mobile
+                const mobBtn = document.createElement('button');
+                mobBtn.textContent = sec.label;
+                mobBtn.className = "block w-full text-left px-4 py-2 text-slate-700 hover:bg-stone-50";
+                mobBtn.onclick = () => {
+                    scrollToSection(sec.id);
+                    document.getElementById('mobile-menu').classList.add('hidden');
+                };
+                mobileContainer.appendChild(mobBtn);
+            });
+
+            document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+                document.getElementById('mobile-menu').classList.toggle('hidden');
+            });
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- Charts Implementation (Chart.js) ---
+        function initCharts() {
+            Chart.defaults.font.family = "'Segoe UI', 'Helvetica', 'Arial', sans-serif";
+            Chart.defaults.color = '#64748b';
+
+            // 1. Main Comparison Bar Chart
+            const ctxMain = document.getElementById('mainComparisonChart').getContext('2d');
+            appState.charts.main = new Chart(ctxMain, {
+                type: 'bar',
+                data: {
+                    labels: ['Fraude Fiscale (30.4 Md)', 'Fraude Allocations (0.25 Md)'],
+                    datasets: [{
+                        label: 'Montant en Milliards €',
+                        data: [appState.data.fiscalFraud, appState.data.benefitFraud],
+                        backgroundColor: ['#334155', '#ea580c'], // Slate-700, Orange-600
+                        borderRadius: 6,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => context.raw + ' Milliards €'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' },
+                            title: { display: true, text: 'Milliards €' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // 2. Fiscal Composition Doughnut
+            const ctxFiscal = document.getElementById('fiscalDonutChart').getContext('2d');
+            new Chart(ctxFiscal, {
+                type: 'doughnut',
+                data: {
+                    labels: ['TVA & Carrousels', 'Impôt Sociétés', 'Impôt Personnes Physiques', 'Droits de succession/Autre'],
+                    datasets: [{
+                        data: [11.2, 8.5, 6.4, 4.3], // Approximate breakdown based on typical reports
+                        backgroundColor: ['#1e293b', '#475569', '#64748b', '#94a3b8'],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } }
+                    },
+                    layout: { padding: 10 }
+                }
+            });
+
+            // 3. Social Stacked Chart
+            const ctxSocial = document.getElementById('socialStackChart').getContext('2d');
+            new Chart(ctxSocial, {
+                type: 'bar',
+                data: {
+                    labels: ['Types de Fraude Sociale'],
+                    datasets: [
+                        {
+                            label: 'Allocations (Prestations)',
+                            data: [appState.data.benefitFraud],
+                            backgroundColor: '#ea580c',
+                            stack: 'Stack 0',
+                        },
+                        {
+                            label: 'Dumping / Cotisations (Non-compté dans le ratio 120)',
+                            data: [appState.data.socialDumping],
+                            backgroundColor: '#fb923c', // Lighter orange
+                            stack: 'Stack 0',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                footer: (tooltipItems) => {
+                                    return tooltipItems[0].datasetIndex === 1 ? 'Souvent exclu du calcul du ratio 120.' : '';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { stacked: true, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // --- Simulator Logic ---
+        function initSimulator() {
+            const toggle = document.getElementById('social-toggle');
+            const display = document.getElementById('ratio-display');
+            const explanation = document.getElementById('ratio-explanation');
+
+            toggle.addEventListener('change', (e) => {
+                const includeDumping = e.target.checked;
+                
+                // Calculate
+                const fiscal = appState.data.fiscalFraud;
+                const socialBase = appState.data.benefitFraud;
+                const dumping = appState.data.socialDumping;
+                
+                const totalSocial = includeDumping ? (socialBase + dumping) : socialBase;
+                const ratio = (fiscal / totalSocial).toFixed(1);
+
+                // Animate change
+                display.style.transform = 'scale(0.9)';
+                display.style.opacity = '0.5';
+
+                setTimeout(() => {
+                    display.textContent = `${ratio}:1`;
+                    display.style.transform = 'scale(1)';
+                    display.style.opacity = '1';
+                    
+                    if(includeDumping) {
+                        display.classList.remove('text-white');
+                        display.classList.add('text-orange-400');
+                        explanation.innerHTML = `Comparaison Révisée : <strong class="text-white">${fiscal} Mrd</strong> vs <strong class="text-orange-400">${totalSocial.toFixed(2)} Mrd</strong> (Alloc + Dumping).<br>L'écart est toujours là, mais il est 30x plus petit.`;
+                    } else {
+                        display.classList.add('text-white');
+                        display.classList.remove('text-orange-400');
+                        explanation.innerHTML = `Comparaison actuelle : <strong class="text-white">${fiscal} Mrd</strong> vs <strong class="text-orange-400">${socialBase} Mrd</strong> (Alloc).`;
+                    }
+                }, 200);
+            });
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initNav();
+            initCharts();
+            initSimulator();
+        });
+
+    </script>
+</body>
+</html>
