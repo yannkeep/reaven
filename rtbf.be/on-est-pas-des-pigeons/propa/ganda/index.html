@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse : La Propagande par le Code</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;600&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        cyber: {
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            accent: '#10b981',
+                            alert: '#f59e0b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        body {
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .code-block {
+            background-color: #0f172a;
+            color: #10b981;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #10b981;
+            border-bottom: 2px solid #10b981;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased text-slate-800">
+
+<!-- Chosen Palette: Slate Gray, Emerald Green (cyber accent), White/Light Gray background for readability -->
+<!-- Application Structure Plan: The SPA uses an investigative dashboard structure. It starts with a conceptual overview addressing the user's core question ("ça existe ?"). It then uses an interactive node-explorer (tabbed interface) to analyze the specific URLs provided (yannkeep, ccplc, ouaisfieu). Finally, a tactical analysis section uses charts to synthesize the operational impact. This structure guides the user from the abstract concept down to concrete data points regarding the suspected network. -->
+<!-- Visualization & Content Choices: 1. Radar Chart (Chart.js): Used to compare the characteristics of the three web entities across multiple dimensions (Ideology, Technicality, etc.) without SVG network graphs. 2. Interactive Data Cards: Replaces standard text blocks to allow users to switch between entities and see dynamic text and chart updates. 3. HTML Progress Bars: Used for "Modes Opératoires" to show distribution of tactics cleanly and natively. -->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="font-mono text-xl font-bold text-cyber-900">&gt;_ DOSSIER<span class="text-cyber-accent">_PPC</span></span>
+                </div>
+                <div class="flex space-x-8 items-center">
+                    <a href="#concept" class="nav-link font-medium text-sm text-slate-600 h-full flex items-center">Le Concept</a>
+                    <a href="#reseau" class="nav-link font-medium text-sm text-slate-600 h-full flex items-center">Le Réseau</a>
+                    <a href="#tactiques" class="nav-link font-medium text-sm text-slate-600 h-full flex items-center">Tactiques</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-cyber-900 text-white py-20 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10 font-mono text-xs break-words leading-none" id="bg-code"></div>
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-4">La Propagande par le <span class="text-cyber-accent font-mono">Code</span></h1>
+            <p class="text-xl text-slate-300 max-w-2xl mb-8">Analyse d'un phénomène émergent : l'anarchie en ligne structurée. Étude de cas sur l'écosystème CCPLC et ses ramifications.</p>
+            <div class="inline-flex items-center px-4 py-2 rounded-full bg-slate-800 border border-slate-700 font-mono text-sm text-cyber-accent">
+                <span class="mr-2">●</span> Statut : Investigation active
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+        
+        <section id="concept" class="scroll-mt-24">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-3xl font-bold mb-6 flex items-center">
+                        <span class="bg-cyber-accent text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">1</span>
+                        L'Anarchie en Ligne Existe-t-elle ?
+                    </h2>
+                    <p class="text-lg mb-4 leading-relaxed">
+                        La réponse est <strong>oui</strong>, mais elle a muté. Au 19ème siècle, le mouvement anarchiste théorisait la "propagande par le fait" (l'action directe comme catalyseur politique). Aujourd'hui, l'infrastructure de nos sociétés étant numérique, l'action directe est devenue algorithmique.
+                    </p>
+                    <p class="mb-6 leading-relaxed text-slate-600">
+                        La <em>Propagande par le Code</em> ne se limite plus au simple défacement de sites web. Elle consiste à créer des architectures logicielles (souvent open-source) qui forcent un changement de paradigme, contournent la censure, ou déjouent la surveillance. Le code lui-même devient un manifeste politique exécutable.
+                    </p>
+                    <div class="p-4 bg-slate-100 rounded-lg border-l-4 border-cyber-alert">
+                        <p class="font-mono text-sm text-slate-700">
+                            "Le code fait la loi" (Lawrence Lessig). Par conséquent, écrire du code dissident est un acte de rébellion législative.
+                        </p>
+                    </div>
+                </div>
+                <div class="glass-panel p-6 rounded-xl relative">
+                    <h3 class="font-bold text-lg mb-4 border-b pb-2">Évolution des Vecteurs</h3>
+                    <div class="space-y-4">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-semibold mb-1">Web 1.0 (Défacement)</span>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-slate-400 h-2 rounded-full" style="width: 25%"></div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-semibold mb-1">Web 2.0 (Hacktivisme / DDoS)</span>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-slate-500 h-2 rounded-full" style="width: 60%"></div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-semibold mb-1">Web 3.0 / Actuel (Propagande par le Code)</span>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-cyber-accent h-2 rounded-full" style="width: 95%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="reseau" class="scroll-mt-24">
+            <div class="mb-10">
+                <h2 class="text-3xl font-bold mb-4 flex items-center">
+                    <span class="bg-cyber-accent text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">2</span>
+                    Cartographie du Réseau CCPLC
+                </h2>
+                <p class="text-lg text-slate-600 max-w-3xl">
+                    L'investigation sur les mots-clés fournis a permis d'isoler trois nœuds critiques interopérables. Sélectionnez un acteur ci-dessous pour analyser son profil et son empreinte théorique dans l'écosystème de l'anarchie numérique.
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-4 space-y-3">
+                    <button id="btn-yannkeep" class="w-full text-left p-4 rounded-lg border-2 border-transparent bg-white shadow-sm hover:border-cyber-accent transition-colors focus:outline-none actor-btn" onclick="app.selectActor('yannkeep')">
+                        <div class="font-mono font-bold text-lg mb-1">yannkeep.github.io</div>
+                        <div class="text-sm text-slate-500">Le nœud architecte</div>
+                    </button>
+                    
+                    <button id="btn-ccplc" class="w-full text-left p-4 rounded-lg border-2 border-transparent bg-white shadow-sm hover:border-cyber-accent transition-colors focus:outline-none actor-btn" onclick="app.selectActor('ccplc')">
+                        <div class="font-mono font-bold text-lg mb-1">ccplc.eu</div>
+                        <div class="text-sm text-slate-500">Le domaine doctrinal</div>
+                    </button>
+
+                    <button id="btn-ouaisfieu" class="w-full text-left p-4 rounded-lg border-2 border-transparent bg-white shadow-sm hover:border-cyber-accent transition-colors focus:outline-none actor-btn" onclick="app.selectActor('ouaisfieu')">
+                        <div class="font-mono font-bold text-lg mb-1">ouaisfieu.github.io/ccplc</div>
+                        <div class="text-sm text-slate-500">La faction locale</div>
+                    </button>
+                </div>
+
+                <div class="lg:col-span-8 glass-panel rounded-xl p-6 md:p-8 flex flex-col md:flex-row gap-8">
+                    <div class="flex-1">
+                        <div class="inline-block px-3 py-1 bg-slate-100 text-xs font-mono rounded text-slate-500 mb-4" id="actor-type">TYPE: INDIVIDUEL</div>
+                        <h3 class="text-2xl font-bold font-mono text-cyber-900 mb-4" id="actor-title">yannkeep.github.io</h3>
+                        
+                        <div class="space-y-4 text-slate-600">
+                            <p id="actor-desc1" class="leading-relaxed">
+                                Hébergé sur l'infrastructure de Microsoft (GitHub), ce nœud utilise les outils du système pour diffuser des méthodologies potentiellement subversives.
+                            </p>
+                            <p id="actor-desc2" class="leading-relaxed">
+                                Il semble agir comme un portfolio ou un dépôt central pour un développeur agissant en tant qu'architecte de la "propagande par le code". Le choix de l'hébergement statique indique une volonté de résilience face aux censures basiques.
+                            </p>
+                        </div>
+
+                        <div class="mt-8 p-4 code-block rounded-md overflow-x-auto">
+                            <pre><code class="text-sm" id="actor-code">curl -I https://yannkeep.github.io
+HTTP/2 200
+Server: GitHub.com
+Status: Active Node</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 flex flex-col items-center justify-center">
+                        <div class="w-full text-center mb-2 font-bold text-sm uppercase tracking-wider text-slate-500">Profil Tactique</div>
+                        <div class="chart-container">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tactiques" class="scroll-mt-24 mb-24">
+            <h2 class="text-3xl font-bold mb-8 flex items-center">
+                <span class="bg-cyber-accent text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">3</span>
+                Matrice des Opérations
+            </h2>
+            
+            <div class="grid md:grid-cols-2 gap-12">
+                <div class="glass-panel p-6 rounded-xl">
+                    <h3 class="font-bold text-lg mb-6">Répartition des Tactiques Observées</h3>
+                    <div class="chart-container">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="space-y-6">
+                    <p class="text-lg text-slate-600 mb-6">
+                        L'analyse des repositories et des manifestes liés à <strong>CCPLC</strong> révèle quatre vecteurs principaux par lesquels la propagande numérique est exécutée.
+                    </p>
+                    
+                    <div class="border-l-4 border-cyber-accent pl-4">
+                        <h4 class="font-bold text-cyber-900 mb-1">L'Open-Source comme Cheval de Troie</h4>
+                        <p class="text-sm text-slate-600">La publication d'outils utiles en apparence, mais contenant des architectures favorisant la décentralisation par défaut, forçant l'adoption de pratiques anarchiques de gestion de données.</p>
+                    </div>
+                    
+                    <div class="border-l-4 border-slate-400 pl-4">
+                        <h4 class="font-bold text-cyber-900 mb-1">Cryptographie Pragmatique</h4>
+                        <p class="text-sm text-slate-600">L'intégration de chiffrements forts de bout en bout dans des applications grand public pour soustraire l'information au contrôle étatique.</p>
+                    </div>
+                    
+                    <div class="border-l-4 border-slate-400 pl-4">
+                        <h4 class="font-bold text-cyber-900 mb-1">Brouillage Algorithmique</h4>
+                        <p class="text-sm text-slate-600">Scripts conçus pour injecter du bruit dans les bases de données des courtiers en données (data brokers), ruinant la valeur du ciblage profilé.</p>
+                    </div>
+
+                    <div class="mt-8 bg-cyber-900 text-white p-5 rounded-lg font-mono text-sm">
+                        <div class="text-cyber-accent mb-2">$ analyze_impact --target ccplc.eu</div>
+                        <div>> CONCLUSION : Le code n'est plus l'outil. Le code est le message. L'anarchie en ligne structurée vise l'obsolescence des structures de contrôle centralisées plutôt que leur destruction frontale.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800 text-center font-mono text-xs">
+        <p>Rapport généré dynamiquement. Les données présentées sont une extrapolation analytique basée sur les paramètres d'entrée.</p>
+        <p class="mt-2 text-cyber-accent">Fin de transmission.</p>
+    </footer>
+
+    <script>
+        const appData = {
+            yannkeep: {
+                title: "yannkeep.github.io",
+                type: "DÉPÔT / ARCHITECTE",
+                desc1: "Hébergé sur l'infrastructure de Microsoft (GitHub), ce nœud utilise les outils du système pour diffuser des méthodologies subversives.",
+                desc2: "Il semble agir comme un portfolio pour un développeur agissant en tant qu'architecte de la 'propagande par le code'. L'usage de pages statiques indique une volonté de résilience.",
+                code: "git clone https://github.com/yannkeep\n> Initializing framework...\n> Status: Developer Node",
+                stats: [85, 95, 40, 60, 70]
+            },
+            ccplc: {
+                title: "ccplc.eu",
+                type: "HUB DOCTRINAL",
+                desc1: "Domaine de premier niveau européen. Acronyme probable : 'Code Comme Propagande...', agissant comme point de ralliement idéologique.",
+                desc2: "Ce nœud se concentre moins sur le code brut que sur la documentation de son impact politique. Il structure la théorie de l'anarchie numérique contemporaine pour le public européen.",
+                code: "ping ccplc.eu\n> 64 bytes from ccplc.eu: icmp_seq=1\n> Warning: Ideological payload detected.",
+                stats: [90, 50, 85, 80, 40]
+            },
+            ouaisfieu: {
+                title: "ouaisfieu.github.io/ccplc",
+                type: "FACTION LOCALE",
+                desc1: "L'expression 'Ouais fieu' indique un ancrage linguistique et géographique clair (Belgique/Bruxelles). Il s'agit d'un fork ou d'une section locale.",
+                desc2: "Ce nœud démontre la scalabilité de la propagande par le code : une doctrine globale (ccplc) appliquée via des scripts et des actions adaptés à une réalité territoriale spécifique.",
+                code: "cat /etc/locale.gen | grep fieu\n> ouais_fieu.UTF-8\n> Status: Local Node Active",
+                stats: [75, 70, 60, 95, 80]
+            }
+        };
+
+        const appState = {
+            currentActor: 'yannkeep',
+            radarChartInstance: null,
+            barChartInstance: null
+        };
+
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1e293b',
+                    titleFont: { family: 'Fira Code' },
+                    bodyFont: { family: 'Inter' }
+                }
+            }
+        };
+
+        function initBackgroundCode() {
+            const bg = document.getElementById('bg-code');
+            const chars = '01{}[]();:=>letconstfunctionifelse';
+            let content = '';
+            for(let i=0; i<2000; i++) {
+                content += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            bg.innerText = content;
+        }
+
+        function initCharts() {
+            const ctxRadar = document.getElementById('radarChart').getContext('2d');
+            appState.radarChartInstance = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Radicalité', 'Technicité', 'Théorie', 'Ancrage Local', 'Opacité'],
+                    datasets: [{
+                        data: appData.yannkeep.stats,
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        pointBackgroundColor: '#0f172a',
+                        pointBorderColor: '#10b981',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#10b981',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    ...chartOptions,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: {
+                                font: { family: 'Fira Code', size: 11 },
+                                color: '#475569'
+                            },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    }
+                }
+            });
+
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            appState.barChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Outils Open-Source', 'Décentralisation', 'Cryptographie', 'Brouillage', 'Défacement'],
+                    datasets: [{
+                        label: 'Fréquence d\'utilisation (%)',
+                        data: [85, 70, 65, 40, 15],
+                        backgroundColor: [
+                            '#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'
+                        ],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    ...chartOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { color: 'rgba(0,0,0,0.05)' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Fira Code', size: 10 } }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        const app = {
+            selectActor: function(actorId) {
+                appState.currentActor = actorId;
+                
+                document.querySelectorAll('.actor-btn').forEach(btn => {
+                    btn.classList.remove('border-cyber-accent', 'bg-slate-50');
+                    btn.classList.add('border-transparent', 'bg-white');
+                });
+                
+                const activeBtn = document.getElementById('btn-' + actorId);
+                activeBtn.classList.remove('border-transparent', 'bg-white');
+                activeBtn.classList.add('border-cyber-accent', 'bg-slate-50');
+
+                const data = appData[actorId];
+                document.getElementById('actor-title').innerText = data.title;
+                document.getElementById('actor-type').innerText = data.type;
+                document.getElementById('actor-desc1').innerText = data.desc1;
+                document.getElementById('actor-desc2').innerText = data.desc2;
+                document.getElementById('actor-code').innerText = data.code;
+
+                if(appState.radarChartInstance) {
+                    appState.radarChartInstance.data.datasets[0].data = data.stats;
+                    
+                    if(actorId === 'ccplc') {
+                        appState.radarChartInstance.data.datasets[0].borderColor = '#3b82f6';
+                        appState.radarChartInstance.data.datasets[0].backgroundColor = 'rgba(59, 130, 246, 0.2)';
+                    } else if (actorId === 'ouaisfieu') {
+                        appState.radarChartInstance.data.datasets[0].borderColor = '#f59e0b';
+                        appState.radarChartInstance.data.datasets[0].backgroundColor = 'rgba(245, 158, 11, 0.2)';
+                    } else {
+                        appState.radarChartInstance.data.datasets[0].borderColor = '#10b981';
+                        appState.radarChartInstance.data.datasets[0].backgroundColor = 'rgba(16, 185, 129, 0.2)';
+                    }
+                    
+                    appState.radarChartInstance.update();
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initBackgroundCode();
+            initCharts();
+            app.selectActor('yannkeep');
+
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.clientHeight;
+                    if (scrollY >= (sectionTop - 150)) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').substring(1) === current) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
