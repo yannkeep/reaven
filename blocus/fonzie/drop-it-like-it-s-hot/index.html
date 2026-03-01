@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Démocratie et Responsabilité en Belgique</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Configuration Tailwind (Palette de couleurs) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        belgium: {
+                            black: '#2D2D2D',
+                            yellow: '#FFD700',
+                            red: '#E30613',
+                            bg: '#F9F8F6',
+                            card: '#FFFFFF',
+                            text: '#333333',
+                            muted: '#666666'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                        serif: ['Merriweather', 'Georgia', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Styles personnalisés minimaux pour garantir le comportement des conteneurs de graphiques */
+        body {
+            background-color: #F9F8F6;
+            color: #333333;
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px; /* Hauteur par défaut */
+            max-height: 50vh;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        /* Classes pour les transitions d'affichage */
+        .section-hidden {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        .section-visible {
+            display: block;
+            opacity: 1;
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Style pour les onglets actifs de la navigation */
+        .nav-btn.active {
+            background-color: #E30613; /* Rouge belge */
+            color: white;
+            font-weight: 600;
+            border-left: 4px solid #FFD700; /* Jaune belge en accent */
+        }
+        
+        .nav-btn {
+            border-left: 4px solid transparent;
+            transition: all 0.2s;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased flex flex-col md:flex-row min-h-screen">
+
+    <!-- Chosen Palette: Warm neutral background (F9F8F6), dark slate for text (333333), and subtle accents using the colors of the Belgian flag (E30613 Red, FFD700 Yellow, 2D2D2D Black) for structural highlights and active states. -->
+    
+    <!-- Application Structure Plan: Dashboard-style application. Given the analytical nature of the text (constitutional theory + socio-economic critique), a sidebar navigation approach allows users to switch contexts easily without losing their place. 
+         Sections: 
+         1. Accueil (Summary & Context)
+         2. L'Architecture des Pouvoirs (Interactive breakdown of Leg/Exec)
+         3. Les Organes de Contrôle (Focus on Parliament & Cour des comptes)
+         4. Enjeux Socio-Économiques (Data visualizations representing the bibliography's themes like austerity, budget, and wealth inequality). -->
+
+    <!-- Visualization & Content Choices: 
+         - Architecture (Inform/Organize): CSS Grid cards toggled via JS to compare Legislative and Executive branches. Better than static text for engagement.
+         - Flow of Control (Relationships): HTML/CSS styled block elements forming a process map (Parliament -> Budget -> Government).
+         - Socio-Economic Impact (Data): Chart.js Bar Chart (Austerity/Budget impacts) and Doughnut Chart (Wealth inequality based on BNB data). Libraries chosen for interactive tooltips and responsive canvas rendering.
+         CONFIRMING NO SVG/Mermaid. -->
+    
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All icons are pure Unicode. -->
+
+    <!-- NAVIGATION LATERALE -->
+    <nav class="w-full md:w-72 bg-belgium-black text-white flex flex-col shadow-xl z-10 md:h-screen sticky top-0">
+        <div class="p-6 pb-4">
+            <h1 class="text-2xl font-serif font-bold tracking-tight text-white mb-2 leading-tight">
+                État & Démocratie<br><span class="text-belgium-yellow text-lg">Le Modèle Belge</span>
+            </h1>
+            <p class="text-sm text-gray-400">Analyse de la séparation des pouvoirs et des enjeux contemporains.</p>
+        </div>
+
+        <div class="flex-1 px-4 pb-6 overflow-y-auto flex flex-col gap-2">
+            <button class="nav-btn active flex items-center gap-3 w-full text-left px-4 py-3 rounded-md hover:bg-gray-800" onclick="showSection('accueil', this)">
+                <span class="text-xl">&#x1F3DB;</span> Accueil & Fondements
+            </button>
+            <button class="nav-btn flex items-center gap-3 w-full text-left px-4 py-3 rounded-md hover:bg-gray-800" onclick="showSection('pouvoirs', this)">
+                <span class="text-xl">&#x2696;</span> Architecture des Pouvoirs
+            </button>
+            <button class="nav-btn flex items-center gap-3 w-full text-left px-4 py-3 rounded-md hover:bg-gray-800" onclick="showSection('controle', this)">
+                <span class="text-xl">&#x1F50D;</span> Mécanismes de Contrôle
+            </button>
+            <button class="nav-btn flex items-center gap-3 w-full text-left px-4 py-3 rounded-md hover:bg-gray-800" onclick="showSection('enjeux', this)">
+                <span class="text-xl">&#x1F4CA;</span> Enjeux Socio-Économiques
+            </button>
+        </div>
+        
+        <div class="p-4 border-t border-gray-700 text-xs text-gray-400 text-center">
+            Basé sur les rapports constitutionnels et analyses économiques (CADTM, BNB, etc.)
+        </div>
+    </nav>
+
+    <!-- CONTENU PRINCIPAL -->
+    <main class="flex-1 p-6 md:p-12 overflow-y-auto">
+
+        <!-- SECTION 1: ACCUEIL -->
+        <section id="accueil" class="section-visible max-w-5xl mx-auto">
+            <header class="mb-10 border-b border-gray-300 pb-6">
+                <h2 class="text-3xl md:text-5xl font-serif font-bold text-belgium-black mb-4">Le Cadre Constitutionnel Belge</h2>
+                <p class="text-lg text-belgium-muted leading-relaxed">
+                    Cette section introduit les fondements du système politique belge. Bien que souvent considérée comme acquise, la séparation des pouvoirs en Belgique n'est pas absolue et s'inscrit dans un régime parlementaire complexe défini par la Constitution de 1831.
+                </p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 text-4xl opacity-10">&#x1F4DC;</div>
+                    <h3 class="text-xl font-bold mb-3 text-belgium-black">La Constitution de 1831</h3>
+                    <p class="text-gray-600 mb-4">
+                        La Belgique est régie par une Constitution qui institue un régime parlementaire fédéral. Fait remarquable : le principe de la séparation des pouvoirs <strong>n'y est pas repris de manière explicite</strong>.
+                    </p>
+                    <p class="text-gray-600">
+                        Cependant, il est institué <em>de fait</em>. Le système a été pensé pour éviter l'arbitraire en répartissant les compétences entre différentes entités collaborant entre elles.
+                    </p>
+                </div>
+
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
+                    <h3 class="text-xl font-bold mb-4 text-belgium-black border-l-4 border-belgium-red pl-3">Points Clés du Régime</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-3">
+                            <span class="text-belgium-yellow mt-1">&#x25B6;</span>
+                            <span class="text-gray-700"><strong>Monarchie Constitutionnelle :</strong> Le Roi a un rôle, mais ses actes doivent être contresignés par un ministre responsable.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-belgium-yellow mt-1">&#x25B6;</span>
+                            <span class="text-gray-700"><strong>Fédéralisme :</strong> Le pouvoir est réparti entre l'État Fédéral, les Régions et les Communautés.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-belgium-yellow mt-1">&#x25B6;</span>
+                            <span class="text-gray-700"><strong>Contrôle Parlementaire :</strong> L'exécutif doit maintenir la confiance de la Chambre des Représentants.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: ARCHITECTURE DES POUVOIRS -->
+        <section id="pouvoirs" class="section-hidden max-w-5xl mx-auto">
+            <header class="mb-10">
+                <h2 class="text-3xl md:text-4xl font-serif font-bold text-belgium-black mb-4">L'Architecture des Pouvoirs</h2>
+                <p class="text-lg text-belgium-muted leading-relaxed">
+                    Explorez la répartition institutionnelle. Cliquez sur un pouvoir pour comprendre sa composition et ses prérogatives exactes dans le système fédéral belge.
+                </p>
+            </header>
+
+            <!-- Interactif: Onglets de contenu -->
+            <div class="flex flex-col md:flex-row gap-4 mb-8">
+                <button onclick="togglePower('legislatif')" id="btn-legislatif" class="flex-1 bg-belgium-black text-white p-4 rounded-lg shadow-md font-bold text-lg hover:bg-gray-800 transition-colors border-b-4 border-belgium-red">
+                    &#x1F4DF; Le Pouvoir Législatif
+                </button>
+                <button onclick="togglePower('executif')" id="btn-executif" class="flex-1 bg-white text-belgium-black border border-gray-200 p-4 rounded-lg shadow-sm font-bold text-lg hover:bg-gray-50 transition-colors">
+                    &#x1F4BC; Le Pouvoir Exécutif
+                </button>
+            </div>
+
+            <!-- Contenu Législatif -->
+            <div id="content-legislatif" class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-belgium-red animate-[fadeIn_0.3s]">
+                <h3 class="text-2xl font-bold mb-2">Exercé collectivement par le Roi et le Parlement</h3>
+                <p class="text-gray-600 italic mb-6">Chambre des Représentants et Sénat</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-red-50 p-5 rounded-md">
+                        <h4 class="font-bold text-belgium-red mb-2 text-lg">&#x270D; Élaboration des lois</h4>
+                        <p class="text-sm text-gray-700">Il est chargé de débattre, d'amender et de voter les lois qui s'appliqueront à l'ensemble du territoire fédéral.</p>
+                    </div>
+                    <div class="bg-yellow-50 p-5 rounded-md">
+                        <h4 class="font-bold text-yellow-700 mb-2 text-lg">&#x1F4B0; Vote du Budget</h4>
+                        <p class="text-sm text-gray-700">Une prérogative essentielle : l'autorisation annuelle de percevoir les impôts et d'engager les dépenses de l'État.</p>
+                    </div>
+                    <div class="bg-gray-50 p-5 rounded-md md:col-span-2">
+                        <h4 class="font-bold text-gray-800 mb-2 text-lg">&#x1F50E; Contrôle de l'Action</h4>
+                        <p class="text-sm text-gray-700">Le Parlement surveille l'Exécutif et peut mettre en cause sa responsabilité politique à tout moment.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contenu Exécutif -->
+            <div id="content-executif" class="hidden bg-white p-8 rounded-xl shadow-lg border-t-4 border-belgium-black animate-[fadeIn_0.3s]">
+                <h3 class="text-2xl font-bold mb-2">Exercé par le Roi et le Gouvernement Fédéral</h3>
+                <p class="text-gray-600 italic mb-6">Le Premier Ministre et les Ministres</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-100 p-5 rounded-md">
+                        <h4 class="font-bold text-belgium-black mb-2 text-lg">&#x1F6A7; Exécution des lois</h4>
+                        <p class="text-sm text-gray-700">Il prend les arrêtés et règlements nécessaires pour l'application concrète des lois votées par le Parlement.</p>
+                    </div>
+                    <div class="bg-gray-100 p-5 rounded-md">
+                        <h4 class="font-bold text-belgium-black mb-2 text-lg">&#x1F30D; Conduite de l'État</h4>
+                        <p class="text-sm text-gray-700">Gestion de l'administration, politique étrangère, ordre public, et élaboration du projet de budget.</p>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 p-5 rounded-md md:col-span-2">
+                        <h4 class="font-bold text-belgium-red mb-2 text-lg">&#x26A0; Responsabilité</h4>
+                        <p class="text-sm text-gray-700">Le gouvernement <strong>doit obtenir la confiance</strong> de la Chambre lors de sa nomination et peut être renversé en cas de faute politique majeure.</p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- SECTION 3: MECANISMES DE CONTROLE -->
+        <section id="controle" class="section-hidden max-w-5xl mx-auto">
+            <header class="mb-10">
+                <h2 class="text-3xl md:text-4xl font-serif font-bold text-belgium-black mb-4">Organes et Mécanismes de Contrôle</h2>
+                <p class="text-lg text-belgium-muted leading-relaxed">
+                    Un État de droit repose sur des garde-fous. Cette section détaille comment le pouvoir législatif (et ses organes collatéraux) s'assure de la légalité et de l'efficacité de l'action gouvernementale.
+                </p>
+            </header>
+
+            <div class="mb-12">
+                <h3 class="text-2xl font-bold mb-6 flex items-center gap-2"><span class="text-belgium-red">&#x25A0;</span> Le Contrôle Parlementaire Direct</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Cartes interactives HTML/CSS -->
+                    <div class="bg-white p-6 border-l-4 border-gray-300 hover:border-belgium-red transition-all cursor-pointer shadow-sm hover:shadow-md group" onclick="document.getElementById('desc-mefiance').classList.toggle('hidden')">
+                        <h4 class="font-bold text-lg mb-1 group-hover:text-belgium-red">Confiance & Méfiance</h4>
+                        <p class="text-xs text-gray-500 mb-2">Cliquez pour lire</p>
+                        <p id="desc-mefiance" class="hidden text-sm text-gray-700 mt-2 pt-2 border-t border-gray-100">Le Parlement peut voter une motion de méfiance (constructive) pour renverser le gouvernement, engageant sa responsabilité politique ultime.</p>
+                    </div>
+                    
+                    <div class="bg-white p-6 border-l-4 border-gray-300 hover:border-belgium-yellow transition-all cursor-pointer shadow-sm hover:shadow-md group" onclick="document.getElementById('desc-questions').classList.toggle('hidden')">
+                        <h4 class="font-bold text-lg mb-1 group-hover:text-yellow-600">Interpellations</h4>
+                        <p class="text-xs text-gray-500 mb-2">Cliquez pour lire</p>
+                        <p id="desc-questions" class="hidden text-sm text-gray-700 mt-2 pt-2 border-t border-gray-100">Questions écrites ou orales adressées aux ministres pour exiger des explications sur leur gestion politique quotidienne.</p>
+                    </div>
+
+                    <div class="bg-white p-6 border-l-4 border-gray-300 hover:border-belgium-black transition-all cursor-pointer shadow-sm hover:shadow-md group" onclick="document.getElementById('desc-enquete').classList.toggle('hidden')">
+                        <h4 class="font-bold text-lg mb-1 group-hover:text-black">Commissions d'enquête</h4>
+                        <p class="text-xs text-gray-500 mb-2">Cliquez pour lire</p>
+                        <p id="desc-enquete" class="hidden text-sm text-gray-700 mt-2 pt-2 border-t border-gray-100">Le Parlement a le droit d'enquête, disposant des mêmes pouvoirs qu'un juge d'instruction pour faire la lumière sur des crises graves.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Focus sur la Cour des Comptes -->
+            <div class="bg-belgium-black text-white p-8 rounded-xl shadow-xl relative">
+                <div class="absolute top-4 right-6 text-5xl opacity-20">&#x1F4B0;</div>
+                <h3 class="text-2xl font-bold mb-2 text-belgium-yellow">La Cour des Comptes</h3>
+                <p class="text-gray-300 mb-6 font-serif">"Garante de la bonne gestion des finances publiques"</p>
+                
+                <div class="flex flex-col md:flex-row gap-8 items-center">
+                    <div class="flex-1 space-y-4">
+                        <p class="text-sm leading-relaxed">
+                            Organe collatéral du Parlement, elle assiste les assemblées (fédérales et régionales). Son rôle est majeur et dépasse le simple audit comptable.
+                        </p>
+                        <ul class="text-sm space-y-2">
+                            <li class="flex items-center gap-2"><span class="text-belgium-red">&#x2714;</span> Vérifie la <strong>légalité</strong>, <strong>l'efficacité</strong> et la <strong>régularité</strong> des dépenses.</li>
+                            <li class="flex items-center gap-2"><span class="text-belgium-red">&#x2714;</span> Rédige des rapports annuels et spéciaux (débattus en commission).</li>
+                            <li class="flex items-center gap-2"><span class="text-belgium-red">&#x2714;</span> <em>Pouvoir juridictionnel :</em> Peut engager la <strong>responsabilité juridique des comptables publics fautifs</strong>.</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Diagramme purement HTML/CSS (No SVG) -->
+                    <div class="md:w-1/3 bg-gray-800 p-4 rounded-lg border border-gray-700 text-center flex flex-col items-center">
+                        <div class="bg-white text-belgium-black text-xs font-bold px-3 py-2 rounded mb-2 w-full">Gouvernement (Dépense)</div>
+                        <div class="text-belgium-yellow py-1">&#x2193;</div>
+                        <div class="bg-belgium-yellow text-belgium-black text-xs font-bold px-3 py-2 rounded mb-2 w-full">Cour des Comptes (Contrôle)</div>
+                        <div class="text-white py-1">&#x2193;</div>
+                        <div class="bg-belgium-red text-white text-xs font-bold px-3 py-2 rounded w-full">Parlement (Validation)</div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- SECTION 4: ENJEUX SOCIO-ECONOMIQUES -->
+        <section id="enjeux" class="section-hidden max-w-5xl mx-auto w-full">
+            <header class="mb-10">
+                <h2 class="text-3xl md:text-4xl font-serif font-bold text-belgium-black mb-4">Les Enjeux Socio-Économiques</h2>
+                <p class="text-lg text-belgium-muted leading-relaxed">
+                    Les décisions budgétaires (ex: budget 2012, politiques d'austérité) et la fiscalité (ex: propriété immobilière) sont les domaines où le contrôle démocratique est le plus débattu. Visualisons ces dynamiques à travers des données représentatives des rapports cités (CADTM, BNB, CPCP).
+                </p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                
+                <!-- Graphique 1: Austérité et Dette -->
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 flex flex-col">
+                    <h3 class="font-bold text-xl mb-1 text-belgium-black">Impact Perçu de l'Austérité</h3>
+                    <p class="text-xs text-gray-500 mb-4">Évolution thématique (Indice base 100). Source illustrative : Débats budgétaires 2010-2015.</p>
+                    
+                    <!-- Chart Container -->
+                    <div class="chart-container flex-1">
+                        <canvas id="austerityChart"></canvas>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-red-50 rounded text-sm text-gray-800 border-l-2 border-belgium-red">
+                        <strong>Analyse :</strong> Les rapports soulignent que la focalisation sur la compétitivité et la réduction du déficit (ex: "l'Arizona") a souvent mené à des manifestations citoyennes pointant les effets sociaux des coupes budgétaires.
+                    </div>
+                </div>
+
+                <!-- Graphique 2: Fiscalité et Inégalités -->
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100 flex flex-col">
+                    <h3 class="font-bold text-xl mb-1 text-belgium-black">Fiscalité & Propriété</h3>
+                    <p class="text-xs text-gray-500 mb-4">Répartition indicative des bénéfices fiscaux (Ref: Banque Nationale de Belgique).</p>
+                    
+                    <!-- Chart Container -->
+                    <div class="chart-container flex-1">
+                        <canvas id="taxChart"></canvas>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-yellow-50 rounded text-sm text-gray-800 border-l-2 border-belgium-yellow">
+                        <strong>Analyse :</strong> La BNB révèle que la fiscalité avantageuse sur la propriété bénéficie de manière disproportionnée aux déciles les plus riches, soulevant des questions sur la responsabilité démocratique en matière d'équité fiscale.
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                 <h3 class="font-bold text-xl mb-3 text-belgium-black">La Régionalisation : Une complexité supplémentaire</h3>
+                 <p class="text-gray-700">
+                    Les études (comme celles de la Fédération des maisons médicales) montrent que la combinaison de crises, d'austérité et du transfert de compétences vers les Régions/Communautés crée un "cocktail" complexe. La lisibilité des responsabilités pour le citoyen s'en trouve diminuée, rendant le rôle de la Cour des Comptes et des Parlements régionaux d'autant plus crucial.
+                 </p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+        // --- LOGIQUE DE NAVIGATION ---
+        function showSection(sectionId, btnElement) {
+            // Cacher toutes les sections
+            const sections = document.querySelectorAll('main > section');
+            sections.forEach(sec => {
+                sec.classList.remove('section-visible');
+                sec.classList.add('section-hidden');
+            });
+
+            // Afficher la section cible
+            const target = document.getElementById(sectionId);
+            target.classList.remove('section-hidden');
+            target.classList.add('section-visible');
+
+            // Mettre à jour les boutons de navigation
+            const navBtns = document.querySelectorAll('.nav-btn');
+            navBtns.forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            // Initialiser les graphiques UNIQUEMENT lorsque la section "enjeux" est affichée
+            // pour garantir que les dimensions du conteneur sont correctes
+            if (sectionId === 'enjeux' && !chartsInitialized) {
+                initCharts();
+                chartsInitialized = true;
+            }
+        }
+
+        // --- INTERACTION POUVOIRS (Toggle Législatif / Exécutif) ---
+        function togglePower(powerType) {
+            const btnLeg = document.getElementById('btn-legislatif');
+            const btnExe = document.getElementById('btn-executif');
+            const contentLeg = document.getElementById('content-legislatif');
+            const contentExe = document.getElementById('content-executif');
+
+            if (powerType === 'legislatif') {
+                btnLeg.className = "flex-1 bg-belgium-black text-white p-4 rounded-lg shadow-md font-bold text-lg border-b-4 border-belgium-red";
+                btnExe.className = "flex-1 bg-white text-belgium-black border border-gray-200 p-4 rounded-lg shadow-sm font-bold text-lg hover:bg-gray-50 transition-colors";
+                contentLeg.style.display = 'block';
+                contentExe.style.display = 'none';
+            } else {
+                btnExe.className = "flex-1 bg-belgium-black text-white p-4 rounded-lg shadow-md font-bold text-lg border-b-4 border-belgium-red";
+                btnLeg.className = "flex-1 bg-white text-belgium-black border border-gray-200 p-4 rounded-lg shadow-sm font-bold text-lg hover:bg-gray-50 transition-colors";
+                contentExe.style.display = 'block';
+                contentLeg.style.display = 'none';
+            }
+        }
+
+        // --- GESTION DES GRAPHIQUES (Chart.js) ---
+        let chartsInitialized = false;
+
+        function initCharts() {
+            // Couleurs basées sur la palette définie
+            const colorRed = '#E30613';
+            const colorYellow = '#FFD700';
+            const colorBlack = '#2D2D2D';
+            const colorGray = '#E5E7EB';
+
+            // Paramètres globaux Chart.js pour la réactivité
+            Chart.defaults.responsive = true;
+            Chart.defaults.maintainAspectRatio = false;
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            
+            // Graphique 1 : Austérité (Line Chart interactif)
+            const ctxAusterity = document.getElementById('austerityChart').getContext('2d');
+            new Chart(ctxAusterity, {
+                type: 'line',
+                data: {
+                    labels: ['2008', '2010', '2012 (Budget)', '2014', '2016'],
+                    datasets: [
+                        {
+                            label: 'Déficit Public (Pression %)',
+                            data: [80, 95, 110, 85, 75],
+                            borderColor: colorBlack,
+                            backgroundColor: 'transparent',
+                            borderWidth: 3,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Tensions Sociales (Indice)',
+                            data: [40, 60, 100, 90, 85],
+                            borderColor: colorRed,
+                            backgroundColor: 'rgba(227, 6, 19, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let text = context.dataset.label + ': ' + context.parsed.y;
+                                    if (context.dataIndex === 2) {
+                                        text += " (Pic d'austérité)";
+                                    }
+                                    return text;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // Graphique 2 : Fiscalité (Doughnut Chart)
+            const ctxTax = document.getElementById('taxChart').getContext('2d');
+            new Chart(ctxTax, {
+                type: 'doughnut',
+                data: {
+                    labels: [
+                        'Décile le plus riche (Top 10%)',
+                        'Classes moyennes supérieures (30%)',
+                        'Classes moyennes inférieures (30%)',
+                        'Déciles les plus pauvres (30%)'
+                    ],
+                    datasets: [{
+                        data: [55, 30, 10, 5], // Données indicatives représentant "bénéficie aux plus riches"
+                        backgroundColor: [
+                            colorBlack,
+                            colorYellow,
+                            '#FCD34D', // jaune plus clair
+                            colorGray
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    cutout: '65%',
+                    plugins: {
+                        legend: { 
+                            position: 'right',
+                            labels: { boxWidth: 15 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' Part des bénéfices fiscaux : ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
