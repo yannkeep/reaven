@@ -1,1 +1,1003 @@
-lol
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0c0c0c">
+<meta name="description" content="DOSSIER NOIR — L'austérité belge décryptée. Qui paie ? Qui décide ? Qui rend des comptes ? Une enquête interactive.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<title>DOSSIER NOIR — Austérité Belge : L'Enquête</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=JetBrains+Mono:wght@400;700&family=Bebas+Neue&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blood: #c41e1e;
+  --blood-glow: #c41e1e55;
+  --evidence: #d4a843;
+  --evidence-dim: #8b7335;
+  --chalk: #e8e4d9;
+  --chalk-dim: #8a8577;
+  --paper: #f0ead6;
+  --paper-dark: #d4cdb5;
+  --void: #0c0c0c;
+  --void-card: #161616;
+  --void-hover: #1e1e1e;
+  --stamp: #1a5e1a;
+  --redact: #222;
+  --font-type: 'Special Elite', cursive;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-headline: 'Bebas Neue', sans-serif;
+  --font-courier: 'Courier Prime', monospace;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font-type);
+  background:var(--void);
+  color:var(--chalk);
+  min-height:100dvh;
+  overflow-x:hidden;
+  padding-top:var(--safe-top);
+  padding-bottom:var(--safe-bottom);
+}
+
+/* Film grain overlay */
+body::after{
+  content:'';position:fixed;inset:0;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:9999;opacity:0.6;
+}
+
+/* Evidence board background - cork texture */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(196,30,30,0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(212,168,67,0.02) 0%, transparent 50%);
+  pointer-events:none;z-index:0;
+}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--void)}
+::-webkit-scrollbar-thumb{background:var(--blood);border-radius:2px}
+
+a{color:var(--evidence);text-decoration:none}
+button{font-family:var(--font-type);cursor:pointer;border:none;outline:none;-webkit-tap-highlight-color:transparent}
+
+/* ═══ ANIMATIONS ═══ */
+@keyframes typeIn{from{width:0}to{width:100%}}
+@keyframes blink{50%{opacity:0}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes stampIn{0%{transform:scale(3) rotate(-15deg);opacity:0}60%{transform:scale(1) rotate(-12deg);opacity:1}100%{transform:scale(1) rotate(-12deg);opacity:1}}
+@keyframes redLine{from{width:0}to{width:100%}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@keyframes flicker{0%,100%{opacity:1}92%{opacity:1}93%{opacity:0.4}94%{opacity:1}96%{opacity:0.2}97%{opacity:1}}
+@keyframes reveal{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(0.5deg)}}
+@keyframes marquee{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
+
+/* ═══ TOP BAR ═══ */
+.top-bar{
+  position:sticky;top:0;z-index:100;
+  background:linear-gradient(180deg, #0c0c0cee, #0c0c0cbb);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid #333;
+  padding:8px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.top-logo{
+  font-family:var(--font-headline);
+  font-size:22px;letter-spacing:4px;color:var(--blood);
+  text-shadow:0 0 15px var(--blood-glow);
+}
+.top-logo span{color:var(--chalk-dim);font-size:14px;letter-spacing:1px}
+.top-classified{
+  font-family:var(--font-mono);font-size:9px;
+  color:var(--blood);border:1px solid var(--blood);
+  padding:2px 6px;text-transform:uppercase;letter-spacing:2px;
+  animation:pulse 2s infinite;
+}
+.xp-area{display:flex;align-items:center;gap:8px}
+.xp-bar{width:80px;height:6px;background:#222;border-radius:3px;border:1px solid #444;overflow:hidden}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--blood),#e84444);border-radius:3px;transition:width 0.8s;width:0%}
+.xp-text{font-family:var(--font-mono);font-size:9px;color:var(--chalk-dim)}
+
+/* ═══ TICKER ═══ */
+.ticker{background:#111;border-bottom:1px solid #222;overflow:hidden;white-space:nowrap;padding:3px 0}
+.ticker-text{display:inline-block;animation:marquee 60s linear infinite;font-family:var(--font-mono);font-size:10px;color:var(--blood)}
+.ticker-text .sep{color:#444;margin:0 20px}
+
+/* ═══ SCREENS ═══ */
+.screen{display:none;padding:16px 12px 100px;animation:slideUp 0.35s ease;min-height:calc(100dvh - 100px);position:relative;z-index:1}
+.screen.active{display:block}
+
+/* ═══ BOTTOM NAV ═══ */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:linear-gradient(0deg, #0c0c0cee, #0c0c0cbb);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-top:1px solid #333;
+  display:flex;justify-content:space-around;
+  padding:6px 4px calc(6px + var(--safe-bottom));
+}
+.nav-btn{
+  background:none;color:var(--chalk-dim);
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+  font-family:var(--font-mono);font-size:7px;letter-spacing:1px;
+  padding:4px 10px;transition:all 0.2s;text-transform:uppercase;
+}
+.nav-btn .nav-icon{font-size:18px}
+.nav-btn.active{color:var(--blood)}
+.nav-btn.active::after{content:'';display:block;width:20px;height:1px;background:var(--blood);margin-top:2px;box-shadow:0 0 6px var(--blood)}
+.nav-btn:active{transform:scale(0.9)}
+
+/* ═══ HOME ═══ */
+.hero{text-align:center;padding:24px 0 16px;position:relative}
+.hero-tag{
+  font-family:var(--font-mono);font-size:9px;
+  color:var(--blood);letter-spacing:4px;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.hero h1{
+  font-family:var(--font-headline);font-size:42px;
+  letter-spacing:6px;color:var(--chalk);
+  line-height:1;margin-bottom:4px;
+}
+.hero h1 em{color:var(--blood);font-style:normal}
+.hero-sub{font-family:var(--font-courier);font-size:14px;color:var(--chalk-dim);line-height:1.4}
+.hero-stamp{
+  position:absolute;top:10px;right:10px;
+  font-family:var(--font-headline);font-size:18px;
+  color:var(--blood);border:3px solid var(--blood);
+  padding:4px 10px;transform:rotate(-12deg);
+  opacity:0.6;letter-spacing:3px;
+}
+
+/* Evidence cards */
+.evidence-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:12px 0}
+.evidence-card{
+  background:var(--void-card);border:1px solid #333;
+  border-radius:2px;padding:14px 12px;
+  position:relative;overflow:hidden;cursor:pointer;
+  transition:all 0.2s;
+}
+.evidence-card::before{
+  content:'';position:absolute;top:0;left:0;width:3px;height:100%;
+  background:var(--card-accent,var(--blood));
+}
+.evidence-card:active{transform:scale(0.97);border-color:var(--card-accent,var(--blood))}
+.evidence-card .card-num{
+  font-family:var(--font-mono);font-size:8px;
+  color:var(--card-accent,var(--blood));letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:6px;
+}
+.evidence-card .card-icon{font-size:28px;display:block;margin-bottom:6px}
+.evidence-card .card-title{
+  font-family:var(--font-headline);font-size:16px;
+  letter-spacing:2px;color:var(--chalk);line-height:1.2;margin-bottom:4px;
+}
+.evidence-card .card-desc{font-size:12px;color:var(--chalk-dim);line-height:1.3}
+.evidence-card .card-tag{
+  position:absolute;top:8px;right:8px;
+  font-family:var(--font-mono);font-size:7px;
+  background:var(--blood);color:#fff;
+  padding:1px 5px;letter-spacing:1px;
+}
+.evidence-card[data-game="audit"]{--card-accent:var(--blood)}
+.evidence-card[data-game="faille"]{--card-accent:#e08a00}
+.evidence-card[data-game="tribunal"]{--card-accent:#7a3ec4}
+.evidence-card[data-game="fiscal"]{--card-accent:var(--stamp)}
+.evidence-card[data-game="projection"]{--card-accent:#2a7ec4}
+.evidence-card[data-game="cicatrices"]{--card-accent:#c44b8b}
+
+/* Stats bar */
+.stats-bar{
+  display:flex;gap:12px;justify-content:center;
+  padding:12px;margin-top:12px;
+  background:#111;border:1px solid #222;border-radius:2px;
+}
+.stat-box{text-align:center}
+.stat-val{font-family:var(--font-headline);font-size:24px;color:var(--evidence)}
+.stat-lbl{font-family:var(--font-mono);font-size:8px;color:var(--chalk-dim);letter-spacing:1px;text-transform:uppercase}
+
+/* ═══ SHARED GAME UI ═══ */
+.game-header{margin-bottom:16px}
+.game-header h2{font-family:var(--font-headline);font-size:28px;letter-spacing:4px;line-height:1.1}
+.game-header .sub{font-family:var(--font-courier);font-size:13px;color:var(--chalk-dim);margin-top:4px}
+.btn-back{background:none;color:var(--chalk-dim);font-size:13px;padding:8px 0;margin-bottom:8px;display:flex;align-items:center;gap:4px}
+
+.btn-action{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--blood);color:#fff;
+  font-family:var(--font-headline);font-size:16px;letter-spacing:3px;
+  padding:14px 28px;border-radius:2px;
+  box-shadow:0 0 15px var(--blood-glow);transition:all 0.2s;
+}
+.btn-action:active{transform:scale(0.95)}
+.btn-action:disabled{opacity:0.3;pointer-events:none}
+
+.btn-ghost{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  background:transparent;color:var(--chalk-dim);
+  font-family:var(--font-mono);font-size:11px;letter-spacing:2px;
+  padding:10px 18px;border:1px solid #444;border-radius:2px;
+  text-transform:uppercase;transition:all 0.2s;
+}
+.btn-ghost:active{border-color:var(--blood);color:var(--blood)}
+
+/* ═══ QUIZ ENGINE (used by multiple games) ═══ */
+.q-progress{display:flex;gap:3px;justify-content:center;margin-bottom:14px}
+.q-pip{width:20px;height:3px;background:#333;border-radius:1px}
+.q-pip.ok{background:var(--stamp)}
+.q-pip.ko{background:var(--blood)}
+.q-pip.cur{background:var(--evidence);box-shadow:0 0 4px var(--evidence)}
+
+.q-cat{font-family:var(--font-mono);font-size:8px;color:var(--blood);letter-spacing:3px;text-transform:uppercase;text-align:center;margin-bottom:6px}
+
+.q-box{
+  background:#111;border:1px solid #333;border-left:3px solid var(--blood);
+  padding:16px;margin-bottom:14px;position:relative;
+}
+.q-box::after{content:'PIÈCE À CONVICTION';position:absolute;top:-9px;right:12px;font-family:var(--font-mono);font-size:7px;color:var(--blood);background:var(--void);padding:0 6px;letter-spacing:2px}
+.q-text{font-family:var(--font-courier);font-size:17px;line-height:1.5}
+
+.q-answers{display:flex;flex-direction:column;gap:6px}
+.q-ans{
+  background:var(--void-card);border:1px solid #333;
+  border-radius:2px;padding:12px 14px;
+  text-align:left;font-size:15px;font-family:var(--font-courier);
+  color:var(--chalk);transition:all 0.2s;position:relative;
+}
+.q-ans:active:not(.locked){transform:scale(0.98)}
+.q-ans .q-letter{font-family:var(--font-mono);font-size:10px;color:var(--blood);margin-right:8px;font-weight:700}
+.q-ans.correct{border-color:var(--stamp);background:#1a5e1a15}
+.q-ans.correct::after{content:'✓ CONFIRMÉ';position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:var(--font-mono);font-size:8px;color:var(--stamp);letter-spacing:1px}
+.q-ans.wrong{border-color:var(--blood);background:#c41e1e10;animation:shake 0.4s}
+.q-ans.wrong::after{content:'✗ RÉFUTÉ';position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:var(--font-mono);font-size:8px;color:var(--blood);letter-spacing:1px}
+
+.q-explain{
+  background:#0f0f0f;border-left:2px solid var(--evidence);
+  padding:12px;margin-top:10px;border-radius:0 2px 2px 0;
+  font-family:var(--font-courier);font-size:14px;line-height:1.5;
+  color:var(--chalk-dim);animation:slideUp 0.3s;
+}
+.q-explain strong{color:var(--evidence)}
+.q-explain .src{font-family:var(--font-mono);font-size:9px;color:var(--chalk-dim);margin-top:6px;display:block;font-style:italic}
+
+.q-next{display:block;width:100%;margin-top:14px}
+
+/* ═══ AUDIT GAME ═══ */
+.audit-debt-display{
+  text-align:center;padding:20px;
+  background:linear-gradient(135deg,#1a0000,#0c0c0c);
+  border:1px solid var(--blood);margin-bottom:16px;
+}
+.audit-debt-label{font-family:var(--font-mono);font-size:9px;color:var(--blood);letter-spacing:3px;text-transform:uppercase}
+.audit-debt-amount{font-family:var(--font-headline);font-size:48px;color:var(--blood);letter-spacing:2px;text-shadow:0 0 20px var(--blood-glow)}
+.audit-debt-sub{font-family:var(--font-courier);font-size:12px;color:var(--chalk-dim)}
+.audit-verdict{
+  background:#111;border:2px solid var(--evidence);
+  padding:14px;margin-top:14px;animation:slideUp 0.4s;
+}
+.audit-verdict h4{font-family:var(--font-headline);font-size:18px;color:var(--evidence);letter-spacing:2px;margin-bottom:6px}
+.audit-verdict p{font-family:var(--font-courier);font-size:14px;color:var(--chalk-dim);line-height:1.5}
+
+/* ═══ PROJECTION GAME ═══ */
+.proj-display{
+  background:#111;border:1px solid #333;padding:16px;margin-bottom:14px;
+  text-align:center;
+}
+.proj-year{font-family:var(--font-headline);font-size:56px;color:var(--evidence);letter-spacing:4px}
+.proj-indicator{font-family:var(--font-mono);font-size:10px;color:var(--chalk-dim);letter-spacing:2px;text-transform:uppercase;margin-top:4px}
+.proj-choices{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.proj-choice{
+  background:var(--void-card);border:1px solid #444;
+  border-radius:2px;padding:14px 10px;text-align:center;
+  font-family:var(--font-headline);font-size:22px;letter-spacing:2px;
+  color:var(--chalk);transition:all 0.2s;
+}
+.proj-choice:active{transform:scale(0.96)}
+.proj-choice.correct{border-color:var(--stamp);background:#1a5e1a15}
+.proj-choice.wrong{border-color:var(--blood);background:#c41e1e10}
+
+/* ═══ TRIBUNAL GAME ═══ */
+.tribunal-accused{
+  text-align:center;padding:20px;
+  background:linear-gradient(135deg,#1a0a2e,#0c0c0c);
+  border:1px solid #7a3ec4;margin-bottom:16px;
+}
+.tribunal-sprite{font-size:52px;display:block;margin-bottom:8px;animation:float 3s ease-in-out infinite}
+.tribunal-name{font-family:var(--font-headline);font-size:18px;color:#7a3ec4;letter-spacing:3px}
+.tribunal-charge{font-family:var(--font-courier);font-size:13px;color:var(--chalk-dim);margin-top:4px}
+.tribunal-bar{height:10px;background:#222;border:1px solid #7a3ec4;border-radius:2px;overflow:hidden;margin:12px 0 4px}
+.tribunal-fill{height:100%;background:linear-gradient(90deg,#7a3ec4,#a05ef0);border-radius:2px;transition:width 0.6s;width:0%}
+.tribunal-bar-text{font-family:var(--font-mono);font-size:8px;color:#7a3ec4;text-align:right;letter-spacing:1px}
+
+/* ═══ FISCAL MATCH GAME ═══ */
+.fiscal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.fiscal-card{
+  aspect-ratio:1;background:var(--void-card);border:1px solid #333;
+  border-radius:2px;display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:4px;font-size:11px;font-family:var(--font-courier);
+  cursor:pointer;transition:all 0.25s;
+}
+.fiscal-card.face-down{background:linear-gradient(135deg,var(--stamp),#0f3d0f);color:transparent}
+.fiscal-card.face-down::after{content:'€';color:#fff;font-family:var(--font-headline);font-size:22px}
+.fiscal-card.revealed{border-color:var(--stamp);color:var(--chalk);font-size:10px}
+.fiscal-card.matched{border-color:var(--evidence);background:#d4a84310;opacity:0.6}
+.fiscal-card:active{transform:scale(0.95)}
+.fiscal-score{text-align:center;margin-bottom:10px;font-family:var(--font-mono);font-size:9px;color:var(--stamp);letter-spacing:2px}
+
+/* ═══ CICATRICES ═══ */
+.cicatrice-stat{
+  background:#111;border:1px solid #333;border-left:3px solid #c44b8b;
+  padding:14px;margin-bottom:12px;animation:slideUp 0.3s;
+}
+.cicatrice-number{font-family:var(--font-headline);font-size:36px;color:#c44b8b;letter-spacing:2px}
+.cicatrice-label{font-family:var(--font-courier);font-size:13px;color:var(--chalk-dim);line-height:1.4;margin-top:4px}
+.cicatrice-question{font-family:var(--font-courier);font-size:16px;line-height:1.5;margin:12px 0}
+
+/* ═══ DOSSIER (LEARN) SCREEN ═══ */
+.dossier-tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px;-webkit-overflow-scrolling:touch}
+.dossier-tab{
+  flex-shrink:0;background:var(--void-card);border:1px solid #333;
+  border-radius:2px;padding:6px 12px;
+  font-family:var(--font-mono);font-size:8px;color:var(--chalk-dim);
+  white-space:nowrap;letter-spacing:1px;text-transform:uppercase;transition:all 0.2s;
+}
+.dossier-tab.active{border-color:var(--blood);color:var(--blood);background:#c41e1e08}
+.dossier-card{
+  background:var(--void-card);border:1px solid #222;border-left:3px solid var(--blood);
+  padding:14px;margin-bottom:8px;
+}
+.dossier-card h4{font-family:var(--font-headline);font-size:16px;color:var(--evidence);letter-spacing:2px;margin-bottom:4px}
+.dossier-card p{font-family:var(--font-courier);font-size:13px;color:var(--chalk-dim);line-height:1.4}
+.dossier-card .src-tag{font-family:var(--font-mono);font-size:8px;color:var(--blood);margin-top:6px;display:inline-block;border:1px solid var(--blood);padding:1px 5px;letter-spacing:1px}
+
+/* ═══ PROFIL ═══ */
+.profile-badge{
+  width:80px;height:80px;margin:0 auto 12px;
+  background:linear-gradient(135deg,var(--blood),#8b1515);
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;border:2px solid var(--evidence);
+  box-shadow:0 0 15px var(--blood-glow);
+}
+.profile-rank{text-align:center;font-family:var(--font-headline);font-size:18px;color:var(--evidence);letter-spacing:3px}
+.profile-rank-sub{text-align:center;font-family:var(--font-courier);font-size:13px;color:var(--chalk-dim);margin-bottom:16px}
+.ach-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:14px}
+.ach{background:var(--void-card);border:1px solid #222;padding:10px 6px;text-align:center}
+.ach.unlocked{border-color:var(--evidence)}
+.ach .ach-icon{font-size:24px;display:block;margin-bottom:2px}
+.ach .ach-name{font-family:var(--font-mono);font-size:6px;color:var(--chalk-dim);letter-spacing:1px;text-transform:uppercase}
+.ach.unlocked .ach-name{color:var(--evidence)}
+.ach:not(.unlocked){opacity:0.3}
+.ach:not(.unlocked) .ach-icon{filter:grayscale(1)}
+
+/* ═══ OVERLAY ═══ */
+.overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(12,12,12,0.95);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px}
+.overlay.active{display:flex}
+.overlay-content{text-align:center;animation:slideUp 0.5s;max-width:340px;width:100%}
+.overlay-icon{font-size:56px;margin-bottom:12px;display:block}
+.overlay-title{font-family:var(--font-headline);font-size:28px;letter-spacing:4px;margin-bottom:6px}
+.overlay-sub{font-family:var(--font-courier);font-size:15px;color:var(--chalk-dim);margin-bottom:16px;line-height:1.4}
+.overlay-score{font-family:var(--font-headline);font-size:48px;color:var(--evidence);letter-spacing:3px;margin-bottom:6px}
+.overlay-xp{font-family:var(--font-mono);font-size:10px;color:var(--stamp);letter-spacing:2px;margin-bottom:16px}
+.overlay-btns{display:flex;flex-direction:column;gap:8px}
+
+/* ═══ RESPONSIVE ═══ */
+@media(min-width:420px){.evidence-grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:768px){.screen{max-width:600px;margin:0 auto;padding:20px 16px 100px}}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="top-logo">DOSSIER <span>NOIR</span></div>
+  <div class="xp-area">
+    <div class="xp-text">N.<span id="p-level">1</span></div>
+    <div class="xp-bar"><div class="xp-fill" id="xp-fill"></div></div>
+  </div>
+  <div class="top-classified">CONFIDENTIEL</div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-text">
+    <span>DÉFICIT 6,3% PIB EN 2031</span><span class="sep">▮</span>
+    <span>23,3 MRD€ D'AUSTÉRITÉ</span><span class="sep">▮</span>
+    <span>EFFETS RETOUR : 8 MRD€ FICTIFS</span><span class="sep">▮</span>
+    <span>180.000 EXCLUSIONS EN 18 MOIS</span><span class="sep">▮</span>
+    <span>41% RENONCENT AUX SOINS</span><span class="sep">▮</span>
+    <span>DETTE 122% PIB EN 2031</span><span class="sep">▮</span>
+    <span>AUCUN MINISTRE SANCTIONNÉ NULLE PART EN EUROPE</span><span class="sep">▮</span>
+    <span>ALTERNATIVES FISCALES : 10 À 30 MRD€</span><span class="sep">▮</span>
+    <span>44% PAUVRETÉ INFANTILE À BRUXELLES</span><span class="sep">▮</span>
+    <span>QUI PAIE ? QUI DÉCIDE ? QUI REND DES COMPTES ?</span><span class="sep">▮</span>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="screen active" id="screen-home">
+  <div class="hero">
+    <div class="hero-stamp">CLASSIFIÉ</div>
+    <div class="hero-tag">/// enquête interactive ///</div>
+    <h1><em>DOSSIER</em> NOIR</h1>
+    <div class="hero-sub">Austérité belge : qui paie, qui décide,<br>qui rend des comptes ?</div>
+  </div>
+
+  <div class="evidence-grid">
+    <div class="evidence-card" data-game="audit" onclick="startGame('audit')">
+      <div class="card-num">Pièce N°01</div>
+      <span class="card-icon">📋</span>
+      <div class="card-title">AUDIT CITOYEN</div>
+      <div class="card-desc">Interroge la dette belge</div>
+    </div>
+    <div class="evidence-card" data-game="faille" onclick="startGame('faille')">
+      <div class="card-num">Pièce N°02</div>
+      <span class="card-icon">🔍</span>
+      <div class="card-title">CHASSEUR DE FAILLES</div>
+      <div class="card-desc">Démonte le budget Arizona</div>
+      <div class="card-tag">12 Q.</div>
+    </div>
+    <div class="evidence-card" data-game="tribunal" onclick="startGame('tribunal')">
+      <div class="card-num">Pièce N°03</div>
+      <span class="card-icon">⚖️</span>
+      <div class="card-title">TRIBUNAL FICTIF</div>
+      <div class="card-desc">Juge l'accountability gap</div>
+      <div class="card-tag">BOSS</div>
+    </div>
+    <div class="evidence-card" data-game="fiscal" onclick="startGame('fiscal')">
+      <div class="card-num">Pièce N°04</div>
+      <span class="card-icon">💰</span>
+      <div class="card-title">ALTERNATIVES FISCALES</div>
+      <div class="card-desc">Associe mesures et montants</div>
+    </div>
+    <div class="evidence-card" data-game="projection" onclick="startGame('projection')">
+      <div class="card-num">Pièce N°05</div>
+      <span class="card-icon">📈</span>
+      <div class="card-title">MACHINE À PROJECTIONS</div>
+      <div class="card-desc">Devine les chiffres du futur</div>
+    </div>
+    <div class="evidence-card" data-game="cicatrices" onclick="startGame('cicatrices')">
+      <div class="card-num">Pièce N°06</div>
+      <span class="card-icon">🩸</span>
+      <div class="card-title">CICATRICES SOCIALES</div>
+      <div class="card-desc">Les dégâts humains documentés</div>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-box"><div class="stat-val" id="s-games">0</div><div class="stat-lbl">Enquêtes</div></div>
+    <div class="stat-box"><div class="stat-val" id="s-correct">0</div><div class="stat-lbl">Preuves</div></div>
+    <div class="stat-box"><div class="stat-val" id="s-streak">0</div><div class="stat-lbl">Streak</div></div>
+  </div>
+</div>
+
+<!-- AUDIT SCREEN -->
+<div class="screen" id="screen-audit">
+  <button class="btn-back" onclick="goHome()">← Dossier</button>
+  <div class="game-header"><h2 style="color:var(--blood)">📋 AUDIT CITOYEN DE LA DETTE</h2><div class="sub">Chaque tirage révèle une composante de la dette — légitime ou contestable ?</div></div>
+  <div class="audit-debt-display">
+    <div class="audit-debt-label">dette publique belge</div>
+    <div class="audit-debt-amount" id="audit-total">104,7%</div>
+    <div class="audit-debt-sub">du PIB — et qui grimpe</div>
+  </div>
+  <button class="btn-action" style="width:100%" id="audit-btn" onclick="pullAudit()">OUVRIR UNE PIÈCE</button>
+  <div id="audit-result"></div>
+</div>
+
+<!-- FAILLE SCREEN (Quiz) -->
+<div class="screen" id="screen-faille">
+  <button class="btn-back" onclick="goHome()">← Dossier</button>
+  <div class="game-header"><h2 style="color:#e08a00">🔍 CHASSEUR DE FAILLES</h2><div class="sub">12 questions sur les failles du budget Arizona</div></div>
+  <div class="q-progress" id="faille-prog"></div>
+  <div class="q-cat" id="faille-cat"></div>
+  <div class="q-box"><div class="q-text" id="faille-q"></div></div>
+  <div class="q-answers" id="faille-ans"></div>
+  <div id="faille-explain"></div>
+  <button class="btn-action q-next" id="faille-next" style="display:none" onclick="nextFaille()">SUITE →</button>
+</div>
+
+<!-- TRIBUNAL SCREEN (Boss) -->
+<div class="screen" id="screen-tribunal">
+  <button class="btn-back" onclick="goHome()">← Dossier</button>
+  <div class="game-header"><h2 style="color:#7a3ec4">⚖️ TRIBUNAL FICTIF</h2><div class="sub">Affronte l'accountability gap européen</div></div>
+  <div class="tribunal-accused" id="tribunal-arena">
+    <div class="tribunal-sprite" id="trib-sprite">🏛️</div>
+    <div class="tribunal-name" id="trib-name">L'IMPUNITÉ BUDGÉTAIRE — Round 1</div>
+    <div class="tribunal-charge" id="trib-charge">Chef d'accusation : négligence systémique</div>
+    <div class="tribunal-bar"><div class="tribunal-fill" id="trib-hp"></div></div>
+    <div class="tribunal-bar-text" id="trib-hp-text">Défense : 100%</div>
+  </div>
+  <div class="q-box"><div class="q-text" id="trib-q"></div></div>
+  <div class="q-answers" id="trib-ans"></div>
+</div>
+
+<!-- FISCAL MATCH SCREEN -->
+<div class="screen" id="screen-fiscal">
+  <button class="btn-back" onclick="goHome()">← Dossier</button>
+  <div class="game-header"><h2 style="color:var(--stamp)">💰 ALTERNATIVES FISCALES</h2><div class="sub">Retrouve les paires mesure ↔ montant</div></div>
+  <div class="fiscal-score" id="fiscal-score">Paires: 0/6 | Essais: 0</div>
+  <div class="fiscal-grid" id="fiscal-grid"></div>
+</div>
+
+<!-- PROJECTION SCREEN -->
+<div class="screen" id="screen-projection">
+  <button class="btn-back" onclick="goHome()">← Dossier</button>
+  <div class="game-header"><h2 style="color:#2a7ec4">📈 MACHINE À PROJECTIONS</h2><div class="sub">Quel chiffre pour quelle année ? Sources : BfP, BNB, OCDE</div></div>
+  <div class="q-progress" id="proj-prog"></div>
+  <div id="proj-area"></div>
+</div>
+
+<!-- CICATRICES SCREEN -->
+<div class="screen" id="screen-cicatrices">
+  <button class="btn-back" onclick="goHome()">← Dossier</button>
+  <div class="game-header"><h2 style="color:#c44b8b">🩸 CICATRICES SOCIALES</h2><div class="sub">Les dégâts humains de l'austérité, documentés</div></div>
+  <div class="q-progress" id="cic-prog"></div>
+  <div class="q-cat" id="cic-cat"></div>
+  <div class="q-box"><div class="q-text" id="cic-q"></div></div>
+  <div class="q-answers" id="cic-ans"></div>
+  <div id="cic-explain"></div>
+  <button class="btn-action q-next" id="cic-next" style="display:none" onclick="nextCic()">SUITE →</button>
+</div>
+
+<!-- DOSSIER (LEARN) -->
+<div class="screen" id="screen-learn">
+  <div class="game-header"><h2 style="color:var(--blood)">📂 LE DOSSIER COMPLET</h2><div class="sub">Sources vérifiées — BfP, BNB, Cour des comptes, IWEPS, OCDE</div></div>
+  <div class="dossier-tabs" id="dossier-tabs"></div>
+  <div id="dossier-content"></div>
+</div>
+
+<!-- PROFILE -->
+<div class="screen" id="screen-profile">
+  <div class="game-header"><h2 style="color:var(--evidence)">🔎 PROFIL ENQUÊTEUR</h2></div>
+  <div class="profile-badge" id="prof-badge">🔍</div>
+  <div class="profile-rank" id="prof-rank">STAGIAIRE</div>
+  <div class="profile-rank-sub" id="prof-rank-sub">Début de l'enquête...</div>
+  <div class="xp-area" style="justify-content:center;margin-bottom:16px">
+    <div class="xp-text">NIVEAU <span id="prof-level">1</span> — <span id="prof-xp-text">0/80 XP</span></div>
+    <div class="xp-bar" style="width:100%;max-width:240px"><div class="xp-fill" id="prof-xp-fill"></div></div>
+  </div>
+  <div class="stats-bar">
+    <div class="stat-box"><div class="stat-val" id="p-games">0</div><div class="stat-lbl">Enquêtes</div></div>
+    <div class="stat-box"><div class="stat-val" id="p-correct">0</div><div class="stat-lbl">Preuves</div></div>
+    <div class="stat-box"><div class="stat-val" id="p-streak">0</div><div class="stat-lbl">Max streak</div></div>
+  </div>
+  <div class="ach-grid" id="ach-grid"></div>
+  <div style="text-align:center;margin-top:20px"><button class="btn-ghost" onclick="resetAll()">PURGER LE DOSSIER</button></div>
+  <div style="text-align:center;margin-top:20px;padding:14px;background:#111;border:1px solid #222">
+    <div style="font-family:var(--font-mono);font-size:8px;color:var(--blood);letter-spacing:3px">PROPULSÉ PAR</div>
+    <div style="font-family:var(--font-headline);font-size:16px;color:var(--chalk);letter-spacing:3px;margin-top:4px">OUAISFIEU</div>
+    <div style="font-family:var(--font-courier);font-size:12px;color:var(--chalk-dim)">Contre-Institution Numérique · CC BY-NC 4.0</div>
+    <div style="font-family:var(--font-courier);font-size:11px;color:var(--blood);margin-top:4px">ouaisfi.eu · Fork·Hack·Spread</div>
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay"><div class="overlay-content">
+  <span class="overlay-icon" id="ov-icon">📋</span>
+  <div class="overlay-title" id="ov-title" style="color:var(--evidence)"></div>
+  <div class="overlay-sub" id="ov-sub"></div>
+  <div class="overlay-score" id="ov-score"></div>
+  <div class="overlay-xp" id="ov-xp"></div>
+  <div class="overlay-btns">
+    <button class="btn-action" id="ov-retry" onclick="retryGame()">RECOMMENCER</button>
+    <button class="btn-ghost" onclick="closeOverlay()">RETOUR AU DOSSIER</button>
+  </div>
+</div></div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" data-screen="home" onclick="switchScreen('home')"><span class="nav-icon">🔎</span><span>Enquête</span></button>
+  <button class="nav-btn" data-screen="learn" onclick="switchScreen('learn')"><span class="nav-icon">📂</span><span>Dossier</span></button>
+  <button class="nav-btn" data-screen="profile" onclick="switchScreen('profile')"><span class="nav-icon">🪪</span><span>Profil</span></button>
+</div>
+
+<script>
+// ════════════════════════════════════════
+// DATA FROM THE TWO RESEARCH DOCUMENTS
+// ════════════════════════════════════════
+
+const FAILLE_BANK = [
+  {cat:"Cour des comptes",q:"Quel taux de retour à l'emploi la Cour des comptes estime-t-elle réaliste après exclusion du chômage ?",a:["10 à 20%","33% (hypothèse Arizona)","50%","5%"],correct:0,explain:"Le gouvernement postule 33%, la BNB et la Cour documentent 10-20%. L'écart produit un trou budgétaire colossal.",src:"Cour des comptes, Budget fédéral 2026"},
+  {cat:"Effets retour",q:"Combien d'emplois faudrait-il créer pour atteindre l'objectif de 80% de taux d'emploi ?",a:["550.000","200.000","350.000","100.000"],correct:0,explain:"Il faudrait résorber la quasi-totalité du chômage existant (536.000 demandeurs). Le BfP prévoit au mieux 263.000-276.000 créations.",src:"Bureau fédéral du Plan, Perspectives 2026-2031"},
+  {cat:"Effets retour",q:"Combien de milliards d'euros d'effets retour le gouvernement intègre-t-il dans son budget ?",a:["8 milliards €","3 milliards €","12 milliards €","5 milliards €"],correct:0,explain:"8 Mrd€ de recettes purement hypothétiques. Le conseiller Rudi Moens de la Cour recommande 'par prudence de les mettre à zéro'.",src:"Cour des comptes, mai 2025"},
+  {cat:"TVA",q:"Pourquoi le Conseil d'État a-t-il retoqué la réforme de la TVA Arizona ?",a:["Distinctions arbitraires et discriminatoires","Montants insuffisants","Erreur de calcul","Opposition syndicale"],correct:0,explain:"Le projet créait des taux absurdes : 6% pour l'opéra, 12% pour le rock. Le Conseil d'État y voit une violation du principe d'égalité.",src:"Conseil d'État, février 2026"},
+  {cat:"Plus-values",q:"La première tranche exonérée pour les participations >20% dans la taxe sur les plus-values est de :",a:["1.000.000 €","100.000 €","500.000 €","50.000 €"],correct:0,explain:"Au-delà, barème dégressif : 1,25% jusqu'à 2,5M, 2,5% jusqu'à 5M, 5% jusqu'à 10M. Dispositif homéopathique.",src:"Loi-programme, accord Arizona"},
+  {cat:"Fraude fiscale",q:"Le rendement attendu de la lutte contre la fraude en 2026, selon Arizona, est de 300M€. Problème ?",a:["Le SPF Finances n'a fourni aucune méthodologie","Le montant est trop élevé","La fraude n'existe pas en Belgique","Les inspecteurs refusent"],correct:0,explain:"La Cour des comptes qualifie le plan d'action de 'non concret'. Rentabilité hautement spéculative.",src:"Cour des comptes, Budget 2026"},
+  {cat:"Pensions",q:"Le 'malus Jambon' pénalise la retraite anticipée de combien par année ?",a:["5%","2%","10%","3%"],correct:0,explain:"5% de réduction par année d'anticipation, combiné au relèvement effectif à 67 ans. 2,4 Mrd€ de coupes sur les pensions.",src:"Accord Arizona 2025-2029"},
+  {cat:"CPAS",q:"De combien les CPAS pourraient-ils voir leur affluence augmenter selon les projections ?",a:["40 à 50%","10 à 15%","20 à 25%","70 à 80%"],correct:0,explain:"L'exclusion fédérale transfère massivement la charge vers les communes. Coût non provisionné dans le budget fédéral.",src:"Cour des comptes + BNB"},
+  {cat:"Santé",q:"La norme de croissance des soins de santé a été réduite à :",a:["2% (contre 2,5% avant)","1,5%","3%","0%"],correct:0,explain:"Créant un trou de ~2 Mrd€. Les mutualités dénoncent une 'fatigue budgétaire' aux conséquences sanitaires directes.",src:"Accord Arizona, Mutualités Chrétiennes"},
+  {cat:"Défense",q:"Porter le budget Défense à 2% du PIB nécessiterait combien de milliards supplémentaires non budgétisés ?",a:["17 milliards €","5 milliards €","8 milliards €","25 milliards €"],correct:0,explain:"De 8 Mrd (1,3% PIB) à 12 Mrd dès 2025, menaçant de désintégrer toute la trajectoire budgétaire.",src:"Analyse macro, BfP"},
+  {cat:"BfP",q:"Le taux d'emploi effectif au T3 2025 est de 72,7%. L'écart avec l'objectif Arizona (80%) représente :",a:["~550.000 emplois","~200.000 emplois","~100.000 emplois","~800.000 emplois"],correct:0,explain:"7,3 points d'écart. La Banque nationale qualifie l'objectif de 80% d'« irréaliste ».",src:"BNB, Statbel T3 2025"},
+  {cat:"Compensation",q:"La Fédération des CPAS wallons estime le surcoût réel de l'exclusion chômage sur la législature à :",a:["1,21 milliard €","300 millions € (chiffre gouvernemental)","500 millions €","2,5 milliards €"],correct:0,explain:"Le gouvernement a budgété 300M€/an. Le surcoût réel est 4× plus élevé. La Cour confirme la sous-estimation.",src:"Fédération CPAS wallons, Cour des comptes"},
+];
+
+const TRIBUNAL_BANK = [
+  {q:"En France, combien de décisions la CDBF a-t-elle rendues en 75 ans d'existence ?",a:["264 (~4/an)","2.500","50","1.000"],correct:0},
+  {q:"Christine Lagarde a été reconnue coupable de négligence pour 403M€. Quelle peine ?",a:["Aucune peine prononcée","5 ans de prison","1 million d'amende","Interdiction de fonction"],correct:0},
+  {q:"L'article 103 de la Constitution belge prévoit la responsabilité civile des ministres. Problème ?",a:["La loi d'application n'a jamais été adoptée depuis 1998","Elle a été abrogée","Elle ne concerne que le Premier ministre","Elle existe et fonctionne"],correct:0},
+  {q:"Quel score le Bundesrechnungshof allemand obtient-il à l'Open Budget Survey ?",a:["95/100","50/100","75/100","30/100"],correct:0},
+  {q:"Combien de temps Liz Truss est-elle restée PM après ses baisses d'impôts non financées ?",a:["45 jours","6 mois","1 an","2 semaines"],correct:0},
+  {q:"Selon Mark Bovens (2006), les décisions budgétaires doivent relever de quelle responsabilité ?",a:["Politique plutôt que judiciaire","Exclusivement judiciaire","Aucune responsabilité","Responsabilité militaire"],correct:0},
+  {q:"Quel modèle belge est la première assemblée citoyenne permanente au monde liée à un parlement ?",a:["Ostbelgien (2019)","G1000 (2011)","Commissions mixtes BXL","Sénat fédéral"],correct:0},
+  {q:"La loi fédérale belge du 9 février 2023 est une première mondiale pour :",a:["L'institutionnalisation des assemblées citoyennes au niveau national","La taxation du patrimoine","L'audit citoyen de la dette","La responsabilité pénale des ministres"],correct:0},
+  {q:"Selon Philip Pettit, quelle politique imposée sans input démocratique constitue de la 'domination' ?",a:["Toute politique budgétaire imposée sans véritable input démocratique","Uniquement les politiques militaires","Les politiques fiscales validées par le parlement","Aucune"],correct:0},
+  {q:"Björn Bremer (Oxford, 2023) étudie pourquoi quels partis appliquent l'austérité malgré leur base ?",a:["Les partis sociaux-démocrates (comme Vooruit)","Les partis d'extrême droite","Les partis écologistes","Les partis libéraux"],correct:0},
+];
+
+const AUDIT_DATA = [
+  {label:"SAUVETAGE BANCAIRE",amount:"~30 Mrd€",verdict:"CONTESTABLE",color:"var(--blood)",text:"Fortis, Dexia, Ethias : les pertes privées mutualisées sur le dos de la collectivité. Le CADTM identifie ces montants comme potentiellement illégitimes."},
+  {label:"CHARGE D'INTÉRÊTS 2025",amount:"10 Mrd€/an",verdict:"STRUCTUREL",color:"#e08a00",text:"Le simple service de la dette s'alourdit d'~1 point de PIB sur 5 ans. 10 Mrd en 2025, 19 Mrd projetés en 2031."},
+  {label:"NICHES FISCALES",amount:"Recettes perdues",verdict:"ILLÉGITIME",color:"var(--blood)",text:"Baisse continue des cotisations patronales, niches multiples, absence de lutte contre l'évasion. L'assèchement organisé des recettes nourrit mécaniquement la dette."},
+  {label:"COÛT VIEILLISSEMENT",amount:"+1,7-1,8% PIB",verdict:"LÉGITIME",color:"var(--stamp)",text:"Pensions et soins de santé. Dépense légitime liée à la démographie. Mais sert de justification à des coupes disproportionnées."},
+  {label:"EFFETS RETOUR FICTIFS",amount:"8 Mrd€",verdict:"FICTIF",color:"var(--blood)",text:"Recettes hypothétiques basées sur l'objectif irréaliste de 80% de taux d'emploi. La Cour des comptes recommande de 'les mettre à zéro'."},
+  {label:"BUDGET DÉFENSE OTAN",amount:"8→12 Mrd€",verdict:"POLITIQUE",color:"#e08a00",text:"Décision géopolitique (+17 Mrd non budgétisés). Seul poste en augmentation. Financé par vente d'actifs publics."},
+  {label:"FRAUDE FISCALE ANNUELLE",amount:"20-30 Mrd€",verdict:"SCANDALEUX",color:"var(--blood)",text:"Estimations convergentes DULBEA/ULB, SPF Finances, Oxfam. Taux de recouvrement : 12% seulement (311M récupérés sur 2,5 Mrd identifiés)."},
+  {label:"ÉQUATEUR : AUDIT RÉUSSI",amount:"7 Mrd$ économisés",verdict:"PRÉCÉDENT",color:"var(--stamp)",text:"Commission CAIC (2007) : rachat de la dette à 35 cents/dollar. L'Équateur a doublé ses dépenses sociales et réduit la pauvreté de 41,6%."},
+  {label:"GRÈCE : AUDIT IGNORÉ",amount:"92% aux créanciers",verdict:"AVERTISSEMENT",color:"#e08a00",text:"92% de l'argent des plans de sauvetage n'a pas bénéficié à la Grèce. Commission créée mais conclusions non utilisées. Leçon : sans volonté politique, l'audit est impuissant."},
+  {label:"DETTE FÉDÉRALE 2031",amount:"122% du PIB",verdict:"INSOUTENABLE",color:"var(--blood)",text:"L'OCDE avertit : à politique inchangée, >200% du PIB en 2050. Coût du vieillissement : +3,7 points de PIB d'ici 2070 (moyenne UE : 0,4 point)."},
+];
+
+const FISCAL_PAIRS = [
+  {term:"Impôt patrimoine (UCLouvain)",def:"~10 Mrd€/an"},
+  {term:"Impôt patrimoine (BfP)",def:"4,7 Mrd€/an"},
+  {term:"Progressive Dual Tax (CGSLB)",def:"5,93 Mrd€/an"},
+  {term:"ISF + anti-fraude (Oxfam)",def:"15-25 Mrd€"},
+  {term:"Fraude fiscale récupérable",def:"20-30 Mrd€/an"},
+  {term:"Taxe plus-values Arizona",def:"236-500 M€/an"},
+  {term:"Impôt fortune PTB",def:"8 Mrd€/an"},
+  {term:"Norvège : impôt fortune",def:"~3 Mrd€/an"},
+];
+
+const PROJECTION_BANK = [
+  {year:"2025",indicator:"DÉFICIT PUBLIC",answer:"-5,3%",choices:["-5,3%","-3,2%","-4,0%","-6,5%"],explain:"Le déficit se creuse avant même les mesures Arizona. Source : BfP."},
+  {year:"2026",indicator:"DETTE PUBLIQUE",answer:"109,8%",choices:["109,8%","100%","115%","95%"],explain:"La dette ne fait que monter malgré l'austérité. Source : BfP, Perspectives 2026-2031."},
+  {year:"2029",indicator:"DÉFICIT PUBLIC",answer:"-5,7%",choices:["-5,7%","-3,0%","-2,5%","-4,2%"],explain:"Loin de l'objectif de -3%. La spirale austéritaire : couper ne réduit pas le déficit. Source : BfP."},
+  {year:"2031",indicator:"DETTE PUBLIQUE",answer:"122%",choices:["122%","105%","95%","140%"],explain:"Trajectoire exponentielle. L'OCDE projette >200% en 2050 sans réforme structurelle."},
+  {year:"2031",indicator:"DÉFICIT PUBLIC",answer:"-6,3%",choices:["-6,3%","-3,0%","-4,5%","-8,0%"],explain:"L'EXACT INVERSE de l'objectif annoncé. Le budget Arizona ne fonctionne pas. Source : BfP."},
+  {year:"2029",indicator:"TAUX D'EMPLOI PROJETÉ",answer:"74,3%",choices:["74,3%","80%","77%","70%"],explain:"Loin des 80% fantasmés. La Cour des comptes projette 74,3%. La BNB qualifie 80% d'irréaliste."},
+  {year:"2025",indicator:"CROISSANCE PIB",answer:"1,3%",choices:["1,3%","2,5%","0,5%","3,0%"],explain:"Croissance modérée insuffisante pour absorber les coupes. Source : BfP, BNB."},
+  {year:"2028",indicator:"INFLATION (CHOC ETS2)",answer:"2,2-2,4%",choices:["2,2-2,4%","1,0%","4,0%","0,5%"],explain:"Le système ETS2 européen provoquera un choc inflationniste sur l'énergie des bâtiments et transports."},
+];
+
+const CICATRICE_BANK = [
+  {cat:"Renoncement soins",q:"Quel pourcentage de Belges francophones déclare avoir renoncé à des soins pour raisons financières (Solidaris 2024) ?",a:["41%","22%","15%","55%"],correct:0,explain:"En hausse de 10 points depuis 2015. Femmes : 48%, familles monoparentales : 60%.",src:"Enquête Solidaris 2024"},
+  {cat:"Santé mentale",q:"L'OCDE estime les coûts directs et indirects de la santé mentale en Belgique à :",a:["5% du PIB","1% du PIB","2% du PIB","10% du PIB"],correct:0,explain:"L'un des taux les plus élevés de l'OCDE. Près d'un Belge sur cinq souffre de troubles de santé mentale.",src:"OCDE 2018, Sciensano"},
+  {cat:"Pauvreté infantile",q:"Le taux de pauvreté infantile (AROPE) à Bruxelles atteint :",a:["44%","20%","30%","15%"],correct:0,explain:"44% à Bruxelles, 24,8% en Wallonie, 19% national. La cible de 12,1% pour 2030 ne sera pas atteinte.",src:"AROPE, évaluations 2025"},
+  {cat:"Inégalités",q:"Selon Sarah Kuypers (UAntwerpen), le Gini corrigé des revenus belges est passé de 0,262 (2003) à :",a:["0,339 (2022)","0,280","0,310","0,400"],correct:0,explain:"Augmentation masquée par les enquêtes traditionnelles. Les revenus du capital (Gini >95) croissent plus vite que le revenu national.",src:"Kuypers, UAntwerpen, déc. 2024"},
+  {cat:"Patrimoine",q:"Les 10% les plus riches détiennent quelle part du patrimoine net belge ?",a:["54,9%","35%","45%","70%"],correct:0,explain:"Et 80% des actions cotées. La moitié la plus pauvre : 8,3% du patrimoine. Source : BNB, DWA Q4 2024.",src:"BNB, Comptes patrimoniaux distributifs"},
+  {cat:"CPAS",q:"Combien de personnes seront exclues du chômage en 18 mois à partir de janvier 2026 ?",a:["~180.000","50.000","100.000","250.000"],correct:0,explain:"Le gouvernement assume qu'un tiers 'disparaîtra du radar'. La Cour des comptes confirme la sous-estimation des compensations.",src:"Cour des comptes, Fédération CPAS"},
+  {cat:"Alimentation",q:"L'insécurité alimentaire a augmenté de combien entre 2019 et 2023 (Oxfam) ?",a:["125%","50%","30%","200%"],correct:0,explain:"Touchant environ 900.000 personnes. Conséquence directe de l'érosion du pouvoir d'achat.",src:"Oxfam Belgique"},
+  {cat:"Énergie",q:"Quel pourcentage de ménages wallons sont en précarité énergétique ?",a:["11,3% (410.000 personnes)","5%","3%","20%"],correct:0,explain:"Record belge. Flandre : 2,3%. Le cœur du problème : la faiblesse du revenu, pas l'isolation du logement.",src:"IWEPS, Regards Statistiques 2025"},
+  {cat:"Travail social",q:"En Wallonie/Bruxelles, 47% des travailleurs sociaux CPAS limitent leurs entretiens à :",a:["15 minutes","30 minutes","45 minutes","1 heure"],correct:0,explain:"Taylorisation du travail social. Derrière une demande de lait infantile, on ne détecte plus les violences intrafamiliales.",src:"Service lutte pauvreté, Rapport 2024-2025"},
+  {cat:"Coin fiscal",q:"La Belgique est championne mondiale de la taxation de quoi ?",a:["Du travail (39,7% du salaire brut)","Du patrimoine","De la consommation","Des entreprises"],correct:0,explain:"Un travailleur isolé cède 39,7% de son brut. Le coin fiscal total atteint 52,6% (1er OCDE). Le patrimoine reste tabou.",src:"OCDE, statistiques fiscales"},
+];
+
+const LEARN_DATA = {
+  "Budget Arizona":[
+    {t:"23,3 Mrd€ d'austérité",p:"18 Mrd pour réduire le déficit sous 3% + 5 Mrd de politiques nouvelles. Clé : 2/3 réformes structurelles, 1/3 économies.",s:"Accord Arizona 2025-2029"},
+    {t:"Effets retour fictifs : 8 Mrd€",p:"Recettes hypothétiques basées sur 80% de taux d'emploi. BfP : max 263.000 emplois créés vs 550.000 nécessaires.",s:"Cour des comptes, BfP"},
+    {t:"Cour des comptes : réquisitoire",p:"Hypothèse du 'tiers' irréaliste, retour à l'emploi 10-20% (pas 33%), coût CPAS non budgétisé, lutte anti-fraude non concrétisée.",s:"Cour des comptes, Budget 2026"},
+    {t:"TVA retoquée par le Conseil d'État",p:"Distinctions arbitraires (6% opéra vs 12% rock). Trou de centaines de millions dans le budget.",s:"Conseil d'État, fév. 2026"},
+  ],
+  "Accountability Gap":[
+    {t:"Aucun pays européen ne sanctionne les ministres",p:"France : CDBF abolie (264 décisions en 75 ans). Allemagne : 0 sanction. Belgique : loi civile jamais adoptée depuis 1998.",s:"Analyse comparée 7 pays"},
+    {t:"Cas Lagarde",p:"Reconnue coupable de négligence pour 403M€. Peine : aucune. Motif : 'personnalité et réputation internationale'.",s:"CJR, décembre 2016"},
+    {t:"Article 103 Constitution belge",p:"La loi déterminant la responsabilité civile des ministres n'a jamais été adoptée. Lacune potentiellement contraire à l'art. 6 CEDH.",s:"Constitution belge, Prof. Verdussen"},
+    {t:"Particratie = accountability fictive",p:"Quand les accords de coalition sont négociés à huis clos et que la discipline de parti neutralise le parlement, la responsabilité politique est vidée.",s:"De Winter, Deschouwer, Dewachter"},
+  ],
+  "Alternatives fiscales":[
+    {t:"Impôt patrimoine : 4,7 à 10 Mrd€/an",p:"UCLouvain : 10 Mrd€ (247.000 ménages). BfP : 4,7 Mrd€ (conservateur). PTB : 8 Mrd€.",s:"Toniotti 2024, BfP, PTB"},
+    {t:"Progressive Dual Income Tax : 5,93 Mrd€",p:"Proposition CGSLB : séparer taxation travail/capital + progressivité. 1,5 Mrd suffit pour les exigences UE.",s:"CGSLB 2025"},
+    {t:"Fraude fiscale : 20-30 Mrd€/an",p:"4.200 conseillers fiscaux Big Four vs 3.000 inspecteurs pour 9,1M contribuables. Taux recouvrement : 12%.",s:"DULBEA/ULB, SPF Finances"},
+    {t:"Taxe plus-values Arizona : homéopathique",p:"236-500 M€/an. Franchise 10K€, 1er million exonéré pour participations >20%, sociétés exclues.",s:"Loi-programme Arizona"},
+  ],
+  "Cicatrices sociales":[
+    {t:"41% renoncent aux soins",p:"Hausse 10pts depuis 2015. Dentisterie : 22,9% d'abstention. Médicaments : 32,9%. Familles monoparentales : 60%.",s:"Solidaris 2024, IWEPS"},
+    {t:"Pauvreté infantile : 44% à Bruxelles",p:"19% national, 24,8% Wallonie, 44% Bruxelles. Cible 2030 (12,1%) inatteignable.",s:"AROPE"},
+    {t:"Santé mentale : 5% du PIB",p:"1 Belge sur 5 touché. Probabilité >80% de problème aigu quand isolement + perte de revenus combinés.",s:"Sciensano, IWEPS déc. 2025"},
+    {t:"Politique IKEA",p:"Numérisation forcée = discrimination indirecte. Fracture numérique → non-recours massif aux droits.",s:"Service lutte pauvreté 2024-2025"},
+  ],
+  "Audit citoyen":[
+    {t:"Équateur : 7 Mrd$ économisés",p:"Commission CAIC (2007) : 30 ans de dette audités. Rachat à 35 cents/dollar. Pauvreté -41,6%, Gini -16,7%.",s:"CADTM, Toussaint"},
+    {t:"Grèce : 92% aux créanciers",p:"Commission Konstantopoulou (2015) : dette qualifiée d'illégale, illégitime, odieuse et insoutenable. Tsipras n'a pas suivi.",s:"Commission vérité dette grecque"},
+    {t:"Doctrine de la dette odieuse (Sack, 1927)",p:"3 critères : absence de consentement, absence de bénéfice, connaissance du créancier. Élargie par le droit international.",s:"Sack 1927, Jeff King Cambridge 2016"},
+    {t:"ACiDe Belgique",p:"30 Mrd€ du sauvetage Fortis/Dexia identifiés comme potentiellement illégitimes. Art. 26 Constitution brésilienne comme modèle.",s:"CADTM, plateforme ACiDe"},
+  ],
+};
+
+const RANKS = [
+  {min:1,name:"STAGIAIRE",desc:"Début de l'enquête...",icon:"🔍"},
+  {min:3,name:"ENQUÊTEUR",desc:"Tu commences à voir les failles.",icon:"📋"},
+  {min:5,name:"INVESTIGATEUR",desc:"Les preuves s'accumulent.",icon:"🔎"},
+  {min:8,name:"AUDITEUR",desc:"Tu décortiques le système.",icon:"⚖️"},
+  {min:12,name:"PROCUREUR",desc:"Tu sais monter un dossier.",icon:"📂"},
+  {min:15,name:"LANCEUR D'ALERTE",desc:"Le système te craint.",icon:"🚨"},
+  {min:20,name:"CONTRE-INSTITUTION",desc:"Tu ES le contre-pouvoir.",icon:"🏴"},
+];
+
+const ACHIEVEMENTS = [
+  {id:"first",icon:"📋",name:"PREMIER DOSSIER",check:s=>s.totalGames>=1},
+  {id:"faille_master",icon:"🔍",name:"MAÎTRE FAILLES",check:s=>s.faillePerfect>=1},
+  {id:"auditor",icon:"💰",name:"AUDITEUR",check:s=>s.auditPulls>=10},
+  {id:"tribunal_win",icon:"⚖️",name:"PROCÈS GAGNÉ",check:s=>s.tribunalWon>=1},
+  {id:"fiscal_done",icon:"🃏",name:"FISCALISTE",check:s=>s.fiscalDone>=1},
+  {id:"streak5",icon:"🔥",name:"STREAK ×5",check:s=>s.bestStreak>=5},
+  {id:"proof50",icon:"📊",name:"50 PREUVES",check:s=>s.totalCorrect>=50},
+  {id:"level5",icon:"⭐",name:"NIVEAU 5",check:s=>s.level>=5},
+  {id:"level10",icon:"🌟",name:"NIVEAU 10",check:s=>s.level>=10},
+];
+
+// ════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════
+let state = JSON.parse(localStorage.getItem('dossier-noir')||'null') || {
+  xp:0,level:1,totalGames:0,totalCorrect:0,bestStreak:0,
+  auditPulls:0,faillePerfect:0,tribunalWon:0,fiscalDone:0,achievements:[]
+};
+let currentGame=null,quizSt={},tribSt={},fiscSt={},projSt={},cicSt={};
+
+function save(){localStorage.setItem('dossier-noir',JSON.stringify(state))}
+function xpFor(l){return 40+(l-1)*25}
+function addXP(n){state.xp+=n;while(state.xp>=xpFor(state.level)){state.xp-=xpFor(state.level);state.level++}save();updateUI()}
+
+function updateUI(){
+  const needed=xpFor(state.level),pct=(state.xp/needed*100).toFixed(0);
+  document.getElementById('xp-fill').style.width=pct+'%';
+  document.getElementById('p-level').textContent=state.level;
+  document.getElementById('s-games').textContent=state.totalGames;
+  document.getElementById('s-correct').textContent=state.totalCorrect;
+  document.getElementById('s-streak').textContent=state.bestStreak;
+  const rank=[...RANKS].reverse().find(r=>state.level>=r.min)||RANKS[0];
+  document.getElementById('prof-badge').textContent=rank.icon;
+  document.getElementById('prof-rank').textContent=rank.name;
+  document.getElementById('prof-rank-sub').textContent=rank.desc;
+  document.getElementById('prof-level').textContent=state.level;
+  document.getElementById('prof-xp-text').textContent=state.xp+'/'+needed+' XP';
+  document.getElementById('prof-xp-fill').style.width=pct+'%';
+  document.getElementById('p-games').textContent=state.totalGames;
+  document.getElementById('p-correct').textContent=state.totalCorrect;
+  document.getElementById('p-streak').textContent=state.bestStreak;
+  document.getElementById('ach-grid').innerHTML=ACHIEVEMENTS.map(a=>{
+    const u=a.check(state);if(u&&!state.achievements.includes(a.id)){state.achievements.push(a.id);save()}
+    return `<div class="ach ${u?'unlocked':''}"><span class="ach-icon">${a.icon}</span><div class="ach-name">${a.name}</div></div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════
+function switchScreen(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+n).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.screen===n));
+  if(n==='learn')initLearn();if(n==='profile')updateUI();
+}
+function goHome(){switchScreen('home');currentGame=null}
+function closeOverlay(){document.getElementById('overlay').classList.remove('active');goHome()}
+function startGame(g){
+  currentGame=g;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+g).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  ({audit:initAudit,faille:initFaille,tribunal:initTribunal,fiscal:initFiscal,projection:initProjection,cicatrices:initCicatrices})[g]();
+}
+function retryGame(){document.getElementById('overlay').classList.remove('active');if(currentGame)startGame(currentGame)}
+
+function showOv(icon,title,sub,score,xp){
+  document.getElementById('ov-icon').textContent=icon;
+  document.getElementById('ov-title').textContent=title;
+  document.getElementById('ov-sub').textContent=sub;
+  document.getElementById('ov-score').textContent=score;
+  document.getElementById('ov-xp').textContent=xp;
+  document.getElementById('overlay').classList.add('active');
+}
+
+// ════════════════════════════════════════
+// AUDIT CITOYEN
+// ════════════════════════════════════════
+function initAudit(){document.getElementById('audit-result').innerHTML=''}
+function pullAudit(){
+  const d=AUDIT_DATA[Math.floor(Math.random()*AUDIT_DATA.length)];
+  document.getElementById('audit-result').innerHTML=`
+    <div class="audit-verdict">
+      <h4 style="color:${d.color}">${d.label}</h4>
+      <div style="font-family:var(--font-headline);font-size:32px;color:${d.color};letter-spacing:2px;margin:6px 0">${d.amount}</div>
+      <div style="font-family:var(--font-mono);font-size:9px;color:${d.color};letter-spacing:3px;margin-bottom:8px;border:1px solid ${d.color};display:inline-block;padding:2px 8px">VERDICT : ${d.verdict}</div>
+      <p>${d.text}</p>
+    </div>`;
+  state.auditPulls++;state.totalGames++;addXP(4);save();
+}
+
+// ════════════════════════════════════════
+// FAILLE QUIZ
+// ════════════════════════════════════════
+function initFaille(){
+  const qs=[...FAILLE_BANK].sort(()=>Math.random()-0.5).slice(0,12);
+  quizSt={qs,cur:0,ok:0,locked:false};renderFaille();
+}
+function renderFaille(){
+  const q=quizSt.qs[quizSt.cur];
+  document.getElementById('faille-prog').innerHTML=quizSt.qs.map((_,i)=>`<div class="q-pip ${i<quizSt.cur?(quizSt.qs[i]._ok?'ok':'ko'):i===quizSt.cur?'cur':''}"></div>`).join('');
+  document.getElementById('faille-cat').textContent=q.cat;
+  document.getElementById('faille-q').textContent=q.q;
+  document.getElementById('faille-explain').innerHTML='';
+  document.getElementById('faille-next').style.display='none';
+  quizSt.locked=false;
+  const L=['A','B','C','D'],idx=[0,1,2,3].sort(()=>Math.random()-0.5);
+  document.getElementById('faille-ans').innerHTML=idx.map((oi,i)=>`<button class="q-ans" data-idx="${oi}" onclick="ansFaille(this,${oi},${q.correct})"><span class="q-letter">${L[i]}</span>${q.a[oi]}</button>`).join('');
+}
+function ansFaille(btn,ch,co){
+  if(quizSt.locked)return;quizSt.locked=true;
+  const q=quizSt.qs[quizSt.cur],ok=ch===co;
+  document.querySelectorAll('#faille-ans .q-ans').forEach(b=>{b.classList.add('locked');if(parseInt(b.dataset.idx)===co)b.classList.add('correct')});
+  if(ok){quizSt.ok++;state.totalCorrect++;q._ok=true}else{btn.classList.add('wrong');q._ok=false}
+  document.getElementById('faille-explain').innerHTML=`<div class="q-explain"><strong>📎 Preuve :</strong> ${q.explain}<span class="src">— ${q.src}</span></div>`;
+  document.getElementById('faille-next').style.display='block';
+  document.getElementById('faille-next').textContent=quizSt.cur<quizSt.qs.length-1?'SUITE →':'VERDICT';
+  save();
+}
+function nextFaille(){quizSt.cur++;if(quizSt.cur>=quizSt.qs.length)endFaille();else renderFaille()}
+function endFaille(){
+  state.totalGames++;const s=quizSt.ok,t=quizSt.qs.length,xp=s*4+(s===t?20:0);
+  if(s===t)state.faillePerfect++;addXP(xp);save();
+  showOv(s>=10?'📋':s>=6?'🔍':'💀',s>=10?'DOSSIER SOLIDE':s>=6?'ENQUÊTE PARTIELLE':'CLASSÉ SANS SUITE',
+    s>=10?'Chaque faille documentée':s>=6?'Continue de creuser':'Le système t\'a eu...',`${s}/${t}`,`+${xp} XP`);
+}
+
+// ════════════════════════════════════════
+// TRIBUNAL (Boss fight)
+// ════════════════════════════════════════
+function initTribunal(){
+  tribSt={qs:[...TRIBUNAL_BANK].sort(()=>Math.random()-0.5),cur:0,hp:100,locked:false};renderTrib();
+}
+function renderTrib(){
+  const ts=tribSt;
+  document.getElementById('trib-hp').style.width=ts.hp+'%';
+  document.getElementById('trib-hp-text').textContent=`Défense : ${ts.hp}%`;
+  if(ts.cur>=ts.qs.length||ts.hp<=0){endTrib();return}
+  const q=ts.qs[ts.cur];ts.locked=false;
+  const sprites=['🏛️','⚖️','👔','🎩','📜','🏦','🗳️','💼','🏰','🤵'];
+  document.getElementById('trib-sprite').textContent=sprites[ts.cur%sprites.length];
+  document.getElementById('trib-name').textContent=`L'IMPUNITÉ — Round ${ts.cur+1}/${ts.qs.length}`;
+  document.getElementById('trib-q').textContent=q.q;
+  const L=['A','B','C','D'],idx=[0,1,2,3].sort(()=>Math.random()-0.5);
+  document.getElementById('trib-ans').innerHTML=idx.map((oi,i)=>`<button class="q-ans" onclick="ansTrib(this,${oi},${q.correct})">${L[i]}. ${q.a[oi]}</button>`).join('');
+}
+function ansTrib(btn,ch,co){
+  if(tribSt.locked)return;tribSt.locked=true;
+  if(ch===co){btn.classList.add('correct');tribSt.hp-=12;state.totalCorrect++}
+  else{btn.classList.add('wrong')}
+  setTimeout(()=>{tribSt.cur++;renderTrib()},1000);save();
+}
+function endTrib(){
+  state.totalGames++;const won=tribSt.hp<=0;
+  if(won){state.tribunalWon++;addXP(35);showOv('⚖️','JUGEMENT RENDU','L\'impunité budgétaire est mise à nu','COUPABLE','+35 XP')}
+  else{addXP(5);showOv('🏛️','ACQUITTEMENT','L\'impunité systémique persiste',`Défense : ${tribSt.hp}%`,'+5 XP')}
+  save();
+}
+
+// ════════════════════════════════════════
+// FISCAL MATCH (Memory)
+// ════════════════════════════════════════
+function initFiscal(){
+  const sel=[...FISCAL_PAIRS].sort(()=>Math.random()-0.5).slice(0,6);
+  const cards=[];
+  sel.forEach((g,i)=>{cards.push({id:i,type:'t',text:g.term,pid:i});cards.push({id:i,type:'d',text:g.def,pid:i})});
+  cards.sort(()=>Math.random()-0.5);
+  fiscSt={cards,rev:[],matched:[],attempts:0,pairs:0};renderFiscal();
+}
+function renderFiscal(){
+  const f=fiscSt;
+  document.getElementById('fiscal-score').textContent=`Paires: ${f.pairs}/6 | Essais: ${f.attempts}`;
+  document.getElementById('fiscal-grid').innerHTML=f.cards.map((c,i)=>{
+    const isR=f.rev.includes(i),isM=f.matched.includes(c.pid);
+    return `<div class="fiscal-card ${isM?'matched revealed':isR?'revealed':'face-down'}" onclick="flipFiscal(${i})">${isR||isM?c.text:''}</div>`;
+  }).join('');
+}
+function flipFiscal(i){
+  const f=fiscSt;if(f.rev.length>=2||f.rev.includes(i)||f.matched.includes(f.cards[i].pid))return;
+  f.rev.push(i);renderFiscal();
+  if(f.rev.length===2){
+    f.attempts++;const[a,b]=f.rev,cA=f.cards[a],cB=f.cards[b];
+    if(cA.pid===cB.pid&&cA.type!==cB.type){
+      f.matched.push(cA.pid);f.pairs++;f.rev=[];state.totalCorrect++;renderFiscal();
+      if(f.pairs===6){state.fiscalDone++;state.totalGames++;const xp=Math.max(10,40-f.attempts);addXP(xp);save();
+        setTimeout(()=>showOv('💰','ALTERNATIVES IDENTIFIÉES','Toutes les paires retrouvées',`${f.attempts} essais`,`+${xp} XP`),400)}
+    }else{setTimeout(()=>{f.rev=[];renderFiscal()},900)}
+    save();
+  }
+}
+
+// ════════════════════════════════════════
+// PROJECTION MACHINE
+// ════════════════════════════════════════
+function initProjection(){
+  projSt={qs:[...PROJECTION_BANK].sort(()=>Math.random()-0.5),cur:0,ok:0,streak:0};renderProj();
+}
+function renderProj(){
+  const p=projSt;
+  document.getElementById('proj-prog').innerHTML=p.qs.map((_,i)=>`<div class="q-pip ${i<p.cur?(p.qs[i]._ok?'ok':'ko'):i===p.cur?'cur':''}"></div>`).join('');
+  if(p.cur>=p.qs.length){endProj();return}
+  const q=p.qs[p.cur];
+  const choices=[...q.choices].sort(()=>Math.random()-0.5);
+  document.getElementById('proj-area').innerHTML=`
+    <div class="proj-display"><div class="proj-year">${q.year}</div><div class="proj-indicator">${q.indicator}</div></div>
+    <div class="proj-choices">${choices.map(c=>`<button class="proj-choice" onclick="ansProj(this,'${c}','${q.answer}')">${c}</button>`).join('')}</div>
+    <div id="proj-explain-box"></div>`;
+}
+function ansProj(btn,ch,co){
+  const ok=ch===co,q=projSt.qs[projSt.cur];q._ok=ok;
+  document.querySelectorAll('.proj-choice').forEach(b=>{if(b.textContent===co)b.classList.add('correct');b.onclick=null});
+  if(!ok)btn.classList.add('wrong');
+  if(ok){projSt.ok++;projSt.streak++;state.totalCorrect++;if(projSt.streak>state.bestStreak)state.bestStreak=projSt.streak}
+  else projSt.streak=0;
+  document.getElementById('proj-explain-box').innerHTML=`<div class="q-explain" style="margin-top:12px"><strong>📊</strong> ${q.explain}</div>`;
+  save();setTimeout(()=>{projSt.cur++;renderProj()},2000);
+}
+function endProj(){
+  state.totalGames++;const xp=projSt.ok*5;addXP(xp);save();
+  showOv('📈','PROJECTIONS TERMINÉES',`${projSt.ok}/${projSt.qs.length} correctes`,`${projSt.ok}/${projSt.qs.length}`,`+${xp} XP`);
+}
+
+// ════════════════════════════════════════
+// CICATRICES SOCIALES (Quiz)
+// ════════════════════════════════════════
+function initCicatrices(){
+  const qs=[...CICATRICE_BANK].sort(()=>Math.random()-0.5);
+  cicSt={qs,cur:0,ok:0,locked:false};renderCic();
+}
+function renderCic(){
+  const q=cicSt.qs[cicSt.cur];
+  document.getElementById('cic-prog').innerHTML=cicSt.qs.map((_,i)=>`<div class="q-pip ${i<cicSt.cur?(cicSt.qs[i]._ok?'ok':'ko'):i===cicSt.cur?'cur':''}"></div>`).join('');
+  document.getElementById('cic-cat').textContent=q.cat;
+  document.getElementById('cic-q').textContent=q.q;
+  document.getElementById('cic-explain').innerHTML='';
+  document.getElementById('cic-next').style.display='none';
+  cicSt.locked=false;
+  const L=['A','B','C','D'],idx=[0,1,2,3].sort(()=>Math.random()-0.5);
+  document.getElementById('cic-ans').innerHTML=idx.map((oi,i)=>`<button class="q-ans" data-idx="${oi}" onclick="ansCic(this,${oi},${q.correct})"><span class="q-letter">${L[i]}</span>${q.a[oi]}</button>`).join('');
+}
+function ansCic(btn,ch,co){
+  if(cicSt.locked)return;cicSt.locked=true;
+  const q=cicSt.qs[cicSt.cur],ok=ch===co;
+  document.querySelectorAll('#cic-ans .q-ans').forEach(b=>{b.classList.add('locked');if(parseInt(b.dataset.idx)===co)b.classList.add('correct')});
+  if(ok){cicSt.ok++;state.totalCorrect++;q._ok=true}else{btn.classList.add('wrong');q._ok=false}
+  document.getElementById('cic-explain').innerHTML=`<div class="q-explain"><strong>🩸 Impact :</strong> ${q.explain}<span class="src">— ${q.src}</span></div>`;
+  document.getElementById('cic-next').style.display='block';
+  document.getElementById('cic-next').textContent=cicSt.cur<cicSt.qs.length-1?'SUITE →':'BILAN';
+  save();
+}
+function nextCic(){cicSt.cur++;if(cicSt.cur>=cicSt.qs.length)endCic();else renderCic()}
+function endCic(){
+  state.totalGames++;const s=cicSt.ok,t=cicSt.qs.length,xp=s*4;addXP(xp);save();
+  showOv('🩸','CICATRICES DOCUMENTÉES',`${s}/${t} données retenues`,`${s}/${t}`,`+${xp} XP`);
+}
+
+// ════════════════════════════════════════
+// LEARN
+// ════════════════════════════════════════
+let learnTab=Object.keys(LEARN_DATA)[0];
+function initLearn(){
+  document.getElementById('dossier-tabs').innerHTML=Object.keys(LEARN_DATA).map(k=>`<button class="dossier-tab ${k===learnTab?'active':''}" onclick="setTab('${k}')">${k}</button>`).join('');
+  renderLearn();
+}
+function setTab(t){learnTab=t;document.querySelectorAll('.dossier-tab').forEach(b=>b.classList.toggle('active',b.textContent===t));renderLearn()}
+function renderLearn(){
+  document.getElementById('dossier-content').innerHTML=(LEARN_DATA[learnTab]||[]).map(i=>`<div class="dossier-card"><h4>${i.t}</h4><p>${i.p}</p><span class="src-tag">${i.s}</span></div>`).join('');
+}
+function resetAll(){if(confirm('Purger tout le dossier ?')){localStorage.removeItem('dossier-noir');location.reload()}}
+
+updateUI();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
