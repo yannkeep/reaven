@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse Stratégique : Propagande par le Code (2025-2026)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;600&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        gray: {
+                            950: '#020617',
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            700: '#334155',
+                        },
+                        code: '#10b981',
+                        fait: '#f43f5e',
+                        highlight: '#38bdf8'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #020617;
+            color: #cbd5e1;
+        }
+
+        <!-- Chosen Palette: Cyber-Analytical Dark (Slate 950 background, Emerald 500 for digital concepts, Rose 500 for historical/physical concepts, Light Blue for interactive highlights). -->
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 45vh;
+            min-height: 350px;
+            max-height: 500px;
+            padding: 1rem;
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid #334155;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 40vh;
+                min-height: 300px;
+            }
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .interactive-card {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border: 1px solid #334155;
+        }
+        .interactive-card:hover {
+            transform: translateX(4px);
+            border-color: #10b981;
+            background-color: rgba(16, 185, 129, 0.05);
+        }
+        .interactive-card.active {
+            border-color: #10b981;
+            background-color: rgba(16, 185, 129, 0.1);
+            border-left-width: 4px;
+        }
+
+        .cursor-blink::after {
+            content: '█';
+            animation: blink 1s step-start infinite;
+            color: #10b981;
+            margin-left: 2px;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+<body class="antialiased flex flex-col md:flex-row min-h-screen selection:bg-code selection:text-gray-950">
+
+    <!-- Application Structure Plan: 
+    The SPA is structured as a non-linear interactive dashboard, shifting away from a traditional document layout. 
+    It features a persistent left-hand navigation sidebar (or top bar on mobile) for constant context.
+    The main content is divided into 4 thematic sections:
+    1. Executive Summary: Sets the stage, explaining the core thesis (Dynamite vs. Git Push).
+    2. Le Changement de Paradigme (The Paradigm Shift): Uses a comparative radar chart to visually prove WHY digital action has replaced physical action based on the source's traits.
+    3. Le Terrain Belge (The Belgian Context 2024-2026): A timeline/trend analysis of the shift from strikes to digital leaks, grounding the theory in the report's specific timeline and events (e.g., 'Tous Fraudeurs').
+    4. Mécanique de l'Opération (Operation Mechanics): Explains the 'Fork, Hack, Spread' methodology through an interactive process explorer, allowing users to drill down into the 'how-to' without being overwhelmed by text.
+    This structure was chosen to guide the user from high-level concept -> comparative analysis -> concrete examples -> methodological details, prioritizing exploration and data visualization.
+    -->
+
+    <nav class="w-full md:w-72 bg-gray-900 border-b md:border-r border-gray-800 md:h-screen md:sticky top-0 z-50 flex flex-col justify-between shrink-0 shadow-2xl">
+        <div class="p-6 md:p-8">
+            <h1 class="text-2xl font-bold text-white font-mono tracking-tight mb-1 leading-tight">
+                <span class="text-code">>_</span> ANARCHIE<br>NUMÉRIQUE
+            </h1>
+            <p class="text-xs text-gray-500 mb-10 font-mono uppercase tracking-widest">Rapport Stratégique</p>
+            <ul class="space-y-1 hidden md:block" id="nav-links">
+                <li><a href="#synthese" class="nav-link block px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors font-medium" data-target="synthese">01. Synthèse</a></li>
+                <li><a href="#paradigme" class="nav-link block px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors font-medium" data-target="paradigme">02. Le Paradigme</a></li>
+                <li><a href="#contexte" class="nav-link block px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors font-medium" data-target="contexte">03. Le Cas Belge</a></li>
+                <li><a href="#methodologie" class="nav-link block px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors font-medium" data-target="methodologie">04. Mécanique</a></li>
+            </ul>
+        </div>
+        <div class="p-6 md:p-8 hidden md:block border-t border-gray-800 bg-gray-900/50">
+            <p class="text-[10px] text-gray-500 font-mono leading-relaxed">
+                DATA: ouaisfi.eu / ccplc<br>
+                DATE: Mars 2026<br>
+                LICENCE: CC BY-NC 4.0
+            </p>
+        </div>
+    </nav>
+
+    <main class="flex-1 overflow-y-auto px-4 py-12 md:p-12 lg:p-20 relative">
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-gray-800/20 via-gray-950 to-gray-950 -z-10"></div>
+        
+        <div class="max-w-6xl mx-auto space-y-32 pb-20">
+
+            <section id="synthese" class="scroll-mt-24">
+                <header class="mb-12">
+                    <div class="inline-block px-3 py-1 bg-code/10 border border-code/20 text-code font-mono text-xs rounded-full mb-4">INTRODUCTION</div>
+                    <h2 class="text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight">De la Dynamite au <span class="text-code cursor-blink">Git Push</span></h2>
+                    <p class="text-xl text-gray-400 font-light leading-relaxed max-w-3xl">
+                        Ce tableau de bord interactif modélise la mutation systémique de la contestation sociale en Belgique (2024-2026). L'action directe physique historique ("propagande par le fait") est obsolète, remplacée par une guerre asymétrique immatérielle : la <strong>propagande par le code</strong>.
+                    </p>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-gradient-to-br from-gray-900 to-gray-800 p-8 rounded-2xl border border-gray-800 shadow-lg relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4 text-fait/10 text-8xl font-black rotate-12 group-hover:rotate-6 transition-transform">💣</div>
+                        <div class="text-fait text-2xl mb-4 font-mono bg-fait/10 w-12 h-12 flex items-center justify-center rounded-lg border border-fait/20">1.0</div>
+                        <h3 class="text-2xl font-bold text-white mb-3">L'Ancien Modèle</h3>
+                        <p class="text-gray-400 mb-6 leading-relaxed">La "Propagande par le fait" (1880-1920). Occupation de l'espace, destruction physique, grèves paralysantes. Action directe cinétique illustrée par Ravachol, confrontée à une asymétrie de force défavorable.</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="px-3 py-1 bg-gray-950 border border-gray-700 text-xs rounded-md font-mono text-gray-400">Cinétique</span>
+                            <span class="px-3 py-1 bg-gray-950 border border-gray-700 text-xs rounded-md font-mono text-gray-400">Localisé</span>
+                            <span class="px-3 py-1 bg-gray-950 border border-fait/30 text-xs rounded-md font-mono text-fait">Risque Létal</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-gray-900 to-gray-800 p-8 rounded-2xl border border-code/30 shadow-[0_0_30px_rgba(16,185,129,0.05)] relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4 text-code/5 text-8xl font-black -rotate-12 group-hover:rotate-0 transition-transform">⌨</div>
+                        <div class="text-code text-2xl mb-4 font-mono bg-code/10 w-12 h-12 flex items-center justify-center rounded-lg border border-code/20">2.0</div>
+                        <h3 class="text-2xl font-bold text-white mb-3">Le Nouveau Modèle</h3>
+                        <p class="text-gray-400 mb-6 leading-relaxed">La "Propagande par le code" (2026). Anarchie algorithmique, OSINT citoyen, Civic Tech et fuites de données. Une guerre asymétrique menée sur des architectures décentralisées inviolables physiquement.</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="px-3 py-1 bg-code/10 border border-code/20 text-xs rounded-md font-mono text-code">Décentralisé</span>
+                            <span class="px-3 py-1 bg-code/10 border border-code/20 text-xs rounded-md font-mono text-code">Viralité Absolue</span>
+                            <span class="px-3 py-1 bg-code/10 border border-code/20 text-xs rounded-md font-mono text-code">OSINT</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Visualization & Content Choices: 
+            Report Info: Comparison of historical vs. modern anarchist tactics (traits like reach, cost, anonymity).
+            Goal: Compare.
+            Viz/Presentation Method: Radar Chart (Chart.js canvas).
+            Interaction: Hover over data points to see specific metric comparisons.
+            Justification: A radar chart perfectly illustrates a "profile" shift across multiple qualitative dimensions quantified for analysis, clearly showing how "Code" outperforms "Fait" in reach and safety while having lower physical cost.
+            Library/Method: Chart.js Canvas (NO SVG).
+            -->
+            <section id="paradigme" class="scroll-mt-24">
+                <header class="mb-10">
+                    <div class="inline-block px-3 py-1 bg-highlight/10 border border-highlight/20 text-highlight font-mono text-xs rounded-full mb-4">COMPARAISON</div>
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Anatomie de la Mutation</h2>
+                    <p class="text-lg text-gray-400 max-w-3xl">
+                        Pourquoi la contestation a-t-elle migré vers le numérique ? Ce modèle quantifie l'efficacité des deux vecteurs. Le code offre une portée mondiale pour un coût opérationnel et un risque quasi nuls, inversant l'asymétrie du pouvoir.
+                    </p>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-gray-900/50 p-6 md:p-8 rounded-2xl border border-gray-800">
+                    <div class="lg:col-span-8 w-full">
+                        <div class="chart-container">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-4 space-y-6">
+                        <h3 class="font-mono text-sm text-gray-500 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">Métriques Opérationnelles</h3>
+                        
+                        <div class="group">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <strong class="text-white text-sm">Portée (Reach)</strong>
+                                <span class="text-code font-mono text-xs">Instantanée</span>
+                            </div>
+                            <p class="text-xs text-gray-400 leading-relaxed">La dynamite touche une rue. Un <em>git push</em> ou un leak touche le monde entier instantanément et sans frontières.</p>
+                        </div>
+                        
+                        <div class="group">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <strong class="text-white text-sm">Anonymat</strong>
+                                <span class="text-code font-mono text-xs">Structurel</span>
+                            </div>
+                            <p class="text-xs text-gray-400 leading-relaxed">Les architectures décentralisées et le chiffrement offrent une couverture largement supérieure à l'action de rue surveillée.</p>
+                        </div>
+                        
+                        <div class="group">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <strong class="text-white text-sm">Coût de friction</strong>
+                                <span class="text-code font-mono text-xs">29€/mois</span>
+                            </div>
+                            <p class="text-xs text-gray-400 leading-relaxed">Déployer une infrastructure anti-censure ("Zero tracking") ne demande qu'un budget dérisoire comparé à l'organisation d'un mouvement social.</p>
+                        </div>
+
+                        <div class="group">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <strong class="text-white text-sm">Cible Stratégique</strong>
+                                <span class="text-highlight font-mono text-xs">Données</span>
+                            </div>
+                            <p class="text-xs text-gray-400 leading-relaxed">L'action numérique détruit des réputations et contourne les narratifs (ex: la polémique "Tous Fraudeurs"), sans jamais menacer l'intégrité physique.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Visualization & Content Choices: 
+            Report Info: The evolution of conflict in Belgium (2024-2026), specifically mentioning the decline of traditional strikes and the rise of digital leaks (like the 'Tous Fraudeurs' polemic).
+            Goal: Change/Trends over time.
+            Viz/Presentation Method: Line Chart (Chart.js canvas).
+            Interaction: Clickable legend to isolate physical vs. digital trends. Tooltips showing specific context.
+            Justification: Line charts are the standard and most intuitive way to show chronological trends and the crossing point where digital actions surpassed physical ones in the Belgian context.
+            Library/Method: Chart.js Canvas (NO SVG).
+            -->
+            <section id="contexte" class="scroll-mt-24">
+                <header class="mb-10">
+                    <div class="inline-block px-3 py-1 bg-code/10 border border-code/20 text-code font-mono text-xs rounded-full mb-4">CHRONOLOGIE</div>
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Le Cas Belge (2024-2026)</h2>
+                    <p class="text-lg text-gray-400 max-w-3xl">
+                        L'analyse des événements récents révèle un point de bascule critique. On observe le déclin de l'impact des manifestations traditionnelles au profit direct d'actions d'éclat numériques menées par des collectifs citoyens.
+                    </p>
+                </header>
+
+                <div class="bg-gray-900/50 p-6 md:p-8 rounded-2xl border border-gray-800 mb-8">
+                    <div class="chart-container">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <button class="text-left bg-gray-900 p-6 rounded-xl border-t-2 border-transparent hover:border-highlight transition-all group" onclick="highlightTimelinePoint(0)">
+                        <div class="text-highlight font-mono text-xs mb-2 bg-highlight/10 inline-block px-2 py-1 rounded">PHASE 1 : 2024</div>
+                        <h4 class="font-bold text-white mb-2 group-hover:text-highlight transition-colors">Résilience du Système</h4>
+                        <p class="text-sm text-gray-400">L'appareil étatique et productif se montre résilient aux grèves traditionnelles, générant une frustration stratégique chez les acteurs sociaux.</p>
+                    </button>
+                    <button class="text-left bg-gray-900 p-6 rounded-xl border-t-2 border-transparent hover:border-code transition-all group" onclick="highlightTimelinePoint(1)">
+                        <div class="text-code font-mono text-xs mb-2 bg-code/10 inline-block px-2 py-1 rounded">PHASE 2 : 2025</div>
+                        <h4 class="font-bold text-white mb-2 group-hover:text-code transition-colors">Affaire "Tous Fraudeurs"</h4>
+                        <p class="text-sm text-gray-400">Stigmatisation médiatique perçue via un documentaire. Déclenchement d'une contre-offensive asymétrique massive basée sur l'OSINT et l'analyse de données.</p>
+                    </button>
+                    <button class="text-left bg-gray-900 p-6 rounded-xl border-t-2 border-transparent hover:border-white transition-all group" onclick="highlightTimelinePoint(2)">
+                        <div class="text-white font-mono text-xs mb-2 bg-white/10 inline-block px-2 py-1 rounded">PHASE 3 : 2026</div>
+                        <h4 class="font-bold text-white mb-2">Contre-Institutions</h4>
+                        <p class="text-sm text-gray-400">Déploiement final d'architectures web souveraines (ex: ouaisfi.eu, ccplc) pour contourner la particratie. Le code devient un outil de législation citoyenne.</p>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Visualization & Content Choices: 
+            Report Info: The methodology of modern digital insurrection ("Fork, Hack, Spread") and its mechanisms (Zero tracking, OSINT, Civic Tech).
+            Goal: Organize & Explain Mechanisms.
+            Viz/Presentation Method: Interactive Grid Layout with dynamic detail panel.
+            Interaction: Clicking a concept card updates a central text panel with its definition and relevance to the report.
+            Justification: Avoids a wall of text. Allows users to explore the specific technical terms (Fork, OSINT, Zero-tracking) at their own pace, mimicking a 'hacker toolkit' exploration.
+            Library/Method: HTML/CSS/Tailwind + Vanilla JS DOM manipulation. (NO SVG).
+            -->
+            <section id="methodologie" class="scroll-mt-24">
+                <header class="mb-10">
+                    <div class="inline-block px-3 py-1 bg-code/10 border border-code/20 text-code font-mono text-xs rounded-full mb-4">DOCTRINE</div>
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Mécanique : Fork · Hack · Spread</h2>
+                    <p class="text-lg text-gray-400 max-w-3xl">
+                        Comment s'opère concrètement cette désobéissance numérique ? Explorez la doctrine opérationnelle et la boîte à outils technique (Civic Tech radicale) utilisée par les acteurs de terrain.
+                    </p>
+                </header>
+
+                <div class="flex flex-col lg:flex-row gap-8 bg-gray-900/30 p-2 rounded-2xl border border-gray-800/50">
+                    <div class="w-full lg:w-1/3 flex flex-col gap-2 p-2">
+                        <button class="interactive-card active text-left p-5 bg-gray-900 rounded-xl flex items-center justify-between group" data-concept="fork">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-mono text-code mb-1">ETAPE 1</span>
+                                <span class="font-bold text-white group-hover:text-code transition-colors">Fork (Appropriation)</span>
+                            </div>
+                            <span class="text-code text-2xl font-mono">⑂</span>
+                        </button>
+                        <button class="interactive-card text-left p-5 bg-gray-900 rounded-xl flex items-center justify-between group" data-concept="hack">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-mono text-gray-500 mb-1">ETAPE 2</span>
+                                <span class="font-bold text-gray-300 group-hover:text-code transition-colors">Hack (Détournement)</span>
+                            </div>
+                            <span class="text-gray-600 text-2xl font-mono group-hover:text-code transition-colors">⌨</span>
+                        </button>
+                        <button class="interactive-card text-left p-5 bg-gray-900 rounded-xl flex items-center justify-between group" data-concept="spread">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-mono text-gray-500 mb-1">ETAPE 3</span>
+                                <span class="font-bold text-gray-300 group-hover:text-code transition-colors">Spread (Viralité)</span>
+                            </div>
+                            <span class="text-gray-600 text-2xl font-mono group-hover:text-code transition-colors">⇶</span>
+                        </button>
+                        <div class="h-px bg-gray-800 my-2"></div>
+                        <button class="interactive-card text-left p-5 bg-gray-900 rounded-xl flex items-center justify-between group" data-concept="osint">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-mono text-highlight mb-1">OUTIL</span>
+                                <span class="font-bold text-gray-300 group-hover:text-highlight transition-colors">OSINT Citoyen</span>
+                            </div>
+                            <span class="text-gray-600 text-2xl font-mono group-hover:text-highlight transition-colors">👁</span>
+                        </button>
+                        <button class="interactive-card text-left p-5 bg-gray-900 rounded-xl flex items-center justify-between group" data-concept="infra">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-mono text-highlight mb-1">OUTIL</span>
+                                <span class="font-bold text-gray-300 group-hover:text-highlight transition-colors">Infra Anti-Censure</span>
+                            </div>
+                            <span class="text-gray-600 text-2xl font-mono group-hover:text-highlight transition-colors">🛡</span>
+                        </button>
+                    </div>
+
+                    <div class="w-full lg:w-2/3 bg-gray-950 p-8 rounded-xl border border-gray-800 relative flex flex-col justify-center min-h-[400px]">
+                        <div class="absolute top-0 left-0 w-full h-8 bg-gray-900 rounded-t-xl flex items-center px-4 gap-2 border-b border-gray-800">
+                            <div class="w-3 h-3 rounded-full bg-fait"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-code"></div>
+                            <span class="text-[10px] text-gray-500 font-mono ml-4 select-none">/usr/bin/doctrine_viewer</span>
+                        </div>
+                        
+                        <div class="mt-8 transition-opacity duration-300" id="concept-details">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <script>
+        const wrapLabel = (label, maxLength = 16) => {
+            if (label.length <= maxLength) return label;
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = '';
+            words.forEach(word => {
+                if ((currentLine + word).length > maxLength) {
+                    if (currentLine) lines.push(currentLine.trim());
+                    currentLine = word + ' ';
+                } else {
+                    currentLine += word + ' ';
+                }
+            });
+            if (currentLine) lines.push(currentLine.trim());
+            return lines;
+        };
+
+        const chartTooltipConfig = {
+            callbacks: {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    if (Array.isArray(label)) {
+                        return label.join(' ');
+                    }
+                    return label;
+                }
+            },
+            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+            titleFont: { size: 13, family: "'Fira Code', monospace" },
+            bodyFont: { size: 14, family: "'Inter', sans-serif" },
+            borderColor: '#334155',
+            borderWidth: 1,
+            padding: 12,
+            cornerRadius: 8
+        };
+
+        const conceptData = {
+            fork: {
+                title: "Fork : L'Appropriation",
+                tag: "ÉTAPE 01",
+                content: "Dans le contexte de la propagande par le code, le 'Fork' (copie d'un dépôt logiciel) représente la réappropriation citoyenne des outils numériques. Contrairement à l'anarchie historique qui devait détruire l'usine, l'anarchie algorithmique copie l'usine (le code open-source) pour créer une infrastructure parallèle indépendante de l'État."
+            },
+            hack: {
+                title: "Hack : Le Détournement",
+                tag: "ÉTAPE 02",
+                content: "Le hack n'est pas de la simple cybercriminalité, mais une action politique (Civic Tech radicale). Il s'agit d'identifier les failles narratives du pouvoir en place (ex: analyse forensique du documentaire 'Tous Fraudeurs') et d'utiliser le code pour démonter, analyser et contrecarrer la 'fabrique de l'ennemi intérieur'."
+            },
+            spread: {
+                title: "Spread : La Viralité",
+                tag: "ÉTAPE 03",
+                content: "La diffusion remplace l'explosion. En utilisant des licences ouvertes (CC BY-NC 4.0), le code et l'information subversive se propagent instantanément. Si un nœud tombe, mille autres prennent le relais (ex: GitHub Pages, réseaux décentralisés), rendant la censure techniquement impossible."
+            },
+            osint: {
+                title: "Open Source Intelligence",
+                tag: "OUTIL TACTIQUE",
+                content: "L'investigation basée sur les sources ouvertes (OSINT) est devenue l'arme principale pour contrer la communication étatique. En Belgique (2025-2026), des citoyens utilisent l'OSINT pour tracer les flux, exposer les conflits d'intérêts et rétablir des faits face aux polémiques médiatiques."
+            },
+            infra: {
+                title: "Infrastructures Anti-Censure",
+                tag: "ARCHITECTURE",
+                content: "Hébergement indépendant, 'Zero tracking', 'Zero cookies', et budgets minimaux (ex: 29€/mois) garantissent l'autonomie. La création de plateformes agit comme des 'contre-institutions' numériques inaccessibles aux pressions politiques ou judiciaires classiques."
+            }
+        };
+
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+
+        let radarChartInstance = null;
+        let timelineChartInstance = null;
+
+        function initCharts() {
+            const radarLabels = [
+                'Portée et Impact Global', 
+                'Anonymat et Sécurité', 
+                'Pérennité de la Mémoire', 
+                'Risque Légal et Physique', 
+                'Coût Financier et Humain'
+            ].map(l => wrapLabel(l));
+
+            const ctxRadar = document.getElementById('radarChart').getContext('2d');
+            radarChartInstance = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: radarLabels,
+                    datasets: [
+                        {
+                            label: 'Code (2026)',
+                            data: [10, 9, 8, 1, 1],
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            borderColor: '#10b981',
+                            pointBackgroundColor: '#10b981',
+                            pointBorderColor: '#020617',
+                            borderWidth: 2,
+                            pointRadius: 4
+                        },
+                        {
+                            label: 'Fait (1890)',
+                            data: [3, 2, 4, 10, 9],
+                            backgroundColor: 'rgba(244, 63, 94, 0.2)',
+                            borderColor: '#f43f5e',
+                            pointBackgroundColor: '#f43f5e',
+                            pointBorderColor: '#020617',
+                            borderWidth: 2,
+                            pointRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(51, 65, 85, 0.5)' },
+                            grid: { color: 'rgba(51, 65, 85, 0.5)' },
+                            pointLabels: { color: '#cbd5e1', font: { size: 11, family: "'Fira Code', monospace" } },
+                            ticks: { display: false, min: 0, max: 10 }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#cbd5e1', padding: 20, usePointStyle: true } },
+                        tooltip: chartTooltipConfig
+                    }
+                }
+            });
+
+            const timelineLabels = ['T1 2024', 'T3 2024', 'T1 2025', 'T3 2025 (Tous Fraudeurs)', 'T1 2026 (Contre-Institutions)'].map(l => wrapLabel(l));
+
+            const ctxTimeline = document.getElementById('timelineChart').getContext('2d');
+            timelineChartInstance = new Chart(ctxTimeline, {
+                type: 'line',
+                data: {
+                    labels: timelineLabels,
+                    datasets: [
+                        {
+                            label: 'Actions Numériques (Code, Leaks, OSINT)',
+                            data: [15, 25, 45, 85, 98],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 5,
+                            pointHoverRadius: 8,
+                            pointBackgroundColor: '#020617',
+                            pointBorderWidth: 2
+                        },
+                        {
+                            label: 'Actions Physiques (Grèves, Manifs)',
+                            data: [75, 65, 50, 30, 15],
+                            borderColor: '#f43f5e',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#020617'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(51, 65, 85, 0.3)', drawBorder: false },
+                            ticks: { font: { family: "'Fira Code', monospace", size: 10 } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(51, 65, 85, 0.3)', drawBorder: false },
+                            title: { display: true, text: 'Intensité / Impact', color: '#64748b', font: { size: 11, uppercase: true } },
+                            min: 0, max: 100,
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top', align: 'end', labels: { boxWidth: 12, usePointStyle: true, color: '#94a3b8' } },
+                        tooltip: chartTooltipConfig
+                    }
+                }
+            });
+        }
+
+        function updateConceptPanel(conceptKey) {
+            const data = conceptData[conceptKey];
+            const panel = document.getElementById('concept-details');
+            
+            panel.style.opacity = 0;
+            
+            setTimeout(() => {
+                panel.innerHTML = `
+                    <div class="inline-block px-2 py-1 bg-gray-800 text-gray-400 font-mono text-xs rounded mb-4">${data.tag}</div>
+                    <h3 class="text-3xl font-bold text-white mb-6 font-mono tracking-tight">${data.title}</h3>
+                    <p class="text-gray-300 leading-relaxed text-lg">${data.content}</p>
+                `;
+                panel.style.opacity = 1;
+            }, 200);
+        }
+
+        document.querySelectorAll('.interactive-card').forEach(button => {
+            button.addEventListener('click', (e) => {
+                document.querySelectorAll('.interactive-card').forEach(b => {
+                    b.classList.remove('active');
+                    const titleSpan = b.querySelector('span.font-bold');
+                    const iconSpan = b.querySelector('span.text-2xl');
+                    
+                    if(b.dataset.concept === 'osint' || b.dataset.concept === 'infra') {
+                         titleSpan.className = 'font-bold text-gray-300 group-hover:text-highlight transition-colors';
+                         iconSpan.className = 'text-gray-600 text-2xl font-mono group-hover:text-highlight transition-colors';
+                    } else {
+                         titleSpan.className = 'font-bold text-gray-300 group-hover:text-code transition-colors';
+                         iconSpan.className = 'text-gray-600 text-2xl font-mono group-hover:text-code transition-colors';
+                    }
+                });
+                
+                const btn = e.currentTarget;
+                btn.classList.add('active');
+                
+                const activeTitleSpan = btn.querySelector('span.font-bold');
+                const activeIconSpan = btn.querySelector('span.text-2xl');
+                
+                if(btn.dataset.concept === 'osint' || btn.dataset.concept === 'infra') {
+                    activeTitleSpan.className = 'font-bold text-white';
+                    activeIconSpan.className = 'text-highlight text-2xl font-mono';
+                } else {
+                    activeTitleSpan.className = 'font-bold text-white';
+                    activeIconSpan.className = 'text-code text-2xl font-mono';
+                }
+                
+                updateConceptPanel(btn.dataset.concept);
+            });
+        });
+
+        window.highlightTimelinePoint = function(index) {
+            if(timelineChartInstance) {
+                const chart = timelineChartInstance;
+                const offsetIndex = index + 2; 
+                const meta = chart.getDatasetMeta(0);
+                const point = meta.data[offsetIndex];
+
+                if(point) {
+                    chart.tooltip.setActiveElements([
+                        {datasetIndex: 0, index: offsetIndex},
+                        {datasetIndex: 1, index: offsetIndex}
+                    ], {x: point.x, y: point.y});
+                    chart.update();
+                }
+            }
+        };
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '-30% 0px -50% 0px',
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    document.querySelectorAll('.nav-link').forEach(link => {
+                        link.classList.remove('text-white', 'bg-gray-800');
+                        link.classList.add('text-gray-400');
+                    });
+                    
+                    const activeId = entry.target.id;
+                    const activeLink = document.querySelector(`.nav-link[data-target="${activeId}"]`);
+                    if (activeLink) {
+                        activeLink.classList.remove('text-gray-400');
+                        activeLink.classList.add('text-white', 'bg-gray-800');
+                    }
+                }
+            });
+        }, observerOptions);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('section').forEach(section => {
+                observer.observe(section);
+            });
+            updateConceptPanel('fork');
+            setTimeout(initCharts, 150);
+        });
+
+    </script>
+</body>
+</html>
