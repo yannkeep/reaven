@@ -1,0 +1,1450 @@
+
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"><script type="text/javascript" src="PTALtoolkit_fichiers/25ctb6x39gaNYshI1478TBqrDMYcYpAS-Y4Us6Zlk-2T0dDTcowOBhTE75ZyiKgL"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission #0</title>
+    <script src="PTALtoolkit_fichiers/marked.min.js"></script>
+    <script src="PTALtoolkit_fichiers/highlight.min.js"></script>
+    <script src="PTALtoolkit_fichiers/mermaid.min.js"></script>
+    <link rel="stylesheet" href="PTALtoolkit_fichiers/tokyo-night-dark.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --lilac: #b19cd9;
+            --lilac-bright: #c9b3ff;
+            --lilac-dim: #9575cd;
+            --purple: #8b5cf6;
+            --terminal-green: #00ff41;
+            --terminal-green-bright: #39ff14;
+            --bg-light: #f5f3f7;
+            --bg-lighter: #faf9fb;
+            --glass-bg: rgba(245, 243, 247, 0.85);
+            --text-dark: #2d1b3d;
+            --editor-bg: #ffffff;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+
+        @keyframes glow-pulse {
+            0%, 100% { filter: drop-shadow(0 0 3px var(--lilac)) drop-shadow(0 0 8px var(--lilac)); }
+            50% { filter: drop-shadow(0 0 6px var(--lilac-bright)) drop-shadow(0 0 12px var(--lilac-bright)); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: var(--bg-lighter);
+            color: var(--text-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--lilac), transparent);
+            animation: scanline 8s linear infinite;
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .container {
+            max-width: 100vw;
+            margin: 0 auto;
+            padding: 1rem;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            border-bottom: 2px solid var(--lilac);
+            box-shadow: 0 2px 20px rgba(177, 156, 217, 0.3);
+            margin-bottom: 1rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 12px 12px 0 0;
+        }
+
+        h1 {
+            font-size: clamp(1.2rem, 4vw, 2rem);
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            animation: glow-pulse 3s ease-in-out infinite;
+            text-shadow: 0 0 10px var(--lilac), 0 0 20px var(--lilac);
+            color: var(--lilac-dim);
+        }
+
+        .subtitle {
+            color: var(--terminal-green);
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
+            letter-spacing: 0.2em;
+            text-shadow: 0 0 5px var(--terminal-green);
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.8rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--lilac);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .toolbar-btn {
+            background: rgba(177, 156, 217, 0.2);
+            border: 1px solid var(--lilac);
+            color: var(--lilac-dim);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .toolbar-btn:hover {
+            background: rgba(177, 156, 217, 0.4);
+            box-shadow: 0 0 15px rgba(177, 156, 217, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .toolbar-btn.active {
+            background: rgba(0, 255, 65, 0.2);
+            border-color: var(--terminal-green);
+            color: var(--terminal-green);
+        }
+
+        .toolbar-separator {
+            width: 1px;
+            height: 30px;
+            background: var(--lilac);
+            opacity: 0.3;
+        }
+
+        .filename-input {
+            flex: 1;
+            min-width: 200px;
+            background: white;
+            border: 1px solid var(--lilac-dim);
+            color: var(--text-dark);
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .filename-input:focus {
+            outline: none;
+            border-color: var(--lilac);
+            box-shadow: 0 0 10px rgba(177, 156, 217, 0.3);
+        }
+
+        .workspace {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 1rem;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            background: var(--glass-bg);
+            border: 2px solid var(--terminal-green);
+            border-radius: 8px;
+            padding: 1rem;
+            backdrop-filter: blur(10px);
+            overflow-y: auto;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-title {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--terminal-green);
+            text-shadow: 0 0 8px var(--terminal-green);
+            border-bottom: 1px solid var(--terminal-green);
+            padding-bottom: 0.5rem;
+        }
+
+        .folder-path {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            color: var(--terminal-green);
+            word-break: break-all;
+        }
+
+        .file-tree {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .file-item, .folder-item {
+            padding: 0.6rem;
+            margin-bottom: 0.4rem;
+            border: 1px solid var(--lilac-dim);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .file-item:hover, .folder-item:hover {
+            border-color: var(--lilac);
+            background: rgba(177, 156, 217, 0.2);
+            transform: translateX(5px);
+        }
+
+        .file-item.active {
+            border-color: var(--terminal-green);
+            background: rgba(0, 255, 65, 0.15);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+        }
+
+        .folder-item {
+            font-weight: bold;
+            background: rgba(177, 156, 217, 0.1);
+        }
+
+        .file-icon, .folder-icon {
+            font-size: 1rem;
+            min-width: 1rem;
+        }
+
+        .file-name, .folder-name {
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .file-item.active .file-name {
+            color: var(--terminal-green-bright);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--lilac);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(177, 156, 217, 0.05);
+            font-size: 0.8rem;
+        }
+
+        .upload-area:hover {
+            border-color: var(--purple);
+            background: rgba(177, 156, 217, 0.1);
+            box-shadow: 0 0 20px rgba(177, 156, 217, 0.2);
+        }
+
+        .upload-area.drag-over {
+            border-color: var(--terminal-green);
+            background: rgba(0, 255, 65, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 2rem;
+            color: var(--lilac);
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .editor-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            overflow: hidden;
+        }
+
+        .editor-container.preview-only {
+            grid-template-columns: 1fr;
+        }
+
+        .editor-container.editor-only {
+            grid-template-columns: 1fr;
+        }
+
+        .editor-panel, .preview-panel {
+            background: white;
+            border: 2px solid var(--lilac);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(177, 156, 217, 0.2);
+        }
+
+        .panel-header {
+            background: var(--lilac);
+            color: white;
+            padding: 0.6rem 1rem;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-tools {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .panel-tool-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .panel-tool-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .editor-textarea {
+            flex: 1;
+            padding: 1.5rem;
+            border: none;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            resize: none;
+            color: var(--text-dark);
+            background: var(--editor-bg);
+        }
+
+        .editor-textarea:focus {
+            outline: none;
+        }
+
+        .preview-content {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            line-height: 1.8;
+        }
+
+        .preview-content h1,
+        .preview-content h2,
+        .preview-content h3,
+        .preview-content h4,
+        .preview-content h5,
+        .preview-content h6 {
+            color: var(--lilac-dim);
+            margin: 2rem 0 1rem;
+            text-shadow: 0 0 5px rgba(177, 156, 217, 0.3);
+            border-bottom: 2px solid var(--lilac);
+            padding-bottom: 0.5rem;
+        }
+
+        .preview-content h1 { font-size: 2rem; }
+        .preview-content h2 { font-size: 1.6rem; }
+        .preview-content h3 { font-size: 1.3rem; }
+
+        .preview-content p {
+            margin: 1rem 0;
+        }
+
+        .preview-content a {
+            color: var(--purple);
+            text-decoration: none;
+            border-bottom: 1px solid var(--purple);
+        }
+
+        .preview-content code {
+            background: rgba(177, 156, 217, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            color: var(--purple);
+            font-size: 0.9em;
+            border: 1px solid var(--lilac);
+        }
+
+        .preview-content pre {
+            background: #1a1b26;
+            border: 2px solid var(--terminal-green);
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        .preview-content pre code {
+            background: none;
+            border: none;
+            padding: 0;
+            color: var(--terminal-green);
+        }
+
+        .preview-content blockquote {
+            border-left: 4px solid var(--lilac);
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            color: var(--lilac-dim);
+            font-style: italic;
+            background: rgba(177, 156, 217, 0.05);
+            padding: 1rem 1.5rem;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .preview-content ul, .preview-content ol {
+            margin: 1rem 0 1rem 2rem;
+        }
+
+        .preview-content li {
+            margin: 0.5rem 0;
+        }
+
+        .preview-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 2px solid var(--lilac);
+            margin: 1.5rem 0;
+        }
+
+        .preview-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            border: 2px solid var(--lilac);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .preview-content th {
+            background: var(--lilac);
+            color: white;
+            padding: 0.8rem;
+            text-align: left;
+        }
+
+        .preview-content td {
+            padding: 0.6rem 0.8rem;
+            border-bottom: 1px solid var(--lilac);
+        }
+
+        .preview-content tr:hover {
+            background: rgba(177, 156, 217, 0.1);
+        }
+
+        .mermaid {
+            background: rgba(177, 156, 217, 0.05);
+            padding: 2rem;
+            border-radius: 8px;
+            border: 2px solid var(--lilac);
+            margin: 1.5rem 0;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--glass-bg);
+            border: 2px solid var(--lilac);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            color: var(--text-dark);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(177, 156, 217, 0.3);
+            z-index: 3000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .toast.active {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .stats-bar {
+            background: var(--glass-bg);
+            border-top: 1px solid var(--lilac);
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            color: var(--lilac-dim);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .error-message {
+            background: rgba(255, 100, 100, 0.1);
+            border: 2px solid #ff6464;
+            border-radius: 8px;
+            padding: 1rem;
+            color: #ff8888;
+            margin: 1rem;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--lilac);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(177, 156, 217, 0.1);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--lilac);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--lilac-bright);
+        }
+
+        @media (max-width: 1200px) {
+            .workspace {
+                grid-template-columns: 200px 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                max-height: 200px;
+            }
+
+            .editor-container {
+                grid-template-columns: 1fr;
+            }
+
+            .toolbar {
+                flex-direction: column;
+            }
+
+            .filename-input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container"><a href="https://ouaisfieu.github.io/sky/mobile.html">
+        <header>
+            <h1>◉ Recrue-Zone</h1>
+            <div class="subtitle">[ edit.preview.export.markdown ]</div>
+        </header></a>
+
+        <div class="toolbar">
+            <button class="toolbar-btn" onclick="newFile()" title="Nouveau fichier">
+                📄 Nouveau
+            </button>
+            <button class="toolbar-btn" onclick="saveToFolder()" title="Sauvegarder dans le dossier">
+                💾 Sauvegarder
+            </button>
+            <button class="toolbar-btn" onclick="exportMd()" title="Exporter .md">
+                📥 Export MD
+            </button>
+            <button class="toolbar-btn" onclick="exportHtml()" title="Exporter HTML">
+                🌐 Export HTML
+            </button>
+            <button class="toolbar-btn" onclick="refreshFolder()" title="Rafraîchir le dossier">
+                🔄 Refresh
+            </button>
+            
+            <div class="toolbar-separator"></div>
+            
+            <button class="toolbar-btn active" id="viewSplit" onclick="setView('split')" title="Vue partagée">
+                ⚏ Split
+            </button>
+            <button class="toolbar-btn" id="viewEditor" onclick="setView('editor')" title="Éditeur seul">
+                ✏️ Edit
+            </button>
+            <button class="toolbar-btn" id="viewPreview" onclick="setView('preview')" title="Aperçu seul">
+                👁️ Preview
+            </button>
+            
+            <div class="toolbar-separator"></div>
+            
+            <input type="text" class="filename-input" id="filenameInput" placeholder="nom-du-fichier.md" value="offre.md">
+        </div>
+
+        <div class="workspace">
+            <div class="sidebar">
+                <h3 class="sidebar-title">⟩ Fichiers</h3>
+                
+                <div class="folder-path">📁 ./markdown/</div>
+                
+                <label for="fileInput" class="upload-area" id="uploadArea">
+                    <div class="upload-icon">⬆</div>
+                    <div>Charger .md</div>
+                </label>
+                <input type="file" id="fileInput" accept=".md,.markdown" multiple="">
+                
+                <div class="file-tree" id="fileTree">
+                <div class="file-item active" onclick="openFile(0)">
+                    <span class="file-icon">📄</span>
+                    <div class="file-name">offre.md</div>
+                </div>
+            
+                <div class="file-item " onclick="openFile(1)">
+                    <span class="file-icon">📄</span>
+                    <div class="file-name">WARNING.md</div>
+                </div>
+            
+                <div class="file-item " onclick="openFile(2)">
+                    <span class="file-icon">📄</span>
+                    <div class="file-name">avertissement.md</div>
+                </div>
+            
+                <div class="file-item " onclick="openFile(3)">
+                    <span class="file-icon">📄</span>
+                    <div class="file-name">mission.md</div>
+                </div>
+            </div>
+            </div>
+
+            <div class="editor-container" id="editorContainer">
+                <div class="editor-panel" id="editorPanel">
+                    <div class="panel-header">
+                        ✏️ Éditeur
+                        <div class="panel-tools">
+                            <button class="panel-tool-btn" onclick="insertText('# ')" title="Titre">H</button>
+                            <button class="panel-tool-btn" onclick="insertText('**', '**')" title="Gras">B</button>
+                            <button class="panel-tool-btn" onclick="insertText('*', '*')" title="Italique">I</button>
+                            <button class="panel-tool-btn" onclick="insertText('`', '`')" title="Code">{ }</button>
+                            <button class="panel-tool-btn" onclick="insertText('[', '](url)')" title="Lien">🔗</button>
+                            <button class="panel-tool-btn" onclick="insertText('- ')" title="Liste">•</button>
+                        </div>
+                    </div>
+                    <textarea class="editor-textarea" id="editor" placeholder="Sélectionnez un fichier ou créez-en un nouveau...">Voici
+ une **offre d’emploi complète**, **professionnelle mais détendue**, 
+compréhensible par le **grand public**, avec un ton **sérieux sans être 
+rigide**, adaptée au **secteur de l’éducation permanente** et à l’idée 
+d’une **réserve de recrutement avec horizon long**.
+
+---
+
+# Offre d’emploi
+
+## Constitution d’une réserve de recrutement
+
+**Secteur : Éducation permanente**
+
+### Entrée en fonction possible : **1er janvier 2030**
+
+*(avec collaborations, expérimentations et surprises possibles d’ici 
+là)*
+
+---
+
+### Qui sommes-nous ?
+
+Le **CCPLC – Collectif Citoyen pour la Participation Libre (et 
+Consciente)** est une initiative indépendante active dans le champ de 
+l’éducation permanente, de la culture numérique critique et de 
+l’émancipation citoyenne.
+
+Nos actions se situent à la croisée de :
+
+* l’analyse des systèmes numériques,
+* la transmission de savoirs accessibles,
+* l’expérimentation pédagogique,
+* et la participation citoyenne.
+
+Nous travaillons sur le temps long, avec une approche progressive, 
+ouverte et documentée.
+Ici, on construit, on teste, on apprend — parfois sérieusement, parfois 
+de manière plus ludique, mais toujours avec du sens.
+
+---
+
+### Pourquoi cette offre maintenant ?
+
+Nous constituons **une réserve de recrutement** en vue de développements
+ futurs, avec une **entrée en fonction possible à partir du 1er janvier 
+2030**.
+
+D’ici là, le collectif continuera à évoluer, à expérimenter et à 
+proposer :
+
+* des collaborations ponctuelles,
+* des projets pilotes,
+* des dispositifs pédagogiques originaux,
+* et quelques surprises que nous préférons ne pas dévoiler trop tôt 😉
+
+Cette réserve vise à **créer des liens**, identifier des profils, et 
+préparer l’avenir sans précipitation.
+
+---
+
+### Profils recherchés (non exclusifs)
+
+Nous sommes intéressés par des personnes qui se reconnaissent dans 
+**l’éducation permanente**, au sens large, et qui peuvent apporter une 
+ou plusieurs de ces dimensions :
+
+* animation ou facilitation de groupes
+* pédagogie critique et populaire
+* éducation aux médias et au numérique
+* analyse sociétale, économique ou technologique
+* écriture, vulgarisation, documentation
+* conception de dispositifs éducatifs (classiques ou expérimentaux)
+* coordination de projets collectifs
+
+👉 Les parcours atypiques sont **bienvenus**.
+👉 L’expérience associative, militante ou informelle est **prise en 
+compte**.
+
+---
+
+### Ce que nous proposons
+
+À ce stade :
+
+* une **inscription dans une réserve de recrutement**, sans obligation 
+immédiate,
+* la possibilité d’être tenu·e informé·e des projets, appels à 
+participation et opportunités,
+* des collaborations ponctuelles éventuelles, selon les envies et 
+disponibilités,
+* une perspective d’entrée en fonction **à moyen / long terme** (horizon
+ 2030).
+
+À terme :
+
+* un cadre de travail cohérent avec les valeurs de l’éducation 
+permanente,
+* une attention portée à l’autonomie, à la compréhension et à la 
+participation,
+* un environnement qui laisse de la place à l’expérimentation et à 
+l’intelligence collective.
+
+---
+
+### Conditions
+
+* Secteur : **Éducation permanente**
+* Localisation : principalement **Belgique** (modalités hybrides 
+possibles)
+* Statut et conditions : à définir ultérieurement, selon les projets et 
+les cadres disponibles
+* Entrée en fonction possible : **01/01/2030**
+
+---
+
+### Intéressé·e ?
+
+Si cette démarche vous parle, même partiellement, vous pouvez :
+
+* manifester votre intérêt,
+* poser des questions,
+* ou simplement entrer en contact pour échanger.
+
+Aucun CV “parfait” n’est requis à ce stade.
+Un message clair, honnête et personnel vaut souvent mieux qu’un dossier 
+formaté.
+
+📩 **Contact :** [contact@ccplc.eu](https://ouaisfieu.github.io/ccplc/)
+
+---
+
+*Construire prend du temps.
+L’éducation permanente aussi.*
+</textarea>
+                    <div class="stats-bar">
+                        <div class="stat-item">📝 <span id="charCount">3740</span> caractères</div>
+                        <div class="stat-item">📊 <span id="wordCount">536</span> mots</div>
+                        <div class="stat-item">📄 <span id="lineCount">108</span> lignes</div>
+                    </div>
+                </div>
+
+                <div class="preview-panel" id="previewPanel">
+                    <div class="panel-header">
+                        👁️ Aperçu en temps réel
+                    </div>
+                    <div class="preview-content" id="preview"><p>Voici une <strong>offre d’emploi complète</strong>, <strong>professionnelle mais détendue</strong>, compréhensible par le <strong>grand public</strong>, avec un ton <strong>sérieux sans être rigide</strong>, adaptée au <strong>secteur de l’éducation permanente</strong> et à l’idée d’une <strong>réserve de recrutement avec horizon long</strong>.</p>
+<hr>
+<h1>Offre d’emploi</h1>
+<h2>Constitution d’une réserve de recrutement</h2>
+<p><strong>Secteur : Éducation permanente</strong></p>
+<h3>Entrée en fonction possible : <strong>1er janvier 2030</strong></h3>
+<p><em>(avec collaborations, expérimentations et surprises possibles d’ici là)</em></p>
+<hr>
+<h3>Qui sommes-nous ?</h3>
+<p>Le <strong>CCPLC – Collectif Citoyen pour la Participation Libre (et Consciente)</strong>
+ est une initiative indépendante active dans le champ de l’éducation 
+permanente, de la culture numérique critique et de l’émancipation 
+citoyenne.</p>
+<p>Nos actions se situent à la croisée de :</p>
+<ul>
+<li>l’analyse des systèmes numériques,</li>
+<li>la transmission de savoirs accessibles,</li>
+<li>l’expérimentation pédagogique,</li>
+<li>et la participation citoyenne.</li>
+</ul>
+<p>Nous travaillons sur le temps long, avec une approche progressive, ouverte et documentée.<br>Ici, on construit, on teste, on apprend — parfois sérieusement, parfois de manière plus ludique, mais toujours avec du sens.</p>
+<hr>
+<h3>Pourquoi cette offre maintenant ?</h3>
+<p>Nous constituons <strong>une réserve de recrutement</strong> en vue de développements futurs, avec une <strong>entrée en fonction possible à partir du 1er janvier 2030</strong>.</p>
+<p>D’ici là, le collectif continuera à évoluer, à expérimenter et à proposer :</p>
+<ul>
+<li>des collaborations ponctuelles,</li>
+<li>des projets pilotes,</li>
+<li>des dispositifs pédagogiques originaux,</li>
+<li>et quelques surprises que nous préférons ne pas dévoiler trop tôt 😉</li>
+</ul>
+<p>Cette réserve vise à <strong>créer des liens</strong>, identifier des profils, et préparer l’avenir sans précipitation.</p>
+<hr>
+<h3>Profils recherchés (non exclusifs)</h3>
+<p>Nous sommes intéressés par des personnes qui se reconnaissent dans <strong>l’éducation permanente</strong>, au sens large, et qui peuvent apporter une ou plusieurs de ces dimensions :</p>
+<ul>
+<li>animation ou facilitation de groupes</li>
+<li>pédagogie critique et populaire</li>
+<li>éducation aux médias et au numérique</li>
+<li>analyse sociétale, économique ou technologique</li>
+<li>écriture, vulgarisation, documentation</li>
+<li>conception de dispositifs éducatifs (classiques ou expérimentaux)</li>
+<li>coordination de projets collectifs</li>
+</ul>
+<p>👉 Les parcours atypiques sont <strong>bienvenus</strong>.<br>👉 L’expérience associative, militante ou informelle est <strong>prise en compte</strong>.</p>
+<hr>
+<h3>Ce que nous proposons</h3>
+<p>À ce stade :</p>
+<ul>
+<li>une <strong>inscription dans une réserve de recrutement</strong>, sans obligation immédiate,</li>
+<li>la possibilité d’être tenu·e informé·e des projets, appels à participation et opportunités,</li>
+<li>des collaborations ponctuelles éventuelles, selon les envies et disponibilités,</li>
+<li>une perspective d’entrée en fonction <strong>à moyen / long terme</strong> (horizon 2030).</li>
+</ul>
+<p>À terme :</p>
+<ul>
+<li>un cadre de travail cohérent avec les valeurs de l’éducation permanente,</li>
+<li>une attention portée à l’autonomie, à la compréhension et à la participation,</li>
+<li>un environnement qui laisse de la place à l’expérimentation et à l’intelligence collective.</li>
+</ul>
+<hr>
+<h3>Conditions</h3>
+<ul>
+<li>Secteur : <strong>Éducation permanente</strong></li>
+<li>Localisation : principalement <strong>Belgique</strong> (modalités hybrides possibles)</li>
+<li>Statut et conditions : à définir ultérieurement, selon les projets et les cadres disponibles</li>
+<li>Entrée en fonction possible : <strong>01/01/2030</strong></li>
+</ul>
+<hr>
+<h3>Intéressé·e ?</h3>
+<p>Si cette démarche vous parle, même partiellement, vous pouvez :</p>
+<ul>
+<li>manifester votre intérêt,</li>
+<li>poser des questions,</li>
+<li>ou simplement entrer en contact pour échanger.</li>
+</ul>
+<p>Aucun CV “parfait” n’est requis à ce stade.<br>Un message clair, honnête et personnel vaut souvent mieux qu’un dossier formaté.</p>
+<p>📩 <strong>Contact :</strong> <a href="https://ouaisfieu.github.io/ccplc/">contact@ccplc.eu</a></p>
+<hr>
+<p><em>Construire prend du temps.<br>L’éducation permanente aussi.</em></p>
+</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">✅ 4 fichier(s) chargé(s)</div>
+
+    <script>
+        const MARKDOWN_FOLDER = './markdown/';
+        let files = [];
+        let currentFile = null;
+        let currentView = 'split';
+
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#b19cd9',
+                primaryTextColor: '#2d1b3d',
+                primaryBorderColor: '#b19cd9',
+                lineColor: '#8b5cf6',
+                secondaryColor: '#c9b3ff',
+                tertiaryColor: '#f5f3f7'
+            }
+        });
+
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    try {
+                        return hljs.highlight(code, { language: lang }).value;
+                    } catch (err) {}
+                }
+                return hljs.highlightAuto(code).value;
+            },
+            breaks: true,
+            gfm: true,
+            mangle: false,
+            headerIds: true
+        });
+
+        const editor = document.getElementById('editor');
+        const preview = document.getElementById('preview');
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const fileTree = document.getElementById('fileTree');
+        const filenameInput = document.getElementById('filenameInput');
+        const editorContainer = document.getElementById('editorContainer');
+
+        // Liste des fichiers à charger
+        const markdownFiles = [
+            'offre.md',
+            'WARNING.md',
+            'avertissement.md',
+            'mission.md'
+        ];
+
+        // Charger les fichiers au démarrage
+        async function loadFolder() {
+            fileTree.innerHTML = '<div class="loading">🔄 Chargement des fichiers...</div>';
+            
+            const loadedFiles = [];
+            
+            for (const filename of markdownFiles) {
+                try {
+                    const response = await fetch(MARKDOWN_FOLDER + filename);
+                    if (response.ok) {
+                        const content = await response.text();
+                        loadedFiles.push({
+                            name: filename,
+                            content: content,
+                            path: MARKDOWN_FOLDER + filename,
+                            fromFolder: true
+                        });
+                    }
+                } catch (error) {
+                    console.log(`Fichier ${filename} non trouvé`);
+                }
+            }
+            
+            files = loadedFiles;
+            
+            if (files.length === 0) {
+                fileTree.innerHTML = `
+                    <div class="error-message">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📂</div>
+                        <div>Aucun fichier trouvé</div>
+                        <div style="font-size: 0.8rem; margin-top: 0.5rem; opacity: 0.8;">
+                            Créez un dossier "markdown" avec des fichiers .md
+                        </div>
+                    </div>
+                `;
+            } else {
+                updateFileTree();
+                openFile(0);
+                showToast(`✅ ${files.length} fichier(s) chargé(s)`);
+            }
+        }
+
+        function updateFileTree() {
+            if (files.length === 0) {
+                fileTree.innerHTML = '<div style="padding: 1rem; text-align: center; color: var(--lilac-dim); font-size: 0.8rem;">Aucun fichier</div>';
+                return;
+            }
+
+            fileTree.innerHTML = files.map((file, index) => `
+                <div class="file-item ${currentFile && currentFile.name === file.name ? 'active' : ''}" onclick="openFile(${index})">
+                    <span class="file-icon">${file.fromFolder ? '📄' : '📝'}</span>
+                    <div class="file-name">${file.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function openFile(index) {
+            currentFile = files[index];
+            editor.value = currentFile.content;
+            filenameInput.value = currentFile.name;
+            updatePreview();
+            updateStats();
+            updateFileTree();
+        }
+
+        function refreshFolder() {
+            showToast('🔄 Rechargement...');
+            loadFolder();
+        }
+
+        // Live preview
+        editor.addEventListener('input', () => {
+            updatePreview();
+            updateStats();
+            if (currentFile) {
+                currentFile.content = editor.value;
+                currentFile.modified = true;
+            }
+        });
+
+        function updatePreview() {
+            let html = marked.parse(editor.value);
+            html = html.replace(/<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g, 
+                '<div class="mermaid">$1</div>');
+            preview.innerHTML = html;
+            
+            mermaid.run({
+                querySelector: '.mermaid'
+            });
+        }
+
+        function updateStats() {
+            const text = editor.value;
+            document.getElementById('charCount').textContent = text.length;
+            document.getElementById('wordCount').textContent = text.trim() ? text.trim().split(/\s+/).length : 0;
+            document.getElementById('lineCount').textContent = text.split('\n').length;
+        }
+
+        // Drag & Drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => {
+                uploadArea.classList.add('drag-over');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => {
+                uploadArea.classList.remove('drag-over');
+            });
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            const droppedFiles = Array.from(e.dataTransfer.files);
+            handleFiles(droppedFiles);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const selectedFiles = Array.from(e.target.files);
+            handleFiles(selectedFiles);
+            fileInput.value = '';
+        });
+
+        function handleFiles(fileArray) {
+            fileArray.forEach(file => {
+                if (file.name.endsWith('.md') || file.name.endsWith('.markdown')) {
+                    loadUploadedFile(file);
+                } else {
+                    showToast(`❌ "${file.name}" n'est pas un fichier Markdown`);
+                }
+            });
+        }
+
+        function loadUploadedFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const fileData = {
+                    name: file.name,
+                    content: e.target.result,
+                    fromFolder: false,
+                    modified: false
+                };
+                
+                const existingIndex = files.findIndex(f => f.name === file.name);
+                if (existingIndex !== -1) {
+                    files[existingIndex] = fileData;
+                    showToast(`📝 "${file.name}" mis à jour`);
+                } else {
+                    files.push(fileData);
+                    showToast(`✅ "${file.name}" chargé`);
+                }
+                
+                updateFileTree();
+                openFile(existingIndex !== -1 ? existingIndex : files.length - 1);
+            };
+            reader.readAsText(file);
+        }
+
+        function newFile() {
+            const fileName = `nouveau-${Date.now()}.md`;
+            files.push({
+                name: fileName,
+                content: '# Nouveau document\n\nCommencez à écrire ici...',
+                fromFolder: false,
+                modified: true
+            });
+            updateFileTree();
+            openFile(files.length - 1);
+            showToast('📄 Nouveau fichier créé');
+        }
+
+        function saveToFolder() {
+            if (!currentFile) {
+                showToast('❌ Aucun fichier à sauvegarder');
+                return;
+            }
+
+            const content = editor.value;
+            const filename = filenameInput.value || currentFile.name;
+            
+            // Mise à jour du fichier en mémoire
+            currentFile.content = content;
+            currentFile.name = filename;
+            currentFile.modified = false;
+            
+            // Export automatique
+            const blob = new Blob([content], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            updateFileTree();
+            showToast(`💾 "${filename}" sauvegardé`);
+        }
+
+        function exportMd() {
+            const content = editor.value;
+            const filename = filenameInput.value || currentFile?.name || 'document.md';
+            
+            if (!content.trim()) {
+                showToast('❌ Aucun contenu à exporter');
+                return;
+            }
+            
+            const blob = new Blob([content], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast(`📥 "${filename}" exporté`);
+        }
+
+        function exportHtml() {
+            const content = editor.value;
+            const filename = (filenameInput.value || currentFile?.name || 'document.md').replace('.md', '.html');
+            
+            if (!content.trim()) {
+                showToast('❌ Aucun contenu à exporter');
+                return;
+            }
+            
+            const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${filename.replace('.html', '')}</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            max-width: 800px; 
+            margin: 2rem auto; 
+            padding: 0 2rem; 
+            line-height: 1.6;
+            color: #2d1b3d;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #9575cd;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #b19cd9;
+            padding-bottom: 0.5rem;
+        }
+        code { 
+            background: #f4f4f4; 
+            padding: 0.2rem 0.4rem; 
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #8b5cf6;
+            border: 1px solid #b19cd9;
+        }
+        pre { 
+            background: #1a1b26; 
+            color: #00ff41;
+            padding: 1rem; 
+            border-radius: 8px; 
+            overflow-x: auto;
+            border: 2px solid #00ff41;
+        }
+        pre code {
+            background: none;
+            border: none;
+            color: #00ff41;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1.5rem 0;
+            border: 2px solid #b19cd9;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th {
+            background: #b19cd9;
+            color: white;
+            padding: 0.8rem;
+            text-align: left;
+        }
+        td {
+            border-bottom: 1px solid #b19cd9;
+            padding: 0.6rem 0.8rem;
+        }
+        tr:hover {
+            background: rgba(177, 156, 217, 0.1);
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 2px solid #b19cd9;
+            margin: 1.5rem 0;
+        }
+        blockquote {
+            border-left: 4px solid #b19cd9;
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            color: #9575cd;
+            font-style: italic;
+            background: rgba(177, 156, 217, 0.05);
+            padding: 1rem 1.5rem;
+            border-radius: 0 8px 8px 0;
+        }
+        a {
+            color: #8b5cf6;
+            text-decoration: none;
+            border-bottom: 1px solid #8b5cf6;
+        }
+        a:hover {
+            color: #c9b3ff;
+            border-bottom-color: #c9b3ff;
+        }
+        ul, ol {
+            margin: 1rem 0 1rem 2rem;
+        }
+        li {
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+${preview.innerHTML}
+</body>
+</html>`;
+            
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast(`🌐 "${filename}" exporté`);
+        }
+
+        function setView(view) {
+            currentView = view;
+            
+            document.getElementById('viewSplit').classList.remove('active');
+            document.getElementById('viewEditor').classList.remove('active');
+            document.getElementById('viewPreview').classList.remove('active');
+            
+            editorContainer.classList.remove('editor-only', 'preview-only');
+            
+            if (view === 'split') {
+                document.getElementById('viewSplit').classList.add('active');
+            } else if (view === 'editor') {
+                document.getElementById('viewEditor').classList.add('active');
+                editorContainer.classList.add('editor-only');
+                document.getElementById('previewPanel').style.display = 'none';
+            } else if (view === 'preview') {
+                document.getElementById('viewPreview').classList.add('active');
+                editorContainer.classList.add('preview-only');
+                document.getElementById('editorPanel').style.display = 'none';
+            }
+            
+            if (view !== 'preview') {
+                document.getElementById('editorPanel').style.display = 'flex';
+            }
+            if (view !== 'editor') {
+                document.getElementById('previewPanel').style.display = 'flex';
+            }
+        }
+
+        function insertText(before, after = '') {
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const text = editor.value;
+            const selectedText = text.substring(start, end);
+            
+            const newText = text.substring(0, start) + before + selectedText + after + text.substring(end);
+            editor.value = newText;
+            
+            const newCursorPos = start + before.length + selectedText.length;
+            editor.setSelectionRange(newCursorPos, newCursorPos);
+            editor.focus();
+            
+            updatePreview();
+            updateStats();
+            
+            if (currentFile) {
+                currentFile.content = editor.value;
+                currentFile.modified = true;
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('active');
+            
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, 3000);
+        }
+
+        // Raccourcis clavier
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+S / Cmd+S pour sauvegarder
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                saveToFolder();
+            }
+            
+            // Ctrl+N / Cmd+N pour nouveau fichier
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                newFile();
+            }
+            
+            // Ctrl+E / Cmd+E pour exporter MD
+            if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+                e.preventDefault();
+                exportMd();
+            }
+            
+            // Ctrl+R / Cmd+R pour refresh
+            if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+                e.preventDefault();
+                refreshFolder();
+            }
+            
+            // Ctrl+1/2/3 pour changer de vue
+            if ((e.ctrlKey || e.metaKey) && e.key === '1') {
+                e.preventDefault();
+                setView('split');
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === '2') {
+                e.preventDefault();
+                setView('editor');
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === '3') {
+                e.preventDefault();
+                setView('preview');
+            }
+            
+            // Ctrl+B pour gras
+            if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+                e.preventDefault();
+                insertText('**', '**');
+            }
+            
+            // Ctrl+I pour italique
+            if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+                e.preventDefault();
+                insertText('*', '*');
+            }
+            
+            // Ctrl+K pour lien
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                insertText('[', '](url)');
+            }
+        });
+
+        // Avertir avant de quitter si modifications non sauvegardées
+        window.addEventListener('beforeunload', (e) => {
+            const hasUnsaved = files.some(f => f.modified);
+            if (hasUnsaved) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        // Initialisation
+        updatePreview();
+        updateStats();
+        loadFolder();
+    </script>
+
+
+<kbn-mbektnrgfoyo></kbn-mbektnrgfoyo></body></html>
