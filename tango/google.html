@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>while(true) — Dossier Justice Martiale Civique</title>
+  <meta name="description" content="Dashboard du dossier Justice Martiale Civique — ccplc.eu × Intelligence Civile">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #020617;
+      --card: rgba(3,7,18,0.97);
+      --elevated: rgba(15,23,42,0.98);
+      --red: #dc2626;
+      --red-dim: rgba(220,38,38,0.12);
+      --red-glow: rgba(220,38,38,0.35);
+      --green: #22c55e;
+      --blue: #38bdf8;
+      --purple: #a855f7;
+      --orange: #f97316;
+      --gold: #d4a017;
+      --text: #e2e8f0;
+      --dim: #94a3b8;
+      --muted: #64748b;
+      --border: rgba(148,163,184,0.2);
+      --font-d: 'Playfair Display', Georgia, serif;
+      --font-m: 'JetBrains Mono', 'Consolas', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: var(--font-m);
+      background:
+        radial-gradient(ellipse 70% 50% at 20% 0%, rgba(220,38,38,0.1), transparent),
+        radial-gradient(ellipse 60% 60% at 80% 100%, rgba(168,85,247,0.06), transparent),
+        var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    body::before {
+      content: "";
+      position: fixed; inset: 0;
+      pointer-events: none;
+      background-image: linear-gradient(rgba(15,23,42,0.2) 1px, transparent 1px);
+      background-size: 100% 2px;
+      mix-blend-mode: soft-light;
+      opacity: 0.5;
+      z-index: 9999;
+    }
+
+    /* HEADER */
+    header {
+      width: 100%;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: rgba(3,7,18,0.95);
+      backdrop-filter: blur(10px);
+      position: sticky; top: 0; z-index: 100;
+    }
+
+    .h-left {
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .h-logo {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: conic-gradient(from 180deg, var(--red), var(--orange), var(--gold), var(--purple), var(--red));
+      padding: 2px;
+      box-shadow: 0 0 16px var(--red-glow);
+    }
+
+    .h-logo-inner {
+      width: 100%; height: 100%;
+      border-radius: 8px;
+      background: radial-gradient(circle at 30% 20%, #0f172a, var(--bg));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem; font-weight: 700;
+      color: #fca5a5; letter-spacing: 0.05em;
+    }
+
+    .h-titles { display: flex; flex-direction: column; gap: 1px; }
+
+    .h-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .h-sub {
+      font-size: 0.65rem;
+      color: var(--muted);
+    }
+
+    .h-right {
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    .h-right a { color: var(--gold); text-decoration: none; }
+
+    /* PATH BAR */
+    .path-bar {
+      width: 100%;
+      max-width: 960px;
+      padding: 12px 20px;
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    .path-bar span { color: var(--red); }
+    .path-bar a { color: var(--dim); text-decoration: none; }
+    .path-bar a:hover { color: var(--green); }
+
+    /* MAIN */
+    main {
+      width: 100%;
+      max-width: 960px;
+      padding: 0 20px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* STATUS */
+    .status-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .status-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .status-card::before {
+      content: "";
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    }
+
+    .status-card.red::before { background: var(--red); }
+    .status-card.gold::before { background: var(--gold); }
+    .status-card.purple::before { background: var(--purple); }
+    .status-card.green::before { background: var(--green); }
+
+    .status-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .status-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .status-card.red .status-value { color: var(--red); }
+    .status-card.gold .status-value { color: var(--gold); }
+    .status-card.purple .status-value { color: var(--purple); }
+    .status-card.green .status-value { color: var(--green); }
+
+    .status-note {
+      font-size: 0.62rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* FILE LIST */
+    .section-title {
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-top: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .file-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .file-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      text-decoration: none;
+      color: var(--text);
+      transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+
+    .file-item:hover {
+      border-color: var(--red);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+
+    .file-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .file-icon.html { background: var(--red-dim); color: var(--red); }
+    .file-icon.docx { background: rgba(56,189,248,0.1); color: var(--blue); }
+    .file-icon.dir { background: rgba(168,85,247,0.1); color: var(--purple); }
+
+    .file-info { display: flex; flex-direction: column; gap: 2px; }
+    .file-name { font-size: 0.82rem; font-weight: 600; }
+    .file-desc { font-size: 0.68rem; color: var(--dim); }
+
+    .file-tag {
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      color: var(--dim);
+      white-space: nowrap;
+    }
+
+    .file-size {
+      font-size: 0.65rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* TREE */
+    .tree {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      font-size: 0.75rem;
+      line-height: 1.9;
+      color: var(--dim);
+    }
+
+    .tree .dir { color: var(--purple); font-weight: 600; }
+    .tree .file { color: var(--dim); }
+    .tree .active { color: var(--red); font-weight: 700; }
+    .tree .comment { color: var(--muted); font-style: italic; }
+
+    /* FOOTER */
+    footer {
+      width: 100%;
+      padding: 16px 20px;
+      text-align: center;
+      font-size: 0.62rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      letter-spacing: 0.08em;
+    }
+
+    footer a { color: var(--green); text-decoration: none; }
+
+    @media (max-width: 600px) {
+      .status-row { grid-template-columns: 1fr 1fr; }
+      .file-item { grid-template-columns: auto 1fr auto; }
+      .file-tag { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="h-left">
+    <div class="h-logo"><div class="h-logo-inner">CMC</div></div>
+    <div class="h-titles">
+      <div class="h-title">while(true) { justice(); }</div>
+      <div class="h-sub">Dossier Justice Martiale Civique — CMC-2026-001</div>
+    </div>
+  </div>
+  <div class="h-right">
+    <a href="https://ccplc.eu">ccplc.eu</a> × Intelligence Civile<br>
+    reaven / alpha / go / alpha / while-true
+  </div>
+</header>
+
+<div class="path-bar">
+  <a href="https://yannkeep.github.io/reaven/">reaven</a> /
+  <a href="https://yannkeep.github.io/reaven/alpha/">alpha</a> /
+  <a href="https://yannkeep.github.io/reaven/alpha/go/">go</a> /
+  <a href="https://yannkeep.github.io/reaven/alpha/go/alpha/">alpha</a> /
+  <span>while-true</span> /
+</div>
+
+<main>
+
+  <!-- STATUS CARDS -->
+  <div class="status-row">
+    <div class="status-card red">
+      <div class="status-label">Affaire</div>
+      <div class="status-value">CMC-001</div>
+      <div class="status-note">Le Peuple Belge c. Deborsu</div>
+    </div>
+    <div class="status-card gold">
+      <div class="status-label">Qualification</div>
+      <div class="status-value">Art. 7§1(h)</div>
+      <div class="status-note">Persécution — Statut de Rome</div>
+    </div>
+    <div class="status-card purple">
+      <div class="status-label">Accusés</div>
+      <div class="status-value">5</div>
+      <div class="status-note">Journaliste · Prod · DG · Groupe · Politique</div>
+    </div>
+    <div class="status-card green">
+      <div class="status-label">Statut</div>
+      <div class="status-value">ACTIF</div>
+      <div class="status-note">Exercice académique · Mars 2026</div>
+    </div>
+  </div>
+
+  <!-- DOCUMENTS -->
+  <div class="section-title">Documents du dossier</div>
+
+  <div class="file-grid">
+    <a href="alpha.html" class="file-item">
+      <div class="file-icon html">α</div>
+      <div class="file-info">
+        <div class="file-name">alpha.html — Réquisitoire complet</div>
+        <div class="file-desc">Acte d'accusation format long · 5 parties · Statut de Rome, Nuremberg, TPIR · Test Benesch · Dispositif des peines</div>
+      </div>
+      <div class="file-tag">format long</div>
+      <div class="file-size">~45 kB</div>
+    </a>
+  </div>
+
+  <!-- ARBORESCENCE NATO -->
+  <div class="section-title">Arborescence NATO — répertoires imbriqués</div>
+
+  <div class="tree">
+<pre>
+reaven/
+├── <span class="dir">alpha/</span>                        <span class="comment"># A — Alpha</span>
+│   ├── index.html                    <span class="comment"># BROL 2.0 Dashboard</span>
+│   └── <span class="dir">go/</span>                       <span class="comment"># point d'entrée</span>
+│       └── <span class="dir">alpha/</span>               <span class="comment"># A — récursion</span>
+│           └── <span class="dir">while-true/</span>      <span class="comment"># boucle infinie</span>
+│               ├── <span class="active">index.html</span>   <span class="comment"># ← VOUS ÊTES ICI (dashboard)</span>
+│               └── <span class="active">alpha.html</span>   <span class="comment"># ← Réquisitoire Justice Martiale</span>
+│
+├── <span class="dir">bravo/</span>                        <span class="comment"># B — à venir</span>
+├── <span class="dir">charlie/</span>                      <span class="comment"># C — à venir</span>
+├── <span class="dir">delta/</span>                        <span class="comment"># D — à venir</span>
+├── <span class="dir">echo/</span>                         <span class="comment"># E — à venir</span>
+├── <span class="dir">foxtrot/</span>                      <span class="comment"># F — à venir</span>
+├── <span class="dir">golf/</span>                         <span class="comment"># G — à venir</span>
+├── <span class="dir">hotel/</span>                        <span class="comment"># H — à venir</span>
+├── <span class="dir">india/</span>                        <span class="comment"># I — à venir</span>
+├── <span class="dir">juliet/</span>                       <span class="comment"># J — à venir</span>
+├── <span class="dir">kilo/</span>                         <span class="comment"># K — à venir</span>
+├── <span class="dir">lima/</span>                         <span class="comment"># L — à venir</span>
+├── <span class="dir">mike/</span>                         <span class="comment"># M — à venir</span>
+├── <span class="dir">november/</span>                     <span class="comment"># N — à venir</span>
+├── <span class="dir">oscar/</span>                        <span class="comment"># O — à venir</span>
+├── <span class="dir">papa/</span>                         <span class="comment"># P — à venir</span>
+├── <span class="dir">quebec/</span>                       <span class="comment"># Q — à venir</span>
+├── <span class="dir">romeo/</span>                        <span class="comment"># R — à venir</span>
+├── <span class="dir">sierra/</span>                       <span class="comment"># S — à venir</span>
+├── <span class="dir">tango/</span>                        <span class="comment"># T — à venir</span>
+├── <span class="dir">uniform/</span>                      <span class="comment"># U — à venir</span>
+├── <span class="dir">victor/</span>                       <span class="comment"># V — à venir</span>
+├── <span class="dir">whiskey/</span>                      <span class="comment"># W — à venir</span>
+├── <span class="dir">xray/</span>                         <span class="comment"># X — à venir</span>
+├── <span class="dir">yankee/</span>                       <span class="comment"># Y — à venir</span>
+└── <span class="dir">zulu/</span>                         <span class="comment"># Z — à venir</span>
+</pre>
+  </div>
+
+  <!-- ABSTRACT -->
+  <div class="section-title">Résumé de l'affaire</div>
+
+  <div style="background:var(--card);border:1px solid var(--border);border-left:4px solid var(--red);border-radius:10px;padding:20px 24px;font-size:0.82rem;line-height:1.7;color:var(--dim);">
+    <p>Le <strong style="color:var(--text)">7 novembre 2025</strong>, RTL-TVI diffuse « Sans boulot : tous fraudeurs ? », un reportage de Christophe Deborsu regardé par <strong style="color:var(--red)">410 860 téléspectateurs</strong> (39,1% PdM). Le documentaire, filmé rue de Dison à Verviers, déclenche plus de 100 plaintes au CSA pour incitation à la discrimination sur base de la condition sociale.</p>
+    <br>
+    <p>Le présent exercice académique transpose les cadres juridiques du <strong style="color:var(--text)">Statut de Rome</strong> (CPI), de la jurisprudence de <strong style="color:var(--text)">Nuremberg</strong> (Streicher, 1946) et du <strong style="color:var(--text)">TPIR</strong> (affaire des Médias de la Haine, 2003) pour évaluer si un tel documentaire pourrait, en temps de guerre, constituer un crime contre l'humanité par persécution (art. 7§1(h)).</p>
+    <br>
+    <p style="color:var(--muted);font-size:0.75rem;font-style:italic;">⚠ Exercice pédagogique — ne constitue pas un avis juridique ni une procédure réelle.</p>
+  </div>
+
+</main>
+
+<footer>
+  <a href="https://ccplc.eu">ccplc.eu</a> × Intelligence Civile · 2026 · Zéro tracking · Zéro pub · 100% statique · CC BY-SA 4.0
+</footer>
+
+</body>
+</html>
