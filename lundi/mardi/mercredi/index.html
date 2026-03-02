@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operation Cobalt: Threat Landscape Infographic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 280px;
+            }
+        }
+        .node-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased">
+
+    <!-- Chosen Palette: Vibrant Tech Data (Slate 50 background, Bright Blue #3b82f6, Vibrant Rose #f43f5e, Emerald #10b981, Amber #f59e0b) -->
+    <!-- Application Structure Plan: A linear, story-driven infographic SPA. It begins with high-impact KPIs to hook the reader, transitions into compositional data (Donut) to show what was compromised, tracks the attack over time (Line) to establish a timeline, compares system vulnerabilities (Bar) to highlight weak points, uses a sophisticated risk matrix (ScatterGL) for in-depth analysis, and concludes with a structural process flow (HTML/CSS Diagram) of the attack vector. This flow moves from broad impact to specific technical details. -->
+    <!-- Visualization & Content Choices: 1. KPIs -> Inform -> Big Numbers (HTML/CSS). 2. Data Categories -> Compare -> Donut Chart (Chart.js) to show proportion of compromised data types. 3. Attack Timeline -> Change -> Line Chart (Chart.js) for chronological exfiltration volume. 4. System Vulnerabilities -> Compare -> Bar Chart (Chart.js) to rank targets. 5. Risk Assessment -> Relationships -> Scatter Plot (Plotly WebGL) to correlate likelihood and impact. 6. Kill Chain -> Organize -> Flow Diagram (HTML/Tailwind) to map the attack path. Confirming NO SVG used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="font-black text-2xl tracking-tight text-blue-600">
+                    OP: COBALT
+                </div>
+                <div class="hidden sm:flex space-x-8 text-sm font-semibold text-slate-500">
+                    <a href="#overview" class="hover:text-blue-600 transition-colors">Overview</a>
+                    <a href="#distribution" class="hover:text-blue-600 transition-colors">Data Analysis</a>
+                    <a href="#vulnerabilities" class="hover:text-blue-600 transition-colors">Vulnerabilities</a>
+                    <a href="#killchain" class="hover:text-blue-600 transition-colors">Attack Path</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
+
+        <header id="overview" class="text-center max-w-4xl mx-auto pt-8">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6">
+                OSINT Threat Landscape: <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-rose-500">Operation Cobalt</span>
+            </h1>
+            <p class="text-xl text-slate-600 leading-relaxed mb-10">
+                A comprehensive declassification of the Q3 targeted data extraction campaign. This infographic synthesizes raw telemetry and forensic analysis into actionable intelligence, detailing the scope, methodology, and impact of the breach.
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-2xl shadow-lg p-8 border-t-4 border-blue-500">
+                    <div class="text-4xl font-black text-slate-800 mb-2">4.2 TB</div>
+                    <div class="text-sm font-bold uppercase tracking-widest text-slate-500">Data Extracted</div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-lg p-8 border-t-4 border-rose-500">
+                    <div class="text-4xl font-black text-slate-800 mb-2">18</div>
+                    <div class="text-sm font-bold uppercase tracking-widest text-slate-500">Compromised Nodes</div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-lg p-8 border-t-4 border-emerald-500">
+                    <div class="text-4xl font-black text-slate-800 mb-2">$8.5M</div>
+                    <div class="text-sm font-bold uppercase tracking-widest text-slate-500">Estimated Liability</div>
+                </div>
+            </div>
+        </header>
+
+        <section id="distribution" class="bg-white rounded-3xl shadow-xl p-8 md:p-12">
+            <div class="max-w-3xl mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Compromised Asset Distribution</h2>
+                <p class="text-lg text-slate-600">
+                    Understanding the nature of the exfiltrated data is critical for damage assessment. The primary target was highly sensitive infrastructure blueprints, followed closely by raw customer personally identifiable information (PII). This distribution indicates a highly coordinated espionage effort rather than a generic financial skim.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="w-full">
+                    <div class="chart-container">
+                        <canvas id="dataDistributionChart"></canvas>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <div class="p-6 bg-blue-50 rounded-xl border border-blue-100">
+                        <h3 class="font-bold text-blue-900 text-xl mb-2">Infrastructure Blueprints (42%)</h3>
+                        <p class="text-blue-800 text-sm">Proprietary server configurations, API keys, and internal network topologies. Represents the highest long-term security risk.</p>
+                    </div>
+                    <div class="p-6 bg-rose-50 rounded-xl border border-rose-100">
+                        <h3 class="font-bold text-rose-900 text-xl mb-2">Customer PII (28%)</h3>
+                        <p class="text-rose-800 text-sm">Unencrypted databases containing names, physical addresses, and partial social security numbers.</p>
+                    </div>
+                    <div class="p-6 bg-emerald-50 rounded-xl border border-emerald-100">
+                        <h3 class="font-bold text-emerald-900 text-xl mb-2">Financial Ledgers (18%)</h3>
+                        <p class="text-emerald-800 text-sm">Internal payroll and vendor payment histories. Lower direct risk but high potential for secondary phishing campaigns.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-3xl shadow-xl p-8 md:p-12">
+            <div class="max-w-3xl mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Chronology of Exfiltration</h2>
+                <p class="text-lg text-slate-600">
+                    The attack was not a single event but a sustained extraction over a 30-day period. Note the massive spike in volume during the third week, which corresponds with the compromise of the secondary backup servers. The initial low-volume days represent the reconnaissance and lateral movement phase.
+                </p>
+            </div>
+            
+            <div class="w-full">
+                <div class="chart-container" style="max-width: 1000px;">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="vulnerabilities" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-3xl shadow-xl p-8">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Exploited Vectors</h2>
+                <p class="text-slate-600 mb-8">
+                    A ranking of the system vulnerabilities utilized by the threat actors. Legacy authentication systems proved to be the weakest link, accounting for the vast majority of initial breaches, highlighting the urgent need for zero-trust architecture.
+                </p>
+                <div class="w-full">
+                    <div class="chart-container">
+                        <canvas id="vulnerabilitiesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-xl p-8">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Risk Severity Matrix</h2>
+                <p class="text-slate-600 mb-8">
+                    This advanced scatter plot correlates the likelihood of future exploitation against the potential impact severity for various identified internal systems. Nodes in the top right quadrant require immediate, critical remediation.
+                </p>
+                <div class="w-full h-full min-h-[350px]" id="riskMatrixContainer">
+                </div>
+            </div>
+        </section>
+
+        <section id="killchain" class="bg-slate-900 rounded-3xl shadow-2xl p-8 md:p-12 text-white">
+            <div class="max-w-3xl mb-12">
+                <h2 class="text-3xl font-bold text-white mb-4">Deconstructed Kill Chain</h2>
+                <p class="text-lg text-slate-300">
+                    Forensic reconstruction of the attack methodology. The sequence demonstrates a sophisticated progression from initial human compromise to automated, large-scale data harvesting. This process flow dictates our defensive strategy moving forward.
+                </p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row items-center justify-between space-y-8 lg:space-y-0 lg:space-x-4">
+                
+                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 w-full lg:w-1/4 text-center relative z-10">
+                    <div class="node-circle bg-rose-500 mx-auto mb-4 shadow-lg shadow-rose-500/50">1</div>
+                    <h3 class="font-bold text-lg mb-2 text-rose-400">Spear Phishing</h3>
+                    <p class="text-sm text-slate-400">Targeted emails to DevSecOps engineers harvesting initial VPN credentials.</p>
+                </div>
+
+                <div class="hidden lg:block text-3xl text-slate-600 font-bold">&#8594;</div>
+                <div class="block lg:hidden text-3xl text-slate-600 font-bold">&#8595;</div>
+
+                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 w-full lg:w-1/4 text-center relative z-10">
+                    <div class="node-circle bg-amber-500 mx-auto mb-4 shadow-lg shadow-amber-500/50">2</div>
+                    <h3 class="font-bold text-lg mb-2 text-amber-400">Lateral Movement</h3>
+                    <p class="text-sm text-slate-400">Exploitation of unpatched internal APIs to bypass secondary network segments.</p>
+                </div>
+
+                <div class="hidden lg:block text-3xl text-slate-600 font-bold">&#8594;</div>
+                <div class="block lg:hidden text-3xl text-slate-600 font-bold">&#8595;</div>
+
+                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 w-full lg:w-1/4 text-center relative z-10">
+                    <div class="node-circle bg-emerald-500 mx-auto mb-4 shadow-lg shadow-emerald-500/50">3</div>
+                    <h3 class="font-bold text-lg mb-2 text-emerald-400">Privilege Escalation</h3>
+                    <p class="text-sm text-slate-400">Compromise of legacy Active Directory servers granting domain admin rights.</p>
+                </div>
+
+                <div class="hidden lg:block text-3xl text-slate-600 font-bold">&#8594;</div>
+                <div class="block lg:hidden text-3xl text-slate-600 font-bold">&#8595;</div>
+
+                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 w-full lg:w-1/4 text-center relative z-10">
+                    <div class="node-circle bg-blue-500 mx-auto mb-4 shadow-lg shadow-blue-500/50">4</div>
+                    <h3 class="font-bold text-lg mb-2 text-blue-400">Data Exfiltration</h3>
+                    <p class="text-sm text-slate-400">Automated script deployment bundling and routing data via encrypted DNS tunnels.</p>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-100 mt-20 py-8 border-t border-slate-200 text-center text-slate-500 text-sm">
+        <p>Operation Cobalt Intelligence Summary &copy; 2026</p>
+    </footer>
+
+    <script>
+        const wrapLabel = (label, limit = 16) => {
+            if (label.length <= limit) return label;
+            const words = label.split(' ');
+            let lines = [];
+            let currentLine = '';
+            words.forEach(word => {
+                if ((currentLine + word).length > limit) {
+                    if (currentLine) lines.push(currentLine.trim());
+                    currentLine = word + ' ';
+                } else {
+                    currentLine += word + ' ';
+                }
+            });
+            if (currentLine) lines.push(currentLine.trim());
+            return lines;
+        };
+
+        const standardTooltipConfig = {
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const item = tooltipItems[0];
+                            let label = item.chart.data.labels[item.dataIndex];
+                            if (Array.isArray(label)) {
+                                return label.join(' ');
+                            } else {
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        Chart.defaults.font.family = "'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+        Chart.defaults.color = '#64748b';
+
+        const ctxDonut = document.getElementById('dataDistributionChart').getContext('2d');
+        const labelsDonutRaw = ['Infrastructure Blueprints', 'Customer PII', 'Financial Ledgers', 'Source Code', 'Internal Comms'];
+        const labelsDonutWrapped = labelsDonutRaw.map(l => wrapLabel(l));
+        
+        new Chart(ctxDonut, {
+            type: 'doughnut',
+            data: {
+                labels: labelsDonutWrapped,
+                datasets: [{
+                    data: [42, 28, 18, 8, 4],
+                    backgroundColor: [
+                        '#3b82f6',
+                        '#f43f5e',
+                        '#10b981',
+                        '#f59e0b',
+                        '#8b5cf6'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                ...standardTooltipConfig,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { padding: 20, usePointStyle: true }
+                    },
+                    ...standardTooltipConfig.plugins
+                }
+            }
+        });
+
+        const ctxLine = document.getElementById('timelineChart').getContext('2d');
+        new Chart(ctxLine, {
+            type: 'line',
+            data: {
+                labels: ['Day 1', 'Day 4', 'Day 8', 'Day 12', 'Day 16', 'Day 20', 'Day 24', 'Day 28', 'Day 30'],
+                datasets: [{
+                    label: 'Gigabytes Exfiltrated',
+                    data: [12, 18, 45, 120, 850, 1400, 1100, 450, 80],
+                    borderColor: '#f43f5e',
+                    backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                    borderWidth: 4,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#f43f5e',
+                    pointBorderWidth: 3,
+                    pointRadius: 6,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#e2e8f0' } },
+                    x: { grid: { display: false } }
+                },
+                ...standardTooltipConfig
+            }
+        });
+
+        const ctxBar = document.getElementById('vulnerabilitiesChart').getContext('2d');
+        const labelsBarRaw = ['Legacy Authentication Gateway', 'Unpatched Database Servers', 'Third-Party API Integrations', 'Staging Environment Containers', 'Misconfigured S3 Buckets'];
+        const labelsBarWrapped = labelsBarRaw.map(l => wrapLabel(l));
+
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: labelsBarWrapped,
+                datasets: [{
+                    label: 'Exploit Incidents Recorded',
+                    data: [145, 88, 62, 45, 21],
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: {
+                    x: { beginAtZero: true, grid: { color: '#e2e8f0' } },
+                    y: { grid: { display: false } }
+                },
+                ...standardTooltipConfig
+            }
+        });
+
+        const plotlyData = [{
+            x: [85, 92, 78, 45, 60, 95, 30, 88],
+            y: [90, 85, 75, 40, 55, 95, 25, 60],
+            text: [
+                'Main DB', 'Auth API', 'Legacy HR', 
+                'Marketing Site', 'Dev Server', 'Root DNS', 
+                'Guest WiFi', 'Backup Server'
+            ],
+            mode: 'markers+text',
+            type: 'scattergl',
+            textposition: 'top center',
+            textfont: { family: 'Segoe UI', size: 11, color: '#475569' },
+            marker: {
+                size: 16,
+                color: [
+                    '#f43f5e', '#f43f5e', '#f59e0b', 
+                    '#10b981', '#10b981', '#f43f5e', 
+                    '#10b981', '#f59e0b'
+                ],
+                line: { color: '#ffffff', width: 2 }
+            }
+        }];
+
+        const plotlyLayout = {
+            autosize: true,
+            margin: { t: 20, b: 50, l: 50, r: 20 },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            xaxis: { 
+                title: 'Likelihood of Exploitation (%)', 
+                gridcolor: '#e2e8f0',
+                range: [0, 100]
+            },
+            yaxis: { 
+                title: 'Business Impact Severity', 
+                gridcolor: '#e2e8f0',
+                range: [0, 100]
+            },
+            hovermode: 'closest'
+        };
+
+        const plotlyConfig = {
+            displayModeBar: false,
+            responsive: true
+        };
+
+        Plotly.newPlot('riskMatrixContainer', plotlyData, plotlyLayout, plotlyConfig);
+    </script>
+</body>
+</html>
