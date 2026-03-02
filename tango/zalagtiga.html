@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Jeu de Piste · Récap Arcade</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --bg: #020617;
+      --fg: #e5e7eb;
+      --soft: #9ca3af;
+      --accent: #fb923c;
+      --accent2: #22c55e;
+      --accent3: #22d3ee;
+      --border: #4b5563;
+      --shadow: 0 24px 60px rgba(15,23,42,0.95);
+      --cabinet: #111827;
+      --cabinet-light: #1e293b;
+      --cabinet-inner: #020617;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      max-width: 100%;
+      min-height: 100%;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 10% -10%, rgba(244,114,182,0.25), transparent 55%),
+        radial-gradient(circle at 100% 0, rgba(56,189,248,0.25), transparent 55%),
+        radial-gradient(circle at 50% 120%, rgba(34,197,94,0.25), transparent 55%),
+        #020617;
+      color: var(--fg);
+      overflow-x: hidden;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 14px;
+    }
+
+    .shell {
+      max-width: 1120px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 900px) {
+      .shell {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    /* BORNE D'ARCADE */
+
+    .arcade {
+      border-radius: 24px;
+      background:
+        linear-gradient(145deg, #111827, #020617 45%, #111827 100%);
+      border: 2px solid rgba(15,23,42,1);
+      box-shadow: var(--shadow);
+      padding: 12px 14px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .arcade::before {
+      content: "";
+      position: absolute;
+      inset: -20%;
+      background-image:
+        radial-gradient(circle at 20% 0, rgba(250,250,250,0.06), transparent 50%),
+        radial-gradient(circle at 80% 100%, rgba(250,250,250,0.04), transparent 55%);
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    .arcade-header {
+      position: relative;
+      border-radius: 18px 18px 10px 10px;
+      background:
+        linear-gradient(135deg, #f97316, #ec4899, #22c55e, #22d3ee);
+      padding: 8px 10px;
+      text-align: center;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.7);
+    }
+
+    .arcade-title {
+      font-size: clamp(16px, 3vw, 22px);
+      text-transform: uppercase;
+      letter-spacing: 0.24em;
+      color: #020617;
+      font-weight: 800;
+      text-shadow: 0 0 10px rgba(248,250,252,0.6);
+    }
+
+    .arcade-sub {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(15,23,42,0.9);
+    }
+
+    .arcade-screen-wrap {
+      margin-top: 10px;
+      border-radius: 16px;
+      background: radial-gradient(circle at top, #0b1120 0, #020617 60%);
+      border: 2px solid #0f172a;
+      padding: 10px;
+    }
+
+    .arcade-screen {
+      border-radius: 10px;
+      background: #020617;
+      border: 1px solid #1f2937;
+      padding: 10px;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .scanline {
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        rgba(15,23,42,0),
+        rgba(15,23,42,0) 2px,
+        rgba(0,0,0,0.4) 3px
+      );
+      opacity: 0.6;
+      pointer-events: none;
+      mix-blend-mode: soft-light;
+    }
+
+    .screen-main {
+      position: relative;
+      z-index: 1;
+    }
+
+    .insert-coin {
+      font-family: "Courier New", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace;
+      font-size: 18px;
+      text-align: center;
+      color: #fef08a;
+      text-shadow: 0 0 10px rgba(250,250,150,0.9);
+      margin-bottom: 12px;
+      animation: blinkCoin 1s steps(1, start) infinite;
+    }
+
+    @keyframes blinkCoin {
+      50% { opacity: 0.2; }
+    }
+
+    .coin-subtext {
+      text-align: center;
+      font-size: 12px;
+      color: var(--soft);
+      margin-bottom: 8px;
+    }
+
+    .start-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 7px 16px;
+      border-radius: 999px;
+      border: 2px solid #facc15;
+      background: radial-gradient(circle at 20% 0, #facc15, #f97316);
+      color: #020617;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      cursor: pointer;
+      margin: 0 auto 2px;
+      box-shadow:
+        0 0 0 2px rgba(15,23,42,1),
+        0 12px 18px rgba(0,0,0,0.9);
+    }
+
+    .start-btn:active {
+      transform: translateY(1px);
+      box-shadow:
+        0 0 0 2px rgba(15,23,42,1),
+        0 5px 10px rgba(0,0,0,0.7);
+    }
+
+    .start-btn span.icon {
+      font-size: 14px;
+    }
+
+    .credit-line {
+      text-align: center;
+      font-size: 11px;
+      color: var(--soft);
+      margin-top: 4px;
+    }
+
+    .arcade-controls {
+      margin-top: 14px;
+      border-radius: 16px;
+      background: radial-gradient(circle at top, #0f172a 0, #020617 60%);
+      border: 2px solid #020617;
+      padding: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stick {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 20%, #64748b, #020617);
+      border: 2px solid #0f172a;
+      box-shadow: 0 10px 18px rgba(0,0,0,0.9);
+      position: relative;
+    }
+
+    .stick::before {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 20%, #e5e7eb, #64748b);
+    }
+
+    .buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-round {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid #020617;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.9);
+      cursor: pointer;
+    }
+
+    .btn-round.red {
+      background: radial-gradient(circle at 30% 20%, #fecaca, #ef4444);
+    }
+    .btn-round.blue {
+      background: radial-gradient(circle at 30% 20%, #bfdbfe, #3b82f6);
+    }
+    .btn-round.green {
+      background: radial-gradient(circle at 30% 20%, #bbf7d0, #22c55e);
+    }
+
+    /* PANNEAU RÉCAP */
+
+    .panel {
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.95);
+      box-shadow: var(--shadow);
+      padding: 12px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 0 0, rgba(34,197,94,0.12), transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(56,189,248,0.12), transparent 60%);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .panel-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      margin-bottom: 3px;
+    }
+
+    .panel-sub {
+      font-size: 12px;
+      color: var(--soft);
+      margin-bottom: 8px;
+    }
+
+    .step-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .step {
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,0.5);
+      background: rgba(15,23,42,0.9);
+      padding: 8px 9px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 8px;
+      align-items: flex-start;
+      position: relative;
+    }
+
+    .step-number {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      border: 2px solid var(--accent2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent2);
+      box-shadow: 0 0 12px rgba(34,197,94,0.6);
+      background: radial-gradient(circle at 20% 20%, #bbf7d0, #0f172a);
+    }
+
+    .step-body {
+      font-size: 13px;
+    }
+
+    .step-title {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .step-text {
+      color: var(--fg);
+      margin-bottom: 3px;
+    }
+
+    .step-meta {
+      font-size: 11px;
+      color: var(--soft);
+    }
+
+    .tag-row {
+      margin-top: 3px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .tag {
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.7);
+      padding: 1px 6px;
+      font-size: 10px;
+      color: var(--soft);
+    }
+
+    .mode-info {
+      font-size: 11px;
+      color: var(--soft);
+      border-radius: 10px;
+      border: 1px dashed rgba(148,163,184,0.7);
+      padding: 6px 7px;
+      margin-top: 4px;
+    }
+
+    .mode-info strong {
+      color: var(--accent3);
+    }
+
+    .footer-note {
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--soft);
+      text-align: right;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .step {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+
+    .step.visible {
+      animation: fadeInUp 0.3s ease forwards;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <!-- BORNE D'ARCADE -->
+    <section class="arcade">
+      <div class="arcade-header">
+        <div class="arcade-title">JEU DE PISTE</div>
+        <div class="arcade-sub">MINITEL · KONAMI · ÉCHIQUIER · VEILLE CITOYENNE</div>
+      </div>
+
+      <div class="arcade-screen-wrap">
+        <div class="arcade-screen">
+          <div class="scanline"></div>
+          <div class="screen-main">
+            <div class="insert-coin">INSERT COIN</div>
+            <div class="coin-subtext">
+              1&nbsp;crédit = 1 partie de ta vie numérique à reprendre en main.
+            </div>
+            <button id="startButton" class="start-btn">
+              <span class="icon">▶</span>
+              <span>START / CONTINUER LA PARTIE</span>
+            </button>
+            <div class="credit-line">
+              Crédit(s) disponible(s)&nbsp;: <strong>∞</strong> · Continues illimités (tant que tu apprends quelque chose).
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arcade-controls">
+        <div>
+          <div style="font-size:11px; color:var(--soft); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:4px;">
+            Contrôles symboliques
+          </div>
+          <div class="stick"></div>
+        </div>
+        <div>
+          <div style="font-size:11px; color:var(--soft); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:4px;">
+            Boutons d'action
+          </div>
+          <div class="buttons">
+            <div class="btn-round.red" title="Observer / se méfier"></div>
+            <div class="btn-round.blue" title="Relier les infos"></div>
+            <div class="btn-round.green" title="Agir collectivement"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RÉCAPITULATIF LOGIQUE -->
+    <section class="panel">
+      <div class="panel-inner">
+        <h1 class="panel-title">Récap du jeu de piste</h1>
+        <p class="panel-sub">
+          Les étapes pour jouer “sérieusement” avec ton décor Minitel, ton Konami code, ton échiquier d’enquête
+          et ton système d’export / import. Tout est fictif, mais la méthode peut servir dans la vraie vie.
+        </p>
+
+        <ol id="stepList" class="step-list hidden">
+          <!-- Étape 1 -->
+          <li class="step">
+            <div class="step-number">1</div>
+            <div class="step-body">
+              <div class="step-title">Démarrer le terminal (minitel-boot-map.html)</div>
+              <div class="step-text">
+                Tu ouvres le fichier <code>minitel-boot-map.html</code> dans ton navigateur.
+                L’écran d’allumage “Minitel” défile comme un vieux boot de terminal :
+                c’est la porte d’entrée narrative du jeu.
+              </div>
+              <div class="step-meta">
+                👉 Aucun réseau réel n’est consulté : c’est un décor pédagogique, tout tourne en local dans ton navigateur.
+              </div>
+              <div class="tag-row">
+                <span class="tag">mise en scène</span>
+                <span class="tag">rituel d’entrée</span>
+                <span class="tag">sécurité psychologique</span>
+              </div>
+            </div>
+          </li>
+
+          <!-- Étape 2 -->
+          <li class="step">
+            <div class="step-number">2</div>
+            <div class="step-body">
+              <div class="step-title">Débloquer la MAP avec le Konami code</div>
+              <div class="step-text">
+                Sur l’écran d’allumage, tu entres secrètement la séquence
+                <code>↑ ↑ ↓ ↓ ← → ← → B A</code>.  
+                Ça déclenche un petit glitch visuel et fait apparaître la “MAP d’enquête”.
+              </div>
+              <div class="step-meta">
+                👉 C’est ton “INSERT COIN” narratif : sans ce geste, pas de partie.  
+                Le Konami code te rappelle que tu entres dans un jeu de piste assumé.
+              </div>
+              <div class="tag-row">
+                <span class="tag">konami code</span>
+                <span class="tag">easter egg</span>
+                <span class="tag">consentement au jeu</span>
+              </div>
+            </div>
+          </li>
+
+          <!-- Étape 3 -->
+          <li class="step">
+            <div class="step-number">3</div>
+            <div class="step-body">
+              <div class="step-title">Explorer l’échiquier d’enquête</div>
+              <div class="step-text">
+                La MAP se présente comme un <strong>plateau d’échecs 8×8</strong>.  
+                Chaque case (A8, B8, …, H1) est un “dossier” potentiellement activable.
+                Tu cliques sur une case pour ouvrir sa fiche en modale.
+              </div>
+              <div class="step-meta">
+                👉 Une case peut représenter&nbsp;: un acteur public, une organisation, un lieu,
+                un média, un événement ou juste une hypothèse à tester.
+              </div>
+              <div class="tag-row">
+                <span class="tag">cartographie mentale</span>
+                <span class="tag">système complexe</span>
+                <span class="tag">jeu de rôle d’enquête</span>
+              </div>
+            </div>
+          </li>
+
+          <!-- Étape 4 -->
+          <li class="step">
+            <div class="step-number">4</div>
+            <div class="step-body">
+              <div class="step-title">Remplir les fiches (fichage fictif & système expert)</div>
+              <div class="step-text">
+                Pour chaque case, tu peux remplir une fiche complète&nbsp;:
+                nom, type (acteur, organisation, lieu…), niveau de risque,
+                tags, lien principal, coordonnées GPS publiques, image, notes…
+                Tout est stocké en <strong>localStorage</strong>.
+              </div>
+              <div class="step-meta">
+                👉 Les images apparaissent directement dans les cases de l’échiquier et  
+                au survol tu vois un résumé (tooltip) : nom, type, risque, tags.
+              </div>
+              <div class="tag-row">
+                <span class="tag">système expert</span>
+                <span class="tag">notes contextuelles</span>
+                <span class="tag">données localisées</span>
+              </div>
+            </div>
+          </li>
+
+          <!-- Étape 5 -->
+          <li class="step">
+            <div class="step-number">5</div>
+            <div class="step-body">
+              <div class="step-title">Sauvegarder / reprendre une partie (export & import)</div>
+              <div class="step-text">
+                Quand tu as commencé à remplir l’échiquier, tu peux  
+                <strong>exporter</strong> la carte en JSON, CSV ou Markdown.
+                Tu peux aussi <strong>importer</strong> un JSON pour reprendre une partie
+                ou cloner une configuration sur un autre poste.
+              </div>
+              <div class="step-meta">
+                👉 Les boutons d’export écrivent aussi le contenu dans la zone de texte,
+                que tu peux copier-coller dans des fichiers.  
+                L’import peut se faire via un fichier JSON ou via ce texte (coller + “Import zone JSON”).
+              </div>
+              <div class="tag-row">
+                <span class="tag">sauvegarde locale</span>
+                <span class="tag">portabilité</span>
+                <span class="tag">rejouabilité</span>
+              </div>
+            </div>
+          </li>
+
+          <!-- Étape 6 -->
+          <li class="step">
+            <div class="step-number">6</div>
+            <div class="step-body">
+              <div class="step-title">Réutiliser les exports dans d’autres outils</div>
+              <div class="step-text">
+                Une fois exportés, tes fichiers peuvent alimenter d’autres systèmes :
+                un tableur pour trier et filtrer, un script pour générer des rapports,
+                un outil de carto (uMap, QGIS) ou un carnet de notes (Obsidian, Hugo, Jekyll…).
+              </div>
+              <div class="step-meta">
+                👉 Le jeu de piste devient un prétexte pour travailler avec de “vraies” méthodes
+                de veille citoyenne, de cartographie d’enjeux, de suivi de sujets sensibles.
+              </div>
+              <div class="tag-row">
+                <span class="tag">interopérabilité</span>
+                <span class="tag">veille citoyenne</span>
+                <span class="tag">éducation populaire</span>
+              </div>
+            </div>
+          </li>
+
+          <!-- Étape 7 -->
+          <li class="step">
+            <div class="step-number">7</div>
+            <div class="step-body">
+              <div class="step-title">Connecter le tout à ton “hub” (monitor.html & co)</div>
+              <div class="step-text">
+                Tu peux relier cette MAP à ton “Minitel / Monitor” (annuaire + mini-navigateur)
+                en ajoutant un service “MAP d’enquête” dans l’annuaire.
+                Le jeu de piste s’intègre alors dans un écosystème plus large :
+                portails, tests, intranets fictifs, etc.
+              </div>
+              <div class="step-meta">
+                👉 L’idée finale : un <strong>parc d’attractions numérique</strong> (luna park cartoon)
+                où chaque machine (page HTML) est un module pour comprendre un bout de la société numérique.
+              </div>
+              <div class="tag-row">
+                <span class="tag">hub d’outils</span>
+                <span class="tag">parc d’attractions</span>
+                <span class="tag">jeu sérieux</span>
+              </div>
+            </div>
+          </li>
+        </ol>
+
+        <div id="modeInfo" class="mode-info hidden">
+          Mode actuel&nbsp;: <strong>lecture guidée</strong> —  
+          tu peux revenir à tout moment sur l’échiquier, modifier des cases,
+          rejouer la séquence Konami ou repartir d’un backup propre.
+        </div>
+
+        <div class="footer-note">
+          Prochaine étape possible&nbsp;: lier cette page à un bouton “HOW TO PLAY / RÈGLES DU JEU”
+          dans tes autres fichiers (monitor, Minitel, casino, etc.).
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const startButton = document.getElementById("startButton");
+    const stepList = document.getElementById("stepList");
+    const modeInfo = document.getElementById("modeInfo");
+
+    startButton.addEventListener("click", () => {
+      if (stepList.classList.contains("hidden")) {
+        stepList.classList.remove("hidden");
+        modeInfo.classList.remove("hidden");
+
+        const steps = stepList.querySelectorAll(".step");
+        steps.forEach((step, index) => {
+          setTimeout(() => {
+            step.classList.add("visible");
+          }, index * 120);
+        });
+      } else {
+        // si on reclique, on “rejoue” l’animation
+        const steps = stepList.querySelectorAll(".step");
+        steps.forEach((step) => {
+          step.classList.remove("visible");
+        });
+        setTimeout(() => {
+          steps.forEach((step, index) => {
+            setTimeout(() => {
+              step.classList.add("visible");
+            }, index * 120);
+          });
+        }, 80);
+      }
+    });
+  </script>
+</body>
+</html>
