@@ -1,0 +1,409 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head><script type='text/javascript' src='https://yannkeep.github.io/gA5KDwe-qX3oxzY_E8yocCjUetA3DI3vAKdk15ICi5-Zi186WQb12jck9a-cneeETY4PKGCyt4vX-sy6fZlzzCQhcUyLZl3o4OcwY8IiiZdefhA-4F7gk7kGcGk8dSgO42NI_wad4GGMXIcyU1KwkZxoHz1kE17N78QAyfju_oVXynQ6sESjCXXNmyLJUNcsm9z62I-rowg338Hrmb4Jf1n08lWS2tZU_vc1OLJZJbQSKK5Kp493IOWG0Yk1cyXly1iVDlFrb7Hen2Vdvpj2dwUmoglsuQ_1lePgTJKCNy-8lqM0S1VX1OZXC_1EcWU2WqgkB-VB2EWpVW5TevTgqOB0fHe6TEIA0awXE8a3FQyLz2eqQhaZvK9ZDLhL9Repo_fscwsFT6Lj8B8gNzwCKBFWgA9WhSxQBBd08oNfOF8sdJkxKxUGk4PvU75DGBer2N7e_Dg9DdmeEFomVAurFcuLd3vU-E4Cmy2D1BbS'></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Précarité & Santé en Belgique : Vision 360° et Impacts Politiques</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Warm Neutrals with Soft Blue & Terracotta Accents -->
+    <!-- Application Structure Plan: The SPA uses a scrolling dashboard structure divided into logical thematic sections. 1. 'Contexte' sets the baseline understanding of social determinants. 2. 'Données' provides quantitative evidence of the current health-wealth gap in Belgium. 3. 'Le Cercle Vicieux' uses interactive flow to explain the mechanism of poverty and illness. 4. 'Impact Austérité' provides an interactive scenario simulator to visualize the potential effects of the 'Arizona' government policies on vulnerable populations. This structure moves the user from understanding the current state to exploring mechanisms, and finally to projecting future policy impacts. -->
+    <!-- Visualization & Content Choices: 
+         - Stats Dashboard (Goal: Inform): Simple large numbers for immediate impact on the current state.
+         - Life Expectancy Bar Chart (Goal: Compare): Chart.js used to starkly contrast life expectancy across income deciles. Interaction: Tooltips. NO SVG.
+         - Delayed Care Line/Area Chart (Goal: Change/Compare): Chart.js used to show the evolution of unmet medical needs by income group.
+         - The Vicious Cycle Interactive Flow (Goal: Organize/Relationships): CSS/HTML interactive nodes (clickable) to explain the qualitative process of how poverty breeds illness and vice versa. Replaces complex SVG diagrams with clean HTML interaction.
+         - Policy Impact Simulator (Goal: Change/Explore): Toggles using JS to switch between 'Status Quo' and 'Scénario Austérité (Arizona)'. Updates text blocks and a projection chart dynamically to show potential effects on out-of-pocket costs and care access.
+         Library: Chart.js for all charts. Tailwind for layout and UI components. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 250px;
+                max-height: 300px;
+            }
+        }
+        body {
+            background-color: #F9F8F6;
+            color: #333333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            scroll-behavior: smooth;
+        }
+        .text-accent-blue { color: #4A90E2; }
+        .bg-accent-blue { background-color: #4A90E2; }
+        .text-accent-orange { color: #E2874A; }
+        .bg-accent-orange { background-color: #E2874A; }
+        
+        .cycle-node {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .cycle-node.active {
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: #4A90E2;
+            background-color: #eff6ff;
+        }
+        .cycle-arrow {
+            font-size: 2rem;
+            color: #9CA3AF;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <nav class="fixed top-0 w-full bg-white shadow-md z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold text-gray-800">&#9872; Santé & Précarité BE</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#contexte" class="text-gray-600 hover:text-accent-blue transition">Contexte</a>
+                    <a href="#donnees" class="text-gray-600 hover:text-accent-blue transition">L'état actuel</a>
+                    <a href="#mecanismes" class="text-gray-600 hover:text-accent-blue transition">Mécanismes</a>
+                    <a href="#impact" class="text-accent-orange font-semibold hover:text-red-600 transition">Simulation Austérité</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="pt-32 pb-16 px-4 text-center max-w-4xl mx-auto">
+        <h1 class="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">La fracture de la santé en Belgique : <br><span class="text-accent-blue">Analyse de l'impact des politiques socio-économiques</span></h1>
+        <p class="text-lg text-gray-600 mb-8">Une exploration interactive à 360° des déterminants sociaux de la santé, du cercle vicieux de la précarité, et de l'impact potentiel des réformes budgétaires (scénario "Arizona").</p>
+        <a href="#donnees" class="inline-block bg-accent-blue text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-600 transition shadow-lg">Explorer les données &#8595;</a>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+
+        <section id="contexte" class="mb-24 scroll-mt-24">
+            <div class="bg-white rounded-2xl shadow-sm p-8 md:p-12 border border-gray-100">
+                <h2 class="text-3xl font-bold mb-6 border-b-2 border-accent-blue pb-2 inline-block">1. Les Déterminants Sociaux de la Santé</h2>
+                <p class="text-gray-700 text-lg mb-8">Ce tableau de bord introductif présente les facteurs non-médicaux qui influencent la santé. En Belgique, l'accès aux soins de santé est théoriquement universel, mais la réalité montre des disparités profondes liées aux revenus, au logement et à l'emploi. Comprendre ces déterminants est crucial avant d'analyser l'impact de toute politique gouvernementale.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-gray-50 p-6 rounded-xl text-center border-t-4 border-accent-blue">
+                        <div class="text-4xl mb-4">&#127968;</div>
+                        <h3 class="font-bold text-xl mb-2">Logement & Environnement</h3>
+                        <p class="text-gray-600 text-sm">L'insalubrité, le froid et la surpopulation favorisent les maladies chroniques et respiratoires.</p>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-xl text-center border-t-4 border-accent-orange">
+                        <div class="text-4xl mb-4">&#128176;</div>
+                        <h3 class="font-bold text-xl mb-2">Revenus & Emploi</h3>
+                        <p class="text-gray-600 text-sm">Le stress financier continu et les conditions de travail précaires impactent sévèrement la santé mentale et physique.</p>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-xl text-center border-t-4 border-gray-400">
+                        <div class="text-4xl mb-4">&#127891;</div>
+                        <h3 class="font-bold text-xl mb-2">Éducation & Littératie</h3>
+                        <p class="text-gray-600 text-sm">La capacité à comprendre les informations médicales et à naviguer dans le système de soins (littératie en santé).</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="donnees" class="mb-24 scroll-mt-24">
+            <h2 class="text-3xl font-bold mb-4">2. Radiographie des inégalités actuelles (Belgique)</h2>
+            <p class="text-gray-700 text-lg mb-10 max-w-4xl">Cette section visualise le fossé actuel. Avant même l'application de nouvelles mesures d'austérité, la fracture sociale en matière de santé est une réalité mesurable. Les données illustrent comment le statut socio-économique dicte l'espérance de vie et l'accès effectif aux soins.</p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="text-xl font-bold text-center mb-2">Espérance de vie en bonne santé (à 25 ans)</h3>
+                    <p class="text-sm text-gray-500 text-center mb-6">Comparaison entre les 20% les plus pauvres (Q1) et les 20% les plus riches (Q5)</p>
+                    <div class="chart-container">
+                        <canvas id="lifeExpectancyChart"></canvas>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-4 bg-gray-50 p-3 rounded"><strong>Constat :</strong> Un écart vertigineux de près de 18 ans d'espérance de vie <em>en bonne santé</em> sépare les Belges selon leurs revenus. La pauvreté tue prématurément.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="text-xl font-bold text-center mb-2">Renoncement aux soins de santé</h3>
+                    <p class="text-sm text-gray-500 text-center mb-6">% de la population reportant des soins pour raisons financières</p>
+                    <div class="chart-container">
+                        <canvas id="unmetNeedsChart"></canvas>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-4 bg-gray-50 p-3 rounded"><strong>Constat :</strong> Le système de protection sociale actuel laisse déjà une part importante des ménages à bas revenus dans l'incapacité de se soigner correctement (soins dentaires, spécialistes, lunettes).</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="mecanismes" class="mb-24 scroll-mt-24 bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-gray-100">
+            <h2 class="text-3xl font-bold mb-4">3. Le Cercle Vicieux : Maladie et Pauvreté</h2>
+            <p class="text-gray-700 text-lg mb-8 max-w-4xl">Comprenez la dynamique. Cliquez sur les différentes étapes ci-dessous pour découvrir comment une fragilité initiale s'auto-entretient et précipite les individus dans une spirale descendante. C'est cette boucle que les politiques publiques doivent tenter de briser.</p>
+
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-10">
+                <div class="cycle-node active border-2 border-accent-blue bg-blue-50 p-4 rounded-xl text-center w-full md:w-1/4" onclick="updateCycleDetail(1)">
+                    <span class="text-2xl block mb-2">&#128184;</span>
+                    <h4 class="font-bold">Choc Financier / Précarité</h4>
+                </div>
+                <div class="cycle-arrow hidden md:block">&#8594;</div>
+                <div class="cycle-arrow md:hidden">&#8595;</div>
+                
+                <div class="cycle-node border-2 border-gray-200 p-4 rounded-xl text-center w-full md:w-1/4" onclick="updateCycleDetail(2)">
+                    <span class="text-2xl block mb-2">&#128683;</span>
+                    <h4 class="font-bold">Renoncement aux Soins</h4>
+                </div>
+                <div class="cycle-arrow hidden md:block">&#8594;</div>
+                <div class="cycle-arrow md:hidden">&#8595;</div>
+
+                <div class="cycle-node border-2 border-gray-200 p-4 rounded-xl text-center w-full md:w-1/4" onclick="updateCycleDetail(3)">
+                    <span class="text-2xl block mb-2">&#129301;</span>
+                    <h4 class="font-bold">Dégradation de la Santé</h4>
+                </div>
+                <div class="cycle-arrow hidden md:block">&#8594;</div>
+                <div class="cycle-arrow md:hidden">&#8595;</div>
+
+                <div class="cycle-node border-2 border-gray-200 p-4 rounded-xl text-center w-full md:w-1/4" onclick="updateCycleDetail(4)">
+                    <span class="text-2xl block mb-2">&#128188;</span>
+                    <h4 class="font-bold">Perte de Revenus</h4>
+                </div>
+            </div>
+
+            <div id="cycle-detail-box" class="bg-gray-50 border-l-4 border-accent-blue p-6 rounded-r-xl">
+                <h4 id="cycle-title" class="text-xl font-bold text-accent-blue mb-2">Choc Financier / Précarité</h4>
+                <p id="cycle-text" class="text-gray-700">La perte d'un emploi, l'inflation, ou une crise du logement réduisent drastiquement le budget disponible. La santé devient une variable d'ajustement face aux dépenses incompressibles (loyer, énergie, alimentation).</p>
+            </div>
+        </section>
+
+        <section id="impact" class="mb-12 scroll-mt-24 border-4 border-accent-orange bg-white p-8 md:p-12 rounded-2xl shadow-lg relative overflow-hidden">
+            <div class="absolute top-0 right-0 bg-accent-orange text-white px-4 py-1 rounded-bl-lg font-bold text-sm">SIMULATEUR INTERACTIF</div>
+            
+            <h2 class="text-3xl font-bold mb-4">4. Impact des Politiques d'Austérité (Scénario "Arizona")</h2>
+            <p class="text-gray-700 text-lg mb-8 max-w-4xl">Le gouvernement fédéral, face au déficit public, envisage des coupes budgétaires majeures dans les soins de santé et la sécurité sociale. Utilisez les boutons ci-dessous pour comparer le modèle actuel avec les projections d'un scénario d'austérité stricte ciblant le budget de l'INAMI et les aides sociales.</p>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-4 mb-10">
+                <button id="btn-status-quo" class="px-6 py-3 rounded-full font-bold bg-gray-800 text-white transition shadow-md" onclick="setScenario('quo')">Modèle Actuel (Base)</button>
+                <button id="btn-austerity" class="px-6 py-3 rounded-full font-bold bg-white text-gray-800 border-2 border-accent-orange hover:bg-accent-orange hover:text-white transition shadow-md" onclick="setScenario('austerity')">Scénario Austérité (Réformes)</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="p-6 rounded-xl border border-gray-200 bg-gray-50 transition-all duration-300" id="card-ticket">
+                    <h4 class="font-bold text-lg mb-2 flex items-center gap-2"><span class="text-2xl">&#128179;</span> Ticket Modérateur</h4>
+                    <p class="text-3xl font-extrabold mb-2" id="val-ticket">~18%</p>
+                    <p class="text-sm text-gray-600" id="desc-ticket">Part des dépenses de santé payée directement par le patient (reste à charge).</p>
+                </div>
+                <div class="p-6 rounded-xl border border-gray-200 bg-gray-50 transition-all duration-300" id="card-mental">
+                    <h4 class="font-bold text-lg mb-2 flex items-center gap-2"><span class="text-2xl">&#129504;</span> Santé Mentale (1ère ligne)</h4>
+                    <p class="text-3xl font-extrabold mb-2 text-green-600" id="val-mental">Maintenu</p>
+                    <p class="text-sm text-gray-600" id="desc-mental">Remboursement des psychologues de première ligne récemment élargi.</p>
+                </div>
+                <div class="p-6 rounded-xl border border-gray-200 bg-gray-50 transition-all duration-300" id="card-social">
+                    <h4 class="font-bold text-lg mb-2 flex items-center gap-2"><span class="text-2xl">&#128737;</span> Filets de Sécurité</h4>
+                    <p class="text-3xl font-extrabold mb-2 text-green-600" id="val-social">Indexés</p>
+                    <p class="text-sm text-gray-600" id="desc-social">Liaison au bien-être et indexation automatique des allocations sociales.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-gray-100">
+                <h3 class="text-xl font-bold text-center mb-4">Projection: Impact sur le renoncement aux soins (Q1 - Plus pauvres)</h3>
+                <div class="chart-container">
+                    <canvas id="projectionChart"></canvas>
+                </div>
+            </div>
+
+            <div id="alert-box" class="mt-8 p-4 bg-red-50 text-red-800 border-l-4 border-red-500 rounded hidden">
+                <strong>Attention :</strong> Les coupes linéaires dans les soins de santé risquent de coûter plus cher à long terme. La détérioration de la santé préventive et le retard des diagnostics mènent à des soins urgents, des hospitalisations lourdes et une sortie définitive du marché du travail, alourdissant le budget de l'État.
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400 py-8 text-center text-sm">
+        <p>Application de démonstration analytique. Les données sont des approximations basées sur les tendances INAMI, KCE et Statbel.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        padding: 10,
+                        titleFont: { size: 14 },
+                        bodyFont: { size: 13 }
+                    }
+                }
+            };
+
+            const ctxLife = document.getElementById('lifeExpectancyChart').getContext('2d');
+            new Chart(ctxLife, {
+                type: 'bar',
+                data: {
+                    labels: ['Hommes (Q1 - Bas revenus)', 'Hommes (Q5 - Hauts revenus)', 'Femmes (Q1)', 'Femmes (Q5)'],
+                    datasets: [{
+                        label: 'Espérance de vie en bonne santé (années)',
+                        data: [49.3, 67.2, 50.1, 68.5],
+                        backgroundColor: ['#E2874A', '#4A90E2', '#E2874A', '#4A90E2'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: { y: { beginAtZero: true, title: { display: true, text: 'Années' } } }
+                }
+            });
+
+            const ctxUnmet = document.getElementById('unmetNeedsChart').getContext('2d');
+            new Chart(ctxUnmet, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Renonce aux soins (Q1 - Bas revenus)', 'Accès garanti (Q1)', 'Renonce aux soins (Q5 - Hauts revenus)', 'Accès garanti (Q5)'],
+                    datasets: [
+                        {
+                            label: 'Quintile 1 (Plus pauvres)',
+                            data: [15, 85],
+                            backgroundColor: ['#E2874A', '#e5e7eb'],
+                            borderWidth: 0
+                        },
+                        {
+                            label: 'Quintile 5 (Plus riches)',
+                            data: [1.5, 98.5],
+                            backgroundColor: ['#4A90E2', '#e5e7eb'],
+                            borderWidth: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: { label: function(context) { return context.label + ': ' + context.parsed + '%'; } }
+                        }
+                    }
+                }
+            });
+
+            const ctxProj = document.getElementById('projectionChart').getContext('2d');
+            window.projChart = new Chart(ctxProj, {
+                type: 'line',
+                data: {
+                    labels: ['2023', '2024', '2025', '2026', '2027'],
+                    datasets: [{
+                        label: '% de renoncement aux soins (Q1)',
+                        data: [14.8, 15.0, 15.1, 15.0, 14.9],
+                        borderColor: '#4A90E2',
+                        backgroundColor: 'rgba(74, 144, 226, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: { y: { min: 10, max: 25, title: { display: true, text: '%' } } }
+                }
+            });
+        });
+
+        const cycleData = {
+            1: { title: "Choc Financier / Précarité", text: "La perte d'un emploi, l'inflation, ou une crise du logement réduisent drastiquement le budget disponible. La santé devient une variable d'ajustement face aux dépenses incompressibles (loyer, énergie, alimentation)." },
+            2: { title: "Renoncement aux Soins", text: "Incapacité de payer le ticket modérateur ou les suppléments d'honoraires. Les soins dentaires, la santé mentale, et la prévention (dépistages) sont les premiers abandonnés. Les traitements en cours sont parfois interrompus pour économiser." },
+            3: { title: "Dégradation de la Santé", text: "Sans soins préventifs ou précoces, les pathologies s'aggravent. Une carie devient une infection grave; une anxiété devient une dépression sévère; un diabète mal géré entraîne des complications (vue, reins)." },
+            4: { title: "Perte de Revenus", text: "La maladie chronique ou l'incapacité physique/mentale prolongée rend le maintien ou la recherche d'emploi impossible. Le passage sur la mutuelle entraîne une perte de revenus de 40%, renforçant la précarité initiale. La boucle est bouclée." }
+        };
+
+        function updateCycleDetail(id) {
+            const nodes = document.querySelectorAll('.cycle-node');
+            nodes.forEach(n => {
+                n.classList.remove('active', 'border-accent-blue', 'bg-blue-50');
+                n.classList.add('border-gray-200');
+            });
+            const activeNode = nodes[id-1];
+            activeNode.classList.add('active', 'border-accent-blue', 'bg-blue-50');
+            activeNode.classList.remove('border-gray-200');
+
+            document.getElementById('cycle-title').innerText = cycleData[id].title;
+            document.getElementById('cycle-text').innerText = cycleData[id].text;
+        }
+
+        function setScenario(type) {
+            const btnQuo = document.getElementById('btn-status-quo');
+            const btnAust = document.getElementById('btn-austerity');
+            const alertBox = document.getElementById('alert-box');
+            
+            const vTicket = document.getElementById('val-ticket');
+            const dTicket = document.getElementById('desc-ticket');
+            const cTicket = document.getElementById('card-ticket');
+
+            const vMental = document.getElementById('val-mental');
+            const dMental = document.getElementById('desc-mental');
+            const cMental = document.getElementById('card-mental');
+
+            const vSocial = document.getElementById('val-social');
+            const dSocial = document.getElementById('desc-social');
+            const cSocial = document.getElementById('card-social');
+
+            if (type === 'quo') {
+                btnQuo.classList.replace('bg-white', 'bg-gray-800');
+                btnQuo.classList.replace('text-gray-800', 'text-white');
+                btnAust.classList.replace('bg-accent-orange', 'bg-white');
+                btnAust.classList.replace('text-white', 'text-gray-800');
+                alertBox.classList.add('hidden');
+
+                vTicket.innerText = "~18%";
+                vTicket.className = "text-3xl font-extrabold mb-2";
+                dTicket.innerText = "Part des dépenses de santé payée directement par le patient (reste à charge).";
+                cTicket.className = "p-6 rounded-xl border border-gray-200 bg-gray-50 transition-all duration-300";
+
+                vMental.innerText = "Maintenu";
+                vMental.className = "text-3xl font-extrabold mb-2 text-green-600";
+                dMental.innerText = "Remboursement des psychologues de première ligne récemment élargi.";
+                cMental.className = "p-6 rounded-xl border border-gray-200 bg-gray-50 transition-all duration-300";
+
+                vSocial.innerText = "Indexés";
+                vSocial.className = "text-3xl font-extrabold mb-2 text-green-600";
+                dSocial.innerText = "Liaison au bien-être et indexation automatique des allocations sociales.";
+                cSocial.className = "p-6 rounded-xl border border-gray-200 bg-gray-50 transition-all duration-300";
+
+                window.projChart.data.datasets[0].data = [14.8, 15.0, 15.1, 15.0, 14.9];
+                window.projChart.data.datasets[0].borderColor = '#4A90E2';
+                window.projChart.data.datasets[0].backgroundColor = 'rgba(74, 144, 226, 0.1)';
+                window.projChart.update();
+
+            } else {
+                btnAust.classList.replace('bg-white', 'bg-accent-orange');
+                btnAust.classList.replace('text-gray-800', 'text-white');
+                btnQuo.classList.replace('bg-gray-800', 'bg-white');
+                btnQuo.classList.replace('text-white', 'text-gray-800');
+                alertBox.classList.remove('hidden');
+
+                vTicket.innerText = "Hausse +";
+                vTicket.className = "text-3xl font-extrabold mb-2 text-red-600";
+                dTicket.innerText = "Augmentation potentielle du ticket modérateur ou désindexation partielle des barèmes INAMI. Baisse du pouvoir d'achat santé.";
+                cTicket.className = "p-6 rounded-xl border-2 border-red-300 bg-red-50 transition-all duration-300";
+
+                vMental.innerText = "Restreint";
+                vMental.className = "text-3xl font-extrabold mb-2 text-red-600";
+                dMental.innerText = "Gels des budgets de prévention et limitation du nombre de séances remboursées.";
+                cMental.className = "p-6 rounded-xl border-2 border-red-300 bg-red-50 transition-all duration-300";
+
+                vSocial.innerText = "Gelés / Limités en temps";
+                vSocial.className = "text-3xl font-extrabold mb-2 text-red-600";
+                dSocial.innerText = "Saut d'index possible, dégressivité accrue des allocations de chômage poussant vers le CPAS.";
+                cSocial.className = "p-6 rounded-xl border-2 border-red-300 bg-red-50 transition-all duration-300";
+
+                window.projChart.data.datasets[0].data = [14.8, 15.0, 17.5, 21.2, 23.5];
+                window.projChart.data.datasets[0].borderColor = '#E2874A';
+                window.projChart.data.datasets[0].backgroundColor = 'rgba(226, 135, 74, 0.1)';
+                window.projChart.update();
+            }
+        }
+    </script>
+</body>
+</html>
