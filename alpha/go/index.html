@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Évaluation Académique : Médias et Justice Martiale</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,700;1,300&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['Merriweather', 'serif'],
+                        sans: ['Open Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        stone: {
+                            50: '#fafaf9',
+                            100: '#f5f5f4',
+                            200: '#e7e5e4',
+                            800: '#292524',
+                            900: '#1c1917',
+                        },
+                        burgundy: {
+                            600: '#9f1239',
+                            800: '#881337',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* CSS exigé pour la gestion stricte des conteneurs de graphiques */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        /* Utilitaires pour l'interactivité */
+        .tab-active {
+            border-left-color: #9f1239; /* burgundy-600 */
+            background-color: #f5f5f4; /* stone-100 */
+            font-weight: 600;
+        }
+        .section-hidden {
+            display: none;
+        }
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<!-- Chosen Palette: Warm Neutrals (Stone) with Burgundy Accents for Legal/Severe Themes -->
+<!-- Application Structure Plan: The SPA is structured as an interactive "Legal Case File" (Dossier). A sidebar navigation allows the user to step through the 6 phases of the academic research plan. This structure was chosen because legal analysis is linear and builds upon previous facts. Breaking the complex prompt into digestible, interactive sections (Facts -> Law -> Precedents -> Analysis -> Penalties -> Conclusion) prevents cognitive overload and encourages exploration. -->
+<!-- Visualization & Content Choices: 
+  - Goal: Inform on Legal Framework -> Viz: Clickable definition cards (HTML/JS) -> Justification: Allows user to explore dense legal texts at their own pace without cluttering the screen.
+  - Goal: Compare historical precedents -> Viz: Interactive timeline/tabs (HTML/JS) -> Justification: Clearly separates distinct historical events (Nuremberg vs. Rwanda) while keeping the layout compact.
+  - Goal: Analyze theoretical application -> Viz: Radar Chart (Chart.js) -> Justification: Perfectly visualizes how the specific report scores against multiple distinct legal criteria (intent, severity, incitement) compared to the threshold of a war crime.
+  - Goal: Detail Penalties -> Viz: Interactive hierarchy tree (HTML/Tailwind Flex) -> Justification: Shows chain of responsibility visually; clicking reveals specific legal liabilities without SVG. 
+  - Library/Method: Vanilla JS for state, Tailwind for layout, Chart.js for data viz. NO SVG/Mermaid. -->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+<body class="bg-stone-50 text-stone-800 font-sans antialiased min-h-screen flex flex-col md:flex-row overflow-x-hidden">
+
+    <!-- Sidebar Navigation -->
+    <nav class="w-full md:w-64 bg-white border-r border-stone-200 flex-shrink-0 md:h-screen md:sticky top-0 z-10 shadow-sm overflow-y-auto">
+        <div class="p-6">
+            <h1 class="font-serif text-xl font-bold text-burgundy-800 leading-tight mb-2">Cas d'Étude Juridique</h1>
+            <p class="text-xs text-stone-500 mb-6 uppercase tracking-wider">Médias & Justice Martiale</p>
+            
+            <ul class="space-y-1" id="nav-menu">
+                <li><button data-target="section-dossier" class="nav-btn w-full text-left px-4 py-3 text-sm border-l-4 border-transparent hover:bg-stone-50 transition-colors tab-active">1. Le Dossier Factuel</button></li>
+                <li><button data-target="section-cadre" class="nav-btn w-full text-left px-4 py-3 text-sm border-l-4 border-transparent hover:bg-stone-50 transition-colors">2. Cadre Juridique</button></li>
+                <li><button data-target="section-jurisprudence" class="nav-btn w-full text-left px-4 py-3 text-sm border-l-4 border-transparent hover:bg-stone-50 transition-colors">3. Jurisprudence</button></li>
+                <li><button data-target="section-evaluation" class="nav-btn w-full text-left px-4 py-3 text-sm border-l-4 border-transparent hover:bg-stone-50 transition-colors">4. Évaluation Théorique</button></li>
+                <li><button data-target="section-peines" class="nav-btn w-full text-left px-4 py-3 text-sm border-l-4 border-transparent hover:bg-stone-50 transition-colors">5. Chaîne de Responsabilité</button></li>
+                <li><button data-target="section-synthese" class="nav-btn w-full text-left px-4 py-3 text-sm border-l-4 border-transparent hover:bg-stone-50 transition-colors">6. Synthèse Académique</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow p-6 md:p-12 lg:px-24 max-w-5xl mx-auto">
+
+        <!-- SECTION 1 : Le Dossier -->
+        <section id="section-dossier" class="content-section fade-in">
+            <header class="mb-8">
+                <span class="text-burgundy-600 font-bold tracking-widest text-sm uppercase">Étape 1</span>
+                <h2 class="font-serif text-3xl md:text-4xl font-bold text-stone-900 mt-2 mb-4">Le Dossier : "Sans boulot : tous fraudeurs ?"</h2>
+                <p class="text-lg text-stone-600 leading-relaxed">Cette section établit les faits matériels de la polémique. Comprendre le contexte de diffusion, le ton employé et les parties prenantes est le prérequis indispensable avant toute qualification pénale hypothétique.</p>
+            </header>
+
+            <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-stone-200">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="font-bold text-lg mb-3 flex items-center"><span class="mr-2 text-xl">📄</span> Les Faits</h3>
+                        <ul class="space-y-3 text-stone-700">
+                            <li class="flex items-start"><span class="text-burgundy-600 font-bold mr-2">•</span> <strong>Format :</strong> Reportage télévisé d'investigation.</li>
+                            <li class="flex items-start"><span class="text-burgundy-600 font-bold mr-2">•</span> <strong>Auteur :</strong> Christophe Deborsu (Journaliste).</li>
+                            <li class="flex items-start"><span class="text-burgundy-600 font-bold mr-2">•</span> <strong>Diffuseur :</strong> Chaîne publique / privée (selon contexte de l'étude).</li>
+                            <li class="flex items-start"><span class="text-burgundy-600 font-bold mr-2">•</span> <strong>Titre :</strong> Volontairement provocateur et généralisateur.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg mb-3 flex items-center"><span class="mr-2 text-xl">⚡</span> La Polémique</h3>
+                        <p class="text-stone-700 mb-4 text-sm leading-relaxed">
+                            Le reportage a suscité un tollé en raison de son angle perçu comme une <strong>stigmatisation d'une catégorie sociale vulnérable</strong> (les chômeurs). La généralisation induite par le titre suggère une assimilation entre inactivité et criminalité (fraude).
+                        </p>
+                        <div class="bg-stone-100 p-4 rounded border-l-4 border-stone-400">
+                            <p class="text-sm italic font-serif">"En temps de paix, cela relève de la déontologie journalistique. La question de notre étude est : si ce même message était diffusé dans un contexte de conflit armé, franchirait-il le seuil du droit pénal international ?"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2 : Cadre Juridique -->
+        <section id="section-cadre" class="content-section section-hidden fade-in">
+            <header class="mb-8">
+                <span class="text-burgundy-600 font-bold tracking-widest text-sm uppercase">Étape 2</span>
+                <h2 class="font-serif text-3xl md:text-4xl font-bold text-stone-900 mt-2 mb-4">Fondements du Droit International</h2>
+                <p class="text-lg text-stone-600 leading-relaxed">Pour évaluer l'hypothèse d'un crime de guerre, il faut définir les critères stricts établis par le droit international humanitaire (DIH) concernant l'usage des médias.</p>
+            </header>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <!-- Interactive Cards -->
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 hover:shadow-md transition-shadow cursor-pointer border-t-4 border-t-burgundy-800" onclick="document.getElementById('legal-detail').innerHTML = '<strong>Article 8 du Statut de Rome :</strong> Définit les crimes de guerre. Pour qu\'un acte médiatique soit considéré comme tel, il doit s\'inscrire dans le cadre d\'un conflit armé et constituer une violation grave des Conventions de Genève (ex: incitation directe aux meurtres, traitements inhumains).' ; document.getElementById('legal-detail-box').classList.remove('hidden');">
+                    <div class="text-2xl mb-2">⚖️</div>
+                    <h3 class="font-bold text-lg mb-2">Statut de Rome</h3>
+                    <p class="text-sm text-stone-600">Critères stricts des crimes de guerre. <br><span class="text-burgundy-600 text-xs font-bold mt-2 inline-block">Cliquez pour lire l'article</span></p>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 hover:shadow-md transition-shadow cursor-pointer border-t-4 border-t-stone-800" onclick="document.getElementById('legal-detail').innerHTML = '<strong>Article 20 du PIDCP :</strong> Toute propagande en faveur de la guerre et toute appel à la haine nationale, raciale ou religieuse qui constitue une incitation à la discrimination, à l\'hostilité ou à la violence sont interdits par la loi. La difficulté est de prouver le lien causal direct.' ; document.getElementById('legal-detail-box').classList.remove('hidden');">
+                    <div class="text-2xl mb-2">🗣️</div>
+                    <h3 class="font-bold text-lg mb-2">Incitation</h3>
+                    <p class="text-sm text-stone-600">La ligne entre liberté d'expression et appel à la haine. <br><span class="text-burgundy-600 text-xs font-bold mt-2 inline-block">Cliquez pour lire l'article</span></p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 hover:shadow-md transition-shadow cursor-pointer border-t-4 border-t-stone-500" onclick="document.getElementById('legal-detail').innerHTML = '<strong>Persécution comme Crime contre l\'Humanité (Art 7) :</strong> Privation intentionnelle et grave de droits fondamentaux au mépris du droit international, en raison de l\'identité du groupe ou de la collectivité. Une campagne médiatique peut constituer l\'actus reus de la persécution.' ; document.getElementById('legal-detail-box').classList.remove('hidden');">
+                    <div class="text-2xl mb-2">🎯</div>
+                    <h3 class="font-bold text-lg mb-2">Persécution</h3>
+                    <p class="text-sm text-stone-600">Stigmatisation systématique d'un groupe. <br><span class="text-burgundy-600 text-xs font-bold mt-2 inline-block">Cliquez pour lire l'article</span></p>
+                </div>
+            </div>
+
+            <!-- Dynamic Detail Box -->
+            <div id="legal-detail-box" class="hidden bg-stone-100 p-6 rounded-lg border border-stone-300 font-serif text-stone-800 text-sm leading-relaxed">
+                <p id="legal-detail">Cliquez sur une carte ci-dessus pour afficher l'analyse juridique.</p>
+            </div>
+        </section>
+
+        <!-- SECTION 3 : Jurisprudence -->
+        <section id="section-jurisprudence" class="content-section section-hidden fade-in">
+            <header class="mb-8">
+                <span class="text-burgundy-600 font-bold tracking-widest text-sm uppercase">Étape 3</span>
+                <h2 class="font-serif text-3xl md:text-4xl font-bold text-stone-900 mt-2 mb-4">La Jurisprudence Internationale</h2>
+                <p class="text-lg text-stone-600 leading-relaxed">À partir de quel seuil un média devient-il une arme de guerre ? L'histoire offre deux précédents majeurs où des professionnels des médias ont été condamnés par la justice pénale internationale.</p>
+            </header>
+
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+                <div class="flex border-b border-stone-200 bg-stone-50">
+                    <button class="flex-1 py-4 px-6 text-sm font-bold text-stone-800 border-b-2 border-burgundy-600 hover:bg-stone-100 transition-colors" onclick="switchPrecedent('nuremberg', this)">Tribunal de Nuremberg (1946)</button>
+                    <button class="flex-1 py-4 px-6 text-sm font-semibold text-stone-500 border-b-2 border-transparent hover:bg-stone-100 transition-colors" onclick="switchPrecedent('rwanda', this)">TPIR (Rwanda, 2003)</button>
+                </div>
+                
+                <div class="p-6 md:p-8" id="precedent-content">
+                    <!-- Default Content (Nuremberg) -->
+                    <h3 class="font-serif text-2xl font-bold text-stone-900 mb-2">Le Cas Julius Streicher (Der Stürmer)</h3>
+                    <p class="text-sm text-stone-500 mb-6 uppercase tracking-wider">Crime contre l'humanité (Persécution)</p>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-stone-800 mb-2">Les Faits</h4>
+                            <p class="text-sm text-stone-700 leading-relaxed">Éditeur du journal antisémite <em>Der Stürmer</em>. Bien qu'il n'ait pas participé directement aux réunions planifiant l'Holocauste ni dirigé de troupes, ses publications constantes et virulentes ont conditionné le public allemand à accepter l'extermination.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-stone-800 mb-2">Le Verdict</h4>
+                            <p class="text-sm text-stone-700 leading-relaxed">Condamné à mort. Le Tribunal a estimé que l'<strong>incitation au meurtre et à l'extermination</strong>, menée de façon continue et systématique via un média, constituait un crime contre l'humanité en soi.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4 : Évaluation Théorique -->
+        <section id="section-evaluation" class="content-section section-hidden fade-in">
+            <header class="mb-8">
+                <span class="text-burgundy-600 font-bold tracking-widest text-sm uppercase">Étape 4</span>
+                <h2 class="font-serif text-3xl md:text-4xl font-bold text-stone-900 mt-2 mb-4">Évaluation Théorique : Le Reportage face au Seuil</h2>
+                <p class="text-lg text-stone-600 leading-relaxed">Dans un contexte de conflit armé hypothétique, nous comparons les caractéristiques du reportage "Sans boulot : tous fraudeurs ?" aux critères stricts requis pour constituer un crime de guerre (incitation, persécution).</p>
+            </header>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                <div class="flex flex-col md:flex-row gap-8 items-center">
+                    
+                    <div class="w-full md:w-1/2">
+                        <!-- Chart Container - Respecting strict CSS constraints -->
+                        <div class="chart-container">
+                            <canvas id="analysisRadarChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full md:w-1/2 space-y-4">
+                        <h3 class="font-serif text-xl font-bold border-b border-stone-200 pb-2">Analyse des Écarts</h3>
+                        
+                        <div class="p-4 bg-rose-50 rounded border border-rose-100">
+                            <h4 class="font-bold text-rose-800 text-sm mb-1">Stigmatisation (Élevée)</h4>
+                            <p class="text-sm text-stone-700">Le reportage cible un groupe social distinct, créant une opprobre publique. C'est le point de rapprochement principal.</p>
+                        </div>
+                        
+                        <div class="p-4 bg-stone-100 rounded border border-stone-200">
+                            <h4 class="font-bold text-stone-800 text-sm mb-1">Incitation à la Violence (Nulle/Faible)</h4>
+                            <p class="text-sm text-stone-700">Il manque l'appel <em>direct</em> et <em>explicite</em> à l'élimination physique ou à des actes de guerre, contrairement à Radio Mille Collines.</p>
+                        </div>
+
+                        <div class="p-4 bg-stone-100 rounded border border-stone-200">
+                            <h4 class="font-bold text-stone-800 text-sm mb-1">Caractère Systématique (Faible)</h4>
+                            <p class="text-sm text-stone-700">Un crime de guerre via les médias requiert souvent une campagne coordonnée par l'État ou des belligérants, pas un reportage isolé.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5 : Peines & Responsabilités -->
+        <section id="section-peines" class="content-section section-hidden fade-in">
+            <header class="mb-8">
+                <span class="text-burgundy-600 font-bold tracking-widest text-sm uppercase">Étape 5</span>
+                <h2 class="font-serif text-3xl md:text-4xl font-bold text-stone-900 mt-2 mb-4">Chaîne de Responsabilité & Sanctions</h2>
+                <p class="text-lg text-stone-600 leading-relaxed">Si (et seulement si) les faits étaient requalifiés en crime de guerre sous la justice militaire belge et internationale, quelles seraient les peines pour la chaîne de production ? Cliquez sur un rôle pour examiner sa responsabilité.</p>
+            </header>
+
+            <div class="mb-8">
+                <div class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-xl border border-stone-200 shadow-sm gap-4">
+                    
+                    <!-- Diagram using Tailwind Flex -->
+                    <button onclick="showPenalty('directeur')" class="flex-1 w-full p-4 text-center border-2 border-stone-300 rounded-lg hover:border-burgundy-600 hover:bg-stone-50 transition-all group">
+                        <div class="text-3xl mb-2 grayscale group-hover:grayscale-0">🏢</div>
+                        <h3 class="font-bold text-sm text-stone-800">Direction Chaîne</h3>
+                        <p class="text-xs text-stone-500">Responsabilité de Commandement</p>
+                    </button>
+                    
+                    <div class="hidden md:block text-stone-400">➔</div>
+                    
+                    <button onclick="showPenalty('redacteur')" class="flex-1 w-full p-4 text-center border-2 border-stone-300 rounded-lg hover:border-burgundy-600 hover:bg-stone-50 transition-all group">
+                        <div class="text-3xl mb-2 grayscale group-hover:grayscale-0">📝</div>
+                        <h3 class="font-bold text-sm text-stone-800">Rédacteur en Chef</h3>
+                        <p class="text-xs text-stone-500">Responsabilité Éditoriale</p>
+                    </button>
+
+                    <div class="hidden md:block text-stone-400">➔</div>
+
+                    <button onclick="showPenalty('journaliste')" class="flex-1 w-full p-4 text-center border-2 border-burgundy-800 rounded-lg bg-rose-50 hover:bg-rose-100 transition-all">
+                        <div class="text-3xl mb-2">🎙️</div>
+                        <h3 class="font-bold text-sm text-burgundy-800">C. Deborsu (Auteur)</h3>
+                        <p class="text-xs text-burgundy-600">Auteur Matériel</p>
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- Dynamic Penalty Display -->
+            <div id="penalty-display" class="bg-stone-800 text-stone-100 p-8 rounded-xl shadow-inner hidden">
+                <div class="flex items-center mb-4">
+                    <span class="text-2xl mr-3" id="penalty-icon">⚖️</span>
+                    <h3 class="font-serif text-2xl font-bold text-white" id="penalty-title">Sélectionnez un rôle</h3>
+                </div>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-stone-400 text-xs font-bold uppercase tracking-wider mb-2">Base Légale (Hypothétique)</h4>
+                        <p class="text-sm leading-relaxed" id="penalty-law">...</p>
+                    </div>
+                    <div>
+                        <h4 class="text-rose-400 text-xs font-bold uppercase tracking-wider mb-2">Sanction encourue</h4>
+                        <p class="text-lg font-serif" id="penalty-sentence">...</p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- SECTION 6 : Synthèse -->
+        <section id="section-synthese" class="content-section section-hidden fade-in">
+            <header class="mb-8">
+                <span class="text-burgundy-600 font-bold tracking-widest text-sm uppercase">Étape 6</span>
+                <h2 class="font-serif text-3xl md:text-4xl font-bold text-stone-900 mt-2 mb-4">Conclusion de l'Évaluation Académique</h2>
+                <p class="text-lg text-stone-600 leading-relaxed">Synthèse finale confrontant les faits du reportage aux exigences de la justice martiale.</p>
+            </header>
+
+            <div class="bg-white p-8 rounded-xl shadow-sm border-t-8 border-t-stone-800 border-x border-b border-stone-200">
+                <h3 class="text-2xl font-serif font-bold text-stone-900 mb-4">Verdict Théorique : <span class="text-burgundy-600">Non-qualification en Crime de Guerre</span></h3>
+                
+                <div class="prose prose-stone max-w-none text-stone-700">
+                    <p class="mb-4">
+                        Au terme de notre analyse juridique, il apparaît que le reportage "Sans boulot : tous fraudeurs ?", même s'il était diffusé en temps de conflit armé, <strong>ne franchit pas le seuil extrêmement élevé requis pour constituer un crime de guerre ou un crime contre l'humanité (persécution)</strong>.
+                    </p>
+                    
+                    <ul class="list-disc pl-5 mb-6 space-y-2">
+                        <li><strong>Défaut de Mens Rea (Intention) :</strong> L'intention journalistique (aussi maladroite ou sensationnaliste soit-elle) n'est pas d'inciter à l'anéantissement ou à la violence physique du groupe ciblé, contrairement à la propagande nazie ou rwandaise.</li>
+                        <li><strong>Défaut de Nexus (Lien) :</strong> Il n'y a pas de lien direct prouvable entre ce reportage spécifique et des actes de guerre, des exactions ou des violations des Conventions de Genève.</li>
+                        <li><strong>Nature de l'infraction :</strong> Le reportage relève potentiellement de fautes déontologiques graves, voire d'infractions pénales civiles (diffamation de groupe, incitation à la discrimination sociale), mais ne relève pas de la justice martiale.</li>
+                    </ul>
+
+                    <div class="bg-stone-100 p-5 rounded-lg border border-stone-300">
+                        <h4 class="font-bold text-sm text-stone-800 uppercase tracking-wider mb-2">Conclusion</h4>
+                        <p class="text-sm italic font-serif">"Stigmatiser n'est pas exterminer. Si la justice martiale punit sévèrement l'usage des médias comme arme d'incitation à la violence de masse, elle ne peut criminaliser un reportage d'investigation, même polémique, sous peine de violer le principe de légalité des délits et des peines."</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Application Logic (Vanilla JS) -->
+    <script>
+        // --- Navigation Logic ---
+        const navButtons = document.querySelectorAll('.nav-btn');
+        const sections = document.querySelectorAll('.content-section');
+
+        navButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active button state
+                navButtons.forEach(b => {
+                    b.classList.remove('tab-active');
+                    b.classList.remove('border-burgundy-600');
+                    b.classList.add('border-transparent');
+                });
+                btn.classList.add('tab-active');
+                
+                // Styling active state specifically for the left border
+                btn.style.borderLeftColor = '#9f1239'; // burgundy
+                navButtons.forEach(b => { if(b !== btn) b.style.borderLeftColor = 'transparent'; });
+
+                // Hide all sections, show target
+                const targetId = btn.getAttribute('data-target');
+                sections.forEach(sec => {
+                    sec.classList.add('section-hidden');
+                    sec.classList.remove('fade-in');
+                });
+                
+                const targetSec = document.getElementById(targetId);
+                targetSec.classList.remove('section-hidden');
+                // Trigger reflow to restart animation
+                void targetSec.offsetWidth; 
+                targetSec.classList.add('fade-in');
+
+                // Re-render chart if navigating to section 4 to ensure proper sizing
+                if(targetId === 'section-evaluation' && window.myRadarChart) {
+                    window.myRadarChart.resize();
+                }
+            });
+        });
+
+        // --- Section 3: Jurisprudence Tabs Logic ---
+        function switchPrecedent(type, btnElement) {
+            // Reset buttons styling
+            const buttons = btnElement.parentElement.querySelectorAll('button');
+            buttons.forEach(b => {
+                b.classList.remove('text-stone-800', 'border-burgundy-600');
+                b.classList.add('text-stone-500', 'border-transparent');
+            });
+            // Set active button
+            btnElement.classList.add('text-stone-800', 'border-burgundy-600');
+            btnElement.classList.remove('text-stone-500', 'border-transparent');
+
+            const contentDiv = document.getElementById('precedent-content');
+            
+            if (type === 'nuremberg') {
+                contentDiv.innerHTML = `
+                    <h3 class="font-serif text-2xl font-bold text-stone-900 mb-2 fade-in">Le Cas Julius Streicher (Der Stürmer)</h3>
+                    <p class="text-sm text-stone-500 mb-6 uppercase tracking-wider fade-in">Crime contre l'humanité (Persécution)</p>
+                    <div class="grid md:grid-cols-2 gap-6 fade-in">
+                        <div>
+                            <h4 class="font-bold text-stone-800 mb-2">Les Faits</h4>
+                            <p class="text-sm text-stone-700 leading-relaxed">Éditeur du journal antisémite <em>Der Stürmer</em>. Bien qu'il n'ait pas participé directement aux réunions planifiant l'Holocauste ni dirigé de troupes, ses publications constantes et virulentes ont conditionné le public allemand à accepter l'extermination.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-stone-800 mb-2">Le Verdict</h4>
+                            <p class="text-sm text-stone-700 leading-relaxed">Condamné à mort. Le Tribunal a estimé que l'<strong>incitation au meurtre et à l'extermination</strong>, menée de façon continue et systématique via un média, constituait un crime contre l'humanité en soi.</p>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'rwanda') {
+                contentDiv.innerHTML = `
+                    <h3 class="font-serif text-2xl font-bold text-stone-900 mb-2 fade-in">Le Procès des Médias (TPIR)</h3>
+                    <p class="text-sm text-stone-500 mb-6 uppercase tracking-wider fade-in">Génocide & Incitation directe</p>
+                    <div class="grid md:grid-cols-2 gap-6 fade-in">
+                        <div>
+                            <h4 class="font-bold text-stone-800 mb-2">Les Faits</h4>
+                            <p class="text-sm text-stone-700 leading-relaxed">Ferdinand Nahimana et Hassan Ngeze, dirigeants de la RTLM (Radio Télévision Libre des Mille Collines) et du journal Kangura. Leurs médias diffusaient des listes de cibles et appelaient explicitement au meurtre des Tutsis en temps réel.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-stone-800 mb-2">Le Verdict</h4>
+                            <p class="text-sm text-stone-700 leading-relaxed">Condamnations à la prison à vie (réduites en appel). La jurisprudence établit que les médias de masse, utilisés pour <strong>diriger et encourager activement la violence mortelle</strong>, sont des instruments constitutifs du crime de guerre/génocide.</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // --- Section 4: Chart.js Initialization ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('analysisRadarChart').getContext('2d');
+            
+            // Data comparing a theoretical War Crime threshold vs. The Report's content
+            const data = {
+                labels: [
+                    ['Incitation', 'à la violence'], 
+                    ['Stigmatisation', 'de groupe'], 
+                    ['Intention', '(Mens Rea)'], 
+                    ['Lien causal', 'avec exactions'], 
+                    ['Caractère', 'Systématique']
+                ],
+                datasets: [{
+                    label: 'Seuil "Crime de Guerre"',
+                    data: [100, 100, 100, 100, 100],
+                    fill: true,
+                    backgroundColor: 'rgba(159, 18, 57, 0.1)', // burgundy-600 with low opacity
+                    borderColor: 'rgba(159, 18, 57, 1)',
+                    pointBackgroundColor: 'rgba(159, 18, 57, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(159, 18, 57, 1)'
+                }, {
+                    label: 'Évaluation : Reportage "Deborsu"',
+                    data: [10, 80, 20, 5, 15],
+                    fill: true,
+                    backgroundColor: 'rgba(41, 37, 36, 0.2)', // stone-800 with low opacity
+                    borderColor: 'rgba(41, 37, 36, 1)',
+                    pointBackgroundColor: 'rgba(41, 37, 36, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(41, 37, 36, 1)'
+                }]
+            };
+
+            const config = {
+                type: 'radar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // CRUCIAL for chart-container to control size
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    family: "'Open Sans', sans-serif"
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.formattedValue + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            pointLabels: {
+                                font: {
+                                    family: "'Open Sans', sans-serif",
+                                    size: 11
+                                },
+                                color: '#292524' // stone-800
+                            },
+                            ticks: {
+                                min: 0,
+                                max: 100,
+                                stepSize: 20,
+                                display: false // Hide numbers on web
+                            }
+                        }
+                    }
+                }
+            };
+
+            window.myRadarChart = new Chart(ctx, config);
+        });
+
+        // --- Section 5: Penalties Logic ---
+        const penaltyData = {
+            'journaliste': {
+                title: 'Responsabilité de l\'Auteur Matériel',
+                icon: '🎙️',
+                law: 'Code Pénal Militaire (si assimilé à un acte de guerre) & Art. 25 du Statut de Rome (commission directe ou complicité). Il est l\'auteur des mots incriminés.',
+                sentence: 'En cas d\'incitation directe (non prouvée ici), la peine s\'évalue en <strong>décennies d\'emprisonnement (10 à 30 ans)</strong> selon la gravité des actes induits.'
+            },
+            'redacteur': {
+                title: 'Responsabilité Éditoriale (Complicité)',
+                icon: '📝',
+                law: 'Art. 25(3)(c) Statut de Rome. En validant le reportage, le rédacteur en chef apporte une aide, un concours ou toute autre forme d\'assistance à la commission du crime.',
+                sentence: 'Peines souvent similaires à l\'auteur principal, car l\'acte de diffusion par un média officiel nécessite son approbation. <strong>Emprisonnement lourd.</strong>'
+            },
+            'directeur': {
+                title: 'Responsabilité du Supérieur Hiérarchique',
+                icon: '🏢',
+                law: 'Art. 28 Statut de Rome (Responsabilité des chefs militaires et autres supérieurs). S\'il savait ou devait savoir que le subordonné commettait un crime de guerre et n\'a pas pris de mesures.',
+                sentence: 'La négligence coupable au plus haut niveau de la chaîne de commandement médiatique peut mener à de <strong>lourdes peines de prison (15+ ans)</strong>, comme établi au TPIR.'
+            }
+        };
+
+        function showPenalty(role) {
+            const displayBox = document.getElementById('penalty-display');
+            const data = penaltyData[role];
+            
+            // Show box
+            displayBox.classList.remove('hidden');
+            displayBox.classList.add('fade-in');
+            
+            // Update content
+            document.getElementById('penalty-title').innerText = data.title;
+            document.getElementById('penalty-icon').innerText = data.icon;
+            document.getElementById('penalty-law').innerHTML = data.law;
+            document.getElementById('penalty-sentence').innerHTML = data.sentence;
+
+            // Trigger reflow for animation
+            void displayBox.offsetWidth;
+        }
+
+    </script>
+</body>
+</html>
