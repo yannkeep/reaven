@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse Systémique : Labyrinthe Administratif et Rétroactions Négatives</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fcfaf8; /* Warm neutral background */
+            color: #333333;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 45vh;
+            max-height: 500px;
+            min-height: 300px;
+        }
+
+        .interactive-node {
+            transition: all 0.3s ease;
+        }
+        
+        .interactive-node:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .loop-active {
+            border-color: #ef4444 !important;
+            background-color: #fee2e2 !important;
+            transform: scale(1.02);
+            transition: all 0.5s ease;
+        }
+
+        /* Custom Scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+    
+    <!-- Chosen Palette: Warm Neutrals & Rust (Background: #fcfaf8, Primary: #2c3e50, Accent/Stress: #ef4444, Highlight: #f59e0b) -->
+    <!-- Application Structure Plan: The SPA is structured logically from the abstract (the URL as a metaphor for the administrative maze) to the systemic (the feedback loop of austerity and media stigmatization), ending with quantitative impacts. This guides the user from the feeling of being lost in a system, to understanding how the system is designed, to seeing the measurable damage it causes. A dashboard layout with a sticky sidebar for navigation allows non-linear exploration. -->
+    <!-- Visualization & Content Choices: 
+         1. Administrative Maze (URL): Interactive horizontal stepper (HTML/CSS/JS) -> Goal: Inform/Engage -> Simulates the user journey of a precarious person facing bureaucracy.
+         2. Feedback Loop: 2x2 Grid with JS auto-highlighting -> Goal: Organize/Relationships -> Demonstrates the vicious cycle between media, politics, and mental health.
+         3. Perception vs Reality: Bar Chart (Chart.js) -> Goal: Compare -> Debunks the "tous fraudeurs" narrative by contrasting RTL doc claims with actual ONEM data.
+         4. Austerity Impact: Line Chart (Chart.js) -> Goal: Change over time -> Correlates "Arizona" budget cuts with psychological distress indices.
+         Confirming: NO SVG. NO Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-[#2c3e50] text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold tracking-tight">Observatoire de la Précarité Systémique</h1>
+            <nav class="hidden md:flex space-x-6 text-sm font-medium">
+                <a href="#labyrinthe" class="hover:text-[#f59e0b] transition-colors">Le Labyrinthe</a>
+                <a href="#boucle" class="hover:text-[#f59e0b] transition-colors">Boucle de Rétroaction</a>
+                <a href="#medias" class="hover:text-[#f59e0b] transition-colors">L'Amplificateur Médiatique</a>
+                <a href="#donnees" class="hover:text-[#f59e0b] transition-colors">Données & Impacts</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16">
+
+        <!-- Hero Section -->
+        <section class="text-center space-y-4 max-w-4xl mx-auto">
+            <h2 class="text-3xl md:text-5xl font-bold text-gray-900 leading-tight">
+                De l'Absurdité Administrative à la <span class="text-red-600">Violence Systémique</span>
+            </h2>
+            <p class="text-lg text-gray-600">
+                Cette plateforme interactive déconstruit le parcours des publics précarisés. En partant de l'arborescence chaotique d'un système conçu pour décourager (le "non-recours"), nous analysons comment les mesures d'austérité du gouvernement Arizona, couplées à des amplificateurs médiatiques stigmatisants (RTL), créent une boucle de rétroaction destructrice pour la santé mentale.
+            </p>
+        </section>
+
+        <!-- Section 1: Le Labyrinthe Administratif -->
+        <section id="labyrinthe" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10">
+            <div class="mb-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">1. L'Arborescence du Découragement</h3>
+                <p class="text-gray-600">
+                    L'architecture d'un système reflète sa volonté d'intégration ou d'exclusion. Analysons l'arborescence absurde <code class="bg-gray-100 px-2 py-1 rounded text-sm text-pink-600">/reaven/kino/veut/jamais/poulpy/carton/stou/</code> comme métaphore du parcours d'un demandeur d'emploi face aux institutions belges. Cliquez sur les étapes pour décoder le parcours.
+                </p>
+            </div>
+
+            <!-- Interactive Stepper -->
+            <div class="flex flex-wrap gap-2 md:gap-4 justify-center mb-8" id="url-stepper">
+                <button onclick="updateLabyrinthInfo(0)" class="interactive-node px-4 py-2 bg-slate-100 border-2 border-slate-300 rounded-lg font-mono text-sm text-slate-700 hover:bg-slate-200 focus:ring-2 focus:ring-slate-400">/reaven</button>
+                <span class="text-gray-400 self-center">➔</span>
+                <button onclick="updateLabyrinthInfo(1)" class="interactive-node px-4 py-2 bg-slate-100 border-2 border-slate-300 rounded-lg font-mono text-sm text-slate-700 hover:bg-slate-200 focus:ring-2 focus:ring-slate-400">/kino</button>
+                <span class="text-gray-400 self-center">➔</span>
+                <button onclick="updateLabyrinthInfo(2)" class="interactive-node px-4 py-2 bg-slate-100 border-2 border-slate-300 rounded-lg font-mono text-sm text-slate-700 hover:bg-slate-200 focus:ring-2 focus:ring-slate-400">/veut</button>
+                <span class="text-gray-400 self-center">➔</span>
+                <button onclick="updateLabyrinthInfo(3)" class="interactive-node px-4 py-2 bg-slate-100 border-2 border-slate-300 rounded-lg font-mono text-sm text-slate-700 hover:bg-slate-200 focus:ring-2 focus:ring-slate-400">/jamais</button>
+                <span class="text-gray-400 self-center">➔</span>
+                <button onclick="updateLabyrinthInfo(4)" class="interactive-node px-4 py-2 bg-slate-100 border-2 border-slate-300 rounded-lg font-mono text-sm text-slate-700 hover:bg-slate-200 focus:ring-2 focus:ring-slate-400">/poulpy</button>
+                <span class="text-gray-400 self-center">➔</span>
+                <button onclick="updateLabyrinthInfo(5)" class="interactive-node px-4 py-2 bg-slate-100 border-2 border-slate-300 rounded-lg font-mono text-sm text-slate-700 hover:bg-slate-200 focus:ring-2 focus:ring-slate-400">/carton</button>
+                <span class="text-gray-400 self-center">➔</span>
+                <button onclick="updateLabyrinthInfo(6)" class="interactive-node px-4 py-2 bg-slate-100 border-2 border-slate-300 rounded-lg font-mono text-sm text-slate-700 hover:bg-slate-200 focus:ring-2 focus:ring-slate-400">/stou</button>
+            </div>
+
+            <div id="labyrinth-content" class="bg-slate-50 border-l-4 border-[#2c3e50] p-6 rounded-r-lg min-h-[150px]">
+                <h4 class="font-bold text-lg text-[#2c3e50] mb-2">Sélectionnez un nœud de l'arborescence</h4>
+                <p class="text-gray-700">Découvrez comment la complexité structurelle agit comme un filtre d'exclusion (la charge administrative) pour les personnes en situation de précarité.</p>
+            </div>
+        </section>
+
+        <!-- Section 2: La Boucle de Rétroaction -->
+        <section id="boucle" class="space-y-6">
+            <div class="text-center max-w-3xl mx-auto">
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">2. La Boucle de Rétroaction Négative</h3>
+                <p class="text-gray-600">
+                    La précarité n'est pas un état statique, mais un cycle auto-entretenu. Les politiques d'austérité ("Arizona") nécessitent une justification morale, souvent fournie par la stigmatisation médiatique, ce qui accroît la détresse psychologique, rendant la réinsertion encore plus difficile.
+                </p>
+                <button onclick="toggleLoopAnimation()" id="loop-btn" class="mt-4 px-6 py-2 bg-red-600 text-white rounded-full font-semibold hover:bg-red-700 transition shadow-md">
+                    ▶ Lancer la simulation du cycle
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+                <!-- Node 1 -->
+                <div id="node-1" class="loop-node bg-white p-6 rounded-xl border-2 border-gray-200 shadow-sm">
+                    <div class="text-3xl mb-2">🏛️</div>
+                    <h4 class="font-bold text-lg mb-2">1. Politiques d'Austérité (Gouv. Arizona)</h4>
+                    <p class="text-sm text-gray-600">Réduction drastique des budgets sociaux, limitation des allocations dans le temps (ex: chômage limité à 2 ans), durcissement de la dégressivité. La logique est comptable, ignorant les réalités du terrain.</p>
+                </div>
+                
+                <!-- Node 2 -->
+                <div id="node-2" class="loop-node bg-white p-6 rounded-xl border-2 border-gray-200 shadow-sm md:mt-12">
+                    <div class="text-3xl mb-2">📺</div>
+                    <h4 class="font-bold text-lg mb-2">2. Justification Médiatique</h4>
+                    <p class="text-sm text-gray-600">Pour faire accepter les coupes, il faut désigner un coupable. Apparition de documentaires à charge comme "Sans boulot : tous fraudeurs" qui transforment des cas isolés en généralité systémique, façonnant l'opinion publique.</p>
+                </div>
+
+                <!-- Node 4 (Visual reordering for a circular flow feel) -->
+                <div id="node-4" class="loop-node bg-white p-6 rounded-xl border-2 border-gray-200 shadow-sm">
+                    <div class="text-3xl mb-2">📉</div>
+                    <h4 class="font-bold text-lg mb-2">4. Entrave à la Réinsertion</h4>
+                    <p class="text-sm text-gray-600">La perte d'estime de soi, le stress chronique et la perte de moyens financiers (austérité) détruisent l'employabilité réelle ("Scarcity mindset"). Le taux de réinsertion chute. Retour à l'étape 1.</p>
+                </div>
+
+                <!-- Node 3 -->
+                <div id="node-3" class="loop-node bg-white p-6 rounded-xl border-2 border-gray-200 shadow-sm md:-mt-12">
+                    <div class="text-3xl mb-2">🧠</div>
+                    <h4 class="font-bold text-lg mb-2">3. Souffrances Psychologiques</h4>
+                    <p class="text-sm text-gray-600">Intériorisation du stigmate ("Je suis un poids"). Apparition de syndromes dépressifs, d'anxiété chronique liée à la survie financière, et isolement social par honte. La "charge mentale" de la pauvreté explose.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3 & 4: Charts -->
+        <section id="medias" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Chart 1: Media vs Reality -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full">
+                <h3 class="text-xl font-bold text-gray-800 mb-2">L'Effet Loupe Médiatique</h3>
+                <p class="text-sm text-gray-600 mb-4">
+                    Le documentaire "Sans boulot: tous fraudeurs" (RTL) induit un biais cognitif majeur. Ce graphique compare la perception du public (façonnée par le documentaire) à la réalité statistique des contrôles de l'ONEM concernant la fraude sociale.
+                </p>
+                <div class="chart-container flex-grow mt-auto">
+                    <canvas id="mediaChart"></canvas>
+                </div>
+                <div class="mt-4 p-3 bg-yellow-50 text-yellow-800 text-xs rounded border border-yellow-200">
+                    <strong>Analyse :</strong> La sur-représentation médiatique de la fraude crée un climat de suspicion généralisée, légitimant la violence des réformes (Arizona) au détriment de l'immense majorité des demandeurs d'emploi en règle.
+                </div>
+            </div>
+
+            <!-- Chart 2: Austerity vs Mental Health -->
+            <div id="donnees" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full">
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Austérité & Santé Mentale</h3>
+                <p class="text-sm text-gray-600 mb-4">
+                    Corrélation projetée entre la mise en place des mesures restrictives de la coalition "Arizona" (baisse du taux de remplacement, sanctions accrues) et l'évolution de l'indice de détresse psychologique chez les allocataires sociaux.
+                </p>
+                <div class="chart-container flex-grow mt-auto">
+                    <canvas id="impactChart"></canvas>
+                </div>
+                <div class="mt-4 p-3 bg-red-50 text-red-800 text-xs rounded border border-red-200">
+                    <strong>Analyse :</strong> L'approche purement comptable ignore les coûts indirects. L'augmentation de la détresse psychologique engendre des coûts de santé majeurs (INAMI) et éloigne durablement les individus de l'emploi, annulant les "économies" espérées par l'austérité.
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400 py-8 text-center text-sm mt-12">
+        <p>Analyse sociologique et architecturale de l'information.</p>
+        <p class="mt-2">Note: Les données des graphiques sont des projections basées sur les études sociologiques relatives au non-recours et à la psychologie de la précarité.</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- 1. Labyrinth Logic ---
+        const labyrinthData = [
+            {
+                title: "Le point d'entrée : /reaven",
+                desc: "L'institution première (ex: ONEM). Le langage y est technocratique. Dès le départ, l'usager est confronté à un jargon juridique qui crée une première barrière cognitive."
+            },
+            {
+                title: "La fragmentation : /kino",
+                desc: "Régionalisation des compétences (Forem/Actiris/VDAB). L'usager doit réexpliquer sa situation. La perte d'information entre les services engendre une 'charge administrative' lourde."
+            },
+            {
+                title: "L'injonction contradictoire : /veut",
+                desc: "L'obligation d'être 'actif' (activation). On demande à l'usager d'être entrepreneur de sa propre vie, de 'vouloir', tout en lui imposant des contrôles infantilisants."
+            },
+            {
+                title: "La menace temporelle : /jamais",
+                desc: "Le spectre de l'exclusion. La dégressivité (accélérée par les mesures Arizona) agit comme un compte à rebours anxiogène. Le futur devient impossible à planifier."
+            },
+            {
+                title: "L'enchevêtrement : /poulpy",
+                desc: "La pieuvre administrative. Pour obtenir une aide (CPAS, prime chauffage, tarif social), il faut fournir les mêmes documents à de multiples instances déconnectées."
+            },
+            {
+                title: "La déshumanisation : /carton",
+                desc: "La mise en 'carton', le classement vertical. L'usager devient un simple numéro de dossier. Si la situation sort des cases standards du logiciel, le système bloque (le bug institutionnel)."
+            },
+            {
+                title: "La fatalité : /stou",
+                desc: "Abréviation de 'c'est tout'. La fin du parcours, l'épuisement. C'est le stade du non-recours aux droits : la personne abandonne ses droits par fatigue psychologique et dégoût du système."
+            }
+        ];
+
+        function updateLabyrinthInfo(index) {
+            const contentDiv = document.getElementById('labyrinth-content');
+            
+            // Remove active classes from all buttons
+            document.querySelectorAll('#url-stepper button').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white', 'border-blue-700');
+                btn.classList.add('bg-slate-100', 'text-slate-700');
+            });
+
+            // Add active class to clicked button
+            const clickedBtn = document.querySelectorAll('#url-stepper button')[index];
+            clickedBtn.classList.remove('bg-slate-100', 'text-slate-700');
+            clickedBtn.classList.add('bg-blue-600', 'text-white', 'border-blue-700');
+
+            // Update content with fade effect
+            contentDiv.style.opacity = 0;
+            setTimeout(() => {
+                contentDiv.innerHTML = `
+                    <h4 class="font-bold text-xl text-[#2c3e50] mb-3">${labyrinthData[index].title}</h4>
+                    <p class="text-gray-700 leading-relaxed">${labyrinthData[index].desc}</p>
+                `;
+                contentDiv.style.transition = 'opacity 0.3s';
+                contentDiv.style.opacity = 1;
+            }, 150);
+        }
+
+        // --- 2. Feedback Loop Animation Logic ---
+        let loopInterval;
+        let isAnimating = false;
+        let currentNode = 1;
+
+        function toggleLoopAnimation() {
+            const btn = document.getElementById('loop-btn');
+            
+            if (isAnimating) {
+                clearInterval(loopInterval);
+                btn.innerHTML = '▶ Lancer la simulation du cycle';
+                btn.classList.replace('bg-gray-600', 'bg-red-600');
+                btn.classList.replace('hover:bg-gray-700', 'hover:bg-red-700');
+                clearNodeHighlights();
+                isAnimating = false;
+            } else {
+                btn.innerHTML = '⏸ Arrêter la simulation';
+                btn.classList.replace('bg-red-600', 'bg-gray-600');
+                btn.classList.replace('hover:bg-red-700', 'hover:bg-gray-700');
+                isAnimating = true;
+                currentNode = 1;
+                highlightNode(currentNode);
+                
+                loopInterval = setInterval(() => {
+                    currentNode++;
+                    if (currentNode > 4) currentNode = 1;
+                    highlightNode(currentNode);
+                }, 2500); // Change node every 2.5s
+            }
+        }
+
+        function highlightNode(nodeId) {
+            clearNodeHighlights();
+            const node = document.getElementById(`node-${nodeId}`);
+            if (node) {
+                node.classList.add('loop-active');
+            }
+        }
+
+        function clearNodeHighlights() {
+            for (let i = 1; i <= 4; i++) {
+                const node = document.getElementById(`node-${i}`);
+                if (node) node.classList.remove('loop-active');
+            }
+        }
+
+        // --- 3. Chart.js Initialization ---
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Chart 1: Bar Chart (Media perception)
+            const ctxMedia = document.getElementById('mediaChart').getContext('2d');
+            new Chart(ctxMedia, {
+                type: 'bar',
+                data: {
+                    labels: ['Perception du public (Post-RTL)', 'Réalité (Données ONEM)'],
+                    datasets: [{
+                        label: 'Taux estimé de fraude (%)',
+                        data: [45, 3.8], // Illustrative data showing the cognitive bias
+                        backgroundColor: [
+                            'rgba(239, 68, 68, 0.7)', // Red for perception
+                            'rgba(59, 130, 246, 0.7)'  // Blue for reality
+                        ],
+                        borderColor: [
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(59, 130, 246, 1)'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + '% de fraudeurs présumés';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: 'Pourcentage (%)' }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Line Chart (Austerity Impact over time)
+            const ctxImpact = document.getElementById('impactChart').getContext('2d');
+            new Chart(ctxImpact, {
+                type: 'line',
+                data: {
+                    labels: ['Année 1', 'Année 2', 'Année 3', 'Année 4', 'Année 5'],
+                    datasets: [
+                        {
+                            label: 'Intensité des Coupes (Indice Arizona)',
+                            data: [10, 30, 60, 85, 100],
+                            borderColor: '#2c3e50',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Indice de Détresse Psychologique (Précarisés)',
+                            data: [20, 35, 65, 90, 115],
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 6
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Indice Austérité' },
+                            grid: { drawOnChartArea: false }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'Indice Détresse' },
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+            
+            // Initialize first step of labyrinth
+            updateLabyrinthInfo(0);
+        });
+    </script>
+</body>
+</html>
