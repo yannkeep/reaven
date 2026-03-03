@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REAVEN Academy — Formation Renseignement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Outfit:wght@200;300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #07080a;
+  --bg-card: #0c0e12;
+  --border: #1a1e25;
+  --accent: #00e5a0;
+  --accent-dim: #00e5a020;
+  --accent-mid: #00e5a060;
+  --red: #ff3a5c;
+  --amber: #f5a623;
+  --cyan: #4dc9f6;
+  --purple: #a855f7;
+  --text: #c8cdd5;
+  --text-dim: #5a6270;
+  --text-bright: #eef1f5;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Outfit', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+/* Noise */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9999;
+}
+
+/* Scanlines */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
+  pointer-events: none; z-index: 9998;
+}
+
+/* Grid BG */
+.grid-bg {
+  position: fixed; inset: 0;
+  background-image: linear-gradient(rgba(0,229,160,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,160,0.025) 1px, transparent 1px);
+  background-size: 60px 60px; z-index: -1;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--accent-mid); border-radius: 2px; }
+
+/* ─── CONTAINER ─── */
+.container { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 0 20px; min-height: 100vh; }
+
+/* ─── NAV ─── */
+.top-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 0; border-bottom: 1px solid var(--border); margin-bottom: 40px;
+}
+.nav-left { display: flex; align-items: center; gap: 16px; }
+.nav-logo { font-family: var(--font-display); font-weight: 800; font-size: 18px; color: var(--accent); letter-spacing: 3px; }
+.nav-logo span { color: var(--red); }
+.nav-right { display: flex; align-items: center; gap: 12px; }
+.status-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 4px var(--accent)} 50%{opacity:.3;box-shadow:0 0 12px var(--accent)} }
+.nav-status { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); }
+.btn-back {
+  background: none; border: 1px solid var(--border); color: var(--text-dim);
+  padding: 6px 14px; cursor: pointer; font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 1px; transition: all 0.3s; display: none;
+}
+.btn-back:hover { border-color: var(--accent); color: var(--accent); }
+.btn-back.visible { display: inline-block; }
+
+/* ─── OVERVIEW HEADER ─── */
+.overview-header { text-align: center; margin-bottom: 50px; }
+.header-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 16px; border: 1px solid var(--border); border-radius: 20px;
+  font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 20px;
+}
+.header-tag .dot { color: var(--red); font-size: 14px; }
+.overview-title {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(2rem, 5vw, 3.5rem); color: var(--text-bright);
+  letter-spacing: -1px; margin-bottom: 12px; line-height: 1.1;
+}
+.overview-sub { font-size: 13px; color: var(--text-dim); max-width: 550px; margin: 0 auto 30px; line-height: 1.7; }
+.progress-wrap { max-width: 400px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+.progress-track { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--cyan)); border-radius: 2px; transition: width 0.5s; }
+.progress-count { font-size: 11px; color: var(--accent); font-weight: 600; }
+
+/* ─── MODULE GRID ─── */
+.module-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.module-card {
+  background: var(--bg-card); border: 1px solid var(--border); padding: 24px;
+  cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
+}
+.module-card:hover { transform: translateY(-3px); }
+.module-card .bar-left {
+  position: absolute; top: 0; left: 0; width: 3px; height: 0%;
+  transition: height 0.5s;
+}
+.module-card .card-icon { font-size: 28px; margin-bottom: 12px; }
+.module-card .card-num { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 4px; }
+.module-card .card-title { font-family: var(--font-display); font-weight: 600; font-size: 16px; color: var(--text-bright); margin-bottom: 8px; }
+.module-card .card-desc { font-size: 12px; line-height: 1.6; color: var(--text-dim); margin-bottom: 16px; }
+.module-card .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--text-dim); }
+
+/* ─── MODULE DETAIL ─── */
+.module-detail { display: none; }
+.module-detail.active { display: block; }
+.mod-header-icon { font-size: 36px; margin-bottom: 8px; }
+.mod-header-num { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 4px; }
+.mod-header-title { font-family: var(--font-display); font-weight: 700; font-size: 28px; color: var(--text-bright); margin-bottom: 8px; }
+.mod-header-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 20px; }
+.mod-progress { display: flex; align-items: center; gap: 12px; max-width: 300px; margin-bottom: 36px; }
+.mod-progress-track { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.mod-progress-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
+.mod-progress-pct { font-size: 11px; }
+
+/* ─── LESSON LIST ─── */
+.lesson-list { display: flex; flex-direction: column; gap: 12px; }
+.lesson-item {
+  background: var(--bg-card); border: 1px solid var(--border); padding: 20px 24px;
+  cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 16px;
+}
+.lesson-item:hover { transform: translateX(4px); }
+.lesson-num {
+  width: 36px; height: 36px; border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: var(--text-dim); flex-shrink: 0; transition: all 0.3s;
+}
+.lesson-num.done { border-color: var(--accent); color: var(--accent); background: rgba(0,229,160,0.06); }
+.lesson-info { flex: 1; }
+.lesson-title { font-family: var(--font-display); font-weight: 600; font-size: 15px; color: var(--text-bright); margin-bottom: 4px; }
+.lesson-meta { display: flex; gap: 12px; font-size: 10px; color: var(--text-dim); }
+.lesson-type-tag {
+  padding: 1px 8px; border: 1px solid var(--text-dim); text-transform: uppercase; letter-spacing: 1px;
+}
+.lesson-type-tag.theorie { border-color: var(--text-dim); color: var(--text-dim); }
+.lesson-type-tag.pratique { border-color: var(--cyan); color: var(--cyan); }
+.lesson-type-tag.exercice { border-color: var(--amber); color: var(--amber); }
+.lesson-arrow { font-size: 16px; color: var(--text-dim); }
+
+/* ─── LESSON DETAIL ─── */
+.lesson-detail { display: none; max-width: 750px; }
+.lesson-detail.active { display: block; }
+.lesson-head-tags { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+.lesson-head-title { font-family: var(--font-display); font-weight: 700; font-size: 26px; color: var(--text-bright); margin-bottom: 24px; }
+
+.lesson-content {
+  background: var(--bg-card); border: 1px solid var(--border); padding: 32px 28px;
+  margin-bottom: 24px; font-size: 13px; line-height: 2;
+}
+.lesson-content .lc-heading {
+  color: var(--text-bright); font-weight: 600; margin-top: 18px; margin-bottom: 6px; font-size: 14px;
+}
+.lesson-content .lc-heading:first-child { margin-top: 0; }
+.lesson-content .lc-bullet { padding-left: 16px; color: var(--text); margin: 2px 0; }
+.lesson-content .lc-bullet .bul { margin-right: 6px; }
+.lesson-content .lc-text { color: var(--text); margin: 4px 0; }
+
+.links-section { margin-bottom: 30px; }
+.links-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; }
+.links-list { display: flex; flex-direction: column; gap: 8px; }
+.link-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border: 1px solid var(--border); background: var(--bg-card);
+  text-decoration: none; color: var(--text); font-size: 12px; transition: all 0.3s;
+}
+.link-item:hover { border-color: var(--accent-mid); color: var(--accent); transform: translateX(4px); }
+.link-item .link-arrow { color: var(--accent); flex-shrink: 0; }
+.link-item .link-label { flex: 1; }
+.link-item .link-domain { font-size: 10px; color: var(--text-dim); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.btn-complete {
+  width: 100%; padding: 14px 24px; border: 1px solid var(--border); background: transparent;
+  color: var(--text-dim); font-family: var(--font-mono); font-size: 12px;
+  letter-spacing: 3px; text-transform: uppercase; cursor: pointer; transition: all 0.3s;
+}
+.btn-complete:hover { border-color: var(--accent-mid); color: var(--accent); }
+.btn-complete.done { border-color: var(--accent); color: var(--accent); background: rgba(0,229,160,0.06); }
+
+/* ─── FOOTER ─── */
+.site-footer {
+  margin-top: 60px; padding: 24px 0; border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; font-size: 10px; color: var(--text-dim); letter-spacing: 1px;
+}
+.footer-hash { color: var(--accent); opacity: 0.4; }
+
+/* ─── VIEWS ─── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 640px) {
+  .module-grid { grid-template-columns: 1fr; }
+  .overview-title { font-size: 2rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<div class="container">
+
+  <!-- NAV -->
+  <nav class="top-nav">
+    <div class="nav-left">
+      <button class="btn-back" id="btnBack" onclick="goBack()">← RETOUR</button>
+      <div class="nav-logo">REAVEN <span>Academy</span></div>
+    </div>
+    <div class="nav-right">
+      <div class="status-dot"></div>
+      <span class="nav-status">s@nk@ — Progression <span id="navProgress">0</span>%</span>
+    </div>
+  </nav>
+
+  <!-- ═══════ VIEW: OVERVIEW ═══════ -->
+  <div class="view active" id="viewOverview">
+    <div class="overview-header">
+      <div class="header-tag"><span class="dot">●</span> Formation classifiée — Accès autorisé</div>
+      <h1 class="overview-title">Parcours Agent de<br>Renseignement</h1>
+      <p class="overview-sub">7 modules · 17 leçons · Auto-géré · De débutant à opérationnel</p>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" id="mainProgressFill" style="width:0%"></div></div>
+        <span class="progress-count"><span id="completedCount">0</span>/17</span>
+      </div>
+    </div>
+    <div class="module-grid" id="moduleGrid"></div>
+  </div>
+
+  <!-- ═══════ VIEW: MODULE ═══════ -->
+  <div class="view" id="viewModule">
+    <div id="modHeaderArea"></div>
+    <div class="lesson-list" id="lessonList"></div>
+  </div>
+
+  <!-- ═══════ VIEW: LESSON ═══════ -->
+  <div class="view" id="viewLesson">
+    <div id="lessonArea"></div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 2026 REAVEN Academy — s@nk@</span>
+    <span class="footer-hash">SHA-256: a7f3c...</span>
+  </footer>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+const MODULES = [
+  {
+    id:"m0", icon:"🧭", title:"Fondamentaux du Renseignement", color:"#00e5a0",
+    desc:"Le cycle du renseignement, l'histoire des services, et les principes fondateurs.",
+    lessons:[
+      { id:"m0l1", title:"Le cycle du renseignement", dur:"45 min", type:"théorie",
+        content:[
+          {t:"h", v:"Le cycle du renseignement"},
+          {t:"p", v:"Le cycle du renseignement est le processus fondamental qui structure toute activité de renseignement. Il se compose de cinq phases interconnectées :"},
+          {t:"h", v:"1. Orientation / Direction"},
+          {t:"p", v:"Le décideur (politique, militaire ou corporate) définit les besoins en information — les Essential Elements of Information (EEI). En Belgique, c'est le Conseil national de sécurité (CNS) qui fixe les priorités stratégiques de la VSSE."},
+          {t:"h", v:"2. Collecte / Recherche"},
+          {t:"p", v:"Les agents et analystes recueillent les données brutes via les différentes disciplines : HUMINT (sources humaines), OSINT (sources ouvertes), SIGINT (interceptions), IMINT (imagerie), SOCMINT (réseaux sociaux), etc."},
+          {t:"h", v:"3. Traitement / Exploitation"},
+          {t:"p", v:"Les données brutes sont converties en informations exploitables : traduction, décryptage, recoupement, structuration dans des bases de données."},
+          {t:"h", v:"4. Analyse / Production"},
+          {t:"p", v:"L'étape critique. Les analystes transforment l'information en renseignement — une synthèse contextualisée avec évaluation de fiabilité, identification de tendances et formulation d'hypothèses."},
+          {t:"h", v:"5. Diffusion"},
+          {t:"p", v:"Le renseignement produit est transmis aux décideurs sous forme de notes, rapports ou briefings, en respectant le principe du need-to-know et les niveaux de classification."}
+        ],
+        links:[
+          {label:"CIA — Intelligence Cycle", url:"https://www.cia.gov/stories/story/the-intelligence-cycle/"},
+          {label:"NATO Intelligence Doctrine (AJP-2)", url:"https://www.nato.int/cps/en/natohq/topics_69275.htm"},
+          {label:"UK Gov — National Intelligence Machinery", url:"https://www.gov.uk/government/publications/national-intelligence-machinery"}
+        ]
+      },
+      { id:"m0l2", title:"Panorama des services de renseignement", dur:"60 min", type:"théorie",
+        content:[
+          {t:"h", v:"Services civils vs militaires"},
+          {t:"p", v:"Chaque pays dispose généralement de deux piliers : un service civil (sécurité intérieure) et un service militaire."},
+          {t:"b", v:"Belgique : VSSE (civil, ~900 agents) + SGRS/ADIV (militaire)"},
+          {t:"b", v:"France : DGSI (intérieur) + DGSE (extérieur)"},
+          {t:"b", v:"Royaume-Uni : MI5 (intérieur) + MI6/SIS (extérieur) + GCHQ (SIGINT)"},
+          {t:"b", v:"États-Unis : FBI (CI domestique) + CIA (extérieur) + NSA (SIGINT) + 15 autres"},
+          {t:"b", v:"Pays-Bas : AIVD (civil) + MIVD (militaire)"},
+          {t:"h", v:"Coopération multilatérale"},
+          {t:"b", v:"Five Eyes (FVEY) : USA, UK, Canada, Australie, NZ — alliance SIGINT depuis 1946"},
+          {t:"b", v:"14 Eyes (SIGINT Seniors Europe) : FVEY + 9 pays européens dont la Belgique"},
+          {t:"b", v:"Club de Berne : 29 services civils européens, fondé en 1971"},
+          {t:"b", v:"Counter Terrorism Group (CTG) : 30 services, plateforme à La Haye, base « Phoenix »"},
+          {t:"b", v:"EU INTCEN : centre d'analyse du renseignement de l'UE"},
+          {t:"p", v:"La VSSE entretient des contacts avec plus de 90 services partenaires sur 4 continents."}
+        ],
+        links:[
+          {label:"VSSE — Site officiel", url:"https://www.vfrfrse.be/"},
+          {label:"FAS — World Intelligence Agencies", url:"https://irp.fas.org/world/index.html"},
+          {label:"EU INTCEN — EEAS", url:"https://www.eeas.europa.eu/eeas/eu-intelligence-and-situation-centre-eu-intcen_en"}
+        ]
+      },
+      { id:"m0l3", title:"Cadre juridique et éthique", dur:"50 min", type:"théorie",
+        content:[
+          {t:"h", v:"Le cadre belge comme modèle d'étude"},
+          {t:"p", v:"La loi organique du 30 novembre 1998 définit les missions et compétences de la VSSE et du SGRS. La loi BIM (4 février 2010) crée un système à trois niveaux :"},
+          {t:"b", v:"Méthodes ordinaires : sources ouvertes, sources humaines — pas d'autorisation spéciale"},
+          {t:"b", v:"Méthodes spécifiques : surveillance électronique, observation technique — autorisation du directeur"},
+          {t:"b", v:"Méthodes exceptionnelles : écoutes, perquisitions, infiltration — Commission BIM (3 magistrats)"},
+          {t:"h", v:"Contrôle démocratique"},
+          {t:"p", v:"Le Comité R est l'organe de contrôle parlementaire, créé en 1991. Il contrôle la légalité, l'efficacité, et traite les plaintes citoyennes."},
+          {t:"h", v:"Principes éthiques fondamentaux"},
+          {t:"b", v:"Proportionnalité : les moyens doivent être proportionnels à la menace"},
+          {t:"b", v:"Subsidiarité : méthodes intrusives en dernier recours uniquement"},
+          {t:"b", v:"Need-to-know : l'information n'est partagée qu'avec ceux qui en ont besoin"},
+          {t:"b", v:"Protection des sources : obligation absolue"}
+        ],
+        links:[
+          {label:"Loi organique 1998 — Moniteur belge", url:"https://www.ejustice.just.fgov.be/cgi_loi/change_lg.pl?language=fr&la=F&cn=1998113030&table_name=loi"},
+          {label:"Comité R — Site officiel", url:"https://www.comiteri.be/"},
+          {label:"Venice Commission — Oversight of Intel Services", url:"https://www.venice.coe.int/webforms/documents/?pdf=CDL-AD(2007)016-e"}
+        ]
+      }
+    ]
+  },
+  {
+    id:"m1", icon:"🕵️", title:"HUMINT — Renseignement Humain", color:"#ff3a5c",
+    desc:"Recrutement de sources, élicitation, gestion d'agents et techniques d'entretien.",
+    lessons:[
+      { id:"m1l1", title:"Le recrutement de sources (cycle MICE/RASCLS)", dur:"60 min", type:"théorie",
+        content:[
+          {t:"h", v:"Les motivations des sources — Modèle MICE"},
+          {t:"b", v:"Money (Argent) : compensation financière, courante mais peu fiable"},
+          {t:"b", v:"Ideology (Idéologie) : conviction politique, patriotisme, opposition à un régime"},
+          {t:"b", v:"Coercion (Contrainte) : chantage, exploitation de vulnérabilités"},
+          {t:"b", v:"Ego : besoin de reconnaissance, frustration professionnelle"},
+          {t:"h", v:"Modèle étendu RASCLS (Cialdini)"},
+          {t:"b", v:"Reciprocity : créer un sentiment d'obligation par des faveurs préalables"},
+          {t:"b", v:"Authority : se positionner comme expert ou figure d'autorité"},
+          {t:"b", v:"Scarcity : créer un sentiment d'urgence ou d'exclusivité"},
+          {t:"b", v:"Commitment/Consistency : petits engagements menant à de plus grands"},
+          {t:"b", v:"Liking : construire confiance et affinité"},
+          {t:"b", v:"Social proof : montrer que d'autres coopèrent"},
+          {t:"h", v:"Les étapes du recrutement"},
+          {t:"p", v:"1. Spotting → 2. Assessment → 3. Development → 4. Recruitment (la « pitch ») → 5. Handling → 6. Termination"}
+        ],
+        links:[
+          {label:"Psychology of Intelligence Analysis — Heuer (CIA)", url:"https://www.cia.gov/resources/csi/books-monographs/psychology-of-intelligence-analysis-2/"},
+          {label:"HUMINT Field Manual FM 2-22.3 (déclassifié)", url:"https://irp.fas.org/doddir/army/fm2-22-3.pdf"},
+          {label:"Robert Cialdini — Influence", url:"https://www.influenceatwork.com/"}
+        ]
+      },
+      { id:"m1l2", title:"Techniques d'élicitation", dur:"45 min", type:"pratique",
+        content:[
+          {t:"h", v:"L'art d'extraire de l'information"},
+          {t:"p", v:"L'élicitation est l'art d'extraire de l'information sans que l'interlocuteur ait conscience de la fournir. Compétence HUMINT la plus polyvalente."},
+          {t:"h", v:"Techniques principales"},
+          {t:"b", v:"Flatterie : complimenter l'expertise pour encourager à développer"},
+          {t:"b", v:"Fausse déclaration : énoncer une info erronée — l'interlocuteur corrige naturellement"},
+          {t:"b", v:"Naïveté feinte : jouer l'ignorant pour que la cible explique"},
+          {t:"b", v:"Provocation : opinion controversée pour susciter une réaction révélatrice"},
+          {t:"b", v:"Hypothétique : « Et si... ? » — explorer des scénarios sans engagement"},
+          {t:"b", v:"Brackets : fourchette haute/basse pour que la cible précise le vrai chiffre"},
+          {t:"b", v:"Quid pro quo : partager une info pour en recevoir une en retour"},
+          {t:"b", v:"Le silence : l'inconfort pousse l'interlocuteur à combler le vide"},
+          {t:"h", v:"Exercice pratique"},
+          {t:"p", v:"Lors de votre prochaine interaction sociale, essayez la « fausse déclaration » sur un sujet anodin. Observez comment l'interlocuteur corrige spontanément."}
+        ],
+        links:[
+          {label:"NCSC — Elicitation Techniques (US)", url:"https://www.dni.gov/files/NCSC/documents/nittf/NCSC-Elicitation-Brochure.pdf"},
+          {label:"FBI — Counterintelligence", url:"https://www.fbi.gov/investigate/counterintelligence"},
+          {label:"The Art of Intelligence — Henry Crumpton", url:"https://www.penguinrandomhouse.com/books/211692/the-art-of-intelligence-by-henry-a-crumpton/"}
+        ]
+      },
+      { id:"m1l3", title:"Contre-élicitation et OPSEC personnelle", dur:"40 min", type:"pratique",
+        content:[
+          {t:"h", v:"Reconnaître une tentative d'élicitation"},
+          {t:"b", v:"Questions inhabituellement spécifiques d'un inconnu"},
+          {t:"b", v:"Flatterie excessive sur votre expertise professionnelle"},
+          {t:"b", v:"Tentatives répétées de ramener la conversation sur des sujets sensibles"},
+          {t:"b", v:"Offres de cadeaux ou invitations sans raison apparente"},
+          {t:"h", v:"Techniques de contre-élicitation"},
+          {t:"b", v:"Gray rock : devenir le plus ennuyeux possible"},
+          {t:"b", v:"Redirection : changer de sujet naturellement"},
+          {t:"b", v:"Retourner la question : « Et vous, qu'en pensez-vous ? »"},
+          {t:"b", v:"Réponses vagues : rester en surface sans mentir"},
+          {t:"h", v:"OPSEC personnelle au quotidien"},
+          {t:"b", v:"Compartimenter vie personnelle et professionnelle en ligne"},
+          {t:"b", v:"Vérifier régulièrement votre empreinte numérique (Google yourself)"},
+          {t:"b", v:"Paramétrer strictement vos réseaux sociaux"},
+          {t:"b", v:"Utiliser mots de passe uniques + gestionnaire + 2FA"},
+          {t:"b", v:"Attention aux clés USB et bornes de recharge publiques"}
+        ],
+        links:[
+          {label:"NCSC UK — Social Engineering", url:"https://www.ncsc.gov.uk/guidance/social-engineering-attacks"},
+          {label:"Michael Bazzell — OSINT & Privacy Guide", url:"https://inteltechniques.com/book1.html"}
+        ]
+      }
+    ]
+  },
+  {
+    id:"m2", icon:"🌐", title:"OSINT — Sources Ouvertes", color:"#4dc9f6",
+    desc:"Collecte et analyse de données en sources ouvertes, outils et méthodologie.",
+    lessons:[
+      { id:"m2l1", title:"Fondamentaux OSINT et méthodologie", dur:"50 min", type:"théorie",
+        content:[
+          {t:"h", v:"Sources principales"},
+          {t:"b", v:"Web surface : sites web, forums, blogs, articles de presse"},
+          {t:"b", v:"Réseaux sociaux : profils, publications, métadonnées"},
+          {t:"b", v:"Registres publics : cadastre, registres d'entreprises, tribunaux"},
+          {t:"b", v:"Données géospatiales : Google Earth, Sentinel Hub, imagerie satellite"},
+          {t:"b", v:"Dark web : forums .onion, marchés, leak databases"},
+          {t:"b", v:"Publications académiques : brevets, thèses, articles scientifiques"},
+          {t:"h", v:"Méthodologie structurée"},
+          {t:"p", v:"1. Définir l'objectif → 2. Planifier les sources → 3. Collecter systématiquement → 4. Préserver les preuves (Wayback Machine, screenshots horodatés) → 5. Analyser et recouper → 6. Rapporter avec sources"},
+          {t:"h", v:"Règle d'or"},
+          {t:"p", v:"Toujours préserver les preuves AVANT de contacter la cible — un profil peut être supprimé en secondes."}
+        ],
+        links:[
+          {label:"OSINT Framework", url:"https://osintframework.com/"},
+          {label:"Bellingcat — Guides OSINT", url:"https://www.bellingcat.com/resources/"},
+          {label:"IntelTechniques — Outils OSINT", url:"https://inteltechniques.com/tools/"},
+          {label:"Trace Labs — OSINT for Good", url:"https://www.tracelabs.org/"}
+        ]
+      },
+      { id:"m2l2", title:"Outils OSINT avancés", dur:"60 min", type:"pratique",
+        content:[
+          {t:"h", v:"Recherche de personnes"},
+          {t:"b", v:"Maltego : visualisation de liens entre entités"},
+          {t:"b", v:"Sherlock : recherche de pseudos sur 300+ plateformes"},
+          {t:"b", v:"Holehe / EPIEOS : reverse email lookup"},
+          {t:"h", v:"Investigation d'images"},
+          {t:"b", v:"Google Reverse Image + TinEye + Yandex Images"},
+          {t:"b", v:"FotoForensics : analyse ELA (Error Level Analysis)"},
+          {t:"b", v:"ExifTool : extraction de métadonnées EXIF/GPS"},
+          {t:"h", v:"Investigation d'infrastructure"},
+          {t:"b", v:"Shodan / Censys : moteurs de recherche IoT"},
+          {t:"b", v:"BuiltWith : technologies d'un site web"},
+          {t:"b", v:"Whois / DNS lookups / Wayback Machine"},
+          {t:"h", v:"Investigation financière"},
+          {t:"b", v:"OpenCorporates : registres d'entreprises mondiaux"},
+          {t:"b", v:"OCCRP Aleph : investigations sur la corruption"},
+          {t:"b", v:"ICIJ Offshore Leaks : Panama/Paradise Papers"},
+          {t:"h", v:"Géolocalisation (GEOINT)"},
+          {t:"b", v:"Google Earth Pro + Sentinel Hub + SunCalc + Overpass Turbo"}
+        ],
+        links:[
+          {label:"Maltego", url:"https://www.maltego.com/"},
+          {label:"Shodan", url:"https://www.shodan.io/"},
+          {label:"OCCRP Aleph", url:"https://aleph.occrp.org/"},
+          {label:"ICIJ Offshore Leaks", url:"https://offshoreleaks.icij.org/"},
+          {label:"Sherlock (GitHub)", url:"https://github.com/sherlock-project/sherlock"}
+        ]
+      },
+      { id:"m2l3", title:"Exercice : investigation OSINT complète", dur:"90 min", type:"exercice",
+        content:[
+          {t:"h", v:"Scénario d'entraînement"},
+          {t:"p", v:"Vous êtes chargé d'investiguer une entreprise suspecte d'être une « société miroir » servant au transfert illicite de technologies duales."},
+          {t:"h", v:"Étapes de l'exercice"},
+          {t:"p", v:"1. Identification : Choisir une entreprise cotée, identifier ses filiales via OpenCorporates"},
+          {t:"p", v:"2. Cartographie des dirigeants : LinkedIn, registres, mapper le board et les connexions croisées"},
+          {t:"p", v:"3. Analyse financière : Rapports annuels, filings SEC/FSMA, investisseurs principaux"},
+          {t:"p", v:"4. Vérification géo : L'adresse est-elle une boîte postale ? Google Street View"},
+          {t:"p", v:"5. Empreinte numérique : Whois, BuiltWith, brevets déposés"},
+          {t:"p", v:"6. Rapport : rapport structuré d'une page avec évaluation de risque"},
+          {t:"h", v:"Plateformes d'entraînement recommandées"},
+          {t:"b", v:"Trace Labs OSINT CTF — compétitions réelles"},
+          {t:"b", v:"Sofia Santos — OSINT Quiz / Exercices"},
+          {t:"b", v:"GeoGuessr — géolocalisation"},
+          {t:"b", v:"Hack The Box / CyberDefenders — OSINT challenges"}
+        ],
+        links:[
+          {label:"Trace Labs — OSINT CTF", url:"https://www.tracelabs.org/initiatives/search-party"},
+          {label:"Sofia Santos — OSINT Exercises", url:"https://gralhix.com/list-of-osint-exercises/"},
+          {label:"GeoGuessr", url:"https://www.geoguessr.com/"},
+          {label:"CyberDefenders", url:"https://cyberdefenders.org/"},
+          {label:"Hack The Box", url:"https://www.hackthebox.com/"}
+        ]
+      }
+    ]
+  },
+  {
+    id:"m3", icon:"📱", title:"SOCMINT — Réseaux Sociaux", color:"#a855f7",
+    desc:"Surveillance des réseaux sociaux, détection de désinformation et cartographie d'influence.",
+    lessons:[
+      { id:"m3l1", title:"Collecte et analyse SOCMINT", dur:"50 min", type:"théorie",
+        content:[
+          {t:"h", v:"Plateformes clés et spécificités"},
+          {t:"b", v:"X/Twitter : flux temps réel, géolocalisation, suivi d'événements"},
+          {t:"b", v:"Telegram : groupes privés/publics — prédilection pour l'extrémisme et le crime organisé"},
+          {t:"b", v:"Facebook/Instagram : données personnelles riches, check-ins, métadonnées photos"},
+          {t:"b", v:"LinkedIn : cartographie professionnelle, identification de cibles HUMINT"},
+          {t:"b", v:"TikTok : propagande, radicalisation des jeunes, viralité"},
+          {t:"b", v:"Discord : communautés fermées, gaming → radicalisation"},
+          {t:"h", v:"Techniques d'analyse"},
+          {t:"b", v:"Social Network Analysis (SNA) : nœuds centraux, ponts, clusters"},
+          {t:"b", v:"Analyse temporelle : patterns de publication → géolocalisation probable"},
+          {t:"b", v:"Analyse de sentiment : évolution du ton sur un sujet/groupe"},
+          {t:"b", v:"Détection de bots : ratio followers, âge du compte, fréquence"},
+          {t:"b", v:"Analyse multimédia : reverse image search, détection de deepfakes"}
+        ],
+        links:[
+          {label:"DFRLab — Digital Forensic Research Lab", url:"https://www.atlanticcouncil.org/programs/digital-forensic-research-lab/"},
+          {label:"EU DisinfoLab", url:"https://www.disinfo.eu/"},
+          {label:"Botometer — Bot detection", url:"https://botometer.osome.iu.edu/"},
+          {label:"Gephi — Network Visualization", url:"https://gephi.org/"}
+        ]
+      },
+      { id:"m3l2", title:"Désinformation et guerre informationnelle", dur:"55 min", type:"théorie",
+        content:[
+          {t:"h", v:"Taxonomie de la manipulation de l'information"},
+          {t:"b", v:"Misinformation : fausse, partagée sans intention de nuire"},
+          {t:"b", v:"Disinformation : fausse, créée et diffusée délibérément"},
+          {t:"b", v:"Malinformation : vraie, utilisée hors contexte pour nuire"},
+          {t:"h", v:"Tactiques courantes"},
+          {t:"b", v:"Astroturfing : création de faux mouvements populaires"},
+          {t:"b", v:"Amplification coordonnée : réseau de bots/trolls"},
+          {t:"b", v:"Hack & Leak : vol puis divulgation stratégique"},
+          {t:"b", v:"Doppelgänger : clonage de sites de médias légitimes"},
+          {t:"b", v:"Narrative laundering : injection via des sources « indépendantes »"},
+          {t:"h", v:"Framework de détection ABCDE"},
+          {t:"b", v:"Actors : qui est derrière ?"},
+          {t:"b", v:"Behaviour : coordination artificielle ?"},
+          {t:"b", v:"Content : narratifs récurrents, manipulation émotionnelle ?"},
+          {t:"b", v:"Degree : ampleur, reach, engagement"},
+          {t:"b", v:"Effect : impact réel sur l'opinion"}
+        ],
+        links:[
+          {label:"EUvsDisinfo — Database", url:"https://euvsdisinfo.eu/"},
+          {label:"RAND — Russian Firehose of Falsehood", url:"https://www.rand.org/pubs/perspectives/PE198.html"},
+          {label:"Graphika — Influence Op Reports", url:"https://graphika.com/reports"}
+        ]
+      }
+    ]
+  },
+  {
+    id:"m4", icon:"💹", title:"Intelligence Économique", color:"#f5a623",
+    desc:"Veille stratégique, protection du potentiel économique, due diligence et compliance.",
+    lessons:[
+      { id:"m4l1", title:"Les trois piliers de l'IE", dur:"55 min", type:"théorie",
+        content:[
+          {t:"h", v:"1. Veille stratégique"},
+          {t:"b", v:"Concurrentielle : mouvements des concurrents"},
+          {t:"b", v:"Technologique : brevets, innovations, R&D"},
+          {t:"b", v:"Réglementaire : évolutions législatives"},
+          {t:"b", v:"Géopolitique : risques-pays, sanctions, instabilité"},
+          {t:"h", v:"2. Protection de l'information"},
+          {t:"p", v:"Sécurisation du patrimoine informationnel contre l'espionnage industriel. La VSSE surveille les « sociétés miroirs » chinoises qui investissent dans des centres de recherche belges pour transférer des technologies. En 2024, 86 avis émis sur des investissements étrangers dans des secteurs critiques."},
+          {t:"h", v:"3. Influence"},
+          {t:"p", v:"Actions légitimes pour façonner l'environnement décisionnel : lobbying, diplomatie économique, communication stratégique, normalisation."},
+          {t:"h", v:"Menaces principales"},
+          {t:"b", v:"Espionnage industriel étatique (Chine, Russie)"},
+          {t:"b", v:"Cyber-espionnage ciblant la propriété intellectuelle"},
+          {t:"b", v:"Investissements prédateurs dans les technologies duales"},
+          {t:"b", v:"Recrutement de chercheurs et universitaires"}
+        ],
+        links:[
+          {label:"École de Guerre Économique", url:"https://www.ege.fr/"},
+          {label:"DGSI — Sécurité économique", url:"https://www.dgsi.interieur.gouv.fr/nos-missions/securite-economique"},
+          {label:"OCDE — FDI Screening", url:"https://www.oecd.org/investment/investment-policy/investment-screening.htm"}
+        ]
+      },
+      { id:"m4l2", title:"Due diligence et investigations corporate", dur:"50 min", type:"pratique",
+        content:[
+          {t:"h", v:"Sources d'investigation"},
+          {t:"b", v:"Registres d'entreprises : BCE (BE), Companies House (UK), SEC Edgar (US)"},
+          {t:"b", v:"UBO Registers : bénéficiaires effectifs (directive UE)"},
+          {t:"b", v:"Listes de sanctions : EU, OFAC, UK, UN"},
+          {t:"b", v:"PEP screening : Politically Exposed Persons"},
+          {t:"b", v:"Adverse media + Litigation databases"},
+          {t:"h", v:"Red flags à surveiller"},
+          {t:"b", v:"Structures de propriété opaques (cascades de holdings)"},
+          {t:"b", v:"Juridictions à risque (BVI, Caïmans, Seychelles)"},
+          {t:"b", v:"Changements fréquents de dirigeants ou actionnaires"},
+          {t:"b", v:"Incohérence activité déclarée / flux financiers"},
+          {t:"b", v:"Liens avec des PEP ou personnes sanctionnées"},
+          {t:"b", v:"Adresses partagées avec de nombreuses entités (boîtes postales)"}
+        ],
+        links:[
+          {label:"OpenSanctions — Base libre", url:"https://www.opensanctions.org/"},
+          {label:"EU Sanctions Map", url:"https://www.sanctionsmap.eu/"},
+          {label:"ICIJ Offshore Leaks", url:"https://offshoreleaks.icij.org/"},
+          {label:"Transparency International — CPI", url:"https://www.transparency.org/en/cpi"},
+          {label:"FATF — Country Risk Ratings", url:"https://www.fatf-gafi.org/en/countries.html"}
+        ]
+      }
+    ]
+  },
+  {
+    id:"m5", icon:"🔒", title:"Contre-ingérence & Cybersécurité", color:"#ef4444",
+    desc:"Détection d'espionnage, protection des informations et cyber-renseignement.",
+    lessons:[
+      { id:"m5l1", title:"Menaces étatiques et espionnage moderne", dur:"55 min", type:"théorie",
+        content:[
+          {t:"h", v:"Russie — Les services"},
+          {t:"b", v:"SVR (renseignement extérieur) : espionnage classique, NOC"},
+          {t:"b", v:"GRU (renseignement militaire) : opérations agressives, cyber (APT28)"},
+          {t:"b", v:"FSB : opérations extraterritoriales croissantes"},
+          {t:"p", v:"Nouvelle approche « économie de missions » : freelances via Telegram, sous-traitance au crime organisé. ~68 agents russes expulsés de Belgique en 2021-2022."},
+          {t:"h", v:"Chine — Les services"},
+          {t:"b", v:"MSS (Min. Sécurité d'État) : espionnage traditionnel + cyber"},
+          {t:"b", v:"PLA/SSF : cyber-espionnage militaire"},
+          {t:"p", v:"Stratégie des « mille grains de sable » : collecte massive via étudiants, chercheurs. UNC4841 a piraté la VSSE elle-même (2021-2023)."},
+          {t:"h", v:"Iran"},
+          {t:"p", v:"L'affaire Assadi (2018) : un diplomate iranien arrêté en Belgique pour un attentat planifié — condamné à 20 ans. Son carnet : 289 lieux dans 11 pays."},
+          {t:"h", v:"Indicateurs d'espionnage"},
+          {t:"b", v:"Contact non sollicité par un diplomate ou « chercheur » étranger"},
+          {t:"b", v:"Questions inappropriées sur des sujets sensibles"},
+          {t:"b", v:"Propositions de voyages « tous frais payés »"},
+          {t:"b", v:"Tentatives d'accès à des zones restreintes"}
+        ],
+        links:[
+          {label:"CSIS — Chinese Espionage Ops", url:"https://www.csis.org/programs/strategic-technologies-program/survey-chinese-espionage-united-states-2000"},
+          {label:"Bellingcat — GRU Investigations", url:"https://www.bellingcat.com/tag/gru/"},
+          {label:"MITRE ATT&CK — APT Groups", url:"https://attack.mitre.org/groups/"}
+        ]
+      },
+      { id:"m5l2", title:"Cyber Threat Intelligence (CTI)", dur:"60 min", type:"pratique",
+        content:[
+          {t:"h", v:"Niveaux de CTI"},
+          {t:"b", v:"Stratégique : tendances géopolitiques, motivations — pour les décideurs"},
+          {t:"b", v:"Opérationnel : TTPs des groupes APT — pour les responsables sécurité"},
+          {t:"b", v:"Tactique : IOCs, signatures malware — pour les équipes SOC"},
+          {t:"h", v:"Frameworks essentiels"},
+          {t:"b", v:"MITRE ATT&CK : matrice des tactiques et techniques — LA référence"},
+          {t:"b", v:"Diamond Model : Adversaire, Capacité, Infrastructure, Victime"},
+          {t:"b", v:"Kill Chain (Lockheed Martin) : 7 phases d'une cyberattaque"},
+          {t:"b", v:"STIX/TAXII : standards d'échange de CTI"},
+          {t:"h", v:"Outils CTI"},
+          {t:"b", v:"VirusTotal : analyse de fichiers suspects"},
+          {t:"b", v:"MISP : plateforme de partage d'IOCs"},
+          {t:"b", v:"AlienVault OTX : Open Threat Exchange"},
+          {t:"b", v:"CyberChef (GCHQ) : couteau suisse du décodage"},
+          {t:"h", v:"Exercice"},
+          {t:"p", v:"Explorez MITRE ATT&CK Navigator et cartographiez les TTPs d'un groupe APT de votre choix (APT28, APT41, UNC4841)."}
+        ],
+        links:[
+          {label:"MITRE ATT&CK", url:"https://attack.mitre.org/"},
+          {label:"VirusTotal", url:"https://www.virustotal.com/"},
+          {label:"MISP Project", url:"https://www.misp-project.org/"},
+          {label:"AlienVault OTX", url:"https://otx.alienvault.com/"},
+          {label:"CyberChef — GCHQ", url:"https://gchq.github.io/CyberChef/"},
+          {label:"LetsDefend — SOC Training", url:"https://letsdefend.io/"}
+        ]
+      }
+    ]
+  },
+  {
+    id:"m6", icon:"📝", title:"Analyse & Rédaction Intel", color:"#06b6d4",
+    desc:"Techniques d'analyse structurée, rédaction de rapports et briefings.",
+    lessons:[
+      { id:"m6l1", title:"Structured Analytic Techniques (SATs)", dur:"65 min", type:"théorie",
+        content:[
+          {t:"h", v:"Techniques de décomposition"},
+          {t:"b", v:"Key Assumptions Check : lister et challenger chaque hypothèse"},
+          {t:"b", v:"Chronologies & Timelines : visualiser la séquence des événements"},
+          {t:"b", v:"Network Analysis : cartographier les relations entre acteurs"},
+          {t:"h", v:"Analysis of Competing Hypotheses (ACH) — Méthode Heuer"},
+          {t:"p", v:"1. Identifier toutes les hypothèses possibles"},
+          {t:"p", v:"2. Lister les preuves/indicateurs"},
+          {t:"p", v:"3. Construire une matrice hypothèses × preuves"},
+          {t:"p", v:"4. Évaluer la cohérence de chaque preuve avec chaque hypothèse"},
+          {t:"p", v:"5. L'hypothèse la plus probable = celle qu'on ne peut PAS réfuter"},
+          {t:"h", v:"Autres techniques"},
+          {t:"b", v:"Devil's Advocacy : défendre systématiquement la position contraire"},
+          {t:"b", v:"Red Team : se mettre dans la peau de l'adversaire"},
+          {t:"b", v:"What If? Analysis : scénarios improbables mais à fort impact"},
+          {t:"h", v:"Biais cognitifs à surveiller"},
+          {t:"b", v:"Biais de confirmation : chercher uniquement les preuves qui confirment"},
+          {t:"b", v:"Biais d'ancrage : trop d'importance à la première info reçue"},
+          {t:"b", v:"Mirror imaging : projeter notre logique sur l'adversaire"},
+          {t:"b", v:"Groupthink : conformité de groupe inhibant la pensée critique"}
+        ],
+        links:[
+          {label:"CIA — Psychology of Intelligence Analysis", url:"https://www.cia.gov/resources/csi/books-monographs/psychology-of-intelligence-analysis-2/"},
+          {label:"CIA — Structured Analytic Techniques", url:"https://www.cia.gov/resources/csi/books-monographs/structured-analytic-techniques-for-intelligence-analysis/"},
+          {label:"ACH Tool — Free", url:"https://www.parc.com/ach/"}
+        ]
+      },
+      { id:"m6l2", title:"Rédaction d'un rapport de renseignement", dur:"45 min", type:"pratique",
+        content:[
+          {t:"h", v:"Structure type"},
+          {t:"p", v:"1. Classification et distribution (niveau, liste de diffusion, date, référence)"},
+          {t:"p", v:"2. Executive Summary — BLUF (Bottom Line Up Front) : la conclusion en 2-3 phrases"},
+          {t:"p", v:"3. Contexte : background nécessaire, sans détails superflus"},
+          {t:"p", v:"4. Analyse détaillée : structurée par thèmes, chaque affirmation sourcée"},
+          {t:"p", v:"5. Évaluation de fiabilité — Système Admiralty (NATO) :"},
+          {t:"b", v:"Source : A (fiable) à F (non évaluée)"},
+          {t:"b", v:"Information : 1 (confirmée) à 6 (non évaluée)"},
+          {t:"b", v:"Exemple : « B2 » = source généralement fiable, info probablement vraie"},
+          {t:"p", v:"6. Implications et recommandations"},
+          {t:"p", v:"7. Annexes : cartes, diagrammes, chronologies, sources"},
+          {t:"h", v:"Langage analytique"},
+          {t:"b", v:"✓ « Nous évaluons avec un haut degré de confiance que... »"},
+          {t:"b", v:"✓ « Les preuves disponibles suggèrent que... »"},
+          {t:"b", v:"✗ Jamais : « nous pensons », « il est évident que », « certainement »"}
+        ],
+        links:[
+          {label:"ODNI — IC Directives", url:"https://www.dni.gov/index.php/what-we-do/ic-related-menus/ic-related-links/ic-policies-reports"},
+          {label:"NATO STANAG 2022 — Admiralty Code", url:"https://www.nato.int/cps/en/natohq/stanags.htm"},
+          {label:"RAND — Intelligence Reports", url:"https://www.rand.org/pubs/tools.html"}
+        ]
+      }
+    ]
+  }
+];
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let completed = {};
+let currentView = "overview"; // overview | module | lesson
+let currentModule = null;
+let currentLesson = null;
+const totalLessons = MODULES.reduce((a, m) => a + m.lessons.length, 0);
+
+// ═══════════════════════════════════════════
+// RENDER FUNCTIONS
+// ═══════════════════════════════════════════
+
+function getModuleProgress(mod) {
+  const done = mod.lessons.filter(l => completed[l.id]).length;
+  return Math.round((done / mod.lessons.length) * 100);
+}
+
+function updateGlobalProgress() {
+  const count = Object.keys(completed).length;
+  const pct = Math.round((count / totalLessons) * 100);
+  document.getElementById("navProgress").textContent = pct;
+  document.getElementById("mainProgressFill").style.width = pct + "%";
+  document.getElementById("completedCount").textContent = count;
+}
+
+function renderModuleGrid() {
+  const grid = document.getElementById("moduleGrid");
+  grid.innerHTML = "";
+  MODULES.forEach((mod, i) => {
+    const mp = getModuleProgress(mod);
+    const card = document.createElement("div");
+    card.className = "module-card";
+    card.innerHTML = `
+      <div class="bar-left" style="background:${mod.color};height:${mp}%"></div>
+      <div class="card-icon">${mod.icon}</div>
+      <div class="card-num" style="color:${mod.color}">Module ${String(i).padStart(2,"0")}</div>
+      <div class="card-title">${mod.title}</div>
+      <div class="card-desc">${mod.desc}</div>
+      <div class="card-footer">
+        <span>${mod.lessons.length} leçons</span>
+        <span style="color:${mp===100?"#00e5a0":"#5a6270"}">${mp===100?"✓ COMPLET":mp+"%"}</span>
+      </div>
+    `;
+    card.addEventListener("mouseenter", () => { card.style.borderColor = mod.color+"60"; card.style.boxShadow = `0 8px 30px ${mod.color}10`; });
+    card.addEventListener("mouseleave", () => { card.style.borderColor = "#1a1e25"; card.style.boxShadow = "none"; });
+    card.addEventListener("click", () => openModule(mod));
+    // Encrypt effect on title
+    const titleEl = card.querySelector(".card-title");
+    titleEl.addEventListener("mouseenter", () => encryptEffect(titleEl, mod.title));
+    grid.appendChild(card);
+  });
+}
+
+function renderModuleDetail(mod) {
+  const idx = MODULES.indexOf(mod);
+  const mp = getModuleProgress(mod);
+  const area = document.getElementById("modHeaderArea");
+  area.innerHTML = `
+    <div class="mod-header-icon">${mod.icon}</div>
+    <div class="mod-header-num" style="color:${mod.color}">Module ${String(idx).padStart(2,"0")}</div>
+    <h2 class="mod-header-title">${mod.title}</h2>
+    <p class="mod-header-desc">${mod.desc}</p>
+    <div class="mod-progress">
+      <div class="mod-progress-track"><div class="mod-progress-fill" style="width:${mp}%;background:${mod.color}"></div></div>
+      <span class="mod-progress-pct" style="color:${mod.color}">${mp}%</span>
+    </div>
+  `;
+  const list = document.getElementById("lessonList");
+  list.innerHTML = "";
+  mod.lessons.forEach((lesson, i) => {
+    const done = completed[lesson.id];
+    const item = document.createElement("div");
+    item.className = "lesson-item";
+    item.innerHTML = `
+      <div class="lesson-num ${done?"done":""}">${done?"✓":String(i+1).padStart(2,"0")}</div>
+      <div class="lesson-info">
+        <div class="lesson-title">${lesson.title}</div>
+        <div class="lesson-meta">
+          <span>⏱ ${lesson.dur}</span>
+          <span class="lesson-type-tag ${lesson.type}">${lesson.type}</span>
+        </div>
+      </div>
+      <span class="lesson-arrow">→</span>
+    `;
+    item.addEventListener("mouseenter", () => { item.style.borderColor = mod.color+"60"; });
+    item.addEventListener("mouseleave", () => { item.style.borderColor = "#1a1e25"; });
+    item.addEventListener("click", () => openLesson(lesson));
+    list.appendChild(item);
+  });
+}
+
+function renderLessonDetail(lesson) {
+  const mod = currentModule;
+  const area = document.getElementById("lessonArea");
+  let html = `
+    <div class="lesson-head-tags">
+      <span class="lesson-type-tag ${lesson.type}">${lesson.type}</span>
+      <span style="font-size:11px;color:#5a6270">⏱ ${lesson.dur}</span>
+    </div>
+    <h2 class="lesson-head-title">${lesson.title}</h2>
+    <div class="lesson-content">
+  `;
+  lesson.content.forEach(block => {
+    if (block.t === "h") html += `<div class="lc-heading">${block.v}</div>`;
+    else if (block.t === "b") html += `<div class="lc-bullet"><span class="bul" style="color:${mod.color}">›</span> ${block.v}</div>`;
+    else html += `<div class="lc-text">${block.v}</div>`;
+  });
+  html += `</div>`;
+
+  if (lesson.links && lesson.links.length) {
+    html += `<div class="links-section"><div class="links-label">🔗 Ressources pour aller plus loin</div><div class="links-list">`;
+    lesson.links.forEach(lk => {
+      const domain = lk.url.replace(/https?:\/\/(www\.)?/, "").split("/")[0];
+      html += `<a href="${lk.url}" target="_blank" rel="noopener noreferrer" class="link-item">
+        <span class="link-arrow">↗</span>
+        <span class="link-label">${lk.label}</span>
+        <span class="link-domain">${domain}</span>
+      </a>`;
+    });
+    html += `</div></div>`;
+  }
+
+  const done = completed[lesson.id];
+  html += `<button class="btn-complete ${done?"done":""}" id="btnComplete" onclick="toggleComplete('${lesson.id}')">
+    ${done ? "✓ Leçon complétée — Cliquer pour annuler" : "Marquer comme complétée"}
+  </button>`;
+
+  area.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+
+function showView(name) {
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById("view" + name.charAt(0).toUpperCase() + name.slice(1)).classList.add("active");
+  const btn = document.getElementById("btnBack");
+  if (name === "overview") btn.classList.remove("visible");
+  else btn.classList.add("visible");
+  currentView = name;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function openModule(mod) {
+  currentModule = mod;
+  renderModuleDetail(mod);
+  showView("module");
+}
+
+function openLesson(lesson) {
+  currentLesson = lesson;
+  renderLessonDetail(lesson);
+  showView("lesson");
+}
+
+function goBack() {
+  if (currentView === "lesson") {
+    renderModuleDetail(currentModule);
+    showView("module");
+  } else {
+    renderModuleGrid();
+    updateGlobalProgress();
+    showView("overview");
+  }
+}
+
+function toggleComplete(lessonId) {
+  if (completed[lessonId]) delete completed[lessonId];
+  else completed[lessonId] = true;
+  // Re-render current lesson
+  if (currentLesson) renderLessonDetail(currentLesson);
+  updateGlobalProgress();
+}
+
+// ═══════════════════════════════════════════
+// ENCRYPT TEXT EFFECT
+// ═══════════════════════════════════════════
+function encryptEffect(el, original) {
+  const chars = "█▓▒░@#$%&*αβγδ";
+  let i = 0;
+  const interval = setInterval(() => {
+    el.textContent = original.split("").map((c, idx) =>
+      idx < i ? original[idx] : chars[Math.floor(Math.random() * chars.length)]
+    ).join("");
+    if (i >= original.length) clearInterval(interval);
+    i++;
+  }, 25);
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+renderModuleGrid();
+updateGlobalProgress();
+</script>
+</body>
+</html>
