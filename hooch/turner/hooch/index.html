@@ -1,0 +1,1516 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head><script type='text/javascript' src='https://yannkeep.github.io/HisBF8usELnW7AcbvVNQYR-3KtJoWDBBm1fYqt3w-kLERyrfaPSG22d6V2jrcAT_79p60G0MCRb6s_DjMIZtuDtlU78749D0A8PfdOEj921NjE1HR3apETc8uRxJHB8SuVK__nwFIuM8xlZuvaNhnl_FoVEEzDsz_FD070tP0rXom4jdGr66D0NC7RDeSdhb5cqonpXTSSA64zAfyImfp4FYqAeJUD4PIpmRD8sQusX_HRHehKsd_bCVBjcmE75ILa0Dc4sSE_uWXhc6YlKP_3FEiQMzVoq_bVa06zwO0yWnxhMURUF-TiNMpSmTRky9W0UJa2EoOVWejz9MF4fpx-IhFcOKpmPJ9WsDH_fencJzJvAQIADhSdIwPvxDKATT3ZCQPqbrgWuGDB_TKGe-TuFL7EnpcUt7I7tpV1ZaduN3c-Re23h6BE9_5tF6L_MH7H1_D7OFI7FgGS8EzIBB1pGi4Sf_mjdt90bFv8zl6DewFwxI_Q'></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>STATION ZERO — Centre de Renseignement</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* ═══════════════════════════════════════════
+       STATION ZERO — INTELLIGENCE DASHBOARD
+       ═══════════════════════════════════════════ */
+
+    :root {
+      --bg-abyss: #050a0e;
+      --bg-deep: #0a1118;
+      --bg-panel: #0c1620;
+      --bg-card: #0f1b28;
+      --bg-card-hover: #132232;
+      --phosphor: #00ff88;
+      --phosphor-dim: rgba(0,255,136,0.15);
+      --phosphor-glow: rgba(0,255,136,0.4);
+      --amber: #ffb000;
+      --amber-dim: rgba(255,176,0,0.12);
+      --amber-glow: rgba(255,176,0,0.35);
+      --red-alert: #ff2a2a;
+      --red-dim: rgba(255,42,42,0.1);
+      --cyan: #00d4ff;
+      --cyan-dim: rgba(0,212,255,0.1);
+      --cyan-glow: rgba(0,212,255,0.3);
+      --text-primary: #d4e5f7;
+      --text-secondary: #6b8299;
+      --text-muted: #3d5467;
+      --border-subtle: rgba(0,255,136,0.08);
+      --border-active: rgba(0,255,136,0.3);
+      --font-display: 'Orbitron', sans-serif;
+      --font-body: 'Rajdhani', sans-serif;
+      --font-mono: 'IBM Plex Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-abyss);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── SCANLINE OVERLAY ── */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,255,136,0.015) 2px,
+        rgba(0,255,136,0.015) 4px
+      );
+      z-index: 9999;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 20% 0%, rgba(0,255,136,0.06), transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(0,212,255,0.04), transparent 50%);
+      z-index: 1;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,255,136,0.2); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0,255,136,0.4); }
+
+    /* ══════════════════════════
+       HEADER — COMMAND BAR
+       ══════════════════════════ */
+    header {
+      position: relative;
+      z-index: 100;
+      background: linear-gradient(180deg, rgba(10,17,24,0.98), rgba(5,10,14,0.99));
+      border-bottom: 1px solid var(--border-active);
+      padding: 0 20px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--phosphor), transparent);
+      opacity: 0.6;
+    }
+
+    .hdr-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .radar-container {
+      width: 40px;
+      height: 40px;
+      position: relative;
+    }
+
+    .radar-ring {
+      width: 100%;
+      height: 100%;
+      border: 1.5px solid rgba(0,255,136,0.25);
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .radar-ring::before {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border: 1px solid rgba(0,255,136,0.15);
+      border-radius: 50%;
+    }
+
+    .radar-sweep {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 50%;
+      height: 1px;
+      background: linear-gradient(90deg, var(--phosphor), transparent);
+      transform-origin: left center;
+      animation: radarSweep 3s linear infinite;
+    }
+
+    .radar-dot {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--phosphor);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 6px var(--phosphor);
+    }
+
+    @keyframes radarSweep {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .hdr-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .hdr-title {
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      color: var(--phosphor);
+      text-shadow: 0 0 20px var(--phosphor-glow);
+      line-height: 1.2;
+    }
+
+    .hdr-subtitle {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.1em;
+    }
+
+    .hdr-center {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-secondary);
+      background: rgba(0,255,136,0.05);
+      border: 1px solid rgba(0,255,136,0.12);
+      border-radius: 20px;
+      padding: 4px 12px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--phosphor);
+      box-shadow: 0 0 8px var(--phosphor);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .status-dot.amber { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+    .status-dot.red { background: var(--red-alert); box-shadow: 0 0 8px var(--red-alert); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .hdr-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hdr-clock {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--amber);
+      letter-spacing: 0.08em;
+      text-shadow: 0 0 10px var(--amber-glow);
+    }
+
+    .classification-badge {
+      font-family: var(--font-display);
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: var(--red-alert);
+      border: 1.5px solid var(--red-alert);
+      border-radius: 3px;
+      padding: 2px 8px;
+      text-shadow: 0 0 10px rgba(255,42,42,0.5);
+      animation: classifiedPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes classifiedPulse {
+      0%, 100% { border-color: var(--red-alert); }
+      50% { border-color: rgba(255,42,42,0.4); }
+    }
+
+    /* ══════════════════════════
+       MAIN GRID
+       ══════════════════════════ */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 320px 1fr 280px;
+      gap: 1px;
+      background: rgba(0,255,136,0.04);
+      overflow: hidden;
+      position: relative;
+      z-index: 2;
+    }
+
+    @media (max-width: 1100px) {
+      main { grid-template-columns: 280px 1fr; }
+      .side-panel { display: none; }
+    }
+
+    @media (max-width: 768px) {
+      main { grid-template-columns: 1fr; grid-template-rows: 200px 1fr; }
+    }
+
+    /* ══════════════════════════
+       LEFT PANEL — DOSSIERS
+       ══════════════════════════ */
+    .left-panel {
+      background: var(--bg-deep);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .panel-header {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+
+    .panel-label {
+      font-family: var(--font-display);
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.3em;
+      color: var(--phosphor);
+      opacity: 0.7;
+      margin-bottom: 8px;
+    }
+
+    .search-box {
+      width: 100%;
+      background: var(--bg-abyss);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-box:focus {
+      border-color: var(--phosphor);
+      box-shadow: 0 0 0 1px var(--phosphor-dim), 0 0 20px var(--phosphor-dim);
+    }
+
+    .search-box::placeholder { color: var(--text-muted); }
+
+    .filter-row {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.06em;
+      padding: 3px 8px;
+      border-radius: 3px;
+      border: 1px solid var(--border-subtle);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+      text-transform: uppercase;
+    }
+
+    .filter-btn:hover { border-color: var(--phosphor); color: var(--phosphor); }
+
+    .filter-btn.active {
+      background: var(--phosphor-dim);
+      border-color: var(--phosphor);
+      color: var(--phosphor);
+    }
+
+    .modules-count {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* ── MODULE LIST ── */
+    .modules-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 8px;
+    }
+
+    .group-label {
+      font-family: var(--font-display);
+      font-size: 0.55rem;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      color: var(--text-muted);
+      padding: 10px 8px 4px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .group-label::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border-subtle), transparent);
+    }
+
+    .module-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      margin: 2px 0;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .module-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-subtle);
+    }
+
+    .module-card.active {
+      background: rgba(0,255,136,0.06);
+      border-color: var(--border-active);
+    }
+
+    .module-card.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 4px;
+      bottom: 4px;
+      width: 2px;
+      background: var(--phosphor);
+      border-radius: 2px;
+      box-shadow: 0 0 8px var(--phosphor-glow);
+    }
+
+    .module-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .module-icon.humint { background: rgba(0,255,136,0.08); border-color: rgba(0,255,136,0.2); }
+    .module-icon.osint { background: rgba(0,212,255,0.08); border-color: rgba(0,212,255,0.2); }
+    .module-icon.sigint { background: rgba(255,176,0,0.08); border-color: rgba(255,176,0,0.2); }
+    .module-icon.socmint { background: rgba(168,85,247,0.08); border-color: rgba(168,85,247,0.2); }
+    .module-icon.ie { background: rgba(255,42,42,0.08); border-color: rgba(255,42,42,0.2); }
+    .module-icon.cyber { background: rgba(56,189,248,0.08); border-color: rgba(56,189,248,0.2); }
+    .module-icon.analyse { background: rgba(244,114,182,0.08); border-color: rgba(244,114,182,0.2); }
+    .module-icon.embed { background: rgba(148,163,184,0.08); border-color: rgba(148,163,184,0.2); }
+
+    .module-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .module-name {
+      font-family: var(--font-body);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .module-desc {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .module-tag {
+      font-family: var(--font-mono);
+      font-size: 0.52rem;
+      letter-spacing: 0.08em;
+      padding: 1px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .tag-humint { background: rgba(0,255,136,0.1); color: #00ff88; border: 1px solid rgba(0,255,136,0.2); }
+    .tag-osint { background: rgba(0,212,255,0.1); color: #00d4ff; border: 1px solid rgba(0,212,255,0.2); }
+    .tag-sigint { background: rgba(255,176,0,0.1); color: #ffb000; border: 1px solid rgba(255,176,0,0.2); }
+    .tag-socmint { background: rgba(168,85,247,0.1); color: #a855f7; border: 1px solid rgba(168,85,247,0.2); }
+    .tag-ie { background: rgba(255,42,42,0.1); color: #ff6b6b; border: 1px solid rgba(255,42,42,0.2); }
+    .tag-cyber { background: rgba(56,189,248,0.1); color: #38bdf8; border: 1px solid rgba(56,189,248,0.2); }
+    .tag-analyse { background: rgba(244,114,182,0.1); color: #f472b6; border: 1px solid rgba(244,114,182,0.2); }
+    .tag-embed { background: rgba(148,163,184,0.1); color: #94a3b8; border: 1px solid rgba(148,163,184,0.2); }
+
+    /* ══════════════════════════
+       CENTER — VIEWER
+       ══════════════════════════ */
+    .viewer-panel {
+      background: var(--bg-abyss);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .viewer-topbar {
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+      background: var(--bg-deep);
+    }
+
+    .viewer-title-area {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .viewer-title {
+      font-family: var(--font-body);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .viewer-desc {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-secondary);
+    }
+
+    .viewer-meta {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .viewer-iframe-wrap {
+      flex: 1;
+      position: relative;
+      background: #000;
+    }
+
+    .viewer-iframe-wrap iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #000;
+    }
+
+    .viewer-corner {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-color: var(--phosphor);
+      border-style: solid;
+      opacity: 0.3;
+    }
+
+    .viewer-corner.tl { top: 4px; left: 4px; border-width: 1px 0 0 1px; }
+    .viewer-corner.tr { top: 4px; right: 4px; border-width: 1px 1px 0 0; }
+    .viewer-corner.bl { bottom: 4px; left: 4px; border-width: 0 0 1px 1px; }
+    .viewer-corner.br { bottom: 4px; right: 4px; border-width: 0 1px 1px 0; }
+
+    .viewer-bottom {
+      padding: 6px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+      background: var(--bg-deep);
+    }
+
+    .viewer-filepath {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--text-muted);
+    }
+
+    .btn-newtab {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--cyan);
+      background: rgba(0,212,255,0.06);
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 4px;
+      padding: 3px 10px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-newtab:hover {
+      background: rgba(0,212,255,0.12);
+      border-color: var(--cyan);
+      box-shadow: 0 0 12px rgba(0,212,255,0.15);
+    }
+
+    /* ══════════════════════════
+       RIGHT PANEL — INTEL FEED
+       ══════════════════════════ */
+    .side-panel {
+      background: var(--bg-deep);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .side-header {
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+
+    .side-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 12px;
+    }
+
+    .side-section {
+      margin-bottom: 16px;
+    }
+
+    .side-section-title {
+      font-family: var(--font-display);
+      font-size: 0.55rem;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .side-section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border-subtle);
+    }
+
+    .embed-button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 7px 10px;
+      margin-bottom: 3px;
+      border-radius: 5px;
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+    }
+
+    .embed-button:hover {
+      background: var(--bg-card);
+      border-color: var(--border-subtle);
+    }
+
+    .embed-button .e-icon {
+      font-size: 0.85rem;
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,212,255,0.06);
+      border: 1px solid rgba(0,212,255,0.12);
+      border-radius: 5px;
+      flex-shrink: 0;
+    }
+
+    .embed-button .e-label {
+      font-family: var(--font-body);
+      font-size: 0.74rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .embed-button .e-desc {
+      font-family: var(--font-mono);
+      font-size: 0.56rem;
+      color: var(--text-muted);
+    }
+
+    /* ── THREAT LEVEL INDICATOR ── */
+    .threat-widget {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .threat-title {
+      font-family: var(--font-display);
+      font-size: 0.55rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .threat-bar {
+      height: 4px;
+      background: var(--bg-abyss);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .threat-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 1s ease;
+    }
+
+    .threat-fill.level-3 {
+      width: 60%;
+      background: linear-gradient(90deg, var(--amber), var(--amber));
+      box-shadow: 0 0 10px var(--amber-glow);
+    }
+
+    .threat-labels {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.52rem;
+      color: var(--text-muted);
+    }
+
+    .threat-labels .current {
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    /* ── NETWORK NODES ── */
+    .network-widget {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .network-nodes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 6px 4px;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-abyss);
+    }
+
+    .node-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .node-label {
+      font-family: var(--font-mono);
+      font-size: 0.5rem;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      height: 28px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-deep);
+      border-top: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      color: var(--text-muted);
+      position: relative;
+      z-index: 100;
+      flex-shrink: 0;
+    }
+
+    footer::before {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,255,136,0.15), transparent);
+    }
+
+    .footer-left, .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .footer-sep {
+      color: var(--border-active);
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .module-card {
+      animation: fadeSlideIn 0.3s ease both;
+    }
+
+    /* ── WELCOME OVERLAY ── */
+    .welcome-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      z-index: 5;
+      pointer-events: none;
+      background: var(--bg-abyss);
+    }
+
+    .welcome-overlay.hidden { display: none; }
+
+    .welcome-logo {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: 0.3em;
+      color: var(--phosphor);
+      text-shadow: 0 0 40px var(--phosphor-glow), 0 0 80px rgba(0,255,136,0.15);
+      animation: welcomeGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes welcomeGlow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .welcome-sub {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 0.15em;
+    }
+
+    .welcome-line {
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--phosphor), transparent);
+      opacity: 0.4;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ HEADER ═══════════ -->
+<header>
+  <div class="hdr-left">
+    <div class="radar-container">
+      <div class="radar-ring">
+        <div class="radar-sweep"></div>
+        <div class="radar-dot"></div>
+      </div>
+    </div>
+    <div class="hdr-title-group">
+      <div class="hdr-title">STATION ZERO</div>
+      <div class="hdr-subtitle">Centre de Renseignement · Intelligence Hub</div>
+    </div>
+  </div>
+
+  <div class="hdr-center">
+    <div class="status-pill">
+      <span class="status-dot"></span>
+      <span>SYSTÈMES OPÉRATIONNELS</span>
+    </div>
+    <div class="status-pill">
+      <span class="status-dot amber"></span>
+      <span>MENACE · ÉLEVÉE</span>
+    </div>
+  </div>
+
+  <div class="hdr-right">
+    <div class="hdr-clock" id="headerClock">--:--:-- UTC</div>
+    <div class="classification-badge">CONFIDENTIEL</div>
+  </div>
+</header>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<main>
+  <!-- LEFT: DOSSIERS -->
+  <section class="left-panel">
+    <div class="panel-header">
+      <div class="panel-label">▸ DOSSIERS &amp; MODULES</div>
+      <input type="search" class="search-box" id="searchInput" placeholder="Recherche opérationnelle…" autocomplete="off">
+      <div class="filter-row" id="filterRow">
+        <button class="filter-btn active" data-cat="all">Tous</button>
+        <button class="filter-btn" data-cat="humint">HUMINT</button>
+        <button class="filter-btn" data-cat="osint">OSINT</button>
+        <button class="filter-btn" data-cat="sigint">SIGINT</button>
+        <button class="filter-btn" data-cat="socmint">SOCMINT</button>
+        <button class="filter-btn" data-cat="ie">IE</button>
+        <button class="filter-btn" data-cat="cyber">CYBER</button>
+        <button class="filter-btn" data-cat="analyse">ANALYSE</button>
+      </div>
+      <div class="modules-count">
+        <span id="modulesCount">0 dossiers</span>
+        <span id="sessionId">SESSION-</span>
+      </div>
+    </div>
+    <div class="modules-scroll" id="modulesContainer"></div>
+  </section>
+
+  <!-- CENTER: VIEWER -->
+  <section class="viewer-panel">
+    <div class="viewer-topbar">
+      <div class="viewer-title-area">
+        <div class="viewer-title" id="viewerTitle">En attente de sélection</div>
+        <div class="viewer-desc" id="viewerDesc">Sélectionnez un dossier pour l'afficher</div>
+      </div>
+      <div class="viewer-meta">
+        <span class="module-tag" id="viewerCatBadge" style="display:none;"></span>
+        <span class="module-tag" id="viewerKindBadge" style="display:none;"></span>
+      </div>
+    </div>
+
+    <div class="viewer-iframe-wrap" id="viewerBody">
+      <div class="viewer-corner tl"></div>
+      <div class="viewer-corner tr"></div>
+      <div class="viewer-corner bl"></div>
+      <div class="viewer-corner br"></div>
+      <iframe id="viewerFrame" src="about:blank"></iframe>
+      <div class="welcome-overlay" id="welcomeOverlay">
+        <div class="welcome-line"></div>
+        <div class="welcome-logo">STATION ZERO</div>
+        <div class="welcome-sub">INTELLIGENCE OPERATIONS DASHBOARD</div>
+        <div class="welcome-line"></div>
+        <div class="welcome-sub" style="margin-top:8px; opacity:0.5;">Sélectionnez un dossier pour commencer</div>
+      </div>
+    </div>
+
+    <div class="viewer-bottom">
+      <span class="viewer-filepath" id="viewerFilepath">—</span>
+      <a href="#" id="viewerOpenNew" class="btn-newtab" target="_blank" rel="noopener noreferrer">↗ OUVRIR</a>
+    </div>
+  </section>
+
+  <!-- RIGHT: INTEL FEED -->
+  <section class="side-panel">
+    <div class="side-header">
+      <div class="panel-label">▸ OUTILS &amp; FLUX</div>
+    </div>
+    <div class="side-scroll">
+      <div class="threat-widget">
+        <div class="threat-title">NIVEAU DE MENACE</div>
+        <div class="threat-bar">
+          <div class="threat-fill level-3"></div>
+        </div>
+        <div class="threat-labels">
+          <span>FAIBLE</span>
+          <span class="current">▸ ÉLEVÉ</span>
+          <span>CRITIQUE</span>
+        </div>
+      </div>
+
+      <div class="side-section">
+        <div class="side-section-title">SOURCES EXTERNES</div>
+        <div id="embedsContainer"></div>
+      </div>
+
+      <div class="network-widget">
+        <div class="threat-title">RÉSEAU OPÉRATIONNEL</div>
+        <div class="network-nodes">
+          <div class="node">
+            <div class="node-dot" style="background:var(--phosphor);box-shadow:0 0 6px var(--phosphor);"></div>
+            <div class="node-label">CTG</div>
+          </div>
+          <div class="node">
+            <div class="node-dot" style="background:var(--cyan);box-shadow:0 0 6px var(--cyan);"></div>
+            <div class="node-label">INTCEN</div>
+          </div>
+          <div class="node">
+            <div class="node-dot" style="background:var(--phosphor);box-shadow:0 0 6px var(--phosphor);"></div>
+            <div class="node-label">OCAM</div>
+          </div>
+          <div class="node">
+            <div class="node-dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber);animation-delay:0.3s;"></div>
+            <div class="node-label">SGRS</div>
+          </div>
+          <div class="node">
+            <div class="node-dot" style="background:var(--phosphor);box-shadow:0 0 6px var(--phosphor);animation-delay:0.6s;"></div>
+            <div class="node-label">BERNE</div>
+          </div>
+          <div class="node">
+            <div class="node-dot" style="background:var(--cyan);box-shadow:0 0 6px var(--cyan);animation-delay:0.9s;"></div>
+            <div class="node-label">PHOENIX</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="side-section" style="margin-top:16px;">
+        <div class="side-section-title">GUIDE RAPIDE</div>
+        <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-secondary);line-height:1.6;padding:8px;background:var(--bg-card);border-radius:6px;border:1px solid var(--border-subtle);">
+          <div style="margin-bottom:6px;color:var(--phosphor);font-weight:600;">AJOUTER UN DOSSIER :</div>
+          <div style="color:var(--text-muted);">Éditer le tableau <code style="color:var(--cyan);background:var(--bg-abyss);padding:1px 4px;border-radius:2px;">modules[]</code> dans le script. Champs :</div>
+          <pre style="margin-top:6px;padding:8px;background:var(--bg-abyss);border:1px solid var(--border-subtle);border-radius:4px;font-size:0.58rem;color:var(--text-secondary);white-space:pre-wrap;">{
+  id: "mon-dossier",
+  title: "Nom affiché",
+  file: "fichier.html",
+  category: "humint",
+  kind: "rapport",
+  icon: "📋",
+  description: "Description"
+}</pre>
+          <div style="margin-top:8px;color:var(--text-muted);">
+            Catégories : <span style="color:var(--phosphor);">humint</span> · <span style="color:var(--cyan);">osint</span> · <span style="color:var(--amber);">sigint</span> · <span style="color:#a855f7;">socmint</span> · <span style="color:#ff6b6b;">ie</span> · <span style="color:#38bdf8;">cyber</span> · <span style="color:#f472b6;">analyse</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer>
+  <div class="footer-left">
+    <span>STATION ZERO v2.0</span>
+    <span class="footer-sep">│</span>
+    <span>Centre de Renseignement</span>
+  </div>
+  <div class="footer-right">
+    <span id="footerDate">--</span>
+    <span class="footer-sep">│</span>
+    <span>CONFIDENTIEL — Usage autorisé uniquement</span>
+  </div>
+</footer>
+
+<!-- ═══════════ DATA & LOGIC ═══════════ -->
+<script>
+  // ═══════════════════════════════════════════════
+  // MODULES — Ajoutez vos dossiers ici
+  // Catégories : humint, osint, sigint, socmint, ie, cyber, analyse
+  // ═══════════════════════════════════════════════
+  const modules = [
+    // ── HUMINT ──
+    
+    {
+      id: "humint-manual-en",
+      title: "HUMINT Manual — English",
+      file: "humint_manual.html",
+      category: "humint",
+      kind: "manual",
+      icon: "🕵️",
+      description: "Human Intelligence collection operations guide"
+    },
+    {
+      id: "humint-claude",
+      title: "HUMINT — Briefing Claude",
+      file: "humintclaude.html",
+      category: "humint",
+      kind: "briefing",
+      icon: "📋",
+      description: "Analyse HUMINT générée par Claude"
+    },
+    {
+      id: "humint-chatgpt",
+      title: "HUMINT — Briefing GPT",
+      file: "humintchatgpt.html",
+      category: "humint",
+      kind: "briefing",
+      icon: "📋",
+      description: "Analyse HUMINT générée par ChatGPT"
+    },
+
+    // ── OSINT ──
+    {
+      id: "renseignement",
+      title: "Renseignement — Dossier Complet",
+      file: "renseignement.html",
+      category: "osint",
+      kind: "dossier",
+      icon: "📡",
+      description: "Dossier de synthèse sur le renseignement"
+    },
+    {
+      id: "vsse-dossier",
+      title: "VSSE — Service de Renseignement Civil",
+      file: "vsse-dossier.html",
+      category: "osint",
+      kind: "rapport",
+      icon: "🏛️",
+      description: "Dossier complet sur la Sûreté de l'État belge"
+    },
+
+    // ── SIGINT ──
+    {
+      id: "sigint-veille",
+      title: "Veille Signaux — Module 1160",
+      file: "veille-1160.html",
+      category: "sigint",
+      kind: "veille",
+      icon: "📻",
+      description: "Surveillance des signaux et fréquences"
+    },
+
+    // ── SOCMINT ──
+    {
+      id: "socmint-claude",
+      title: "SOCMINT — Analyse Claude",
+      file: "socmintclaude.html",
+      category: "socmint",
+      kind: "analyse",
+      icon: "🌐",
+      description: "Social Media Intelligence — rapport Claude"
+    },
+    {
+      id: "socmint-chatgpt",
+      title: "SOCMINT — Analyse GPT",
+      file: "socmintchatgpt.html",
+      category: "socmint",
+      kind: "analyse",
+      icon: "🌐",
+      description: "Social Media Intelligence — rapport ChatGPT"
+    },
+
+    // ── IE (Intelligence Économique) ──
+    {
+      id: "ie-claude",
+      title: "IE Belgique — Analyse Claude",
+      file: "ieclaude.html",
+      category: "ie",
+      kind: "rapport",
+      icon: "💼",
+      description: "Intelligence économique belge — rapport Claude"
+    },
+    {
+      id: "ie-chatgpt",
+      title: "IE Belgique — Analyse GPT",
+      file: "iebelgiquechatgpt.html",
+      category: "ie",
+      kind: "rapport",
+      icon: "💼",
+      description: "Intelligence économique belge — rapport ChatGPT"
+    },
+    {
+      id: "ie-bel",
+      title: "IE Belgique — Dossier (1)",
+      file: "iebel.html",
+      category: "ie",
+      kind: "dossier",
+      icon: "📁",
+      description: "Rapport intelligence économique belge vol.1"
+    },
+    {
+      id: "ie-bel-2",
+      title: "IE Belgique — Dossier (2)",
+      file: "iebel2.html",
+      category: "ie",
+      kind: "dossier",
+      icon: "📁",
+      description: "Rapport intelligence économique belge vol.2"
+    },
+    {
+      id: "ie-bilan",
+      title: "IE — Bilan Renseignement Éco.",
+      file: "renseignementeconomiquebilan.html",
+      category: "ie",
+      kind: "bilan",
+      icon: "📊",
+      description: "Bilan du renseignement économique"
+    },
+
+    // ── CYBER ──
+    {
+      id: "intel-civile-claude-1",
+      title: "Intelligence Civile — Claude (1/2)",
+      file: "intelligencecivileclaude12.html",
+      category: "cyber",
+      kind: "rapport",
+      icon: "🔒",
+      description: "Renseignement civil — analyse Claude partie 1"
+    },
+    {
+      id: "intel-civile-claude-2",
+      title: "Intelligence Civile — Claude (2/2)",
+      file: "intelligencecivileclaude22.html",
+      category: "cyber",
+      kind: "rapport",
+      icon: "🔒",
+      description: "Renseignement civil — analyse Claude partie 2"
+    },
+    {
+      id: "intel-civile-claude-full",
+      title: "Intelligence Civile — Claude (complet)",
+      file: "intelligencecivileclaude2.html",
+      category: "cyber",
+      kind: "rapport",
+      icon: "🔒",
+      description: "Renseignement civil — version intégrale Claude"
+    },
+    {
+      id: "intel-civile-chatgpt",
+      title: "Intelligence Civile — ChatGPT",
+      file: "intelligencecivilechatgpt.html",
+      category: "cyber",
+      kind: "rapport",
+      icon: "🔒",
+      description: "Renseignement civil — analyse ChatGPT"
+    },
+    {
+      id: "intel-civile-chatgpt-2",
+      title: "Intelligence Civile — ChatGPT (2)",
+      file: "intelligencecivilechatgpt2.html",
+      category: "cyber",
+      kind: "rapport",
+      icon: "🔒",
+      description: "Renseignement civil — analyse ChatGPT vol.2"
+    },
+
+    // ── ANALYSE ──
+    {
+      id: "detective",
+      title: "Agence Détective Publique",
+      file: "veilleuxses.html",
+      category: "analyse",
+      kind: "vitrine",
+      icon: "🔍",
+      description: "Vitrine + intranet pour activité d'enquête"
+    },
+    {
+      id: "boussole",
+      title: "Boussole de Valeurs Opérationnelles",
+      file: "valeurs.html",
+      category: "analyse",
+      kind: "outil",
+      icon: "🧭",
+      description: "Évaluation des valeurs et positionnement éthique"
+    },
+    {
+      id: "renseignement-pdf",
+      title: "Rapport sur le renseignement",
+      file: "renseignement.pdf",
+      category: "analyse",
+      kind: "manuel",
+      icon: "🕵️",
+      description: "Une bonne base"
+    },
+    {
+      id: "renseignement-html",
+      title: "Rapport sur le renseignement",
+      file: "renseignement.html",
+      category: "analyse",
+      kind: "manuel",
+      icon: "🕵️",
+      description: "lorem ipsum"
+    },
+
+
+    // ═══ AJOUTEZ VOS DOSSIERS CI-DESSOUS ═══
+    // {
+    //   id: "mon-dossier",
+    //   title: "Nom du dossier",
+    //   file: "fichier.html",
+    //   category: "humint",  // humint|osint|sigint|socmint|ie|cyber|analyse
+    //   kind: "type",
+    //   icon: "📋",
+    //   description: "Description courte"
+    // },
+  ];
+
+  // ── EMBEDS (panneau droit) ── 
+  const embeds = [
+    { id: "intranet", icon: "🏢", label: "Intranet", url: "https://boot-a-rat.vercel.app/", desc: "Réseau interne" },
+    { id: "hyperspace", icon: "🚀", label: "Hyperspace", url: "https://www.youtube.com/embed/ZpKgZiOmeSg?si=hBouq3yo2lIxEehk", desc: "Veille & monitoring" },
+    { id: "network", icon: "🕸️", label: "Network", url: "https://ouaisfieu.github.io/offre/", desc: "Communications" },
+    { id: "tarot", icon: "🃏", label: "Tarot Opérationnel", url: "https://ouaisfieu.appsmith.com/app/tarotboulotproto-v3-1/tarotsimpletirage-68555a12a22d7c48aa0d27ad", desc: "Module décisionnel alternatif" },
+    { id: "extronet", icon: "🎲", label: "Extronet", url: "https://tirage-one.vercel.app/", desc: "Application externe" },
+    { id: "king", icon: "🐧", label: "Pingouin HQ", url: "https://dl.ouaisfi.eu/", desc: "Quartier maître" },
+    { id: "queen", icon: "🐧", label: "Pingouine HQ", url: "https://ouaisfieu.github.io/ccplc", desc: "Quartier générale" },
+    { id: "valet", icon: "🐧", label: "Pingu HQ", url: "https://yannkeep.github.io/reaven/", desc: "Quartier général" },
+  ];
+
+  // ═══════════════════════════════════
+  //  CATEGORY CONFIG
+  // ═══════════════════════════════════
+  const catConfig = {
+    humint:  { label: "HUMINT",  tagClass: "tag-humint",  iconClass: "humint" },
+    osint:   { label: "OSINT",   tagClass: "tag-osint",   iconClass: "osint" },
+    sigint:  { label: "SIGINT",  tagClass: "tag-sigint",  iconClass: "sigint" },
+    socmint: { label: "SOCMINT", tagClass: "tag-socmint", iconClass: "socmint" },
+    ie:      { label: "INT. ÉCO.", tagClass: "tag-ie",    iconClass: "ie" },
+    cyber:   { label: "CYBER",   tagClass: "tag-cyber",   iconClass: "cyber" },
+    analyse: { label: "ANALYSE", tagClass: "tag-analyse",  iconClass: "analyse" },
+  };
+
+  // ═══════════════════════════════════
+  //  DOM REFS
+  // ═══════════════════════════════════
+  const searchInput     = document.getElementById("searchInput");
+  const filterRow       = document.getElementById("filterRow");
+  const modulesContainer = document.getElementById("modulesContainer");
+  const modulesCount    = document.getElementById("modulesCount");
+  const sessionId       = document.getElementById("sessionId");
+  const viewerTitle     = document.getElementById("viewerTitle");
+  const viewerDesc      = document.getElementById("viewerDesc");
+  const viewerCatBadge  = document.getElementById("viewerCatBadge");
+  const viewerKindBadge = document.getElementById("viewerKindBadge");
+  const viewerFrame     = document.getElementById("viewerFrame");
+  const viewerFilepath  = document.getElementById("viewerFilepath");
+  const viewerOpenNew   = document.getElementById("viewerOpenNew");
+  const welcomeOverlay  = document.getElementById("welcomeOverlay");
+  const embedsContainer = document.getElementById("embedsContainer");
+  const headerClock     = document.getElementById("headerClock");
+  const footerDate      = document.getElementById("footerDate");
+
+  let activeFilter = "all";
+  let activeId = null;
+
+  // ═══════════════════════════════════
+  //  SESSION & CLOCK
+  // ═══════════════════════════════════
+  sessionId.textContent = "SESSION-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+  function updateClock() {
+    const now = new Date();
+    headerClock.textContent = now.toUTCString().split(" ")[4] + " UTC";
+    footerDate.textContent = now.toLocaleDateString("fr-BE", { weekday: "short", year: "numeric", month: "short", day: "numeric" });
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ═══════════════════════════════════
+  //  RENDER MODULES
+  // ═══════════════════════════════════
+  function getFiltered() {
+    const q = searchInput.value.trim().toLowerCase();
+    return modules.filter(m => {
+      if (activeFilter !== "all" && m.category !== activeFilter) return false;
+      if (!q) return true;
+      return (m.title + " " + m.file + " " + (m.description || "")).toLowerCase().includes(q);
+    });
+  }
+
+  function renderModules() {
+    const filtered = getFiltered();
+    modulesContainer.innerHTML = "";
+    modulesCount.textContent = filtered.length + " dossier" + (filtered.length !== 1 ? "s" : "");
+
+    if (!filtered.length) {
+      modulesContainer.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);">Aucun dossier ne correspond à la recherche.</div>';
+      return;
+    }
+
+    // Group by category
+    const groups = {};
+    filtered.forEach(m => {
+      if (!groups[m.category]) groups[m.category] = [];
+      groups[m.category].push(m);
+    });
+
+    const catOrder = ["humint", "osint", "sigint", "socmint", "ie", "cyber", "analyse"];
+    catOrder.forEach(cat => {
+      if (!groups[cat]) return;
+      const cfg = catConfig[cat] || { label: cat.toUpperCase() };
+
+      const label = document.createElement("div");
+      label.className = "group-label";
+      label.textContent = cfg.label;
+      modulesContainer.appendChild(label);
+
+      groups[cat].forEach((m, i) => {
+        const card = document.createElement("div");
+        card.className = "module-card" + (m.id === activeId ? " active" : "");
+        card.style.animationDelay = (i * 0.04) + "s";
+        card.dataset.id = m.id;
+
+        card.innerHTML = `
+          <div class="module-icon ${cfg.iconClass || ''}">${m.icon || '📄'}</div>
+          <div class="module-info">
+            <div class="module-name">${m.title}</div>
+            <div class="module-desc">${m.description || ''}</div>
+          </div>
+          <span class="module-tag ${cfg.tagClass || ''}">${m.kind || ''}</span>
+        `;
+
+        card.addEventListener("click", () => selectModule(m.id));
+        modulesContainer.appendChild(card);
+      });
+    });
+  }
+
+  // ═══════════════════════════════════
+  //  SELECT MODULE
+  // ═══════════════════════════════════
+  function selectModule(id) {
+    const m = modules.find(x => x.id === id);
+    if (!m) return;
+    activeId = id;
+
+    // Update active state
+    document.querySelectorAll(".module-card").forEach(el => {
+      el.classList.toggle("active", el.dataset.id === id);
+    });
+
+    // Hide welcome
+    welcomeOverlay.classList.add("hidden");
+
+    // Update viewer
+    const cfg = catConfig[m.category] || {};
+    viewerTitle.textContent = m.title;
+    viewerDesc.textContent = m.description || "";
+    viewerCatBadge.textContent = cfg.label || m.category;
+    viewerCatBadge.className = "module-tag " + (cfg.tagClass || "");
+    viewerCatBadge.style.display = "";
+    viewerKindBadge.textContent = m.kind || "";
+    viewerKindBadge.className = "module-tag tag-embed";
+    viewerKindBadge.style.display = m.kind ? "" : "none";
+    viewerFilepath.textContent = "▸ " + m.file;
+    viewerFrame.src = m.file;
+    viewerOpenNew.href = m.file;
+  }
+
+  // ═══════════════════════════════════
+  //  SELECT EMBED
+  // ═══════════════════════════════════
+  function selectEmbed(embed) {
+    activeId = null;
+    document.querySelectorAll(".module-card").forEach(el => el.classList.remove("active"));
+    welcomeOverlay.classList.add("hidden");
+
+    viewerTitle.textContent = embed.label;
+    viewerDesc.textContent = embed.desc || "";
+    viewerCatBadge.textContent = "EXTERNE";
+    viewerCatBadge.className = "module-tag tag-embed";
+    viewerCatBadge.style.display = "";
+    viewerKindBadge.style.display = "none";
+    viewerFilepath.textContent = "▸ " + embed.url;
+    viewerFrame.src = embed.url;
+    viewerOpenNew.href = embed.url;
+  }
+
+  // ═══════════════════════════════════
+  //  RENDER EMBEDS
+  // ═══════════════════════════════════
+  function renderEmbeds() {
+    embeds.forEach(e => {
+      const btn = document.createElement("button");
+      btn.className = "embed-button";
+      btn.innerHTML = `
+        <div class="e-icon">${e.icon}</div>
+        <div>
+          <div class="e-label">${e.label}</div>
+          <div class="e-desc">${e.desc}</div>
+        </div>
+      `;
+      btn.addEventListener("click", () => selectEmbed(e));
+      embedsContainer.appendChild(btn);
+    });
+  }
+
+  // ═══════════════════════════════════
+  //  FILTERS
+  // ═══════════════════════════════════
+  filterRow.addEventListener("click", e => {
+    const btn = e.target.closest(".filter-btn");
+    if (!btn) return;
+    activeFilter = btn.dataset.cat;
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("active", b.dataset.cat === activeFilter));
+    renderModules();
+  });
+
+  searchInput.addEventListener("input", renderModules);
+
+  // ═══════════════════════════════════
+  //  INIT
+  // ═══════════════════════════════════
+  renderModules();
+  renderEmbeds();
+</script>
+
+</body>
+</html>
