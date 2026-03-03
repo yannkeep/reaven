@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="fr" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulateur de Démocratie Belge — ouaisfieu</title>
+<meta name="description" content="Simulateur interactif : vivez le paradoxe démocratique belge. Vote obligatoire, référendum interdit, particratie. Faites vos choix — et découvrez qu'il n'y en a aucun. Sources académiques vérifiées (CRISP, ULB, KU Leuven).">
+<meta name="keywords" content="simulateur démocratie belge, particratie, vote obligatoire, référendum interdit, éducation permanente, ouaisfieu, interactif">
+<meta name="author" content="Yan & Claude — ouaisfieu">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://ouaisfi.eu/outils/simulateur-democratie">
+
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simulateur de Démocratie Belge — Faites vos choix (spoiler : il n'y en a aucun)">
+<meta property="og:description" content="Expérience interactive : parcourez le circuit fermé de la particratie belge. 6 étapes, 0 issue. Sources académiques. ouaisfieu.">
+<meta property="og:url" content="https://ouaisfi.eu/outils/simulateur-democratie">
+<meta property="og:site_name" content="ouaisfieu">
+<meta property="og:locale" content="fr_BE">
+<meta property="article:tag" content="particratie">
+<meta property="article:tag" content="démocratie">
+<meta property="article:tag" content="interactif">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Simulateur de Démocratie Belge — 6 étapes, 0 issue">
+<meta name="twitter:description" content="Expérience interactive. Faites vos choix dans la démocratie belge. Spoiler : tous les chemins mènent au kern.">
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Simulateur de Démocratie Belge","description":"Expérience interactive simulant le parcours du citoyen dans la particratie belge. Chaque choix mène au même résultat : un système clos.","url":"https://ouaisfi.eu/outils/simulateur-democratie","applicationCategory":"EducationalApplication","author":[{"@type":"Person","name":"Yan"},{"@type":"Organization","name":"Claude (Anthropic)"}],"publisher":{"@type":"Organization","name":"ouaisfieu"},"inLanguage":"fr","isAccessibleForFree":true,"license":"https://creativecommons.org/licenses/by-nc/4.0/"}
+</script>
+
+<link rel="alternate" type="application/ld+json" href="dataset-circuit-ferme.jsonld">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --void: #06060a;
+  --void-light: #0c0c14;
+  --surface: #10101a;
+  --surface-raised: #181826;
+  --border: #252538;
+  --border-bright: #353550;
+  --text: #c8d0dc;
+  --text-bright: #e8ecf2;
+  --text-dim: #7a8494;
+  --text-muted: #505868;
+  --mint: #48bb78;
+  --mint-glow: rgba(72,187,120,.15);
+  --lilac: #9f7aea;
+  --lilac-glow: rgba(159,122,234,.12);
+  --red: #f56565;
+  --red-glow: rgba(245,101,101,.1);
+  --amber: #ecc94b;
+  --amber-glow: rgba(236,201,75,.1);
+  --cyan: #4fd1c5;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Source Serif 4', Georgia, serif;
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+
+body {
+  font-family: var(--font-mono);
+  background: var(--void);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* CRT */
+body::after {
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.05) 2px,rgba(0,0,0,.05) 4px);
+  pointer-events:none;z-index:9999;
+}
+
+body::before {
+  content:'';position:fixed;inset:0;opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:9998;
+}
+
+::selection { background:var(--lilac);color:var(--void); }
+
+/* ══════ TERMINAL SCREEN ══════ */
+#terminal {
+  max-width: 740px;
+  margin: 0 auto;
+  padding: clamp(1.5rem,4vw,3rem);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* BOOT SEQUENCE */
+#boot {
+  padding-top: 15vh;
+  flex: 1;
+}
+
+.boot-line {
+  font-size: .75rem;
+  color: var(--text-muted);
+  margin-bottom: .15rem;
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.boot-line.show {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity .3s, transform .3s;
+}
+
+.boot-line.highlight { color: var(--mint); font-weight: 600; }
+.boot-line.warn { color: var(--red); font-weight: 600; }
+.boot-line.dim { color: var(--text-muted); }
+
+/* TITLE REVEAL */
+#title-block {
+  margin: 3rem 0 2rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity .8s ease, transform .8s ease;
+}
+
+#title-block.show { opacity:1; transform:translateY(0); }
+
+#title-block h1 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(1.8rem, 4.5vw, 2.8rem);
+  line-height: 1.1;
+  color: var(--text-bright);
+  margin-bottom: .5rem;
+}
+
+#title-block h1 .red { color: var(--red); }
+
+#title-block .sub {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: clamp(.9rem, 1.5vw, 1.05rem);
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+/* PROMPT / GAME */
+.prompt-prefix {
+  color: var(--mint);
+  font-weight: 600;
+  font-size: .75rem;
+}
+
+/* STEP DISPLAY */
+#game { display: none; }
+
+.step {
+  margin-bottom: 1.5rem;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+
+.step.show { opacity:1; transform:translateY(0); }
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .75rem;
+}
+
+.step-num {
+  background: var(--surface-raised);
+  border: 1px solid var(--border-bright);
+  color: var(--mint);
+  font-weight: 700;
+  font-size: .65rem;
+  padding: .2rem .5rem;
+  letter-spacing: .1em;
+}
+
+.step-label {
+  font-size: .65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .15em;
+}
+
+.step-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+  color: var(--text-bright);
+  margin-bottom: .75rem;
+  line-height: 1.2;
+}
+
+.step-text {
+  font-family: var(--font-body);
+  font-size: .9rem;
+  line-height: 1.7;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.step-text strong { color: #fff; }
+.step-text .val-red { color: var(--red); font-family: var(--font-mono); font-weight: 600; }
+.step-text .val-mint { color: var(--mint); font-family: var(--font-mono); font-weight: 600; }
+.step-text .val-lilac { color: var(--lilac); font-family: var(--font-mono); font-weight: 600; }
+.step-text .val-amber { color: var(--amber); font-family: var(--font-mono); font-weight: 600; }
+
+.step-src {
+  font-size: .6rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 1rem;
+  padding-left: .75rem;
+  border-left: 2px solid var(--border);
+}
+
+/* DATA BOX in steps */
+.step-data {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin: 1rem 0;
+}
+
+.step-data .sd-cell {
+  background: var(--surface);
+  padding: .6rem .75rem;
+  text-align: center;
+}
+
+.sd-cell .sd-val {
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.sd-cell .sd-label {
+  font-size: .55rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-top: .15rem;
+}
+
+/* CHOICES */
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  margin-top: 1rem;
+}
+
+.choice-btn {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: .75rem 1rem;
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color .2s, background .2s, color .2s;
+  text-align: left;
+  width: 100%;
+}
+
+.choice-btn:hover {
+  border-color: var(--mint);
+  background: var(--mint-glow);
+  color: var(--text-bright);
+}
+
+.choice-btn .key {
+  background: var(--border-bright);
+  color: var(--mint);
+  font-weight: 700;
+  font-size: .65rem;
+  padding: .15rem .4rem;
+  min-width: 1.5rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.choice-btn.disabled {
+  opacity: .35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* RESPONSE after choice */
+.response {
+  margin: .75rem 0;
+  padding: .75rem 1rem;
+  background: var(--red-glow);
+  border-left: 3px solid var(--red);
+  font-size: .8rem;
+  color: var(--text);
+  line-height: 1.5;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .4s, transform .4s;
+}
+
+.response.show { opacity:1; transform:translateY(0); }
+.response strong { color: var(--red); }
+
+/* CONTINUE BUTTON */
+.continue-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  background: none;
+  border: 1px solid var(--mint);
+  color: var(--mint);
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  font-weight: 600;
+  padding: .5rem 1.25rem;
+  cursor: pointer;
+  transition: background .2s, color .2s;
+  margin-top: .75rem;
+  opacity: 0;
+  transition: opacity .4s, background .2s, color .2s;
+}
+
+.continue-btn.show { opacity:1; }
+.continue-btn:hover { background: var(--mint); color: var(--void); }
+
+/* FINAL SCREEN */
+#final {
+  display: none;
+  padding: 2rem 0;
+}
+
+#final.show { display: block; }
+
+.final-box {
+  border: 2px solid var(--red);
+  padding: 2rem;
+  margin: 1.5rem 0;
+  background: linear-gradient(135deg, var(--red-glow), var(--lilac-glow));
+  opacity: 0;
+  transform: scale(.97);
+  transition: opacity .6s ease, transform .6s ease;
+}
+
+.final-box.show { opacity:1; transform:scale(1); }
+
+.final-box h2 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  color: #fff;
+  margin-bottom: 1rem;
+  line-height: 1.15;
+}
+
+.final-box p {
+  font-family: var(--font-body);
+  font-size: .95rem;
+  color: var(--text);
+  line-height: 1.7;
+  margin-bottom: .75rem;
+}
+
+.final-box strong { color: #fff; }
+
+.circuit-viz {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  margin: 1.5rem 0;
+  font-size: .7rem;
+}
+
+.c-node {
+  background: var(--surface);
+  border: 1px solid var(--border-bright);
+  padding: .35rem .65rem;
+  color: var(--text);
+  text-align: center;
+  max-width: 140px;
+  line-height: 1.3;
+}
+
+.c-node.c-red { border-color: var(--red); color: var(--red); }
+.c-node.c-amber { border-color: var(--amber); color: var(--amber); }
+.c-node.c-lilac { border-color: var(--lilac); color: var(--lilac); }
+.c-arrow { color: var(--mint); font-weight: 700; font-size: 1rem; }
+
+/* STATS RECAP */
+.stats-recap {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin: 1.5rem 0;
+}
+
+.stat-cell {
+  background: var(--surface);
+  padding: .75rem;
+  text-align: center;
+}
+
+.stat-cell .s-val {
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.stat-cell .s-label {
+  font-size: .55rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-top: .15rem;
+}
+
+/* RESTART */
+.restart-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  background: var(--red);
+  border: none;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  font-weight: 700;
+  padding: .6rem 1.5rem;
+  cursor: pointer;
+  transition: background .2s;
+  margin-top: 1rem;
+}
+
+.restart-btn:hover { background: var(--red-dim, #c53030); }
+
+/* SHARE PROMPT */
+.share-block {
+  margin: 2rem 0 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.share-block p {
+  font-size: .75rem;
+  color: var(--text-dim);
+  margin-bottom: .5rem;
+}
+
+.share-text {
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  color: var(--mint);
+  background: var(--void);
+  padding: .5rem .75rem;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  user-select: all;
+  line-height: 1.5;
+  transition: border-color .2s;
+}
+
+.share-text:hover { border-color: var(--mint); }
+
+/* FOOTER */
+footer {
+  margin-top: 2rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+footer p {
+  font-size: .6rem;
+  color: var(--text-muted);
+  margin-bottom: .15rem;
+}
+
+/* TYPEWRITER */
+.typewriter {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid var(--mint);
+  animation: tw-blink .8s step-end infinite;
+  width: 0;
+}
+
+.typewriter.done { border-right-color: transparent; animation: none; white-space: normal; width: auto; }
+
+@keyframes tw-blink { 0%,100%{border-color:var(--mint)} 50%{border-color:transparent} }
+
+/* PULSE */
+@keyframes pulse-border {
+  0%,100% { border-color: var(--red); }
+  50% { border-color: var(--amber); }
+}
+
+.pulse-border { animation: pulse-border 2s ease infinite; }
+
+/* RESPONSIVE */
+@media(max-width:600px) {
+  .stats-recap { grid-template-columns: 1fr 1fr; }
+  .step-data { grid-template-columns: 1fr 1fr; }
+  #terminal { padding: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<div id="terminal">
+
+<!-- ══════ BOOT SEQUENCE ══════ -->
+<div id="boot"></div>
+
+<!-- ══════ TITLE ══════ -->
+<div id="title-block">
+  <h1>Simulateur de<br>Démocratie <span class="red">Belge</span></h1>
+  <p class="sub">Vous êtes un·e citoyen·ne belge. Vous allez voter, délibérer, manifester, pétitionner. Faites vos choix. Découvrez s'ils comptent.</p>
+  <p style="font-size:.65rem;color:var(--text-muted);margin-bottom:1rem;">Basé sur 270+ documents vérifiés · Sources : CRISP, ULB, KU Leuven, UCLouvain, Conseil d'État, Solidaris, IWEPS</p>
+  <button class="continue-btn show" id="start-btn"><span class="key" style="background:var(--mint);color:var(--void);">▶</span> Commencer la simulation</button>
+</div>
+
+<!-- ══════ GAME STEPS ══════ -->
+<div id="game"></div>
+
+<!-- ══════ FINAL ══════ -->
+<div id="final">
+  <div class="final-box pulse-border" id="final-box">
+    <h2>Simulation terminée.<br>Résultat : <span style="color:var(--red)">identique</span>, quel que soit le chemin.</h2>
+    <p>Vous avez traversé six étapes. Vous avez fait des choix à chacune. <strong>Aucun n'a changé l'issue.</strong></p>
+    <p>Ce n'est pas un bug. C'est le <strong>design du système</strong>.</p>
+
+    <div class="circuit-viz">
+      <span class="c-node c-amber">① Vote obligatoire</span><span class="c-arrow">→</span>
+      <span class="c-node">② Listes partisanes</span><span class="c-arrow">→</span>
+      <span class="c-node c-red">③ Discipline 99,73%</span><span class="c-arrow">→</span>
+      <span class="c-node c-lilac">④ Kern · 188,3M€</span><span class="c-arrow">→</span>
+      <span class="c-node c-red">⑤ 0 référendum</span><span class="c-arrow">→</span>
+      <span class="c-node c-amber">⑥ Retour à ①</span>
+    </div>
+
+    <p>La combinaison <strong>vote obligatoire</strong> (Art. 62) + <strong>référendum interdit</strong> (Art. 33) + <strong>particratie</strong> (99,73% de discipline) forme un <strong>circuit fermé</strong> où le citoyen produit de la légitimité sans jamais pouvoir la consommer.</p>
+    <p>Ce système est <strong>parfaitement légal</strong> ET <strong>profondément illégitime</strong>. 8% de confiance (Solidaris 2025). Les bénéficiaires du système n'ont aucun intérêt rationnel à le réformer.</p>
+
+    <div class="stats-recap">
+      <div class="stat-cell"><div class="s-val" style="color:var(--red)">8%</div><div class="s-label">Confiance partis</div></div>
+      <div class="stat-cell"><div class="s-val" style="color:var(--lilac)">188,3 M€</div><div class="s-label">Financement/an</div></div>
+      <div class="stat-cell"><div class="s-val" style="color:var(--amber)">0</div><div class="s-label">Référendums</div></div>
+      <div class="stat-cell"><div class="s-val" style="color:var(--red)">99,73%</div><div class="s-label">Discipline vote</div></div>
+      <div class="stat-cell"><div class="s-val" style="color:var(--mint)">31 806</div><div class="s-label">Mandataires</div></div>
+      <div class="stat-cell"><div class="s-val" style="color:var(--red)">1,3M</div><div class="s-label">Votes perdus</div></div>
+    </div>
+
+    <p style="font-family:var(--font-display);font-weight:700;font-size:1.1rem;color:#fff;margin:1.5rem 0 .5rem;">Mais le circuit a une faille.</p>
+    <p>Les <strong>Trois Guerres Civiques</strong> (三种公民战法) : le récit (OSINT citoyen), la dé-sidération (éducation permanente), le prétoire (contentieux stratégique Art. 23). Le système est légal. La riposte aussi.</p>
+    <p><strong>ouaisfieu</strong> — Contre-Institution Numérique Citoyenne. 270+ documents. 29€/mois. 0 tracking. Fork · Hack · Spread.</p>
+  </div>
+
+  <div class="share-block">
+    <p>Copiez et partagez :</p>
+    <div class="share-text" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.innerText)">🇧🇪 J'ai fait le Simulateur de Démocratie Belge. 6 étapes, 0 issue. Vote obligatoire + référendum interdit + 99,73% de discipline = circuit fermé. 8% de confiance. Les données sont vérifiées. Essayez : ouaisfi.eu/outils/simulateur-democratie #ouaisfieu #particratie #12mars</div>
+  </div>
+
+  <button class="restart-btn" onclick="location.reload()">↻ Recommencer (le système aussi)</button>
+
+  <footer>
+    <p><strong style="color:var(--mint)">ouaisfieu</strong> · Contre-Institution Numérique Citoyenne</p>
+    <p>Yan & Claude (Anthropic) · ccplc.eu · ouaisfi.eu · CC BY-NC 4.0</p>
+    <p>Mars 2026 · Guerre II — Dé-sidération</p>
+  </footer>
+</div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// GAME DATA — each step with choices that all
+// lead to the same "response" (the system wins)
+// ═══════════════════════════════════════════════
+const STEPS = [
+  {
+    num: "ÉTAPE 1/6",
+    label: "OBLIGATION",
+    title: "Dimanche d'élection. Vous devez voter.",
+    text: `L'article 62 vous y oblige depuis 1893. Amende théorique : 40-80€. En pratique, <strong>aucune condamnation depuis 2003</strong>. En 2024 : <span class="val-red">1 050 000 non-votants</span> malgré l'obligation. Vous recevez votre convocation.`,
+    src: "Constitution belge Art. 62 · Code électoral art. 207-210 · SPF Intérieur 2024",
+    choices: [
+      { key: "A", text: "Voter consciencieusement", response: "Vous votez. Votre voix pèse <strong>0,000012%</strong> du résultat. Le parti a déjà confectionné la liste : l'effet dévolutif de la case de tête détermine qui siège. Votre choix de candidat·e est largement cosmétique." },
+      { key: "B", text: "Voter blanc ou nul", response: "Vous joignez les <strong>415 912 blancs et nuls</strong> de 2024. Votre bulletin n'est comptabilisé nulle part. Le résultat ne change pas. L'obligation est remplie." },
+      { key: "C", text: "Ne pas voter (risquer l'amende)", response: "Vous rejoignez le <strong>million de non-votants</strong>. Risque réel : zéro. Mais la participation « officielle » reste élevée, ce qui <strong>légitime le système</strong> sans vous." }
+    ],
+    data: [
+      { val: "Art. 62", label: "Obligation", color: "var(--amber)" },
+      { val: "1 050 000", label: "Non-votants 2024", color: "var(--red)" },
+      { val: "0", label: "Condamnations", color: "var(--mint)" }
+    ]
+  },
+  {
+    num: "ÉTAPE 2/6",
+    label: "LISTES PARTISANES",
+    title: "Vous êtes dans l'isoloir. Devant vous : des listes de parti.",
+    text: `Les candidat·es sont classé·es par le parti. L'<strong>effet dévolutif de la case de tête</strong> favorise massivement l'ordre de la liste. Voter pour un·e candidat·e en bas de liste est mathématiquement quasi inutile. Les partis ont confectionné les listes : ils choisissent qui siège.`,
+    src: "Verleden, Aux sources de la particratie, CRISP CH 2501-2504 (2021) · Code électoral belge",
+    choices: [
+      { key: "A", text: "Voter pour le·la candidat·e de votre choix", response: "Votre vote de préférence est noyé par la case de tête. Sauf score exceptionnel, <strong>l'ordre de la liste prime</strong>. Le parti a déjà choisi." },
+      { key: "B", text: "Voter case de tête (confiance au parti)", response: "Vous validez <strong>l'ordre décidé par le bureau de parti</strong>. Exactement ce que le système attend." },
+      { key: "C", text: "Voter pour un petit parti / indépendant", response: "Le seuil de 5% élimine la plupart des petites listes. Même élu·e, un·e indépendant·e pèse 1 voix sur 150. La <strong>discipline de coalition</strong> neutralise les dissidences." }
+    ],
+    data: [
+      { val: "13 397", label: "Votes analysés (Verleden)", color: "var(--lilac)" },
+      { val: "99,73%", label: "Discipline", color: "var(--red)" }
+    ]
+  },
+  {
+    num: "ÉTAPE 3/6",
+    label: "PARLEMENT",
+    title: "Votre élu·e siège. Le Parlement délibère.",
+    text: `Thibault Gaudin (ULB, 2020) a mesuré <span class="val-red">99,73%</span> de conformité partisane. Le CRISP parle de « chambres d'entérinement ». Caroline Gennez (ex-sp.a) : <em>« Nous avons négocié la réforme de l'État à huit personnes. Au Parlement, spectacle. »</em>`,
+    src: "Gaudin (ULB, Carnet de crise n° 14, 2020) · CRISP CH 2483-2485 · Éthique publique, OpenEdition",
+    choices: [
+      { key: "A", text: "Écrire à votre élu·e pour exprimer votre position", response: "Votre élu·e accuse réception. Puis vote <strong>selon la consigne du parti</strong>. 99,73% du temps. Le CRISP identifie quatre leviers de discipline : placement sur les listes, financement, socialisation, sanctions." },
+      { key: "B", text: "Manifester dans la rue", response: "Vous manifestez. Le kern ne regarde pas par la fenêtre. Les partis <strong>n'ont pas besoin du consentement populaire continu</strong>. La dernière grande manifestation (décembre 2014, 120 000 personnes) n'a rien changé à la politique Michel." },
+      { key: "C", text: "Pétitionner au Parlement (droit de pétition)", response: "La commission des pétitions de la Chambre a reçu <strong>des dizaines de pétitions</strong> sur le référendum. Aucune n'a abouti à une révision constitutionnelle. Le droit de pétition n'est pas contraignant." }
+    ],
+    data: [
+      { val: "99,73%", label: "Discipline", color: "var(--red)" },
+      { val: "8", label: "Personnes décisionnaires (Gennez)", color: "var(--amber)" }
+    ]
+  },
+  {
+    num: "ÉTAPE 4/6",
+    label: "KERN",
+    title: "Les vraies décisions se prennent ailleurs.",
+    text: `Le <strong>kern</strong> (comité ministériel restreint) n'a <strong>aucune base constitutionnelle ni légale</strong>. 5-6 personnes décident. Qualifié de « boîte noire » (La Libre, 2023). Circuit réel : Bureaux de parti → DAB → Kern → Conseil des ministres → Commission → Plénière (vote sur consigne).`,
+    src: "Faniel & Sägesser, Au cœur du pouvoir : le kern, CRISP CH 2560-2561 (2022) · La Libre (2023)",
+    choices: [
+      { key: "A", text: "Demander la transparence du kern", response: "Le kern <strong>ne publie aucun procès-verbal</strong>. Aucune loi n'encadre son fonctionnement. Dumont (USL-B) qualifie ces pratiques de « para-légalité ». Votre demande n'a pas de destinataire juridique." },
+      { key: "B", text: "Exiger un référendum sur la politique du gouvernement", response: "L'article 33 de la Constitution (1831) et <strong>quatre avis du Conseil d'État</strong> interdisent tout référendum fédéral. Même consultatif. Votre exigence se heurte à un mur constitutionnel de 195 ans." },
+      { key: "C", text: "Saisir la Cour constitutionnelle", response: "Bonne idée — c'est l'un des <strong>deux seuls contre-pouvoirs effectifs</strong>. La Cour a rendu l'arrêt 8/2025 sur le standstill. Mais le gouvernement <strong>maintient le cap</strong> malgré l'avertissement. 10 000+ condamnations inexécutées dans d'autres domaines." }
+    ],
+    data: [
+      { val: "0", label: "Base légale du kern", color: "var(--red)" },
+      { val: "188,3 M€", label: "Financement partis", color: "var(--lilac)" },
+      { val: "10 000+", label: "Condamnations ignorées", color: "var(--red)" }
+    ]
+  },
+  {
+    num: "ÉTAPE 5/6",
+    label: "DÉMOCRATIE PARTICIPATIVE",
+    title: "Il existe des mécanismes participatifs. Vous essayez.",
+    text: `Ostbelgien (2019) : recommandations non contraignantes, 80 000 habitants. Bruxelles : règlement, pas décret. Fédéral : lois 2023-2024 créant des panels. <span class="val-red">Aucun panel fédéral jamais activé.</span> Arizona : 0 mesure participative, portefeuille « renouveau démocratique » supprimé.`,
+    src: "publicdeliberation.net · parlement.brussels · lachambre.be · Accord Arizona (31/01/2025)",
+    choices: [
+      { key: "A", text: "Participer à un panel citoyen fédéral", response: "Impossible : <strong>aucun panel n'a jamais été activé</strong> au niveau fédéral malgré les lois de 2023-2024. Le règlement a été adapté en janvier 2024 — trop tard avant les élections." },
+      { key: "B", text: "S'engager dans une commission délibérative (Bruxelles)", response: "Vous produisez 34 recommandations. Le Parlement <strong>les examine</strong>… puis les classe. We Need to Talk (2023) : les citoyens sont revenus exprimer leur colère devant l'absence totale de suivi." },
+      { key: "C", text: "Lancer une pétition sur Change.org", response: "Vous récoltez des milliers de signatures. <strong>Aucun mécanisme ne lie le Parlement</strong> à une pétition en ligne. La pétition officielle (Chambre) n'est pas contraignante non plus. Le G1000 (704 citoyens, 2011) : zéro recommandation appliquée." }
+    ],
+    data: [
+      { val: "0", label: "Panels fédéraux activés", color: "var(--red)" },
+      { val: "0", label: "Mesures participatives Arizona", color: "var(--red)" },
+      { val: "34", label: "Recommandations WNTTT ignorées", color: "var(--amber)" }
+    ]
+  },
+  {
+    num: "ÉTAPE 6/6",
+    label: "BOUCLE",
+    title: "Nouvelles élections. Le cycle recommence.",
+    text: `4 ans ont passé. La confiance est à <span class="val-red">8%</span> (Solidaris 2025). La satisfaction envers la démocratie a été divisée par deux en 5 ans. Vous recevez une nouvelle convocation. L'article 62 vous oblige à voter. L'article 33 vous interdit de décider. Le kern n'a pas de base légale. Et les partis reçoivent <span class="val-lilac">188,3 M€/an</span> de votre argent.`,
+    src: "Solidaris 2025 · IWEPS 2023 · Maddens, KU Leuven · Constitution belge Art. 33, 62",
+    choices: [
+      { key: "A", text: "Retourner voter (obligation)", response: "Vous bouclez le circuit. <strong>Le système vous remercie pour votre légitimation.</strong>" },
+      { key: "B", text: "Refuser le système (abstention)", response: "Vous rejoignez le million. Mais l'obligation maintient une participation suffisante pour <strong>légitimer le résultat sans vous</strong>." },
+      { key: "C", text: "Chercher une autre voie", response: "Bienvenue. <strong>C'est la seule réponse qui ouvre quelque chose.</strong> Les Trois Guerres Civiques : le récit (OSINT), la dé-sidération (éducation permanente), le prétoire (contentieux stratégique). Le circuit est fermé par le haut. On l'ouvre par en bas." }
+    ],
+    data: [
+      { val: "8%", label: "Confiance 2025", color: "var(--red)" },
+      { val: "25,6%", label: "Satisf. démocratie", color: "var(--amber)" },
+      { val: "195 ans", label: "Sans référendum", color: "var(--red)" }
+    ]
+  }
+];
+
+// ═══════════════════════════════════════════════
+// ENGINE
+// ═══════════════════════════════════════════════
+const bootEl = document.getElementById('boot');
+const titleEl = document.getElementById('title-block');
+const gameEl = document.getElementById('game');
+const finalEl = document.getElementById('final');
+const startBtn = document.getElementById('start-btn');
+
+let currentStep = 0;
+
+// BOOT SEQUENCE
+const bootLines = [
+  { text: "OUAISFIEU CIVIC OS v3.0", cls: "highlight" },
+  { text: "Initialisation contre-institution numérique...", cls: "dim" },
+  { text: "Chargement Constitution belge coordonnée...", cls: "dim" },
+  { text: "├── Article 33 (1831) .............. VERROU ACTIF", cls: "warn" },
+  { text: "├── Article 42 (mandat libre) ...... COSMÉTIQUE", cls: "warn" },
+  { text: "├── Article 62 (vote obligatoire) .. TIGRE DE PAPIER", cls: "warn" },
+  { text: "└── Article 195 (révision) ......... 2/3 REQUIS", cls: "dim" },
+  { text: "Chargement corpus ouaisfieu : 270+ documents", cls: "dim" },
+  { text: "Sources vérifiées : CRISP · ULB · KU Leuven · UCLouvain · Conseil d'État", cls: "dim" },
+  { text: "Indice de confiance partis : 8% (Solidaris 2025)", cls: "warn" },
+  { text: "Financement public partis : 188,3 M€/an (Maddens)", cls: "warn" },
+  { text: "Référendums fédéraux depuis 1831 : 0", cls: "warn" },
+  { text: "Discipline de vote : 99,73% (Gaudin, ULB)", cls: "warn" },
+  { text: "", cls: "dim" },
+  { text: "Simulation prête. En attente du citoyen...", cls: "highlight" }
+];
+
+function runBoot() {
+  bootLines.forEach((line, i) => {
+    const div = document.createElement('div');
+    div.className = 'boot-line ' + (line.cls || '');
+    div.textContent = line.text;
+    bootEl.appendChild(div);
+    setTimeout(() => div.classList.add('show'), 80 * i);
+  });
+  setTimeout(() => titleEl.classList.add('show'), 80 * bootLines.length + 300);
+}
+
+runBoot();
+
+// START
+startBtn.addEventListener('click', () => {
+  startBtn.style.display = 'none';
+  gameEl.style.display = 'block';
+  showStep(0);
+});
+
+function showStep(idx) {
+  const s = STEPS[idx];
+  const stepDiv = document.createElement('div');
+  stepDiv.className = 'step';
+  stepDiv.id = 'step-' + idx;
+
+  let dataHTML = '';
+  if (s.data) {
+    dataHTML = '<div class="step-data">' + s.data.map(d =>
+      `<div class="sd-cell"><div class="sd-val" style="color:${d.color}">${d.val}</div><div class="sd-label">${d.label}</div></div>`
+    ).join('') + '</div>';
+  }
+
+  let choicesHTML = '<div class="choices" id="choices-' + idx + '">' + s.choices.map((c, ci) =>
+    `<button class="choice-btn" data-step="${idx}" data-choice="${ci}"><span class="key">${c.key}</span>${c.text}</button>`
+  ).join('') + '</div>';
+
+  stepDiv.innerHTML = `
+    <div class="step-header"><span class="step-num">${s.num}</span><span class="step-label">${s.label}</span></div>
+    <div class="step-title">${s.title}</div>
+    <div class="step-text">${s.text}</div>
+    ${dataHTML}
+    <div class="step-src">${s.src}</div>
+    ${choicesHTML}
+    <div class="response" id="response-${idx}"></div>
+    <button class="continue-btn" id="continue-${idx}" style="display:none;">Étape suivante →</button>
+  `;
+
+  gameEl.appendChild(stepDiv);
+  setTimeout(() => stepDiv.classList.add('show'), 50);
+
+  // Bind choices
+  stepDiv.querySelectorAll('.choice-btn').forEach(btn => {
+    btn.addEventListener('click', () => handleChoice(idx, parseInt(btn.dataset.choice)));
+  });
+}
+
+function handleChoice(stepIdx, choiceIdx) {
+  const s = STEPS[stepIdx];
+  const responseEl = document.getElementById('response-' + stepIdx);
+  responseEl.innerHTML = s.choices[choiceIdx].response;
+  setTimeout(() => responseEl.classList.add('show'), 50);
+
+  // Disable choices
+  document.querySelectorAll(`#choices-${stepIdx} .choice-btn`).forEach(btn => {
+    btn.classList.add('disabled');
+  });
+
+  // Show continue or final
+  if (stepIdx < STEPS.length - 1) {
+    const contBtn = document.getElementById('continue-' + stepIdx);
+    contBtn.style.display = 'inline-flex';
+    setTimeout(() => contBtn.classList.add('show'), 300);
+    contBtn.addEventListener('click', () => {
+      contBtn.style.display = 'none';
+      currentStep = stepIdx + 1;
+      showStep(currentStep);
+      // Scroll to new step
+      setTimeout(() => {
+        document.getElementById('step-' + currentStep).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    });
+  } else {
+    // FINAL
+    setTimeout(() => {
+      finalEl.style.display = 'block';
+      finalEl.classList.add('show');
+      setTimeout(() => document.getElementById('final-box').classList.add('show'), 200);
+      finalEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 600);
+  }
+}
+</script>
+</body>
+</html>
