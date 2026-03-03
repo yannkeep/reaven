@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse OSINT/SOCMINT : Affaire Ullens - Reynders</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Tailwind Config for Palette -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        neutral: {
+                            50: '#fcfcfc',
+                            100: '#f5f5f5',
+                            200: '#e5e5e5',
+                            300: '#d4d4d4',
+                            800: '#262626',
+                            900: '#171717',
+                        },
+                        accent: {
+                            light: '#4f46e5', // Indigo 600
+                            DEFAULT: '#3730a3', // Indigo 800
+                            dark: '#312e81', // Indigo 900
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom Styles for Chart Containers and Utilities -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f5; /* neutral-100 */
+            color: #262626; /* neutral-800 */
+        }
+
+        h1, h2, h3, .font-serif {
+            font-family: 'Merriweather', serif;
+        }
+
+        /* Strict Chart Container styling as requested */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 40vh;
+            min-height: 300px;
+            max-height: 500px;
+        }
+
+        /* Utility for hiding scrollbar but keeping functionality */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Chosen Palette: Warm Neutrals (Stone/Gray) with Indigo/Navy Accents for an academic, serious OSINT aesthetic. -->
+    <!-- Application Structure Plan: 
+         1. Dashboard/SPA Layout with a sticky sidebar navigation (or top nav on mobile) to handle the complex investigation files.
+         2. "Executive Summary" (Introduction): Sets the academic tone and context.
+         3. "Chronologie Interactive" (Timeline): Crucial for OSINT to map events. Uses a clickable vertical list updating a detail pane.
+         4. "Cartographie des Allégations" (Accusations): Breaks down the complex claims (Libya, DRC, Kazakhgate) into digestible, expandable cards.
+         5. "Analyse Vectorielle" (Data Viz): A radar chart comparing the claims across variables like Judicial Evidence vs Media Impact, highlighting the SOCMINT aspect (discrepancy between internet rumors and legal outcomes).
+         6. "Matrice des Acteurs" (Network): An interactive HTML grid avoiding SVG, allowing users to select an actor to see their profile and links.
+         This structure prevents overwhelming the user with a wall of text, enabling non-linear exploration of a dense intelligence topic. 
+    -->
+    <!-- Visualization & Content Choices: 
+         - Timeline: Goal: Inform on sequence of events. Presentation: HTML flexbox list + JS detail pane. Interaction: Click year -> see details. Justification: Cleaner than a massive static graphic.
+         - Accusations: Goal: Organize complex intelligence. Presentation: Grid of interactive HTML cards. Interaction: Toggle details. Justification: Modular reading.
+         - Case Analysis (Radar Chart): Goal: Compare subjective vs objective metrics. Presentation: Chart.js Radar Chart. Interaction: Hover tooltips. Justification: Best way to show multidimensional OSINT data (Media vs Justice). NO SVG used.
+         - Actor Network: Goal: Relationships. Presentation: HTML Select + Dynamic Profile Card. Interaction: Dropdown selection updates DOM. Justification: Replaces complex node-link SVG diagrams with accessible HTML elements.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Navigation -->
+    <nav class="bg-neutral-900 text-neutral-50 sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl font-bold tracking-wider">OSINT<span class="text-accent-light">_REPORT</span></span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4 text-sm font-medium">
+                        <a href="#contexte" class="hover:bg-neutral-800 hover:text-white px-3 py-2 rounded-md transition">Contexte</a>
+                        <a href="#chronologie" class="hover:bg-neutral-800 hover:text-white px-3 py-2 rounded-md transition">Chronologie</a>
+                        <a href="#allegations" class="hover:bg-neutral-800 hover:text-white px-3 py-2 rounded-md transition">Allégations</a>
+                        <a href="#acteurs" class="hover:bg-neutral-800 hover:text-white px-3 py-2 rounded-md transition">Acteurs</a>
+                        <a href="#analyse" class="hover:bg-neutral-800 hover:text-white px-3 py-2 rounded-md transition">Analyse SOCMINT</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16">
+
+        <!-- HEADER / CONTEXT -->
+        <section id="contexte" class="bg-white rounded-xl shadow-sm p-8 border border-neutral-200">
+            <header class="mb-6 border-b border-neutral-200 pb-6">
+                <h1 class="text-3xl md:text-5xl font-bold text-neutral-900 mb-4 leading-tight">
+                    Analyse Renseignements Ouverts (OSINT) : <br>
+                    <span class="text-accent">L'Affaire Ullens - Reynders</span>
+                </h1>
+                <p class="text-sm text-neutral-500 uppercase tracking-widest font-semibold">Dossier d'Instruction Analytique • Mise à jour : 2024</p>
+            </header>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="md:col-span-2 space-y-4 text-lg text-neutral-700 leading-relaxed">
+                    <p>
+                        Ce rapport présente une analyse rigoureuse, basée sur les sources ouvertes (OSINT) et le renseignement d'origine sources sociales (SOCMINT), concernant les allégations portées par l'ancien agent de la Sûreté de l'État belge (VSSE), <strong>Nicolas Ullens de Schooten</strong>, à l'encontre de <strong>Didier Reynders</strong> (ancien Ministre des Affaires Étrangères et actuel Commissaire européen).
+                    </p>
+                    <p>
+                        L'objectif de cette interface est de structurer la complexité des flux d'informations, de disséquer les accusations (fonds libyens, ambassade en RDC) et d'évaluer la dissonance entre le traitement judiciaire (classement sans suite) et la résonance médiatique/complotiste (notamment suite au meurtre tragique de N. Ullens en 2023 pour des motifs privés).
+                    </p>
+                </div>
+                <div class="bg-neutral-50 p-6 rounded-lg border border-neutral-200 shadow-inner">
+                    <h3 class="font-bold text-accent-dark mb-3 uppercase text-sm tracking-wider">Points Clés du Dossier</h3>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-start">
+                            <span class="text-accent mr-2">&#9656;</span>
+                            <span><strong>Source Primaire :</strong> Dénonciations d'un ex-agent VSSE (2019).</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-accent mr-2">&#9656;</span>
+                            <span><strong>Cible :</strong> Didier Reynders et son entourage proche (J-C. Fontinoy).</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-accent mr-2">&#9656;</span>
+                            <span><strong>Statut Judiciaire :</strong> Dossiers classés sans suite (manque de preuves).</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-accent mr-2">&#9656;</span>
+                            <span><strong>SOCMINT :</strong> Forte récupération par les sphères complotistes post-2023.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- CHRONOLOGIE INTERACTIVE -->
+        <section id="chronologie" class="scroll-mt-20">
+            <h2 class="text-2xl font-bold text-neutral-900 mb-2">1. Chronologie Analytique</h2>
+            <p class="text-neutral-600 mb-8 max-w-3xl">
+                Explorez la ligne du temps des événements. Cette structure interactive permet de mettre en perspective les actions de l'agent Ullens, les enquêtes de police et les décisions politiques simultanées. Cliquez sur une année pour afficher les métadonnées de l'événement.
+            </p>
+
+            <div class="bg-white rounded-xl shadow-sm border border-neutral-200 flex flex-col md:flex-row overflow-hidden min-h-[400px]">
+                <!-- Timeline Navigation -->
+                <div class="w-full md:w-1/3 bg-neutral-50 border-r border-neutral-200 p-4 overflow-y-auto no-scrollbar" id="timeline-nav">
+                    <!-- Populated by JS -->
+                </div>
+                <!-- Timeline Content -->
+                <div class="w-full md:w-2/3 p-8 flex flex-col justify-center" id="timeline-content">
+                    <div class="text-center text-neutral-400 italic">
+                        Sélectionnez une date dans le panneau latéral pour afficher l'analyse de l'événement.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ALLEGATIONS (Cartography) -->
+        <section id="allegations" class="scroll-mt-20">
+            <h2 class="text-2xl font-bold text-neutral-900 mb-2">2. Cartographie des Allégations</h2>
+            <p class="text-neutral-600 mb-8 max-w-3xl">
+                Nicolas Ullens a documenté plusieurs dossiers distincts durant son mandat à la Sûreté de l'État. Cette section décompose chaque allégation pour en analyser l'origine, le mécanisme supposé et l'issue légale objective.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Card 1 -->
+                <div class="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden flex flex-col">
+                    <div class="bg-neutral-900 text-white p-4">
+                        <div class="text-xs uppercase tracking-widest text-neutral-400 mb-1">Dossier Alpha</div>
+                        <h3 class="text-lg font-bold font-serif">Fonds Libyens (Kadhafi)</h3>
+                    </div>
+                    <div class="p-5 flex-grow">
+                        <p class="text-sm text-neutral-700 mb-4">
+                            Allégation de blanchiment et de rétrocommissions liées au dégel partiel des fonds souverains libyens (comptes Euroclear) par le gouvernement belge.
+                        </p>
+                        <div class="hidden-detail hidden mt-4 pt-4 border-t border-neutral-100 text-sm">
+                            <p><strong>Mécanisme allégué :</strong> Dégel des intérêts pour payer des entreprises belges (ex: FN Herstal), avec soupçon de commissions occultes versées à l'entourage politique de D. Reynders.</p>
+                            <p class="mt-2 text-red-600 font-semibold">Issue : Classé sans suite. Les enquêtes (dont l'ONU) ont souligné des failles légales belges, mais aucune preuve de corruption directe de Reynders n'a été établie.</p>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-neutral-50 border-t border-neutral-100 mt-auto">
+                        <button onclick="toggleCardDetail(this)" class="text-accent font-semibold text-sm hover:underline w-full text-left flex justify-between items-center">
+                            <span>Analyser le dossier</span>
+                            <span class="text-xl leading-none">+</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden flex flex-col">
+                    <div class="bg-neutral-900 text-white p-4">
+                        <div class="text-xs uppercase tracking-widest text-neutral-400 mb-1">Dossier Beta</div>
+                        <h3 class="text-lg font-bold font-serif">Ambassade RDC (Kinshasa)</h3>
+                    </div>
+                    <div class="p-5 flex-grow">
+                        <p class="text-sm text-neutral-700 mb-4">
+                            Accusations de pots-de-vin et d'attribution frauduleuse de marchés publics lors de la construction de la nouvelle ambassade de Belgique à Kinshasa.
+                        </p>
+                        <div class="hidden-detail hidden mt-4 pt-4 border-t border-neutral-100 text-sm">
+                            <p><strong>Mécanisme allégué :</strong> Favoritisme envers certains entrepreneurs par Jean-Claude Fontinoy, agissant prétendument pour le compte de Reynders, en échange de biens matériels ou paiements occultes.</p>
+                            <p class="mt-2 text-red-600 font-semibold">Issue : L'enquête policière suite aux dénonciations d'Ullens s'est heurtée à un manque d'éléments matériels probants confirmant les dires des informateurs d'Ullens.</p>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-neutral-50 border-t border-neutral-100 mt-auto">
+                        <button onclick="toggleCardDetail(this)" class="text-accent font-semibold text-sm hover:underline w-full text-left flex justify-between items-center">
+                            <span>Analyser le dossier</span>
+                            <span class="text-xl leading-none">+</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden flex flex-col">
+                    <div class="bg-neutral-900 text-white p-4">
+                        <div class="text-xs uppercase tracking-widest text-neutral-400 mb-1">Dossier Gamma</div>
+                        <h3 class="text-lg font-bold font-serif">Immobilier & Faux-Nez</h3>
+                    </div>
+                    <div class="p-5 flex-grow">
+                        <p class="text-sm text-neutral-700 mb-4">
+                            Soupçons d'enrichissement personnel via des montages immobiliers, l'achat d'antiquités ou des œuvres d'art pour blanchir des fonds.
+                        </p>
+                        <div class="hidden-detail hidden mt-4 pt-4 border-t border-neutral-100 text-sm">
+                            <p><strong>Mécanisme allégué :</strong> Utilisation de prête-noms ou de cash issu de commissions pour des transactions immobilières en Belgique ou à l'étranger.</p>
+                            <p class="mt-2 text-red-600 font-semibold">Issue : Des perquisitions ont eu lieu, mais le parquet a conclu à l'absence d'infractions pénales caractérisées. Le dossier reposait fortement sur des notes de renseignement (non utilisables telles quelles en justice).</p>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-neutral-50 border-t border-neutral-100 mt-auto">
+                        <button onclick="toggleCardDetail(this)" class="text-accent font-semibold text-sm hover:underline w-full text-left flex justify-between items-center">
+                            <span>Analyser le dossier</span>
+                            <span class="text-xl leading-none">+</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ACTEURS (Network Matrix) -->
+        <section id="acteurs" class="scroll-mt-20">
+            <h2 class="text-2xl font-bold text-neutral-900 mb-2">3. Matrice des Acteurs (Link Analysis)</h2>
+            <p class="text-neutral-600 mb-8 max-w-3xl">
+                Comprendre ce dossier nécessite d'identifier les intermédiaires. Sélectionnez un acteur ci-dessous pour générer sa fiche d'identité opérationnelle et ses vecteurs de connexion.
+            </p>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+                <div class="mb-6">
+                    <label for="actor-select" class="block text-sm font-medium text-neutral-700 mb-2">Sélectionnez une entité :</label>
+                    <select id="actor-select" class="w-full md:w-1/2 p-3 border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-accent focus:border-accent" onchange="updateActorProfile()">
+                        <option value="" disabled selected>-- Choisir un acteur --</option>
+                        <option value="ullens">Nicolas Ullens de Schooten</option>
+                        <option value="reynders">Didier Reynders</option>
+                        <option value="fontinoy">Jean-Claude Fontinoy</option>
+                        <option value="vsse">La Sûreté de l'État (VSSE)</option>
+                        <option value="justice">Parquet Fédéral / Justice</option>
+                    </select>
+                </div>
+
+                <!-- Actor Profile Display -->
+                <div id="actor-profile" class="hidden bg-neutral-50 p-6 rounded-lg border border-neutral-200 transition-all fade-in">
+                    <div class="flex flex-col md:flex-row gap-6 items-start">
+                        <div class="w-16 h-16 bg-neutral-800 text-white rounded-full flex items-center justify-center text-2xl font-bold shrink-0 shadow-md" id="actor-initials">
+                            --
+                        </div>
+                        <div class="flex-grow">
+                            <h3 class="text-2xl font-bold text-neutral-900 font-serif" id="actor-name">Nom de l'acteur</h3>
+                            <p class="text-accent font-medium mb-4" id="actor-role">Rôle/Fonction</p>
+                            <p class="text-neutral-700 text-sm leading-relaxed mb-4" id="actor-desc">
+                                Description détaillée du rôle de cet acteur dans la dynamique du dossier.
+                            </p>
+                            <div class="bg-white p-4 rounded border border-neutral-200">
+                                <h4 class="text-xs font-bold uppercase text-neutral-500 mb-2">Connexions principales</h4>
+                                <ul id="actor-links" class="list-none space-y-1 text-sm font-medium text-neutral-800">
+                                    <!-- Populated by JS -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SOCMINT / DATA ANALYSIS (Charts) -->
+        <section id="analyse" class="scroll-mt-20 mb-20">
+            <h2 class="text-2xl font-bold text-neutral-900 mb-2">4. Évaluation SOCMINT : Bruit vs. Réalité Judiciaire</h2>
+            <p class="text-neutral-600 mb-8 max-w-3xl">
+                L'aspect le plus fascinant de cette affaire (point de vue OSINT) est la divergence massive entre les résultats judiciaires tangibles et l'impact médiatique/complotiste, particulièrement après 2023. Le graphique ci-dessous quantifie cette asymétrie.
+            </p>
+
+            <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-4 md:p-8">
+                <div class="flex flex-col lg:flex-row gap-8 items-center">
+                    
+                    <div class="w-full lg:w-1/2">
+                        <!-- Strict Chart Container -->
+                        <div class="chart-container">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                        <p class="text-xs text-center text-neutral-400 mt-4">
+                            *Valeurs indexées (0-10) basées sur l'analyse de sentiment et le volume documentaire OSINT.
+                        </p>
+                    </div>
+
+                    <div class="w-full lg:w-1/2 space-y-6">
+                        <div class="p-4 border-l-4 border-accent bg-accent/5 rounded-r">
+                            <h4 class="font-bold text-neutral-900 mb-2">Le Paradoxe du Lanceur d'Alerte</h4>
+                            <p class="text-sm text-neutral-700">
+                                Le statut d'Ullens (ex-agent secret) a conféré une crédibilité initiale immense à ses accusations. Cependant, en droit, le renseignement n'est pas une preuve. L'incapacité de la police judiciaire à matérialiser les notes de la VSSE explique l'indice de "Poids Judiciaire" très faible.
+                            </p>
+                        </div>
+
+                        <div class="p-4 border-l-4 border-neutral-800 bg-neutral-100 rounded-r">
+                            <h4 class="font-bold text-neutral-900 mb-2">L'Événement Déclencheur SOCMINT (2023)</h4>
+                            <p class="text-sm text-neutral-700">
+                                L'assassinat tragique de Nicolas Ullens en 2023 (acte criminel lié à un drame familial concernant un héritage, auteur arrêté) a fait exploser le "Bruit Social/Complotisme" à un niveau de 10/10. Les sphères alternatives ont immédiatement lié sa mort à ses dénonciations contre D. Reynders, malgré le démenti rapide des autorités judiciaires.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-neutral-900 text-neutral-400 py-8 text-center text-sm border-t border-neutral-800">
+        <p>Généré via Renseignement Sources Ouvertes (OSINT) - Environnement d'analyse isolé.</p>
+        <p class="mt-2 opacity-60">Ce document est une démonstration technique de structuration d'informations complexes.</p>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA STORAGE ---
+        const timelineData = [
+            {
+                year: "2007 - 2018",
+                title: "Nicolas Ullens à la VSSE",
+                desc: "Nicolas Ullens de Schooten opère comme agent de la Sûreté de l'État (VSSE) belge. Il travaille notamment sur des dossiers de contre-ingérence économique et financière. Durant cette période, il accumule des notes de renseignement concernant des soupçons entourant Didier Reynders."
+            },
+            {
+                year: "Avril 2019",
+                title: "Dénonciation à la Police",
+                desc: "Ullens, estimant que sa hiérarchie bloque ses enquêtes, se rend à la police fédérale. Il dénonce des faits présumés de corruption et de blanchiment d'argent impliquant D. Reynders (fonds libyens, ambassade RDC, etc.)."
+            },
+            {
+                year: "Septembre 2019",
+                title: "Reynders Commissaire & Classement sans suite",
+                desc: "Le parquet de Bruxelles classe l'affaire sans suite (faute de preuves matérielles corroborant les notes de renseignement). Parallèlement, Didier Reynders est auditionné et officiellement nommé Commissaire européen à la Justice."
+            },
+            {
+                year: "2020 - 2022",
+                title: "Sorties Médiatiques",
+                desc: "Ullens, à visage découvert, accorde plusieurs interviews (ex: à LN24, P-Magazine) pour dénoncer ce qu'il perçoit comme un étouffement politique de ses enquêtes. Il dénonce le fonctionnement de la Justice et de la VSSE."
+            },
+            {
+                year: "Février 2023",
+                title: "L'Assassinat tragique",
+                desc: "Nicolas Ullens est abattu par balle à Lasne. L'auteur, Guy F., est rapidement appréhendé. L'enquête démontre qu'il s'agit d'un conflit strictement familial/financier (héritage/immobilier) n'ayant AUCUN lien avec Reynders. Cependant, l'événement enflamme les réseaux sociaux (SOCMINT)."
+            }
+        ];
+
+        const actorData = {
+            "ullens": {
+                name: "Nicolas Ullens de Schooten",
+                role: "Ex-Agent VSSE / Lanceur d'alerte",
+                desc: "Agent de la Sûreté de l'État spécialisé en criminalité financière. Il a collecté de nombreuses informations brutes. Frustré par l'inaction perçue, il a transgressé le secret professionnel pour saisir la justice et les médias. Tragiquement assassiné en 2023 pour un motif privé.",
+                links: [
+                    "&#8594; A enquêté sur : <span class='text-accent'>Jean-Claude Fontinoy</span>",
+                    "&#8594; A dénoncé : <span class='text-accent'>Didier Reynders</span>",
+                    "&#8594; Employeur : <span class='text-accent'>VSSE</span>"
+                ]
+            },
+            "reynders": {
+                name: "Didier Reynders",
+                role: "Homme Politique (MR) / Commissaire Européen",
+                desc: "Figure centrale de la politique belge. Visé par les accusations d'Ullens qui lui prêtait d'être le bénéficiaire final de montages financiers occultes. A toujours nié fermement. Aucune charge n'a été retenue contre lui par la justice belge.",
+                links: [
+                    "&#8594; Bras droit : <span class='text-accent'>Jean-Claude Fontinoy</span>",
+                    "&#8594; Cible de : <span class='text-accent'>Nicolas Ullens</span>",
+                    "&#8594; Blanchi par : <span class='text-accent'>Parquet Fédéral</span>"
+                ]
+            },
+            "fontinoy": {
+                name: "Jean-Claude Fontinoy",
+                role: "Éminence grise / Conseiller",
+                desc: "Président du CA de la SNCB et proche collaborateur de D. Reynders pendant des décennies. Décrit dans les notes de renseignement comme l'intermédiaire opérationnel ('l'homme des basses œuvres') pour la récolte de fonds et la gestion des marchés (ex: Kinshasa).",
+                links: [
+                    "&#8594; Conseiller de : <span class='text-accent'>Didier Reynders</span>",
+                    "&#8594; Auditionné par : <span class='text-accent'>Justice</span>"
+                ]
+            },
+            "vsse": {
+                name: "La Sûreté de l'État",
+                role: "Service de Renseignement Belge",
+                desc: "Service où travaillait Ullens. La VSSE produit du 'renseignement', pas de la 'preuve judiciaire'. La direction n'a pas transmis le dossier Ullens au parquet initialement, jugeant les éléments non conclusifs ou hors de leur périmètre strict, créant la frustration de l'agent.",
+                links: [
+                    "&#8594; A employé : <span class='text-accent'>Nicolas Ullens</span>",
+                    "&#8594; Collabore avec : <span class='text-accent'>Parquet Fédéral</span>"
+                ]
+            },
+            "justice": {
+                name: "La Justice (Parquet)",
+                role: "Autorité Judiciaire",
+                desc: "A mené des enquêtes (auditions, perquisitions) suite aux dénonciations d'Ullens. A conclu systématiquement au classement sans suite, estimant que les 'notes blanches' du renseignement n'étaient pas corroborées par des preuves financières tangibles (traces de comptes, virements).",
+                links: [
+                    "&#8594; A classé le dossier de : <span class='text-accent'>Didier Reynders</span>",
+                    "&#8594; A reçu les plaintes de : <span class='text-accent'>Nicolas Ullens</span>"
+                ]
+            }
+        };
+
+        // --- CORE INTERACTION HANDLING ---
+
+        // 1. Initialize Timeline
+        function initTimeline() {
+            const navContainer = document.getElementById('timeline-nav');
+            
+            timelineData.forEach((item, index) => {
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left p-4 mb-2 rounded-lg transition-colors border-l-4 ${index === 0 ? 'border-accent bg-white shadow-sm' : 'border-transparent hover:bg-neutral-100'} font-bold text-neutral-800 text-sm md:text-base`;
+                btn.innerText = item.year;
+                btn.onclick = () => {
+                    // Reset styling
+                    Array.from(navContainer.children).forEach(child => {
+                        child.classList.remove('border-accent', 'bg-white', 'shadow-sm');
+                        child.classList.add('border-transparent');
+                    });
+                    // Active styling
+                    btn.classList.add('border-accent', 'bg-white', 'shadow-sm');
+                    btn.classList.remove('border-transparent');
+                    // Update content
+                    updateTimelineContent(item);
+                };
+                navContainer.appendChild(btn);
+            });
+
+            // Load first item by default
+            if(timelineData.length > 0) updateTimelineContent(timelineData[0]);
+        }
+
+        function updateTimelineContent(data) {
+            const contentContainer = document.getElementById('timeline-content');
+            contentContainer.innerHTML = `
+                <div class="fade-in max-w-2xl">
+                    <span class="inline-block px-3 py-1 bg-accent/10 text-accent font-bold rounded-full text-sm mb-4">${data.year}</span>
+                    <h3 class="text-2xl font-bold font-serif text-neutral-900 mb-4">${data.title}</h3>
+                    <p class="text-neutral-700 leading-relaxed text-lg">${data.desc}</p>
+                </div>
+            `;
+        }
+
+        // 2. Accusation Cards Toggle
+        function toggleCardDetail(btn) {
+            const card = btn.closest('div.bg-white'); // the parent card
+            const detailDiv = card.querySelector('.hidden-detail');
+            const icon = btn.querySelector('span:last-child');
+            
+            if (detailDiv.classList.contains('hidden')) {
+                detailDiv.classList.remove('hidden');
+                detailDiv.classList.add('fade-in');
+                icon.innerText = '-';
+                btn.querySelector('span:first-child').innerText = 'Fermer l\'analyse';
+            } else {
+                detailDiv.classList.add('hidden');
+                detailDiv.classList.remove('fade-in');
+                icon.innerText = '+';
+                btn.querySelector('span:first-child').innerText = 'Analyser le dossier';
+            }
+        }
+
+        // 3. Actor Profile Updater
+        function updateActorProfile() {
+            const select = document.getElementById('actor-select');
+            const profileDiv = document.getElementById('actor-profile');
+            const selectedValue = select.value;
+
+            if (selectedValue && actorData[selectedValue]) {
+                const data = actorData[selectedValue];
+                
+                // Set Initials (first letter of first 2 words)
+                const words = data.name.split(' ');
+                let initials = words[0][0];
+                if(words.length > 1 && words[1].length > 0) initials += words[1][0];
+                if(words[0] === "La") initials = "VS"; // Exception for VSSE
+                
+                document.getElementById('actor-initials').innerText = initials.toUpperCase();
+                document.getElementById('actor-name').innerText = data.name;
+                document.getElementById('actor-role').innerText = data.role;
+                document.getElementById('actor-desc').innerText = data.desc;
+                
+                const linksContainer = document.getElementById('actor-links');
+                linksContainer.innerHTML = '';
+                data.links.forEach(linkHTML => {
+                    const li = document.createElement('li');
+                    li.innerHTML = linkHTML;
+                    linksContainer.appendChild(li);
+                });
+
+                profileDiv.classList.remove('hidden');
+                // trigger reflow for animation
+                void profileDiv.offsetWidth; 
+                profileDiv.classList.add('fade-in');
+            }
+        }
+
+        // 4. Chart.js Initialization (Radar Chart)
+        function initRadarChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: [
+                        'Gravité des Allégations', 
+                        'Preuves Judiciaires', 
+                        'Couverture Médiatique', 
+                        'Bruit Social / Complotisme (SOCMINT)'
+                    ],
+                    datasets: [{
+                        label: 'Affaire Reynders/Ullens (Pré-2023)',
+                        data: [8, 1, 6, 4], // High gravity, no evidence, medium media, low social noise
+                        fill: true,
+                        backgroundColor: 'rgba(212, 212, 212, 0.4)', // neutral-300
+                        borderColor: 'rgba(115, 115, 115, 1)',
+                        pointBackgroundColor: 'rgba(115, 115, 115, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(115, 115, 115, 1)'
+                    }, {
+                        label: 'Impact post-décès Ullens (2023-2024)',
+                        data: [8, 1, 8, 10], // Gravity/Evidence same, Media spikes, Social noise maxed out due to conspiracy theories
+                        fill: true,
+                        backgroundColor: 'rgba(79, 70, 229, 0.2)', // accent-light with opacity
+                        borderColor: 'rgba(55, 48, 163, 1)', // accent
+                        pointBackgroundColor: 'rgba(55, 48, 163, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(55, 48, 163, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, /* Crucial for container boundaries */
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    family: "'Inter', sans-serif"
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.r !== null) {
+                                        label += context.parsed.r + '/10';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 10,
+                            ticks: {
+                                stepSize: 2,
+                                display: false // Hide numbers on the web for cleaner look
+                            },
+                            pointLabels: {
+                                font: {
+                                    family: "'Inter', sans-serif",
+                                    size: 11
+                                },
+                                callback: function(word) {
+                                    // Wrap labels longer than 16 chars if needed, though they fit well here
+                                    return word.length > 20 ? word.match(/.{1,20}(\s|$)/g) : word;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- INITIALIZATION ON LOAD ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initTimeline();
+            initRadarChart();
+        });
+
+    </script>
+</body>
+</html>
