@@ -2,1933 +2,610 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>STATION ZERO — Centre de Renseignement</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guide — Créer ton Hub Personnel</title>
   <style>
-    /* ═══════════════════════════════════════════
-       STATION ZERO — MOBILE-FIRST INTELLIGENCE
-       ═══════════════════════════════════════════ */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
     :root {
-      --bg-abyss: #050a0e;
-      --bg-deep: #0a1118;
-      --bg-panel: #0c1620;
-      --bg-card: #0f1b28;
-      --bg-card-hover: #132232;
-      --phosphor: #00ff88;
-      --phosphor-dim: rgba(0,255,136,0.15);
-      --phosphor-glow: rgba(0,255,136,0.4);
+      --bg: #0c0c14;
+      --surface: #13131f;
+      --surface2: #1a1a2e;
+      --border: #2a2a40;
+      --green: #00ff88;
+      --green-dim: rgba(0,255,136,0.1);
+      --blue: #00d4ff;
+      --blue-dim: rgba(0,212,255,0.08);
       --amber: #ffb000;
-      --amber-dim: rgba(255,176,0,0.12);
-      --amber-glow: rgba(255,176,0,0.35);
-      --red-alert: #ff2a2a;
-      --red-dim: rgba(255,42,42,0.1);
-      --cyan: #00d4ff;
-      --cyan-dim: rgba(0,212,255,0.1);
-      --cyan-glow: rgba(0,212,255,0.3);
-      --text-primary: #d4e5f7;
-      --text-secondary: #6b8299;
-      --text-muted: #3d5467;
-      --border-subtle: rgba(0,255,136,0.08);
-      --border-active: rgba(0,255,136,0.3);
-      --font-display: 'Orbitron', sans-serif;
-      --font-body: 'Rajdhani', sans-serif;
-      --font-mono: 'IBM Plex Mono', monospace;
-      --safe-bottom: env(safe-area-inset-bottom, 0px);
-      --nav-height: 64px;
-      --header-height: 52px;
+      --amber-dim: rgba(255,176,0,0.1);
+      --red: #ff4444;
+      --purple: #a855f7;
+      --text: #e0e0ec;
+      --text2: #8888a8;
+      --text3: #555570;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; }
 
     body {
-      font-family: var(--font-body);
-      background: var(--bg-abyss);
-      color: var(--text-primary);
-      display: flex;
-      flex-direction: column;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 0;
     }
 
-    /* ── SCANLINE ── */
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background: repeating-linear-gradient(
-        0deg, transparent, transparent 2px,
-        rgba(0,255,136,0.012) 2px, rgba(0,255,136,0.012) 4px
-      );
-      z-index: 10000;
+    /* ── NAV ── */
+    .guide-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(12,12,20,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex; align-items: center; justify-content: space-between;
     }
-
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(ellipse at 20% 0%, rgba(0,255,136,0.05), transparent 50%),
-        radial-gradient(ellipse at 80% 100%, rgba(0,212,255,0.03), transparent 50%);
-      z-index: 1;
-    }
-
-    /* ── SCROLLBAR ── */
-    ::-webkit-scrollbar { width: 3px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(0,255,136,0.2); border-radius: 3px; }
-
-    /* ══════════════════════════
-       HEADER
-       ══════════════════════════ */
-    header {
-      position: relative;
-      z-index: 100;
-      background: linear-gradient(180deg, rgba(10,17,24,0.98), rgba(5,10,14,0.99));
-      border-bottom: 1px solid var(--border-active);
-      padding: 0 12px;
-      height: var(--header-height);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    header::after {
-      content: "";
-      position: absolute;
-      bottom: -1px; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--phosphor), transparent);
-      opacity: 0.6;
-    }
-
-    .hdr-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    .radar-container { width: 34px; height: 34px; position: relative; flex-shrink: 0; }
-
-    .radar-ring {
-      width: 100%; height: 100%;
-      border: 1.5px solid rgba(0,255,136,0.25);
-      border-radius: 50%;
-      position: relative;
-    }
-
-    .radar-ring::before {
-      content: "";
-      position: absolute;
-      inset: 4px;
-      border: 1px solid rgba(0,255,136,0.15);
-      border-radius: 50%;
-    }
-
-    .radar-sweep {
-      position: absolute;
-      top: 50%; left: 50%;
-      width: 50%; height: 1px;
-      background: linear-gradient(90deg, var(--phosphor), transparent);
-      transform-origin: left center;
-      animation: radarSweep 3s linear infinite;
-    }
-
-    .radar-dot {
-      position: absolute;
-      width: 3px; height: 3px;
-      background: var(--phosphor);
-      border-radius: 50%;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 6px var(--phosphor);
-    }
-
-    @keyframes radarSweep {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    .hdr-title-group { min-width: 0; }
-
-    .hdr-title {
-      font-family: var(--font-display);
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      color: var(--phosphor);
-      text-shadow: 0 0 20px var(--phosphor-glow);
-      line-height: 1.2;
-      white-space: nowrap;
-    }
-
-    .hdr-subtitle {
-      font-family: var(--font-mono);
-      font-size: 0.55rem;
-      color: var(--text-secondary);
-      letter-spacing: 0.06em;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .hdr-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .hdr-clock {
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      color: var(--amber);
+    .guide-nav-title {
+      font-weight: 700; font-size: 0.85rem;
+      color: var(--green);
       letter-spacing: 0.05em;
-      text-shadow: 0 0 10px var(--amber-glow);
     }
-
-    .classification-badge {
-      font-family: var(--font-display);
-      font-size: 0.5rem;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      color: var(--red-alert);
-      border: 1.5px solid var(--red-alert);
-      border-radius: 3px;
-      padding: 2px 6px;
-      text-shadow: 0 0 10px rgba(255,42,42,0.5);
-      animation: classifiedPulse 3s ease-in-out infinite;
+    .guide-nav-links {
+      display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;
     }
-
-    @keyframes classifiedPulse {
-      0%, 100% { border-color: var(--red-alert); }
-      50% { border-color: rgba(255,42,42,0.4); }
-    }
-
-    .hdr-status-pills { display: none; }
-
-    /* ══════════════════════════
-       MAIN CONTENT AREA
-       ══════════════════════════ */
-    .app-content {
-      flex: 1;
-      overflow: hidden;
-      position: relative;
-      z-index: 2;
-    }
-
-    /* ── VIEWS (mobile tab switching) ── */
-    .view {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      transition: opacity 0.25s ease, transform 0.25s ease;
-      will-change: transform, opacity;
-    }
-
-    .view.hidden {
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(8px);
-    }
-
-    .view.active {
-      opacity: 1;
-      pointer-events: all;
-      transform: translateY(0);
-    }
-
-    /* ── DOSSIERS VIEW ── */
-    .panel-header {
-      padding: 12px 14px 10px;
-      border-bottom: 1px solid var(--border-subtle);
-      flex-shrink: 0;
-      background: var(--bg-deep);
-    }
-
-    .panel-label {
-      font-family: var(--font-display);
-      font-size: 0.55rem;
-      font-weight: 600;
-      letter-spacing: 0.25em;
-      color: var(--phosphor);
-      opacity: 0.7;
-      margin-bottom: 8px;
-    }
-
-    .search-box {
-      width: 100%;
-      background: var(--bg-abyss);
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-      color: var(--text-primary);
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      -webkit-appearance: none;
-    }
-
-    .search-box:focus {
-      border-color: var(--phosphor);
-      box-shadow: 0 0 0 1px var(--phosphor-dim), 0 0 20px var(--phosphor-dim);
-    }
-
-    .search-box::placeholder { color: var(--text-muted); }
-
-    .filter-row {
-      display: flex;
-      gap: 5px;
-      margin-top: 8px;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      padding-bottom: 2px;
-    }
-
-    .filter-row::-webkit-scrollbar { display: none; }
-
-    .filter-btn {
-      font-family: var(--font-mono);
-      font-size: 0.62rem;
-      letter-spacing: 0.04em;
-      padding: 5px 10px;
-      border-radius: 4px;
-      border: 1px solid var(--border-subtle);
-      background: transparent;
-      color: var(--text-secondary);
-      cursor: pointer;
+    .guide-nav-links a {
+      font-size: 0.65rem; font-weight: 500;
+      color: var(--text2); text-decoration: none;
+      padding: 4px 10px; border-radius: 4px;
+      border: 1px solid var(--border);
       transition: all 0.15s;
-      text-transform: uppercase;
       white-space: nowrap;
-      flex-shrink: 0;
+    }
+    .guide-nav-links a:hover { color: var(--green); border-color: var(--green); }
+
+    /* ── MAIN ── */
+    .guide-wrap {
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 80px 20px 60px;
     }
 
-    .filter-btn:active { transform: scale(0.95); }
-    .filter-btn.active {
-      background: var(--phosphor-dim);
-      border-color: var(--phosphor);
-      color: var(--phosphor);
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 50px 0 40px;
     }
-
-    .modules-count {
-      font-family: var(--font-mono);
-      font-size: 0.58rem;
-      color: var(--text-muted);
-      margin-top: 6px;
-      display: flex;
-      justify-content: space-between;
+    .hero-emoji { font-size: 3rem; margin-bottom: 16px; }
+    .hero h1 {
+      font-size: 2rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
     }
+    .hero p { font-size: 1.05rem; color: var(--text2); max-width: 500px; margin: 0 auto; }
 
-    /* ── MODULE LIST ── */
-    .modules-scroll {
-      flex: 1;
-      overflow-y: auto;
-      padding: 6px 10px;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 10px);
+    /* ── SECTION ── */
+    .section {
+      margin-top: 50px;
+      scroll-margin-top: 70px;
     }
-
-    .group-label {
-      font-family: var(--font-display);
-      font-size: 0.52rem;
-      font-weight: 600;
-      letter-spacing: 0.22em;
-      color: var(--text-muted);
-      padding: 12px 8px 6px;
-      text-transform: uppercase;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .section-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--green-dim); color: var(--green);
+      font-weight: 700; font-size: 0.85rem;
+      margin-bottom: 12px;
     }
-
-    .group-label::after {
-      content: "";
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(90deg, var(--border-subtle), transparent);
+    .section h2 {
+      font-size: 1.35rem; font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
     }
-
-    .module-card {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 12px;
-      margin: 3px 0;
-      border-radius: 8px;
-      border: 1px solid transparent;
-      cursor: pointer;
-      transition: all 0.2s;
-      position: relative;
-      -webkit-tap-highlight-color: transparent;
+    .section p, .section li {
+      color: var(--text2);
+      font-size: 0.92rem;
+      margin-bottom: 10px;
     }
-
-    .module-card:active {
-      background: var(--bg-card-hover);
-      transform: scale(0.98);
+    .section ul, .section ol {
+      padding-left: 22px;
+      margin-bottom: 16px;
     }
+    .section li { margin-bottom: 6px; }
 
-    .module-card.active {
-      background: rgba(0,255,136,0.06);
-      border-color: var(--border-active);
+    /* ── CALLOUTS ── */
+    .callout {
+      padding: 16px 18px;
+      border-radius: 10px;
+      margin: 16px 0;
+      border-left: 3px solid;
+      font-size: 0.88rem;
     }
+    .callout-info { background: var(--blue-dim); border-color: var(--blue); color: var(--blue); }
+    .callout-warn { background: var(--amber-dim); border-color: var(--amber); color: var(--amber); }
+    .callout-ok { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+    .callout strong { display: block; margin-bottom: 4px; }
 
-    .module-card.active::before {
-      content: "";
-      position: absolute;
-      left: 0; top: 6px; bottom: 6px;
-      width: 2px;
-      background: var(--phosphor);
-      border-radius: 2px;
-      box-shadow: 0 0 8px var(--phosphor-glow);
-    }
-
-    .module-icon {
-      width: 38px; height: 38px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-      flex-shrink: 0;
-      border: 1px solid var(--border-subtle);
-    }
-
-    .module-icon.humint { background: rgba(0,255,136,0.08); border-color: rgba(0,255,136,0.2); }
-    .module-icon.osint { background: rgba(0,212,255,0.08); border-color: rgba(0,212,255,0.2); }
-    .module-icon.sigint { background: rgba(255,176,0,0.08); border-color: rgba(255,176,0,0.2); }
-    .module-icon.socmint { background: rgba(168,85,247,0.08); border-color: rgba(168,85,247,0.2); }
-    .module-icon.ie { background: rgba(255,42,42,0.08); border-color: rgba(255,42,42,0.2); }
-    .module-icon.cyber { background: rgba(56,189,248,0.08); border-color: rgba(56,189,248,0.2); }
-    .module-icon.analyse { background: rgba(244,114,182,0.08); border-color: rgba(244,114,182,0.2); }
-
-    .module-info {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .module-name {
-      font-family: var(--font-body);
+    /* ── CODE ── */
+    code {
+      font-family: 'JetBrains Mono', monospace;
       font-size: 0.82rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .module-desc {
-      font-family: var(--font-mono);
-      font-size: 0.6rem;
-      color: var(--text-secondary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .module-tag {
-      font-family: var(--font-mono);
-      font-size: 0.5rem;
-      letter-spacing: 0.06em;
+      background: var(--surface2);
+      color: var(--blue);
       padding: 2px 7px;
       border-radius: 4px;
-      text-transform: uppercase;
-      white-space: nowrap;
-      flex-shrink: 0;
     }
 
-    .tag-humint { background: rgba(0,255,136,0.1); color: #00ff88; border: 1px solid rgba(0,255,136,0.2); }
-    .tag-osint { background: rgba(0,212,255,0.1); color: #00d4ff; border: 1px solid rgba(0,212,255,0.2); }
-    .tag-sigint { background: rgba(255,176,0,0.1); color: #ffb000; border: 1px solid rgba(255,176,0,0.2); }
-    .tag-socmint { background: rgba(168,85,247,0.1); color: #a855f7; border: 1px solid rgba(168,85,247,0.2); }
-    .tag-ie { background: rgba(255,42,42,0.1); color: #ff6b6b; border: 1px solid rgba(255,42,42,0.2); }
-    .tag-cyber { background: rgba(56,189,248,0.1); color: #38bdf8; border: 1px solid rgba(56,189,248,0.2); }
-    .tag-analyse { background: rgba(244,114,182,0.1); color: #f472b6; border: 1px solid rgba(244,114,182,0.2); }
-    .tag-embed { background: rgba(148,163,184,0.1); color: #94a3b8; border: 1px solid rgba(148,163,184,0.2); }
-
-    /* ══════════════════════════
-       MODAL SYSTEM
-       ══════════════════════════ */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 500;
-      display: flex;
-      flex-direction: column;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .modal-overlay.open {
-      pointer-events: all;
-      opacity: 1;
-    }
-
-    .modal-backdrop {
-      position: absolute;
-      inset: 0;
-      background: rgba(2, 5, 8, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-    }
-
-    .modal-content {
-      position: relative;
-      z-index: 1;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      transform: translateY(100%);
-      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
-    }
-
-    .modal-overlay.open .modal-content {
-      transform: translateY(0);
-    }
-
-    /* ── DRAG HANDLE ── */
-    .modal-handle {
-      display: flex;
-      justify-content: center;
-      padding: 10px 0 6px;
-      cursor: grab;
-      flex-shrink: 0;
-      background: var(--bg-deep);
-      border-radius: 16px 16px 0 0;
-    }
-
-    .modal-handle-bar {
-      width: 36px;
-      height: 4px;
-      background: rgba(0,255,136,0.25);
-      border-radius: 4px;
-    }
-
-    /* ── VIEWER MODAL ── */
-    .viewer-modal .modal-content {
-      margin-top: var(--header-height);
-    }
-
-    .viewer-topbar {
-      padding: 10px 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      border-bottom: 1px solid var(--border-subtle);
-      flex-shrink: 0;
-      background: var(--bg-deep);
-    }
-
-    .viewer-title-area {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      min-width: 0;
-      flex: 1;
-    }
-
-    .viewer-title {
-      font-family: var(--font-body);
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .viewer-desc {
-      font-family: var(--font-mono);
-      font-size: 0.6rem;
-      color: var(--text-secondary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .viewer-meta {
-      display: flex;
-      gap: 5px;
-      align-items: center;
-      flex-shrink: 0;
-    }
-
-    .viewer-close {
-      width: 32px; height: 32px;
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      background: var(--bg-card);
-      color: var(--text-secondary);
-      font-size: 1.1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.15s;
-      flex-shrink: 0;
-    }
-
-    .viewer-close:active {
-      background: var(--bg-card-hover);
-      color: var(--phosphor);
-      border-color: var(--phosphor);
-    }
-
-    .viewer-iframe-wrap {
-      flex: 1;
-      position: relative;
-      background: #000;
-    }
-
-    .viewer-iframe-wrap iframe {
-      width: 100%; height: 100%;
-      border: none;
-      background: #000;
-    }
-
-    .viewer-corner {
-      position: absolute;
-      width: 10px; height: 10px;
-      border-color: var(--phosphor);
-      border-style: solid;
-      opacity: 0.25;
-      pointer-events: none;
-    }
-
-    .viewer-corner.tl { top: 3px; left: 3px; border-width: 1px 0 0 1px; }
-    .viewer-corner.tr { top: 3px; right: 3px; border-width: 1px 1px 0 0; }
-    .viewer-corner.bl { bottom: 3px; left: 3px; border-width: 0 0 1px 1px; }
-    .viewer-corner.br { bottom: 3px; right: 3px; border-width: 0 1px 1px 0; }
-
-    .viewer-bottom {
-      padding: 8px 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-top: 1px solid var(--border-subtle);
-      flex-shrink: 0;
-      background: var(--bg-deep);
-      padding-bottom: calc(8px + var(--safe-bottom));
-    }
-
-    .viewer-filepath {
-      font-family: var(--font-mono);
-      font-size: 0.58rem;
-      color: var(--text-muted);
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      flex: 1;
-    }
-
-    .btn-newtab {
-      font-family: var(--font-mono);
-      font-size: 0.62rem;
-      color: var(--cyan);
-      background: rgba(0,212,255,0.06);
-      border: 1px solid rgba(0,212,255,0.2);
-      border-radius: 6px;
-      padding: 5px 12px;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.2s;
-      flex-shrink: 0;
-      display: inline-block;
-    }
-
-    .btn-newtab:active {
-      background: rgba(0,212,255,0.15);
-      border-color: var(--cyan);
-    }
-
-    /* ── TOOLS VIEW ── */
-    .tools-scroll {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px 14px;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 10px);
-    }
-
-    .side-section { margin-bottom: 20px; }
-
-    .side-section-title {
-      font-family: var(--font-display);
-      font-size: 0.55rem;
-      font-weight: 600;
-      letter-spacing: 0.25em;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .side-section-title::after {
-      content: "";
-      flex: 1;
-      height: 1px;
-      background: var(--border-subtle);
-    }
-
-    .embeds-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .embed-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      padding: 14px 8px;
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 10px;
-      border: 1px solid var(--border-subtle);
-      background: var(--bg-card);
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: center;
-    }
-
-    .embed-card:active {
-      background: var(--bg-card-hover);
-      border-color: var(--border-active);
-      transform: scale(0.97);
-    }
-
-    .embed-card .e-icon {
-      font-size: 1.4rem;
-      width: 42px; height: 42px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,212,255,0.06);
-      border: 1px solid rgba(0,212,255,0.12);
-      border-radius: 10px;
-    }
-
-    .embed-card .e-label {
-      font-family: var(--font-body);
-      font-size: 0.76rem;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    .embed-card .e-desc {
-      font-family: var(--font-mono);
-      font-size: 0.52rem;
-      color: var(--text-muted);
-    }
-
-    /* ── THREAT / NETWORK WIDGETS ── */
-    .threat-widget {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 14px;
-      margin-bottom: 14px;
-    }
-
-    .threat-title {
-      font-family: var(--font-display);
-      font-size: 0.52rem;
-      font-weight: 600;
-      letter-spacing: 0.2em;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-    }
-
-    .threat-bar {
-      height: 5px;
-      background: var(--bg-abyss);
-      border-radius: 5px;
-      overflow: hidden;
-      margin-bottom: 8px;
-    }
-
-    .threat-fill {
-      height: 100%;
-      border-radius: 5px;
-      transition: width 1s ease;
-    }
-
-    .threat-fill.level-3 {
-      width: 60%;
-      background: linear-gradient(90deg, var(--amber), var(--amber));
-      box-shadow: 0 0 10px var(--amber-glow);
-    }
-
-    .threat-labels {
-      display: flex;
-      justify-content: space-between;
-      font-family: var(--font-mono);
-      font-size: 0.52rem;
-      color: var(--text-muted);
-    }
-
-    .threat-labels .current { color: var(--amber); font-weight: 600; }
-
-    .network-widget {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 14px;
-    }
-
-    .network-nodes {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .node {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      padding: 8px 4px;
-      border-radius: 8px;
-      border: 1px solid var(--border-subtle);
-      background: var(--bg-abyss);
-    }
-
-    .node-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-
-    .node-label {
-      font-family: var(--font-mono);
-      font-size: 0.52rem;
-      color: var(--text-secondary);
-      text-align: center;
-    }
-
-    /* ── STATUS VIEW (mobile) ── */
-    .status-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .status-card {
-      padding: 14px;
-      border-radius: 10px;
-      border: 1px solid var(--border-subtle);
-      background: var(--bg-card);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .status-dot-lg {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    .status-card-text {
-      font-family: var(--font-mono);
-      font-size: 0.62rem;
-      color: var(--text-secondary);
-      line-height: 1.4;
-    }
-
-    .status-card-value {
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    /* ══════════════════════════
-       BOTTOM NAV
-       ══════════════════════════ */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      z-index: 200;
-      height: calc(var(--nav-height) + var(--safe-bottom));
-      padding-bottom: var(--safe-bottom);
-      background: linear-gradient(180deg, rgba(10,17,24,0.95), rgba(5,10,14,0.99));
-      border-top: 1px solid var(--border-active);
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-    }
-
-    .bottom-nav::before {
-      content: "";
-      position: absolute;
-      top: -1px; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--phosphor), transparent);
-      opacity: 0.4;
-    }
-
-    .nav-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      padding: 6px 16px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      transition: all 0.2s;
-      position: relative;
-    }
-
-    .nav-btn:active { transform: scale(0.92); }
-
-    .nav-icon {
-      font-size: 1.3rem;
-      line-height: 1;
-      transition: all 0.2s;
-      filter: grayscale(1) brightness(0.6);
-    }
-
-    .nav-label {
-      font-family: var(--font-mono);
-      font-size: 0.52rem;
-      letter-spacing: 0.1em;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      transition: color 0.2s;
-    }
-
-    .nav-btn.active .nav-icon {
-      filter: none;
-      transform: translateY(-1px);
-    }
-
-    .nav-btn.active .nav-label {
-      color: var(--phosphor);
-    }
-
-    .nav-btn.active::after {
-      content: "";
-      position: absolute;
-      top: -1px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 24px;
-      height: 2px;
-      background: var(--phosphor);
-      border-radius: 2px;
-      box-shadow: 0 0 8px var(--phosphor-glow);
-    }
-
-    /* ══════════════════════════
-       WELCOME / EMPTY STATE
-       ══════════════════════════ */
-    .welcome-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      z-index: 5;
-      pointer-events: none;
-      background: var(--bg-abyss);
-    }
-
-    .welcome-overlay.hidden { display: none; }
-
-    .welcome-logo {
-      font-family: var(--font-display);
-      font-size: 1.2rem;
-      font-weight: 800;
-      letter-spacing: 0.3em;
-      color: var(--phosphor);
-      text-shadow: 0 0 40px var(--phosphor-glow), 0 0 80px rgba(0,255,136,0.15);
-      animation: welcomeGlow 3s ease-in-out infinite;
-    }
-
-    @keyframes welcomeGlow {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
-
-    .welcome-sub {
-      font-family: var(--font-mono);
-      font-size: 0.62rem;
-      color: var(--text-muted);
-      letter-spacing: 0.12em;
-      text-align: center;
-      padding: 0 20px;
-    }
-
-    .welcome-line {
-      width: 50px;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--phosphor), transparent);
-      opacity: 0.4;
-    }
-
-    /* ══════════════════════════
-       FOOTER (desktop only)
-       ══════════════════════════ */
-    .desktop-footer {
-      display: none;
-    }
-
-    /* ══════════════════════════
-       TOAST NOTIFICATION
-       ══════════════════════════ */
-    .toast {
-      position: fixed;
-      top: calc(var(--header-height) + 10px);
-      left: 50%;
-      transform: translateX(-50%) translateY(-20px);
-      z-index: 9000;
-      font-family: var(--font-mono);
-      font-size: 0.68rem;
-      color: var(--phosphor);
-      background: var(--bg-card);
-      border: 1px solid var(--border-active);
-      border-radius: 8px;
-      padding: 8px 16px;
-      box-shadow: 0 4px 30px rgba(0,0,0,0.5), 0 0 20px var(--phosphor-dim);
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.3s ease;
-    }
-
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    /* ══════════════════════════
-       GUIDE MODAL
-       ══════════════════════════ */
-    .guide-content {
-      font-family: var(--font-mono);
-      font-size: 0.62rem;
-      color: var(--text-secondary);
-      line-height: 1.7;
-      padding: 16px;
-      background: var(--bg-card);
-      border-radius: 10px;
-      border: 1px solid var(--border-subtle);
-    }
-
-    .guide-content .highlight { color: var(--phosphor); font-weight: 600; }
-    .guide-content code {
-      color: var(--cyan);
-      background: var(--bg-abyss);
-      padding: 1px 5px;
-      border-radius: 3px;
-      font-size: 0.58rem;
-    }
-
-    .guide-content pre {
-      margin-top: 8px;
-      padding: 10px;
-      background: var(--bg-abyss);
-      border: 1px solid var(--border-subtle);
-      border-radius: 6px;
-      font-size: 0.56rem;
-      color: var(--text-secondary);
-      white-space: pre-wrap;
+      padding: 18px 20px;
+      margin: 16px 0;
       overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      line-height: 1.8;
+      color: var(--text2);
+    }
+    pre .comment { color: var(--text3); }
+    pre .key { color: var(--green); }
+    pre .val { color: var(--amber); }
+    pre .str { color: var(--blue); }
+    pre .highlight-line {
+      display: inline-block;
+      width: calc(100% + 40px);
+      margin-left: -20px;
+      padding: 0 20px;
+      background: rgba(0,255,136,0.06);
     }
 
-    /* ══════════════════════════════════════
-       ANIMATIONS
-       ══════════════════════════════════════ */
-    @keyframes fadeSlideIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
+    /* ── FILE TREE ── */
+    .file-tree {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin: 16px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      line-height: 2;
+    }
+    .file-tree .folder { color: var(--amber); }
+    .file-tree .file-main { color: var(--green); font-weight: 600; }
+    .file-tree .file-data { color: var(--blue); }
+    .file-tree .file-page { color: var(--text2); }
+    .file-tree .file-guide { color: var(--purple); }
+    .file-tree .indent { margin-left: 20px; }
+
+    /* ── STEP CARDS ── */
+    .steps { margin: 16px 0; }
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-bottom: 10px;
+      display: flex; gap: 14px; align-items: flex-start;
+    }
+    .step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--green-dim); color: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.75rem; flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-text { flex: 1; }
+    .step-text strong { color: var(--text); }
+    .step-text p { margin-bottom: 6px; }
+
+    /* ── COMPARISON TABLE ── */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.82rem;
+    }
+    .compare-table th, .compare-table td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-table th {
+      color: var(--text3);
+      font-weight: 600;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .compare-table td { color: var(--text2); }
+    .compare-table code { font-size: 0.75rem; }
+
+    /* ── SCREENSHOT PLACEHOLDER ── */
+    .screenshot {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 30px;
+      margin: 16px 0;
+      text-align: center;
+      color: var(--text3);
+      font-size: 0.85rem;
+    }
+    .screenshot .big-emoji { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+
+    /* ── FOOTER ── */
+    .guide-footer {
+      margin-top: 60px; padding-top: 30px;
+      border-top: 1px solid var(--border);
+      text-align: center; color: var(--text3);
+      font-size: 0.78rem;
     }
 
-    .module-card { animation: fadeSlideIn 0.25s ease both; }
-
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-
-    /* ══════════════════════════════════════
-       DESKTOP LAYOUT (>= 1024px)
-       ══════════════════════════════════════ */
-    @media (min-width: 1024px) {
-      :root {
-        --header-height: 56px;
-      }
-
-      header { padding: 0 20px; }
-
-      .hdr-title { font-size: 0.85rem; letter-spacing: 0.25em; }
-      .hdr-subtitle { font-size: 0.62rem; }
-
-      .hdr-status-pills {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-      }
-
-      .status-pill {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-family: var(--font-mono);
-        font-size: 0.68rem;
-        color: var(--text-secondary);
-        background: rgba(0,255,136,0.05);
-        border: 1px solid rgba(0,255,136,0.12);
-        border-radius: 20px;
-        padding: 4px 12px;
-      }
-
-      .status-dot-sm {
-        width: 6px; height: 6px;
-        border-radius: 50%;
-        background: var(--phosphor);
-        box-shadow: 0 0 8px var(--phosphor);
-        animation: pulse 2s ease-in-out infinite;
-      }
-
-      .status-dot-sm.amber { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
-
-      .bottom-nav { display: none; }
-
-      .app-content {
-        display: grid;
-        grid-template-columns: 320px 1fr 280px;
-        gap: 1px;
-        background: rgba(0,255,136,0.04);
-      }
-
-      .view {
-        position: static;
-        opacity: 1 !important;
-        transform: none !important;
-        pointer-events: all !important;
-      }
-
-      .view.hidden {
-        opacity: 1 !important;
-        pointer-events: all !important;
-        transform: none !important;
-      }
-
-      .view-dossiers {
-        background: var(--bg-deep);
-      }
-
-      .view-tools {
-        background: var(--bg-deep);
-      }
-
-      .view-status {
-        display: none !important;
-      }
-
-      /* Desktop: viewer is inline, not modal */
-      .desktop-viewer {
-        display: flex !important;
-        flex-direction: column;
-        background: var(--bg-abyss);
-        overflow: hidden;
-      }
-
-      .modal-overlay.viewer-modal {
-        display: none !important;
-      }
-
-      .modules-scroll {
-        padding-bottom: 10px;
-      }
-
-      .tools-scroll {
-        padding-bottom: 10px;
-      }
-
-      .embeds-grid {
-        grid-template-columns: 1fr;
-        gap: 4px;
-      }
-
-      .embed-card {
-        flex-direction: row;
-        padding: 8px 10px;
-        text-align: left;
-      }
-
-      .embed-card .e-icon {
-        font-size: 0.9rem;
-        width: 28px; height: 28px;
-        border-radius: 6px;
-      }
-
-      .desktop-footer {
-        display: flex;
-        height: 28px;
-        padding: 0 16px;
-        align-items: center;
-        justify-content: space-between;
-        background: var(--bg-deep);
-        border-top: 1px solid var(--border-subtle);
-        font-family: var(--font-mono);
-        font-size: 0.58rem;
-        color: var(--text-muted);
-        flex-shrink: 0;
-        position: relative;
-        z-index: 100;
-      }
-
-      .desktop-footer::before {
-        content: "";
-        position: absolute;
-        top: -1px; left: 0; right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(0,255,136,0.15), transparent);
-      }
-
-      .footer-left, .footer-right {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-      }
-
-      .footer-sep { color: var(--border-active); }
-    }
-
-    @media (min-width: 1024px) and (max-width: 1200px) {
-      .app-content {
-        grid-template-columns: 280px 1fr 240px;
-      }
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 1.5rem; }
+      .guide-nav-links { display: none; }
+      pre { font-size: 0.7rem; padding: 14px; }
     }
   </style>
 </head>
 <body>
 
-<!-- ═══════════ HEADER ═══════════ -->
-<header>
-  <div class="hdr-left">
-    <div class="radar-container">
-      <div class="radar-ring">
-        <div class="radar-sweep"></div>
-        <div class="radar-dot"></div>
-      </div>
-    </div>
-    <div class="hdr-title-group">
-      <div class="hdr-title">STATION ZERO</div>
-      <div class="hdr-subtitle">Centre de Renseignement</div>
-    </div>
+<!-- NAV -->
+<nav class="guide-nav">
+  <div class="guide-nav-title">📦 Kit Hub Personnel</div>
+  <div class="guide-nav-links">
+    <a href="#quoi">C'est quoi</a>
+    <a href="#fichiers">Les fichiers</a>
+    <a href="#tester">Tester</a>
+    <a href="#personnaliser">Personnaliser</a>
+    <a href="#ajouter">Ajouter</a>
+    <a href="#couleurs">Couleurs</a>
+    <a href="#en-ligne">Mettre en ligne</a>
+    <a href="#faq">FAQ</a>
   </div>
-
-  <div class="hdr-status-pills">
-    <div class="status-pill">
-      <span class="status-dot-sm"></span>
-      <span>SYSTÈMES OPÉRATIONNELS</span>
-    </div>
-    <div class="status-pill">
-      <span class="status-dot-sm amber"></span>
-      <span>MENACE · ÉLEVÉE</span>
-    </div>
-  </div>
-
-  <div class="hdr-right">
-    <div class="hdr-clock" id="headerClock">--:--:-- UTC</div>
-    <div class="classification-badge">CONFIDENTIEL</div>
-  </div>
-</header>
-
-<!-- ═══════════ MAIN ═══════════ -->
-<div class="app-content">
-
-  <!-- VIEW: DOSSIERS -->
-  <div class="view view-dossiers active" id="viewDossiers">
-    <div class="panel-header">
-      <div class="panel-label">▸ DOSSIERS & MODULES</div>
-      <input type="search" class="search-box" id="searchInput" placeholder="Recherche opérationnelle…" autocomplete="off">
-      <div class="filter-row" id="filterRow">
-        <button class="filter-btn active" data-cat="all">Tous</button>
-        <button class="filter-btn" data-cat="humint">HUMINT</button>
-        <button class="filter-btn" data-cat="osint">OSINT</button>
-        <button class="filter-btn" data-cat="sigint">SIGINT</button>
-        <button class="filter-btn" data-cat="socmint">SOCMINT</button>
-        <button class="filter-btn" data-cat="ie">IE</button>
-        <button class="filter-btn" data-cat="cyber">CYBER</button>
-        <button class="filter-btn" data-cat="analyse">ANALYSE</button>
-      </div>
-      <div class="modules-count">
-        <span id="modulesCount">0 dossiers</span>
-        <span id="sessionId">SESSION-000000</span>
-      </div>
-    </div>
-    <div class="modules-scroll" id="modulesContainer"></div>
-  </div>
-
-  <!-- DESKTOP VIEWER (inline) -->
-  <section class="desktop-viewer" id="desktopViewer" style="display:none;">
-    <div class="viewer-topbar">
-      <div class="viewer-title-area">
-        <div class="viewer-title" id="dViewerTitle">En attente de sélection</div>
-        <div class="viewer-desc" id="dViewerDesc">Sélectionnez un dossier</div>
-      </div>
-      <div class="viewer-meta">
-        <span class="module-tag" id="dViewerCat" style="display:none;"></span>
-        <span class="module-tag" id="dViewerKind" style="display:none;"></span>
-      </div>
-    </div>
-    <div class="viewer-iframe-wrap">
-      <div class="viewer-corner tl"></div>
-      <div class="viewer-corner tr"></div>
-      <div class="viewer-corner bl"></div>
-      <div class="viewer-corner br"></div>
-      <iframe id="dViewerFrame" src="about:blank"></iframe>
-      <div class="welcome-overlay" id="dWelcomeOverlay">
-        <div class="welcome-line"></div>
-        <div class="welcome-logo">STATION ZERO</div>
-        <div class="welcome-sub">INTELLIGENCE OPERATIONS DASHBOARD</div>
-        <div class="welcome-line"></div>
-        <div class="welcome-sub" style="margin-top:8px;opacity:0.5;">Sélectionnez un dossier pour commencer</div>
-      </div>
-    </div>
-    <div class="viewer-bottom">
-      <span class="viewer-filepath" id="dViewerPath">—</span>
-      <a href="#" id="dViewerOpen" class="btn-newtab" target="_blank" rel="noopener noreferrer">↗ OUVRIR</a>
-    </div>
-  </section>
-
-  <!-- VIEW: TOOLS -->
-  <div class="view view-tools hidden" id="viewTools">
-    <div class="panel-header">
-      <div class="panel-label">▸ OUTILS & FLUX</div>
-    </div>
-    <div class="tools-scroll">
-      <div class="threat-widget">
-        <div class="threat-title">NIVEAU DE MENACE</div>
-        <div class="threat-bar">
-          <div class="threat-fill level-3"></div>
-        </div>
-        <div class="threat-labels">
-          <span>FAIBLE</span>
-          <span class="current">▸ ÉLEVÉ</span>
-          <span>CRITIQUE</span>
-        </div>
-      </div>
-
-      <div class="side-section">
-        <div class="side-section-title">SOURCES EXTERNES</div>
-        <div class="embeds-grid" id="embedsContainer"></div>
-      </div>
-
-      <div class="network-widget">
-        <div class="threat-title">RÉSEAU OPÉRATIONNEL</div>
-        <div class="network-nodes">
-          <div class="node">
-            <div class="node-dot" style="background:var(--phosphor);box-shadow:0 0 6px var(--phosphor);"></div>
-            <div class="node-label">CTG</div>
-          </div>
-          <div class="node">
-            <div class="node-dot" style="background:var(--cyan);box-shadow:0 0 6px var(--cyan);"></div>
-            <div class="node-label">INTCEN</div>
-          </div>
-          <div class="node">
-            <div class="node-dot" style="background:var(--phosphor);box-shadow:0 0 6px var(--phosphor);"></div>
-            <div class="node-label">OCAM</div>
-          </div>
-          <div class="node">
-            <div class="node-dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber);"></div>
-            <div class="node-label">SGRS</div>
-          </div>
-          <div class="node">
-            <div class="node-dot" style="background:var(--phosphor);box-shadow:0 0 6px var(--phosphor);"></div>
-            <div class="node-label">BERNE</div>
-          </div>
-          <div class="node">
-            <div class="node-dot" style="background:var(--cyan);box-shadow:0 0 6px var(--cyan);"></div>
-            <div class="node-label">PHOENIX</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="side-section" style="margin-top:20px;">
-        <div class="side-section-title">GUIDE RAPIDE</div>
-        <div class="guide-content">
-          <div class="highlight">AJOUTER UN DOSSIER :</div>
-          <div style="color:var(--text-muted);margin-top:4px;">Éditer le tableau <code>modules[]</code> dans le script. Champs :</div>
-          <pre>{
-  id: "mon-dossier",
-  title: "Nom affiché",
-  file: "fichier.html",
-  category: "humint",
-  kind: "rapport",
-  icon: "📋",
-  description: "Description"
-}</pre>
-          <div style="margin-top:10px;color:var(--text-muted);">
-            Catégories : <span style="color:var(--phosphor);">humint</span> · <span style="color:var(--cyan);">osint</span> · <span style="color:var(--amber);">sigint</span> · <span style="color:#a855f7;">socmint</span> · <span style="color:#ff6b6b;">ie</span> · <span style="color:#38bdf8;">cyber</span> · <span style="color:#f472b6;">analyse</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- VIEW: STATUS (mobile only) -->
-  <div class="view view-status hidden" id="viewStatus">
-    <div class="panel-header">
-      <div class="panel-label">▸ STATUT OPÉRATIONNEL</div>
-    </div>
-    <div class="tools-scroll">
-      <div class="status-grid">
-        <div class="status-card">
-          <div class="status-dot-lg" style="background:var(--phosphor);box-shadow:0 0 8px var(--phosphor);"></div>
-          <div class="status-card-text">
-            <div class="status-card-value">OPÉRATIONNEL</div>
-            Systèmes actifs
-          </div>
-        </div>
-        <div class="status-card">
-          <div class="status-dot-lg" style="background:var(--amber);box-shadow:0 0 8px var(--amber);"></div>
-          <div class="status-card-text">
-            <div class="status-card-value">ÉLEVÉE</div>
-            Niveau de menace
-          </div>
-        </div>
-        <div class="status-card">
-          <div class="status-dot-lg" style="background:var(--cyan);box-shadow:0 0 8px var(--cyan);"></div>
-          <div class="status-card-text">
-            <div class="status-card-value" id="statusModuleCount">21</div>
-            Dossiers actifs
-          </div>
-        </div>
-        <div class="status-card">
-          <div class="status-dot-lg" style="background:var(--phosphor);box-shadow:0 0 8px var(--phosphor);"></div>
-          <div class="status-card-text">
-            <div class="status-card-value">8</div>
-            Sources externes
-          </div>
-        </div>
-      </div>
-
-      <div class="side-section">
-        <div class="side-section-title">SESSION</div>
-        <div class="guide-content">
-          <div><span class="highlight">ID :</span> <span id="statusSession">SESSION-000000</span></div>
-          <div style="margin-top:4px;"><span class="highlight">HEURE :</span> <span id="statusClock">--:--:-- UTC</span></div>
-          <div style="margin-top:4px;"><span class="highlight">DATE :</span> <span id="statusDate">---</span></div>
-          <div style="margin-top:4px;"><span class="highlight">CLASSIFICATION :</span> <span style="color:var(--red-alert);">CONFIDENTIEL</span></div>
-          <div style="margin-top:4px;"><span class="highlight">VERSION :</span> STATION ZERO v3.0 Mobile</div>
-        </div>
-      </div>
-
-      <div class="network-widget" style="margin-top:16px;">
-        <div class="threat-title">RÉSEAU OPÉRATIONNEL</div>
-        <div class="network-nodes">
-          <div class="node">
-            <div class="node-dot" style="background:var(--phosphor);box-shadow:0 0 6px var(--phosphor);"></div>
-            <div class="node-label">CTG</div>
-          </div>
-          <div class="node">
-            <div class="node-dot" style="background:var(--cyan);box-shadow:0 0 6px var(--cyan);"></div>
-            <div class="node-label">INTCEN</div>
-          </div>
-          <div class="node">
-            <div class="node-dot" style="background:var(--phosphor);box-shadow:0 0 6px var(--phosphor);"></div>
-            <div class="node-label">OCAM</div>
-          </div>
-          <div class="node">
-            <div class="node-dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber);"></div>
-            <div class="node-label">SGRS</div>
-          </div>
-          <div class="node">
-            <div class="node-dot" style="background:var(--phosphor);box-shadow:0 0 6px var(--phosphor);"></div>
-            <div class="node-label">BERNE</div>
-          </div>
-          <div class="node">
-            <div class="node-dot" style="background:var(--cyan);box-shadow:0 0 6px var(--cyan);"></div>
-            <div class="node-label">PHOENIX</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- ═══════════ VIEWER MODAL (mobile) ═══════════ -->
-<div class="modal-overlay viewer-modal" id="viewerModal">
-  <div class="modal-backdrop" id="viewerBackdrop"></div>
-  <div class="modal-content" id="viewerModalContent">
-    <div class="modal-handle" id="viewerHandle">
-      <div class="modal-handle-bar"></div>
-    </div>
-    <div class="viewer-topbar">
-      <div class="viewer-title-area">
-        <div class="viewer-title" id="mViewerTitle">—</div>
-        <div class="viewer-desc" id="mViewerDesc">—</div>
-      </div>
-      <div class="viewer-meta">
-        <span class="module-tag" id="mViewerCat" style="display:none;"></span>
-      </div>
-      <button class="viewer-close" id="viewerCloseBtn">✕</button>
-    </div>
-    <div class="viewer-iframe-wrap">
-      <div class="viewer-corner tl"></div>
-      <div class="viewer-corner tr"></div>
-      <div class="viewer-corner bl"></div>
-      <div class="viewer-corner br"></div>
-      <iframe id="mViewerFrame" src="about:blank"></iframe>
-    </div>
-    <div class="viewer-bottom">
-      <span class="viewer-filepath" id="mViewerPath">—</span>
-      <a href="#" id="mViewerOpen" class="btn-newtab" target="_blank" rel="noopener noreferrer">↗ OUVRIR</a>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════ TOAST ═══════════ -->
-<div class="toast" id="toast"></div>
-
-<!-- ═══════════ BOTTOM NAV ═══════════ -->
-<nav class="bottom-nav" id="bottomNav">
-  <button class="nav-btn active" data-view="dossiers">
-    <span class="nav-icon">📂</span>
-    <span class="nav-label">Dossiers</span>
-  </button>
-  <button class="nav-btn" data-view="tools">
-    <span class="nav-icon">🛠</span>
-    <span class="nav-label">Outils</span>
-  </button>
-  <button class="nav-btn" data-view="status">
-    <span class="nav-icon">📡</span>
-    <span class="nav-label">Statut</span>
-  </button>
 </nav>
 
-<!-- ═══════════ DESKTOP FOOTER ═══════════ -->
-<footer class="desktop-footer">
-  <div class="footer-left">
-    <span>STATION ZERO v3.0</span>
-    <span class="footer-sep">│</span>
-    <span>Centre de Renseignement</span>
+<div class="guide-wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-emoji">🏠</div>
+    <h1>Crée ton Hub Personnel</h1>
+    <p>Un tableau de bord rien qu'à toi, avec tes fichiers, tes liens, tes outils. Aucune connaissance en code requise.</p>
   </div>
-  <div class="footer-right">
-    <span id="footerDate">---</span>
-    <span class="footer-sep">│</span>
-    <span>CONFIDENTIEL — Usage autorisé uniquement</span>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- 1. C'EST QUOI -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section" id="quoi">
+    <div class="section-num">1</div>
+    <h2>C'est quoi ce truc ?</h2>
+    <p>C'est une <strong style="color:var(--text);">page web qui te sert de tableau de bord</strong>. Tu l'ouvres dans ton navigateur (Chrome, Firefox, Safari…) et tu retrouves tous tes trucs rangés au même endroit :</p>
+    <ul>
+      <li>📂 <strong style="color:var(--text);">Tes dossiers</strong> — des pages HTML que tu crées, triées par catégorie</li>
+      <li>🔗 <strong style="color:var(--text);">Tes liens favoris</strong> — des sites web qui s'ouvrent directement dans le hub</li>
+      <li>⭐ <strong style="color:var(--text);">Tes favoris</strong> — marque les dossiers importants, ils sont mémorisés</li>
+      <li>🕐 <strong style="color:var(--text);">Tes récents</strong> — les derniers dossiers ouverts apparaissent en haut</li>
+    </ul>
+
+    <div class="callout callout-ok">
+      <strong>💡 Le plus important</strong>
+      Tout fonctionne sans internet, sans serveur, sans inscription. Tu double-cliques sur un fichier et ça marche.
+    </div>
   </div>
-</footer>
 
-<!-- ═══════════ DATA & LOGIC ═══════════ -->
-<script>
-  // ═══════════════════════════════════════════════
-  // MODULES
-  // ═══════════════════════════════════════════════
-  const modules = [
-    { id: "humint-manuel-fr", title: "Manuel HUMINT — Français", file: "humintmanuelfr.html", category: "humint", kind: "manuel", icon: "🕵️", description: "Guide opérationnel des sources humaines (FR)" },
-    { id: "humint-manual-en", title: "HUMINT Manual — English", file: "humint_manual.html", category: "humint", kind: "manual", icon: "🕵️", description: "Human Intelligence collection operations guide" },
-    { id: "humint-claude", title: "HUMINT — Briefing Claude", file: "humintclaude.html", category: "humint", kind: "briefing", icon: "📋", description: "Analyse HUMINT générée par Claude" },
-    { id: "humint-chatgpt", title: "HUMINT — Briefing GPT", file: "humintchatgpt.html", category: "humint", kind: "briefing", icon: "📋", description: "Analyse HUMINT générée par ChatGPT" },
-    { id: "renseignement", title: "Renseignement — Dossier Complet", file: "renseignement.html", category: "osint", kind: "dossier", icon: "📡", description: "Dossier de synthèse sur le renseignement" },
-    { id: "vsse-dossier", title: "VSSE — Service de Renseignement Civil", file: "vsse-dossier.html", category: "osint", kind: "rapport", icon: "🏛️", description: "Dossier complet sur la Sûreté de l'État belge" },
-    { id: "sigint-veille", title: "Veille Signaux — Module 1160", file: "veille-1160.html", category: "sigint", kind: "veille", icon: "📻", description: "Surveillance des signaux et fréquences" },
-    { id: "socmint-claude", title: "SOCMINT — Analyse Claude", file: "socmintclaude.html", category: "socmint", kind: "analyse", icon: "🌐", description: "Social Media Intelligence — rapport Claude" },
-    { id: "socmint-chatgpt", title: "SOCMINT — Analyse GPT", file: "socmintchatgpt.html", category: "socmint", kind: "analyse", icon: "🌐", description: "Social Media Intelligence — rapport ChatGPT" },
-    { id: "ie-claude", title: "IE Belgique — Analyse Claude", file: "ieclaude.html", category: "ie", kind: "rapport", icon: "💼", description: "Intelligence économique belge — rapport Claude" },
-    { id: "ie-chatgpt", title: "IE Belgique — Analyse GPT", file: "iebelgiquechatgpt.html", category: "ie", kind: "rapport", icon: "💼", description: "Intelligence économique belge — rapport ChatGPT" },
-    { id: "ie-bel", title: "IE Belgique — Dossier (1)", file: "iebel.html", category: "ie", kind: "dossier", icon: "📁", description: "Rapport intelligence économique belge vol.1" },
-    { id: "ie-bel-2", title: "IE Belgique — Dossier (2)", file: "iebel2.html", category: "ie", kind: "dossier", icon: "📁", description: "Rapport intelligence économique belge vol.2" },
-    { id: "ie-bilan", title: "IE — Bilan Renseignement Éco.", file: "renseignementeconomiquebilan.html", category: "ie", kind: "bilan", icon: "📊", description: "Bilan du renseignement économique" },
-    { id: "intel-civile-claude-1", title: "Intelligence Civile — Claude (1/2)", file: "intelligencecivileclaude12.html", category: "cyber", kind: "rapport", icon: "🔒", description: "Renseignement civil — analyse Claude partie 1" },
-    { id: "intel-civile-claude-2", title: "Intelligence Civile — Claude (2/2)", file: "intelligencecivileclaude22.html", category: "cyber", kind: "rapport", icon: "🔒", description: "Renseignement civil — analyse Claude partie 2" },
-    { id: "intel-civile-claude-full", title: "Intelligence Civile — Claude (complet)", file: "intelligencecivileclaude2.html", category: "cyber", kind: "rapport", icon: "🔒", description: "Renseignement civil — version intégrale Claude" },
-    { id: "intel-civile-chatgpt", title: "Intelligence Civile — ChatGPT", file: "intelligencecivilechatgpt.html", category: "cyber", kind: "rapport", icon: "🔒", description: "Renseignement civil — analyse ChatGPT" },
-    { id: "intel-civile-chatgpt-2", title: "Intelligence Civile — ChatGPT (2)", file: "intelligencecivilechatgpt2.html", category: "cyber", kind: "rapport", icon: "🔒", description: "Renseignement civil — analyse ChatGPT vol.2" },
-    { id: "detective", title: "Agence Détective Publique", file: "veilleuxses.html", category: "analyse", kind: "vitrine", icon: "🔍", description: "Vitrine + intranet pour activité d'enquête" },
-    { id: "boussole", title: "Boussole de Valeurs Opérationnelles", file: "valeurs.html", category: "analyse", kind: "outil", icon: "🧭", description: "Évaluation des valeurs et positionnement éthique" },
-    // ═══ AJOUTEZ VOS DOSSIERS CI-DESSOUS ═══
-  ];
+  <!-- ═══════════════════════════════════════ -->
+  <!-- 2. LES FICHIERS -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section" id="fichiers">
+    <div class="section-num">2</div>
+    <h2>Les fichiers du kit</h2>
+    <p>Voici ce que tu as reçu. Tout doit être dans <strong style="color:var(--text);">le même dossier</strong> :</p>
 
-  const embeds = [
-    { id: "intranet", icon: "🏢", label: "Intranet", url: "https://boot-a-rat.vercel.app/", desc: "Réseau interne" },
-    { id: "hyperspace", icon: "🚀", label: "Hyperspace", url: "https://www.youtube.com/embed/ZpKgZiOmeSg?si=hBouq3yo2lIxEehk", desc: "Veille & monitoring" },
-    { id: "network", icon: "🕸️", label: "Network", url: "https://ouaisfieu.github.io/offre/", desc: "Communications" },
-    { id: "tarot", icon: "🃏", label: "Tarot Opérationnel", url: "https://ouaisfieu.appsmith.com/app/tarotboulotproto-v3-1/tarotsimpletirage-68555a12a22d7c48aa0d27ad", desc: "Module décisionnel" },
-    { id: "extronet", icon: "🎲", label: "Extronet", url: "https://tirage-one.vercel.app/", desc: "Application externe" },
-    { id: "king", icon: "🐧", label: "Pingouin HQ", url: "https://dl.ouaisfi.eu/", desc: "Quartier maître" },
-    { id: "queen", icon: "🐧", label: "Pingouine HQ", url: "https://ouaisfieu.github.io/ccplc", desc: "Quartier générale" },
-    { id: "valet", icon: "🐧", label: "Pingu HQ", url: "https://yannkeep.github.io/reaven/", desc: "Quartier général" },
-  ];
+    <div class="file-tree">
+      <span class="folder">📁 mon-hub/</span><br>
+      <span class="indent file-main">📄 index.html</span> — <span style="color:var(--text3)">le hub lui-même (ta page principale)</span><br>
+      <span class="indent file-data">📋 modules.json</span> — <span style="color:var(--text3)">la liste de tes dossiers</span><br>
+      <span class="indent file-data">📋 embeds.json</span> — <span style="color:var(--text3)">la liste de tes liens favoris</span><br>
+      <span class="indent file-guide">📖 GUIDE.html</span> — <span style="color:var(--text3)">ce guide (tu peux le supprimer)</span><br>
+      <span class="indent file-page">📄 mes-notes.html</span> — <span style="color:var(--text3)">exemple de page</span><br>
+      <span class="indent file-page">📄 recettes.html</span> — <span style="color:var(--text3)">exemple de page</span><br>
+      <span class="indent file-page">📄 ...</span> — <span style="color:var(--text3)">tes propres pages à toi</span>
+    </div>
 
-  const catConfig = {
-    humint:  { label: "HUMINT",    tagClass: "tag-humint",  iconClass: "humint" },
-    osint:   { label: "OSINT",     tagClass: "tag-osint",   iconClass: "osint" },
-    sigint:  { label: "SIGINT",    tagClass: "tag-sigint",  iconClass: "sigint" },
-    socmint: { label: "SOCMINT",   tagClass: "tag-socmint", iconClass: "socmint" },
-    ie:      { label: "INT. ÉCO.", tagClass: "tag-ie",      iconClass: "ie" },
-    cyber:   { label: "CYBER",     tagClass: "tag-cyber",   iconClass: "cyber" },
-    analyse: { label: "ANALYSE",   tagClass: "tag-analyse", iconClass: "analyse" },
-  };
+    <table class="compare-table">
+      <tr><th>Fichier</th><th>À quoi ça sert</th><th>Tu dois le modifier ?</th></tr>
+      <tr><td><code>index.html</code></td><td>Le hub. La page que tu ouvres.</td><td>Seulement pour changer le nom ou les couleurs</td></tr>
+      <tr><td><code>modules.json</code></td><td>La liste de tes dossiers/pages</td><td><strong style="color:var(--green)">OUI — c'est le fichier principal à éditer</strong></td></tr>
+      <tr><td><code>embeds.json</code></td><td>La liste de tes liens web favoris</td><td>Oui, pour ajouter/retirer des liens</td></tr>
+      <tr><td><code>GUIDE.html</code></td><td>Ce guide</td><td>Non, tu peux même le supprimer</td></tr>
+      <tr><td><code>*.html</code></td><td>Tes propres pages de contenu</td><td>Tu les crées toi-même</td></tr>
+    </table>
 
-  // ═══════════════════════════════════
-  //  DOM REFS
-  // ═══════════════════════════════════
-  const $ = id => document.getElementById(id);
-  const searchInput      = $("searchInput");
-  const filterRow        = $("filterRow");
-  const modulesContainer = $("modulesContainer");
-  const modulesCount     = $("modulesCount");
-  const sessionIdEl      = $("sessionId");
-  const embedsContainer  = $("embedsContainer");
-  const headerClock      = $("headerClock");
-  const footerDate       = $("footerDate");
-  const toast            = $("toast");
+    <div class="callout callout-info">
+      <strong>📝 Qu'est-ce qu'un fichier .json ?</strong>
+      C'est un fichier texte avec une structure précise. Pense à une liste d'ingrédients avec des étiquettes. On peut l'ouvrir et le modifier avec n'importe quel éditeur de texte (Bloc-notes, TextEdit, Notepad++…).
+    </div>
+  </div>
 
-  // Views
-  const views = {
-    dossiers: $("viewDossiers"),
-    tools:    $("viewTools"),
-    status:   $("viewStatus"),
-  };
+  <!-- ═══════════════════════════════════════ -->
+  <!-- 3. TESTER -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section" id="tester">
+    <div class="section-num">3</div>
+    <h2>Comment tester (en 30 secondes)</h2>
 
-  // Modal refs
-  const viewerModal      = $("viewerModal");
-  const viewerModalContent = $("viewerModalContent");
-  const viewerBackdrop   = $("viewerBackdrop");
-  const viewerCloseBtn   = $("viewerCloseBtn");
-  const viewerHandle     = $("viewerHandle");
-
-  let activeFilter = "all";
-  let activeId = null;
-  let currentView = "dossiers";
-
-  // ═══════════════════════════════════
-  //  RESPONSIVE DETECTION
-  // ═══════════════════════════════════
-  function isDesktop() {
-    return window.matchMedia("(min-width: 1024px)").matches;
-  }
-
-  // ═══════════════════════════════════
-  //  SESSION & CLOCK
-  // ═══════════════════════════════════
-  const sid = "SESSION-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-  sessionIdEl.textContent = sid;
-  if ($("statusSession")) $("statusSession").textContent = sid;
-
-  function updateClock() {
-    const now = new Date();
-    const utc = now.toUTCString().split(" ")[4] + " UTC";
-    const date = now.toLocaleDateString("fr-BE", { weekday: "short", year: "numeric", month: "short", day: "numeric" });
-    headerClock.textContent = utc;
-    if (footerDate) footerDate.textContent = date;
-    if ($("statusClock")) $("statusClock").textContent = utc;
-    if ($("statusDate")) $("statusDate").textContent = date;
-  }
-  updateClock();
-  setInterval(updateClock, 1000);
-
-  // ═══════════════════════════════════
-  //  TOAST
-  // ═══════════════════════════════════
-  let toastTimer;
-  function showToast(msg) {
-    clearTimeout(toastTimer);
-    toast.textContent = msg;
-    toast.classList.add("show");
-    toastTimer = setTimeout(() => toast.classList.remove("show"), 2000);
-  }
-
-  // ═══════════════════════════════════
-  //  NAVIGATION (mobile)
-  // ═══════════════════════════════════
-  $("bottomNav").addEventListener("click", e => {
-    const btn = e.target.closest(".nav-btn");
-    if (!btn) return;
-    const v = btn.dataset.view;
-    switchView(v);
-  });
-
-  function switchView(v) {
-    if (isDesktop()) return;
-    currentView = v;
-    document.querySelectorAll(".nav-btn").forEach(b => b.classList.toggle("active", b.dataset.view === v));
-    Object.entries(views).forEach(([key, el]) => {
-      el.classList.toggle("active", key === v);
-      el.classList.toggle("hidden", key !== v);
-    });
-  }
-
-  // ═══════════════════════════════════
-  //  RENDER MODULES
-  // ═══════════════════════════════════
-  function getFiltered() {
-    const q = searchInput.value.trim().toLowerCase();
-    return modules.filter(m => {
-      if (activeFilter !== "all" && m.category !== activeFilter) return false;
-      if (!q) return true;
-      return (m.title + " " + m.file + " " + (m.description || "")).toLowerCase().includes(q);
-    });
-  }
-
-  function renderModules() {
-    const filtered = getFiltered();
-    modulesContainer.innerHTML = "";
-    modulesCount.textContent = filtered.length + " dossier" + (filtered.length !== 1 ? "s" : "");
-    if ($("statusModuleCount")) $("statusModuleCount").textContent = filtered.length;
-
-    if (!filtered.length) {
-      modulesContainer.innerHTML = '<div style="padding:30px;text-align:center;font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);">Aucun dossier ne correspond à la recherche.</div>';
-      return;
-    }
-
-    const groups = {};
-    filtered.forEach(m => {
-      if (!groups[m.category]) groups[m.category] = [];
-      groups[m.category].push(m);
-    });
-
-    const catOrder = ["humint", "osint", "sigint", "socmint", "ie", "cyber", "analyse"];
-    catOrder.forEach(cat => {
-      if (!groups[cat]) return;
-      const cfg = catConfig[cat] || { label: cat.toUpperCase() };
-
-      const label = document.createElement("div");
-      label.className = "group-label";
-      label.textContent = cfg.label;
-      modulesContainer.appendChild(label);
-
-      groups[cat].forEach((m, i) => {
-        const card = document.createElement("div");
-        card.className = "module-card" + (m.id === activeId ? " active" : "");
-        card.style.animationDelay = (i * 0.04) + "s";
-        card.dataset.id = m.id;
-
-        card.innerHTML = `
-          <div class="module-icon ${cfg.iconClass || ''}">${m.icon || '📄'}</div>
-          <div class="module-info">
-            <div class="module-name">${m.title}</div>
-            <div class="module-desc">${m.description || ''}</div>
-          </div>
-          <span class="module-tag ${cfg.tagClass || ''}">${m.kind || ''}</span>
-        `;
-
-        card.addEventListener("click", () => selectModule(m.id));
-        modulesContainer.appendChild(card);
-      });
-    });
-  }
-
-  // ═══════════════════════════════════
-  //  SELECT MODULE
-  // ═══════════════════════════════════
-  function selectModule(id) {
-    const m = modules.find(x => x.id === id);
-    if (!m) return;
-    activeId = id;
-
-    document.querySelectorAll(".module-card").forEach(el => {
-      el.classList.toggle("active", el.dataset.id === id);
-    });
-
-    const cfg = catConfig[m.category] || {};
-
-    if (isDesktop()) {
-      // Desktop: inline viewer
-      $("dWelcomeOverlay").classList.add("hidden");
-      $("dViewerTitle").textContent = m.title;
-      $("dViewerDesc").textContent = m.description || "";
-      $("dViewerCat").textContent = cfg.label || m.category;
-      $("dViewerCat").className = "module-tag " + (cfg.tagClass || "");
-      $("dViewerCat").style.display = "";
-      $("dViewerKind").textContent = m.kind || "";
-      $("dViewerKind").className = "module-tag tag-embed";
-      $("dViewerKind").style.display = m.kind ? "" : "none";
-      $("dViewerPath").textContent = "▸ " + m.file;
-      $("dViewerFrame").src = m.file;
-      $("dViewerOpen").href = m.file;
-    } else {
-      // Mobile: open modal
-      $("mViewerTitle").textContent = m.title;
-      $("mViewerDesc").textContent = m.description || "";
-      $("mViewerCat").textContent = cfg.label || m.category;
-      $("mViewerCat").className = "module-tag " + (cfg.tagClass || "");
-      $("mViewerCat").style.display = "";
-      $("mViewerPath").textContent = "▸ " + m.file;
-      $("mViewerFrame").src = m.file;
-      $("mViewerOpen").href = m.file;
-      openViewerModal();
-    }
-
-    showToast("▸ " + m.title);
-  }
-
-  // ═══════════════════════════════════
-  //  SELECT EMBED
-  // ═══════════════════════════════════
-  function selectEmbed(embed) {
-    activeId = null;
-    document.querySelectorAll(".module-card").forEach(el => el.classList.remove("active"));
-
-    if (isDesktop()) {
-      $("dWelcomeOverlay").classList.add("hidden");
-      $("dViewerTitle").textContent = embed.label;
-      $("dViewerDesc").textContent = embed.desc || "";
-      $("dViewerCat").textContent = "EXTERNE";
-      $("dViewerCat").className = "module-tag tag-embed";
-      $("dViewerCat").style.display = "";
-      $("dViewerKind").style.display = "none";
-      $("dViewerPath").textContent = "▸ " + embed.url;
-      $("dViewerFrame").src = embed.url;
-      $("dViewerOpen").href = embed.url;
-    } else {
-      $("mViewerTitle").textContent = embed.label;
-      $("mViewerDesc").textContent = embed.desc || "";
-      $("mViewerCat").textContent = "EXTERNE";
-      $("mViewerCat").className = "module-tag tag-embed";
-      $("mViewerCat").style.display = "";
-      $("mViewerPath").textContent = "▸ " + embed.url;
-      $("mViewerFrame").src = embed.url;
-      $("mViewerOpen").href = embed.url;
-      openViewerModal();
-    }
-
-    showToast("▸ " + embed.label);
-  }
-
-  // ═══════════════════════════════════
-  //  VIEWER MODAL (mobile)
-  // ═══════════════════════════════════
-  function openViewerModal() {
-    viewerModal.classList.add("open");
-    document.body.style.overflow = "hidden";
-  }
-
-  function closeViewerModal() {
-    viewerModal.classList.remove("open");
-    document.body.style.overflow = "";
-    // Stop iframe loading
-    setTimeout(() => {
-      if (!viewerModal.classList.contains("open")) {
-        $("mViewerFrame").src = "about:blank";
-      }
-    }, 400);
-  }
-
-  viewerCloseBtn.addEventListener("click", closeViewerModal);
-  viewerBackdrop.addEventListener("click", closeViewerModal);
-
-  // ── SWIPE TO DISMISS ──
-  let dragStartY = 0;
-  let dragging = false;
-
-  viewerHandle.addEventListener("touchstart", e => {
-    dragStartY = e.touches[0].clientY;
-    dragging = true;
-    viewerModalContent.style.transition = "none";
-  }, { passive: true });
-
-  document.addEventListener("touchmove", e => {
-    if (!dragging) return;
-    const dy = e.touches[0].clientY - dragStartY;
-    if (dy > 0) {
-      viewerModalContent.style.transform = `translateY(${dy}px)`;
-    }
-  }, { passive: true });
-
-  document.addEventListener("touchend", () => {
-    if (!dragging) return;
-    dragging = false;
-    viewerModalContent.style.transition = "";
-    const currentTransform = viewerModalContent.style.transform;
-    const match = currentTransform.match(/translateY\((\d+)px\)/);
-    const dy = match ? parseInt(match[1]) : 0;
-
-    if (dy > 120) {
-      closeViewerModal();
-    }
-    viewerModalContent.style.transform = "";
-  });
-
-  // ═══════════════════════════════════
-  //  RENDER EMBEDS
-  // ═══════════════════════════════════
-  function renderEmbeds() {
-    embeds.forEach(e => {
-      const card = document.createElement("div");
-      card.className = "embed-card";
-      card.innerHTML = `
-        <div class="e-icon">${e.icon}</div>
-        <div>
-          <div class="e-label">${e.label}</div>
-          <div class="e-desc">${e.desc}</div>
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <p><strong>Mets tous les fichiers dans un dossier</strong></p>
+          <p>Crée un dossier quelque part sur ton ordinateur (exemple : <code>mon-hub</code> sur le Bureau) et mets-y tous les fichiers du kit.</p>
         </div>
-      `;
-      card.addEventListener("click", () => selectEmbed(e));
-      embedsContainer.appendChild(card);
-    });
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          <p><strong>Double-clique sur <code>index.html</code></strong></p>
+          <p>Ça ouvre le hub dans ton navigateur. Tu devrais voir l'interface avec les dossiers d'exemple.</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          <p><strong>Clique sur un dossier</strong></p>
+          <p>La page exemple s'affiche. Sur mobile (ou écran étroit), ça ouvre une modale plein écran. Sur grand écran, ça s'affiche à côté.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-warn">
+      <strong>⚠️ Petite subtilité</strong>
+      En ouvrant <code>index.html</code> directement (avec <code>file://</code>), le chargement des fichiers JSON peut ne pas marcher selon le navigateur. Ce n'est <strong>pas un problème</strong> : le hub a une copie de secours intégrée et fonctionnera quand même. Quand tu mettras le hub en ligne (étape 7), les JSON marcheront parfaitement.
+    </div>
+
+    <div class="screenshot">
+      <span class="big-emoji">🖥️</span>
+      Essaie maintenant ! Double-clique sur index.html pour voir le résultat.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- 4. PERSONNALISER -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section" id="personnaliser">
+    <div class="section-num">4</div>
+    <h2>Personnaliser tes dossiers</h2>
+    <p>Ouvre le fichier <code>modules.json</code> avec un éditeur de texte. Tu vas voir quelque chose comme ça :</p>
+
+<pre>[
+  {
+    <span class="key">"id"</span>: <span class="str">"exemple-notes"</span>,            <span class="comment">← identifiant unique (pas d'espaces, pas d'accents)</span>
+    <span class="key">"title"</span>: <span class="str">"Mes Notes Personnelles"</span>, <span class="comment">← le nom affiché dans le hub</span>
+    <span class="key">"file"</span>: <span class="str">"mes-notes.html"</span>,           <span class="comment">← le fichier HTML qui s'ouvre au clic</span>
+    <span class="key">"category"</span>: <span class="str">"perso"</span>,               <span class="comment">← la catégorie (pour trier)</span>
+    <span class="key">"kind"</span>: <span class="str">"notes"</span>,                   <span class="comment">← le petit badge affiché</span>
+    <span class="key">"icon"</span>: <span class="str">"📝"</span>,                      <span class="comment">← l'emoji affiché</span>
+    <span class="key">"description"</span>: <span class="str">"Toutes mes notes"</span>   <span class="comment">← description courte</span>
   }
+]</pre>
 
-  // ═══════════════════════════════════
-  //  FILTERS
-  // ═══════════════════════════════════
-  filterRow.addEventListener("click", e => {
-    const btn = e.target.closest(".filter-btn");
-    if (!btn) return;
-    activeFilter = btn.dataset.cat;
-    document.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("active", b.dataset.cat === activeFilter));
-    renderModules();
-  });
+    <p>Chaque bloc entre <code>{ }</code> est un dossier. Pour <strong style="color:var(--text)">modifier un dossier</strong>, change simplement le texte entre les guillemets <code>" "</code>.</p>
 
-  searchInput.addEventListener("input", renderModules);
+    <div class="callout callout-warn">
+      <strong>⚠️ Les pièges à éviter</strong>
+      <span style="display:block;margin-top:6px;">• Chaque valeur doit être entre <code>"guillemets"</code></span>
+      <span style="display:block;">• Chaque ligne se termine par une <code>,</code> virgule SAUF la dernière du bloc</span>
+      <span style="display:block;">• Chaque bloc <code>{ }</code> se termine par une <code>,</code> virgule SAUF le dernier de la liste</span>
+      <span style="display:block;">• La liste est entre <code>[ ]</code> crochets</span>
+      <span style="display:block;margin-top:6px;">En cas de doute, copie-colle un bloc existant et modifie-le.</span>
+    </div>
 
-  // ═══════════════════════════════════
-  //  INIT
-  // ═══════════════════════════════════
-  renderModules();
-  renderEmbeds();
+    <h3 style="margin-top:24px;font-size:1rem;color:var(--text);">Les catégories</h3>
+    <p>Tu peux inventer les catégories que tu veux. Par défaut le kit en a 3 :</p>
+    <table class="compare-table">
+      <tr><th>Catégorie</th><th>Couleur dans le hub</th><th>Exemple d'usage</th></tr>
+      <tr><td><code>perso</code></td><td style="color:#00ff88;">● Vert</td><td>Notes, listes, journal</td></tr>
+      <tr><td><code>travail</code></td><td style="color:#00d4ff;">● Bleu</td><td>Projets, budgets, outils pro</td></tr>
+      <tr><td><code>loisirs</code></td><td style="color:#ffb000;">● Orange</td><td>Recettes, musique, films</td></tr>
+    </table>
+    <p>Pour ajouter d'autres catégories, regarde la section "Couleurs & catégories" plus bas.</p>
+  </div>
 
-  // Handle responsive changes
-  window.matchMedia("(min-width: 1024px)").addEventListener("change", () => {
-    if (isDesktop()) {
-      // Close mobile modal if open
-      closeViewerModal();
-      // Show all views
-      Object.values(views).forEach(el => {
-        el.classList.remove("hidden");
-        el.classList.add("active");
-      });
-    } else {
-      switchView(currentView);
-    }
-  });
-</script>
+  <!-- ═══════════════════════════════════════ -->
+  <!-- 5. AJOUTER -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section" id="ajouter">
+    <div class="section-num">5</div>
+    <h2>Ajouter un nouveau dossier</h2>
+
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <p><strong>Crée ta page HTML</strong></p>
+          <p>Crée un fichier (exemple : <code>mon-truc.html</code>) dans le même dossier que <code>index.html</code>. Tu peux y mettre ce que tu veux. Si tu ne sais pas quoi mettre, copie un des fichiers exemples et modifie le contenu.</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          <p><strong>Ajoute une entrée dans <code>modules.json</code></strong></p>
+          <p>Ouvre <code>modules.json</code>, et ajoute un nouveau bloc. Le plus simple : copie un bloc existant, colle-le, et change les valeurs.</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          <p><strong>Rafraîchis le hub</strong></p>
+          <p>Recharge la page du hub dans ton navigateur (touche <code>F5</code> ou <code>Ctrl+R</code>). Ton nouveau dossier apparaît.</p>
+        </div>
+      </div>
+    </div>
+
+    <p style="margin-top:12px;">Exemple concret — tu veux ajouter une page "Ma Liste de Films" :</p>
+
+<pre><span class="comment">// Dans modules.json, ajoute ce bloc :</span>
+
+{
+  <span class="key">"id"</span>: <span class="str">"mes-films"</span>,
+  <span class="key">"title"</span>: <span class="str">"Ma Liste de Films"</span>,
+  <span class="key">"file"</span>: <span class="str">"films.html"</span>,
+  <span class="key">"category"</span>: <span class="str">"loisirs"</span>,
+  <span class="key">"kind"</span>: <span class="str">"liste"</span>,
+  <span class="key">"icon"</span>: <span class="str">"🎬"</span>,
+  <span class="key">"description"</span>: <span class="str">"Les films que j'ai vus et ceux à voir"</span>
+}</pre>
+
+    <div class="callout callout-info">
+      <strong>💡 Astuce : le bouton +</strong>
+      Dans le hub, il y a un bouton <code>+</code> en bas à droite. Il t'aide à générer le JSON pour un nouveau dossier — tu remplis les champs, tu copies le résultat, et tu le colles dans <code>modules.json</code>.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- 5.5 EMBEDS -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section">
+    <h2>Ajouter un lien favori</h2>
+    <p>C'est pareil, mais dans <code>embeds.json</code>. Les liens apparaissent dans l'onglet "Outils" (sur mobile) ou dans le panneau de droite (sur desktop).</p>
+
+<pre>{
+  <span class="key">"id"</span>: <span class="str">"mon-lien"</span>,
+  <span class="key">"icon"</span>: <span class="str">"🌍"</span>,
+  <span class="key">"label"</span>: <span class="str">"Mon Site Préféré"</span>,
+  <span class="key">"url"</span>: <span class="str">"https://www.example.com/"</span>,
+  <span class="key">"desc"</span>: <span class="str">"Description courte"</span>
+}</pre>
+
+    <div class="callout callout-warn">
+      <strong>⚠️ L'adresse doit être complète</strong>
+      Toujours mettre <code>https://</code> au début de l'adresse. Exemple : <code>https://www.youtube.com/</code> et pas juste <code>youtube.com</code>.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- 6. COULEURS -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section" id="couleurs">
+    <div class="section-num">6</div>
+    <h2>Changer le nom, les couleurs, les catégories</h2>
+
+    <h3 style="margin-top:16px;font-size:0.95rem;color:var(--text);">Changer le nom du hub</h3>
+    <p>Ouvre <code>index.html</code> avec un éditeur de texte. Cherche (Ctrl+F) le mot <code>MON HUB</code> et remplace-le par le nom que tu veux. Il apparaît à 4-5 endroits dans le fichier.</p>
+
+    <h3 style="margin-top:24px;font-size:0.95rem;color:var(--text);">Changer la couleur principale</h3>
+    <p>Dans <code>index.html</code>, cherche la ligne :</p>
+<pre><span class="key">--phosphor</span>: <span class="str">#00ff88</span>;</pre>
+    <p>Change <code>#00ff88</code> (vert) par la couleur de ton choix :</p>
+    <table class="compare-table">
+      <tr><th>Couleur</th><th>Code</th></tr>
+      <tr><td style="color:#00ff88;">● Vert (par défaut)</td><td><code>#00ff88</code></td></tr>
+      <tr><td style="color:#00d4ff;">● Bleu cyan</td><td><code>#00d4ff</code></td></tr>
+      <tr><td style="color:#a855f7;">● Violet</td><td><code>#a855f7</code></td></tr>
+      <tr><td style="color:#ff6b6b;">● Rouge</td><td><code>#ff6b6b</code></td></tr>
+      <tr><td style="color:#ffb000;">● Orange</td><td><code>#ffb000</code></td></tr>
+      <tr><td style="color:#f472b6;">● Rose</td><td><code>#f472b6</code></td></tr>
+    </table>
+
+    <h3 style="margin-top:24px;font-size:0.95rem;color:var(--text);">Ajouter une catégorie personnalisée</h3>
+    <p>Dans <code>index.html</code>, cherche <code>catConfig</code>. Tu vas trouver un bloc comme :</p>
+<pre>const catConfig = {
+  <span class="key">perso</span>:   { label: <span class="str">"PERSO"</span>,   ... },
+  <span class="key">travail</span>: { label: <span class="str">"TRAVAIL"</span>, ... },
+  <span class="key">loisirs</span>: { label: <span class="str">"LOISIRS"</span>, ... },
+};</pre>
+    <p>Copie une ligne, change le nom, et adapte les couleurs. Ensuite tu peux utiliser cette nouvelle catégorie dans <code>modules.json</code>.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- 7. EN LIGNE -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section" id="en-ligne">
+    <div class="section-num">7</div>
+    <h2>Mettre en ligne (optionnel)</h2>
+    <p>Si tu veux accéder à ton hub depuis ton téléphone ou le partager, le plus simple est <strong style="color:var(--text);">GitHub Pages</strong>. C'est gratuit.</p>
+
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <p><strong>Crée un compte sur <a href="https://github.com" style="color:var(--blue);">github.com</a></strong></p>
+          <p>C'est gratuit. Choisis un nom d'utilisateur simple.</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          <p><strong>Crée un nouveau "repository"</strong></p>
+          <p>Clique sur le bouton <code>+</code> en haut à droite → "New repository". Donne-lui un nom (exemple : <code>mon-hub</code>). Coche "Public". Clique "Create".</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          <p><strong>Envoie tes fichiers</strong></p>
+          <p>Sur la page du repository, clique "uploading an existing file". Glisse tous tes fichiers (index.html, modules.json, embeds.json, et tes pages). Clique "Commit changes".</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <div class="step-text">
+          <p><strong>Active GitHub Pages</strong></p>
+          <p>Va dans "Settings" → "Pages" (dans le menu de gauche). Sous "Branch", choisis <code>main</code> et clique "Save".</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">5</div>
+        <div class="step-text">
+          <p><strong>Attends 2 minutes</strong></p>
+          <p>Ton hub sera accessible à l'adresse : <code style="color:var(--green);">https://TON-NOM.github.io/mon-hub/</code></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-ok">
+      <strong>🎉 C'est fait !</strong>
+      Tu peux maintenant ouvrir cette adresse sur ton téléphone, la mettre en favori, et accéder à ton hub de partout.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- 8. FAQ -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section" id="faq">
+    <div class="section-num">8</div>
+    <h2>Questions fréquentes</h2>
+
+    <h3 style="margin-top:16px;font-size:0.95rem;color:var(--green);">Mon dossier n'apparaît pas ?</h3>
+    <p>Vérifie que le JSON est valide (pas de virgule oubliée, guillemets bien fermés). En cas de doute, colle ton <code>modules.json</code> sur <a href="https://jsonlint.com/" style="color:var(--blue);">jsonlint.com</a> — il te dira s'il y a une erreur.</p>
+
+    <h3 style="margin-top:20px;font-size:0.95rem;color:var(--green);">Quand je clique sur un dossier, c'est vide ?</h3>
+    <p>Le fichier HTML indiqué dans <code>"file"</code> n'existe probablement pas, ou son nom est mal écrit. Le nom est sensible aux majuscules/minuscules : <code>Notes.html</code> ≠ <code>notes.html</code>.</p>
+
+    <h3 style="margin-top:20px;font-size:0.95rem;color:var(--green);">Comment trouver des emojis ?</h3>
+    <p>Sur Windows : touche <code>Windows + .</code> (point). Sur Mac : <code>Ctrl + Cmd + Espace</code>. Tu peux aussi copier-coller depuis <a href="https://emojipedia.org/" style="color:var(--blue);">emojipedia.org</a>.</p>
+
+    <h3 style="margin-top:20px;font-size:0.95rem;color:var(--green);">Quel logiciel utiliser pour éditer les fichiers ?</h3>
+    <p>Le <strong style="color:var(--text)">Bloc-notes</strong> (Windows) ou <strong style="color:var(--text)">TextEdit</strong> (Mac) marchent, mais c'est pas idéal. Le mieux, c'est d'installer <a href="https://code.visualstudio.com/" style="color:var(--blue);">Visual Studio Code</a> (gratuit) — il colore le code et détecte les erreurs automatiquement.</p>
+
+    <h3 style="margin-top:20px;font-size:0.95rem;color:var(--green);">Je peux mettre autre chose que des pages HTML ?</h3>
+    <p>Oui ! Dans les liens favoris (<code>embeds.json</code>), tu peux mettre n'importe quelle URL : vidéo YouTube, Google Sheets, site web… Le hub les affiche dans un cadre intégré.</p>
+
+    <h3 style="margin-top:20px;font-size:0.95rem;color:var(--green);">C'est sécurisé ?</h3>
+    <p>Le hub fonctionne 100% dans ton navigateur. Aucune donnée ne quitte ton ordinateur. Les favoris et récents sont stockés dans le navigateur (localStorage), pas en ligne.</p>
+
+    <h3 style="margin-top:20px;font-size:0.95rem;color:var(--green);">Je peux l'utiliser sur téléphone ?</h3>
+    <p>Oui, il est conçu pour. Si tu le mets en ligne (via GitHub Pages), tu peux l'ajouter à l'écran d'accueil de ton téléphone et ça ressemble à une app.</p>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="guide-footer">
+    <p>Kit Hub Personnel — Guide v1.0</p>
+    <p style="margin-top:6px;">Fait avec soin pour que tout le monde puisse avoir son coin sur le web.</p>
+  </div>
+
+</div>
 
 </body>
 </html>
