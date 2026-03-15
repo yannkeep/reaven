@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radiographie de la Société Belge</title>
+    <meta property="og:image" content="https://bolt.new/static/og_default.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
+    <style>
+:root {
+  --primary-color: #1a5490;
+  --primary-dark: #0f3e6f;
+  --accent-color: #2980b9;
+  --text-primary: #1a1a1a;
+  --text-secondary: #4a4a4a;
+  --text-muted: #6b7280;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --border-color: #dee2e6;
+  --success-color: #27ae60;
+  --warning-color: #e67e22;
+  --danger-color: #c0392b;
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --header-height: 72px;
+  --sidebar-width: 280px;
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+  --spacing-2xl: 4rem;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--header-height) + 2rem);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+  z-index: 10000;
+  transition: width 150ms;
+}
+
+#header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 1000;
+  transition: box-shadow 250ms;
+}
+
+#header.scrolled {
+  box-shadow: var(--shadow-md);
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+}
+
+.site-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  letter-spacing: -0.02em;
+}
+
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  width: 40px;
+  height: 40px;
+}
+
+.menu-toggle span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background-color: var(--text-primary);
+  transition: all 250ms;
+}
+
+.menu-toggle.active span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.menu-toggle.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.menu-toggle.active span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.sidebar {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  width: var(--sidebar-width);
+  height: calc(100vh - var(--header-height));
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  overflow-y: auto;
+  z-index: 900;
+  padding: var(--spacing-lg);
+  transition: transform 250ms;
+}
+
+.sidebar h3 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-md);
+}
+
+.toc {
+  list-style: none;
+}
+
+.toc > li {
+  margin-bottom: var(--spacing-xs);
+}
+
+.toc a {
+  display: block;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 0.9375rem;
+  transition: all 150ms;
+  position: relative;
+}
+
+.toc a:hover {
+  color: var(--primary-color);
+  background-color: var(--bg-primary);
+}
+
+.toc a.active {
+  color: var(--primary-color);
+  background-color: var(--bg-primary);
+  font-weight: 600;
+}
+
+.toc a.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 70%;
+  background-color: var(--primary-color);
+  border-radius: 0 2px 2px 0;
+}
+
+.toc ul {
+  list-style: none;
+  padding-left: var(--spacing-md);
+  margin-top: var(--spacing-xs);
+}
+
+.toc ul a {
+  font-size: 0.875rem;
+  padding: 6px var(--spacing-sm);
+}
+
+#main-content {
+  margin-left: var(--sidebar-width);
+  margin-top: var(--header-height);
+  min-height: calc(100vh - var(--header-height));
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+.hero-section {
+  padding: var(--spacing-2xl) 0;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.main-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--primary-dark);
+  margin-bottom: var(--spacing-lg);
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  max-width: 900px;
+}
+
+.lead p {
+  margin-bottom: var(--spacing-md);
+}
+
+.lead strong {
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+.main-section {
+  padding: var(--spacing-2xl) 0;
+}
+
+.main-section.alt-bg {
+  background-color: var(--bg-secondary);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.section-number {
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  opacity: 0.2;
+  line-height: 1;
+}
+
+.section-header h2 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  line-height: 1.2;
+}
+
+.subsection {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.subsection h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-lg);
+  line-height: 1.3;
+}
+
+.subsection h4 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: var(--spacing-lg) 0 var(--spacing-md);
+}
+
+.content-block {
+  margin-bottom: var(--spacing-lg);
+}
+
+.content-block p {
+  margin-bottom: var(--spacing-md);
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.content-block strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  margin: var(--spacing-lg) 0;
+}
+
+.stat-card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: var(--spacing-lg);
+  text-align: center;
+  transition: all 250ms;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-color);
+}
+
+.stat-card.highlight {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: white;
+  border: none;
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  line-height: 1;
+  margin-bottom: var(--spacing-xs);
+}
+
+.stat-card.highlight .stat-value {
+  color: white;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.stat-card.highlight .stat-label {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.highlight-box {
+  background-color: #e3f2fd;
+  border-left: 4px solid var(--primary-color);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: 4px;
+  margin: var(--spacing-lg) 0;
+}
+
+.scandal-box {
+  background-color: #fff3e0;
+  border-left: 4px solid var(--warning-color);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: 4px;
+  margin: var(--spacing-lg) 0;
+}
+
+.scandal-box h4 {
+  color: var(--warning-color);
+  margin-top: 0;
+  margin-bottom: var(--spacing-sm);
+}
+
+.warning-box {
+  background-color: #ffebee;
+  border-left: 4px solid var(--danger-color);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: 4px;
+  margin: var(--spacing-lg) 0;
+}
+
+.warning-box h4 {
+  color: var(--danger-color);
+  margin-top: 0;
+}
+
+.quote {
+  font-style: italic;
+  color: var(--text-muted);
+  margin-top: var(--spacing-md);
+  padding-left: var(--spacing-md);
+  border-left: 2px solid var(--danger-color);
+}
+
+.billionaire-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-md);
+  margin: var(--spacing-lg) 0;
+}
+
+.billionaire-card {
+  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  padding: var(--spacing-lg);
+  position: relative;
+  transition: all 250ms;
+}
+
+.billionaire-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.billionaire-card .rank {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  width: 40px;
+  height: 40px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.billionaire-card h4 {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 1.25rem;
+}
+
+.fortune {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  margin: var(--spacing-xs) 0;
+}
+
+.source {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.site-footer {
+  background-color: var(--primary-dark);
+  color: white;
+  padding: var(--spacing-xl) 0;
+  text-align: center;
+  margin-left: var(--sidebar-width);
+}
+
+.site-footer p {
+  margin: var(--spacing-xs) 0;
+}
+
+.scroll-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 48px;
+  height: 48px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 250ms;
+  z-index: 999;
+}
+
+.scroll-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.scroll-to-top:hover {
+  transform: translateY(-4px);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --header-height: 64px;
+    --spacing-lg: 1rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+  }
+
+  .menu-toggle {
+    display: flex;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  #main-content {
+    margin-left: 0;
+  }
+
+  .site-footer {
+    margin-left: 0;
+  }
+
+  .main-title {
+    font-size: 2rem;
+  }
+
+  .section-number {
+    font-size: 1.5rem;
+  }
+
+  .section-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .stats-grid,
+  .billionaire-grid {
+    grid-template-columns: 1fr;
+  }
+}
+    </style>
+</head>
+<body>
+    <div id="progress-bar"></div>
+
+    <header id="header">
+        <div class="header-content">
+            <h1 class="site-title">Radiographie Belge</h1>
+            <button id="menu-toggle" class="menu-toggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <nav id="sidebar" class="sidebar">
+        <h3>Table des matières</h3>
+        <ul class="toc">
+            <li><a href="#introduction">Introduction</a></li>
+            <li><a href="#axe1">Axe 1 : Gouvernance</a></li>
+            <li><a href="#axe2">Axe 2 : Acteurs économiques</a></li>
+            <li><a href="#axe3">Axe 3 : Société civile</a></li>
+            <li><a href="#axe4">Axe 4 : Flux financiers</a></li>
+            <li><a href="#conclusion">Conclusion</a></li>
+        </ul>
+    </nav>
+
+    <main id="main-content">
+        <section id="introduction" class="hero-section">
+            <div class="container">
+                <h1 class="main-title">Radiographie complète de la société belge</h1>
+                <div class="lead">
+                    <p><strong>La Belgique est un État fédéral d'une complexité institutionnelle sans équivalent mondial</strong>, où 7 parlements et 7 gouvernements administrent 11,5 millions d'habitants, où 18 milliardaires coexistent avec un taux de pression fiscale de 42,6 % du PIB, et où la frontière entre intérêt public et intérêt privé se brouille systématiquement sous l'effet d'une particratie enracinée.</p>
+                    <p>Ce panorama à 360° révèle un pays dont les structures — nées de la pilarisation du XIX<sup>e</sup> siècle, du compromis communautaire et de l'héritage colonial — continuent de façonner les rapports de pouvoir, les flux financiers et les zones grises.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="axe1" class="main-section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-number">01</span>
+                    <h2>Gouvernance et Institutions Publiques</h2>
+                </div>
+
+                <article class="subsection">
+                    <h3>Sept parlements pour un seul pays</h3>
+
+                    <div class="content-block">
+                        <p>Le système institutionnel belge repose sur un fédéralisme à double base — territoriale (les Régions) et personnelle (les Communautés) — qui produit une architecture d'une complexité remarquable. L'État fédéral coexiste avec <strong>3 Régions</strong> (Flandre, Wallonie, Bruxelles-Capitale), <strong>3 Communautés</strong> (flamande, française, germanophone), <strong>10 provinces</strong> et <strong>581 communes</strong>.</p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">236</div>
+                            <div class="stat-label">Jours de négociation (2024)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">7</div>
+                            <div class="stat-label">Parlements</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">150</div>
+                            <div class="stat-label">Députés Chambre</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">581</div>
+                            <div class="stat-label">Communes</div>
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="highlight-box">
+                            <p><strong>Fait historique :</strong> Bart De Wever est le premier nationaliste flamand à devenir Premier ministre de Belgique, alors que l'objectif programmatique de la N-VA reste le confédéralisme.</p>
+                        </div>
+
+                        <p>Bruxelles accueille <strong>38 organisations de l'Union européenne</strong>, dont la Commission (plus de 37 000 agents), le Conseil et le Parlement européen. L'OTAN siège à Evere.</p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card highlight">
+                            <div class="stat-value">162k</div>
+                            <div class="stat-label">Emplois liés aux institutions</div>
+                        </div>
+                        <div class="stat-card highlight">
+                            <div class="stat-value">23%</div>
+                            <div class="stat-label">De l'emploi régional</div>
+                        </div>
+                    </div>
+
+                    <div class="scandal-box">
+                        <h4>Le scandale Nethys/Publifin (2016)</h4>
+                        <p>Stéphane Moreau, CEO de Nethys, touchait <strong>839 000 € brut par an</strong>. Les quatre ex-managers ont perçu <strong>18,6 millions d'euros</strong> d'indemnités contestées.</p>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section id="axe2" class="main-section alt-bg">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-number">02</span>
+                    <h2>Acteurs Économiques Privés</h2>
+                </div>
+
+                <article class="subsection">
+                    <h3>Holdings et dynasties : les familles qui possèdent la Belgique</h3>
+
+                    <div class="content-block">
+                        <p>Le capitalisme belge reste profondément familial et patrimonial. La Belgique compte <strong>18 milliardaires</strong> dans le classement Forbes 2026 (un record), pour une fortune cumulée de <strong>55,1 milliards de dollars</strong>.</p>
+                    </div>
+
+                    <div class="billionaire-grid">
+                        <div class="billionaire-card">
+                            <div class="rank">1</div>
+                            <h4>Eric Wittouck</h4>
+                            <p class="fortune">~12 milliards $</p>
+                            <p class="source">Raffinerie Tirlemontoise, Artal, Invus</p>
+                        </div>
+                        <div class="billionaire-card">
+                            <div class="rank">2</div>
+                            <h4>Fernand Huts</h4>
+                            <p class="fortune">~5 milliards $</p>
+                            <p class="source">Katoen Natie</p>
+                        </div>
+                        <div class="billionaire-card">
+                            <div class="rank">3</div>
+                            <h4>Alexandre Van Damme</h4>
+                            <p class="fortune">~4,5 milliards $</p>
+                            <p class="source">AB InBev / JAB</p>
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <h4>Port d'Anvers : commerce et criminalité</h4>
+
+                        <div class="warning-box">
+                            <h4>La porte d'entrée de la cocaïne</h4>
+                            <p>Anvers est la première porte d'entrée de la cocaïne en Europe : <strong>116 tonnes</strong> saisies en 2023 (record). Environ <strong>70 % de la cocaïne</strong> entrant en Europe passe par Anvers et Rotterdam.</p>
+                            <p class="quote">« La Belgique évolue vers un narco-État » — Juge d'instruction anonyme d'Anvers</p>
+                        </div>
+
+                        <h4>Panama Papers et paradis fiscaux</h4>
+                        <p>Les <strong>Panama Papers</strong> (2016) ont identifié <strong>732 Belges</strong> liés à <strong>1 144 sociétés offshore</strong>. L'État n'a récupéré que <strong>39,6 millions €</strong> sur 141 millions enrôlés.</p>
+
+                        <div class="scandal-box">
+                            <h4>Excess Profit Rulings</h4>
+                            <p>De 2004 à 2014, le Service des Décisions Anticipées a permis à <strong>55 multinationales</strong> de déduire entre <strong>50 et 90 %</strong> de leurs bénéfices réels. En 2020, <strong>383 milliards €</strong> de transactions ont transité des entreprises belges vers les paradis fiscaux — soit <strong>83 % du PIB</strong> belge.</p>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section id="axe3" class="main-section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-number">03</span>
+                    <h2>Société Civile</h2>
+                </div>
+
+                <article class="subsection">
+                    <h3>Du berceau au tombeau : les piliers structurent encore la Belgique</h3>
+
+                    <div class="content-block">
+                        <p>Le système de <strong>pilarisation</strong> (<em>verzuiling</em>) constitue la colonne vertébrale sociologique de la Belgique. Construit dès le XIX<sup>e</sup> siècle, il a produit des milieux sociaux séparés encadrant les individus « du berceau au tombeau ».</p>
+
+                        <div class="highlight-box">
+                            <p>Les trois syndicats comptent ensemble <strong>3,35 millions d'affiliés</strong> — un chiffre supérieur au total de tous les syndicats français réunis, pour un pays six fois moins peuplé.</p>
+                        </div>
+
+                        <p>Ce taux exceptionnel s'explique par le rôle des syndicats comme <strong>caisses de paiement des allocations de chômage</strong>.</p>
+
+                        <h4>Le monde associatif</h4>
+                        <ul>
+                            <li><strong>147 172 ASBL</strong></li>
+                            <li><strong>497 400 salariés</strong> (12,6 % de l'emploi salarié)</li>
+                            <li><strong>5,4 % du PIB</strong></li>
+                            <li>Croissance de <strong>19,7 %</strong> entre 2009 et 2017</li>
+                        </ul>
+
+                        <h4>Médias en concentration</h4>
+                        <p>Le paysage médiatique belge est structurellement divisé en marchés francophone et néerlandophone étanches. Côté néerlandophone, <strong>DPG Media</strong> et <strong>Mediahuis</strong> contrôlent <strong>80 à 100 % du marché classique flamand</strong>.</p>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section id="axe4" class="main-section alt-bg">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-number">04</span>
+                    <h2>Flux Financiers et Zones Grises</h2>
+                </div>
+
+                <article class="subsection">
+                    <h3>L'architecture fiscale belge : entre attraction et contournement</h3>
+
+                    <div class="content-block">
+                        <p>La Belgique présente un paradoxe fiscal saisissant : une <strong>pression fiscale de 42,6 % du PIB</strong> (5<sup>e</sup> rang mondial OCDE), mais un taux d'imposition effectif des grandes entreprises qui peut descendre à <strong>1-3 %</strong> grâce aux niches fiscales.</p>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">42,6%</div>
+                                <div class="stat-label">Pression fiscale (citoyens)</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">1-3%</div>
+                                <div class="stat-label">Taux effectif (multinationales)</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">106,8%</div>
+                                <div class="stat-label">Dette publique / PIB</div>
+                            </div>
+                        </div>
+
+                        <h4>Corruption et blanchiment</h4>
+
+                        <div class="warning-box">
+                            <h4>Indice de Perception de la Corruption</h4>
+                            <p><strong>69/100</strong> en 2024-2025 — son plus bas historique (contre 77/100 en 2016). <strong>2/3 des Belges</strong> pensent que la corruption est répandue.</p>
+                        </div>
+
+                        <p>La <strong>CTIF</strong> a reçu un record de <strong>79 211 déclarations de soupçons</strong> en 2023, transmettant 1 316 dossiers aux parquets pour un montant de <strong>2,43 milliards €</strong>.</p>
+
+                        <div class="scandal-box">
+                            <h4>Qatargate</h4>
+                            <p>Eurodéputés PS <strong>Marc Tarabella</strong> (arrêté février 2023) et <strong>Marie Arena</strong> inculpés pour corruption et blanchiment. ~15 inculpés au total.</p>
+                        </div>
+
+                        <div class="scandal-box">
+                            <h4>Didier Reynders (octobre 2025)</h4>
+                            <p>Ex-commissaire européen à la Justice inculpé pour <strong>blanchiment d'argent</strong> via l'achat de jeux de hasard (~200 000 € en e-tickets) et dépôts en cash (~700 000 € entre 2008 et 2018).</p>
+                        </div>
+
+                        <h4>La particratie : quand les partis contrôlent tout</h4>
+                        <p>La Belgique est régulièrement qualifiée de <strong>« particratie »</strong> — un système où les partis politiques contrôlent non seulement le législatif et l'exécutif, mais aussi la justice, l'administration, les entreprises publiques et les médias publics.</p>
+
+                        <div class="highlight-box">
+                            <p>Financement des partis : <strong>83,7 millions €</strong> de subventions directes (2024), soit <strong>~80 %</strong> des revenus des partis provenant de subventions publiques.</p>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section id="conclusion" class="main-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Ce que ce panorama révèle</h2>
+                </div>
+
+                <article class="subsection">
+                    <div class="content-block">
+                        <p style="font-size: 1.25rem; line-height: 1.6; font-weight: 500;">La société belge fonctionne sur un <strong>paradoxe productif</strong> : une complexité institutionnelle extrême qui protège les minorités et force le compromis, mais qui génère simultanément de l'opacité, de l'immobilisme et des zones grises systémiques.</p>
+
+                        <div class="highlight-box">
+                            <p>Le « Top 3 mondial des pays sans gouvernement est 100 % belge » :</p>
+                            <ol>
+                                <li>Bruxelles : <strong>613+ jours</strong> (2024-2026)</li>
+                                <li>Fédéral : <strong>541 jours</strong> (2010-2011)</li>
+                                <li>Fédéral : <strong>494 jours</strong> (2019-2020)</li>
+                            </ol>
+                        </div>
+
+                        <h3>Leviers de transformation</h3>
+                        <p>Pour le citoyen souhaitant comprendre et agir, ce panorama suggère que les leviers de transformation se situent moins dans la réforme institutionnelle formelle que dans le <strong>renforcement de la transparence effective</strong> :</p>
+
+                        <ul style="line-height: 1.8;">
+                            <li>Registre obligatoire des lobbies avec sanctions</li>
+                            <li>Déclarations de patrimoine des élus</li>
+                            <li><em>Cooling-off period</em> pour le pantouflage</li>
+                            <li>Accès élargi au registre UBO</li>
+                            <li>Indépendance réelle du financement médiatique</li>
+                        </ul>
+
+                        <div class="highlight-box" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-left: 4px solid var(--success-color);">
+                            <h4 style="color: var(--success-color);">La piste de la démocratie délibérative</h4>
+                            <p>Les expériences de démocratie délibérative — panels citoyens en Communauté germanophone, commissions délibératives à Bruxelles et en Wallonie — constituent peut-être la piste la plus prometteuse pour contourner les blocages d'un système qui, tout en protégeant remarquablement les minorités, peine à se réformer lui-même.</p>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>Document d'éducation permanente citoyenne basé sur des données ouvertes</p>
+            <p style="font-size: 0.875rem; opacity: 0.8;">Ce panorama synthétise les données publiques disponibles pour offrir un outil de compréhension de la société belge</p>
+        </div>
+    </footer>
+
+    <button id="scroll-to-top" class="scroll-to-top" aria-label="Retour en haut">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+    </button>
+
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const progressBar = document.getElementById('progress-bar');
+  const header = document.getElementById('header');
+  const menuToggle = document.getElementById('menu-toggle');
+  const sidebar = document.getElementById('sidebar');
+  const scrollButton = document.getElementById('scroll-to-top');
+  const tocLinks = document.querySelectorAll('.toc a');
+
+  window.addEventListener('scroll', () => {
+    const windowHeight = window.innerHeight;
+    const documentHeight = document.documentElement.scrollHeight;
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const trackLength = documentHeight - windowHeight;
+    const percentScrolled = (scrollTop / trackLength) * 100;
+    progressBar.style.width = percentScrolled + '%';
+
+    if (scrollTop > 50) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
+
+    if (scrollTop > 300) {
+      scrollButton.classList.add('visible');
+    } else {
+      scrollButton.classList.remove('visible');
+    }
+  });
+
+  menuToggle.addEventListener('click', () => {
+    menuToggle.classList.toggle('active');
+    sidebar.classList.toggle('active');
+  });
+
+  tocLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 768) {
+        menuToggle.classList.remove('active');
+        sidebar.classList.remove('active');
+      }
+    });
+  });
+
+  scrollButton.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      const href = this.getAttribute('href');
+      if (href !== '#' && href !== '') {
+        const targetElement = document.querySelector(href);
+        if (targetElement) {
+          e.preventDefault();
+          targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    });
+  });
+});
+    </script>
+</body>
+</html>
