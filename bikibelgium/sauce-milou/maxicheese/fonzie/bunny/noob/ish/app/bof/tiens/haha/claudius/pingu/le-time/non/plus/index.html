@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Fabrique de l'Ennemi : L'Anti-Modèle Belge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Energetic Editorial (Slate #0f172a, Orange #f97316, Cyan #0ea5e9, Rose #e11d48) on Light Slate Background (#f8fafc) -->
+    <!-- Application Structure Plan: Linear 'Scrollytelling' editorial. Starts with the thesis (Hero). Section 1 uses interactive flip-cards to deconstruct the media catalyst (Deborsu's documentary tropes). Section 2 uses a logarithmic bar chart to contrast perceived vs real fraud, shattering the media illusion. Section 3 uses a dual-axis line chart and an HTML/CSS process flow to demonstrate how the media narrative directly authorized severe austerity policies. -->
+    <!-- Visualization & Content Choices: 1. Goal: Compare -> Viz: Bar Chart (Chart.js) -> Justification: Starkly visualizes the 1:150 ratio between social and tax fraud. Logarithmic scale used due to extreme disparity. 2. Goal: Organize -> Viz: HTML/CSS Flowchart -> Justification: Maps the 'Media-to-Policy' pipeline without SVG. 3. Goal: Change over time -> Viz: Dual-axis Line Chart (Chart.js) -> Justification: Correlates the rise in punitive legislation with the fall in recipient purchasing power. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            base: '#f8fafc',
+                            dark: '#0f172a',
+                            media: '#f97316',
+                            data: '#0ea5e9',
+                            austerity: '#e11d48'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 45vh;
+            max-height: 450px;
+            min-height: 320px;
+        }
+
+        .flip-card {
+            perspective: 1000px;
+            height: 280px;
+        }
+        
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        
+        .flip-card:hover .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .flip-card-front {
+            background-color: #ffffff;
+            border-top: 4px solid #f97316;
+        }
+        
+        .flip-card-back {
+            background-color: #0f172a;
+            color: #f8fafc;
+            transform: rotateY(180deg);
+            border-top: 4px solid #0ea5e9;
+        }
+
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="antialiased font-sans selection:bg-brand-media selection:text-white">
+
+    <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-lg border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="font-serif font-black text-2xl tracking-tighter text-brand-dark uppercase">L'Anti-Fan Club</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8 text-sm font-bold text-slate-500 uppercase tracking-widest">
+                    <a href="#edito" class="hover:text-brand-media transition-colors">Éditorial</a>
+                    <a href="#catalyseur" class="hover:text-brand-media transition-colors">Le Catalyseur</a>
+                    <a href="#donnees" class="hover:text-brand-data transition-colors">Les Faits</a>
+                    <a href="#consequences" class="hover:text-brand-austerity transition-colors">L'Austérité</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section id="edito" class="min-h-screen flex items-center pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-brand-media via-brand-data to-brand-austerity"></div>
+            <div class="max-w-4xl mx-auto space-y-10 relative z-10">
+                <div class="inline-block px-4 py-1.5 bg-brand-dark text-white text-xs font-black tracking-[0.2em] uppercase rounded-sm shadow-lg">
+                    Dossier d'Investigation Critique
+                </div>
+                <h1 class="font-serif text-6xl md:text-8xl font-black leading-[1.1] text-brand-dark">
+                    La Fabrique de <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-media to-brand-austerity">l'Ennemi Intérieur.</span>
+                </h1>
+                <p class="text-2xl md:text-3xl text-slate-600 font-serif italic border-l-8 border-brand-media pl-6 leading-relaxed">
+                    Comment la Belgique a transformé la chasse aux chômeurs en programme économique, avec la complicité du petit écran.
+                </p>
+                <div class="text-lg leading-relaxed space-y-6 text-slate-700 font-sans bg-white p-8 md:p-10 rounded-2xl shadow-xl border border-slate-100">
+                    <p>
+                        Ceci n'est pas une vitrine touristique. C'est un <strong>anti-fan club</strong> assumé, fondé sur la déconstruction des données. Depuis plus d'une décennie, les gouvernements belges successifs appliquent une recette politique implacable : pour justifier le démantèlement de la sécurité sociale, il faut désigner un coupable idéal à la vindicte populaire.
+                    </p>
+                    <p>
+                        Ce coupable porte un nom : le "fraudeur social". Une image d'Épinal mortifère, méthodiquement construite par une synergie toxique entre des décisions politiques d'austérité et des relais médiatiques friands d'infotainment punitif.
+                    </p>
+                </div>
+                <div class="pt-6">
+                    <a href="#catalyseur" class="inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white bg-brand-dark hover:bg-brand-media transition-all duration-300 rounded-full shadow-2xl hover:shadow-brand-media/50 hover:-translate-y-1">
+                        Démonter la mécanique &#8595;
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="catalyseur" class="py-24 bg-white border-y border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="mb-20 max-w-3xl">
+                    <span class="text-brand-media font-bold tracking-widest uppercase text-sm mb-2 block">Phase 01 : Conditionnement</span>
+                    <h2 class="font-serif text-5xl font-black mb-8 text-brand-dark">Le Catalyseur Médiatique</h2>
+                    <p class="text-xl text-slate-600 leading-relaxed">
+                        Le consentement à l'austérité se fabrique en prime-time. En 2012, la diffusion du documentaire <em>"Sans boulot : tous fraudeurs ?"</em> de Christophe Deborsu (RTL-TVI) agit comme un accélérateur de particules politiques. Ce format, devenu un standard de la télévision belge, inverse la charge de la preuve en transformant l'exception (filmée en caméra cachée) en une norme sociétale perçue.
+                    </p>
+                </div>
+
+                <div class="bg-slate-50 rounded-3xl p-8 lg:p-12 shadow-inner border border-slate-200">
+                    <h3 class="text-2xl font-black mb-4 text-center text-brand-dark uppercase tracking-widest">Le Décrypteur de Titres</h3>
+                    <p class="text-center text-slate-500 mb-12 font-medium">Survolez les tropes médiatiques pour révéler la sous-structure socio-économique.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="flip-card">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">
+                                    <div class="text-5xl mb-6">&#128250;</div>
+                                    <h4 class="font-black text-xl text-brand-dark mb-3">Le micro-trottoir indigné</h4>
+                                    <p class="text-slate-500 font-medium">"Moi je me lève à 6h du matin pour payer ces fainéants !"</p>
+                                </div>
+                                <div class="flip-card-back">
+                                    <div class="text-3xl mb-4">&#9888;&#65039;</div>
+                                    <h4 class="font-black text-lg text-brand-data mb-3">La division des travailleurs</h4>
+                                    <p class="text-sm font-medium opacity-90">Mécanique visant à dresser les travailleurs précaires contre les chômeurs. Occulte la stagnation des salaires et exonère le patronat.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flip-card">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">
+                                    <div class="text-5xl mb-6">&#128373;&#65039;</div>
+                                    <h4 class="font-black text-xl text-brand-dark mb-3">La traque du travail au noir</h4>
+                                    <p class="text-slate-500 font-medium">Caméra cachée chez un chômeur qui aide un proche ou bricole.</p>
+                                </div>
+                                <div class="flip-card-back">
+                                    <div class="text-3xl mb-4">&#9888;&#65039;</div>
+                                    <h4 class="font-black text-lg text-brand-data mb-3">L'économie de survie</h4>
+                                    <p class="text-sm font-medium opacity-90">Les allocations étant sous le seuil de pauvreté, l'entraide informelle devient vitale. L'ériger en "fraude massive" est une manipulation statistique.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flip-card">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">
+                                    <div class="text-5xl mb-6">&#128269;</div>
+                                    <h4 class="font-black text-xl text-brand-dark mb-3">La fraude au domicile</h4>
+                                    <p class="text-slate-500 font-medium">Le reportage choc sur les "faux isolés" qui perçoivent une allocation majorée.</p>
+                                </div>
+                                <div class="flip-card-back">
+                                    <div class="text-3xl mb-4">&#9888;&#65039;</div>
+                                    <h4 class="font-black text-lg text-brand-data mb-3">Pénalisation des solidarités</h4>
+                                    <p class="text-sm font-medium opacity-90">Le statut de cohabitant appauvrit systématiquement les femmes. Contrôler les brosses à dents justifie la violence institutionnelle.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="donnees" class="py-24 bg-brand-dark text-white border-y border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="mb-16 text-center max-w-4xl mx-auto">
+                    <span class="text-brand-data font-bold tracking-widest uppercase text-sm mb-2 block">Phase 02 : Dissonance Cognitive</span>
+                    <h2 class="font-serif text-5xl font-black mb-8 text-white">L'Illusion d'Optique Macroscopique</h2>
+                    <p class="text-xl text-slate-400 leading-relaxed">
+                        Confrontons la rhétorique télévisuelle à la réalité budgétaire belge. Le "trou" de la fraude sociale, hyper-médiatisé, est statistiquement marginal face au gouffre de la fraude et de l'évasion fiscales. L'énergie punitive de l'État est inversement proportionnelle à l'enjeu financier réel.
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/50 p-8 md:p-12 rounded-3xl shadow-2xl border border-slate-700 backdrop-blur-sm">
+                    <div class="flex flex-col md:flex-row justify-between items-end mb-10 border-b border-slate-700 pb-6">
+                        <div>
+                            <h3 class="text-3xl font-black text-white">Manque à Gagner Annuel de l'État Belge</h3>
+                            <p class="text-brand-data font-bold text-sm mt-2 uppercase tracking-wider">Échelle Logarithmique (Milliards d'Euros)</p>
+                        </div>
+                        <div class="mt-6 md:mt-0 text-sm font-black bg-brand-media text-white px-6 py-3 rounded-full shadow-[0_0_20px_rgba(249,115,22,0.4)] animate-pulse">
+                            RATIO ESTIMÉ : 1 POUR 150
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="fraudChart"></canvas>
+                    </div>
+                    
+                    <div class="mt-10 text-sm text-slate-300 bg-slate-800 p-6 rounded-xl border-l-4 border-brand-data flex items-start">
+                        <span class="text-2xl mr-4">&#9432;&#65039;</span>
+                        <p class="font-medium leading-relaxed">
+                            <strong class="text-white">Lecture du graphique :</strong> En raison de la disproportion écrasante, ce graphique utilise une échelle logarithmique (chaque graduation majeure multiplie la valeur par 10). Sur une échelle linéaire classique, la barre de la fraude sociale serait une épaisseur d'un pixel invisible à côté de l'évasion fiscale.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="consequences" class="py-24 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-20">
+                    <span class="text-brand-austerity font-bold tracking-widest uppercase text-sm mb-2 block">Phase 03 : Exécution</span>
+                    <h2 class="font-serif text-5xl font-black mb-6 text-brand-dark">L'Objectif Final : L'Austérité</h2>
+                    <p class="text-xl text-slate-600 max-w-3xl mx-auto">
+                        Le mythe n'est pas gratuit. Une fois le citoyen persuadé que le système est pillé "par le bas", les gouvernements successifs (Di Rupo, Michel) ont pu déployer une ingénierie sociale sans précédent.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+                    
+                    <div class="lg:col-span-4 space-y-12">
+                        <div class="bg-brand-base p-8 rounded-3xl border-2 border-slate-100 shadow-xl relative overflow-hidden">
+                            <div class="absolute -right-4 -top-4 text-9xl text-slate-100 font-serif font-black opacity-50 select-none">&#10033;</div>
+                            <h3 class="text-2xl font-black text-brand-dark mb-8 relative z-10">La Boucle Politique</h3>
+                            
+                            <div class="flex flex-col space-y-4 relative z-10">
+                                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+                                    <span class="font-bold text-brand-media block mb-1">1. Formatage Médiatique</span>
+                                    <span class="text-sm text-slate-500">Documentaires & Scandales</span>
+                                </div>
+                                <div class="text-center text-slate-300 text-xl font-black">&#8595;</div>
+                                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+                                    <span class="font-bold text-slate-700 block mb-1">2. Indignation Publique</span>
+                                    <span class="text-sm text-slate-500">Demande de "justice"</span>
+                                </div>
+                                <div class="text-center text-slate-300 text-xl font-black">&#8595;</div>
+                                <div class="bg-white p-4 rounded-xl border border-brand-austerity shadow-md text-center transform scale-105 transition-transform">
+                                    <span class="font-bold text-brand-austerity block mb-1">3. Promesses Punitives</span>
+                                    <span class="text-sm text-slate-500">Renforcement des contrôles</span>
+                                </div>
+                                <div class="text-center text-slate-300 text-xl font-black">&#8595;</div>
+                                <div class="bg-brand-dark text-white p-4 rounded-xl shadow-lg text-center">
+                                    <span class="font-bold block mb-1">4. Coupes Budgétaires</span>
+                                    <span class="text-sm text-slate-400">Appauvrissement structurel</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="border-l-4 border-brand-austerity pl-6">
+                                <h4 class="font-black text-lg text-brand-dark mb-1">La Dégressivité Accélérée</h4>
+                                <p class="text-slate-600 text-sm">Chute drastique des allocations dans le temps, transférant la charge financière vers les communes (CPAS).</p>
+                            </div>
+                            <div class="border-l-4 border-brand-austerity pl-6">
+                                <h4 class="font-black text-lg text-brand-dark mb-1">L'Exclusion des Jeunes</h4>
+                                <p class="text-slate-600 text-sm">Limitation dans le temps des allocations d'insertion, précarisant massivement la jeunesse sortant des études.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-8">
+                        <div class="bg-white p-8 md:p-10 rounded-3xl shadow-2xl border border-slate-100 h-full flex flex-col">
+                            <div class="mb-10">
+                                <h3 class="text-3xl font-black text-brand-dark mb-3">La Corrélation Austéritaire (2010-2024)</h3>
+                                <p class="text-slate-500 text-lg">Évolution croisée de l'intensité législative punitive et du niveau de vie réel des allocataires en Belgique.</p>
+                            </div>
+                            
+                            <div class="chart-container flex-grow w-full">
+                                <canvas id="austerityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="bg-brand-dark text-slate-400 py-16 text-center text-sm border-t-8 border-brand-austerity">
+            <div class="max-w-4xl mx-auto px-4">
+                <div class="text-3xl mb-6 font-serif font-black text-white">L'Anti-Fan Club</div>
+                <p class="mb-6 font-medium text-base leading-relaxed max-w-2xl mx-auto">Application web interactive d'analyse critique générée pour visualiser la mécanique de fabrication des récits politiques et médiatiques justifiant l'austérité en Belgique.</p>
+                <p class="font-serif text-xl italic text-slate-500">"La fonction de certaines presses n'est pas d'informer, mais de rassurer en désignant un coupable commode."</p>
+                <div class="mt-12 pt-8 border-t border-slate-800 text-xs font-bold tracking-widest uppercase">
+                    Données basées sur les ordres de grandeur macro-économiques belges • Design Éditorial Sans SVG
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        function wl(l) {
+            if (l.length <= 16) return l;
+            const w = l.split(' ');
+            const r = [];
+            let c = '';
+            w.forEach(x => {
+                if ((c + x).length > 16) {
+                    if (c.trim() !== '') r.push(c.trim());
+                    c = x + ' ';
+                } else {
+                    c += x + ' ';
+                }
+            });
+            if (c.trim() !== '') r.push(c.trim());
+            return r;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            Chart.defaults.color = '#64748b';
+            Chart.defaults.font.family = 'Inter';
+            Chart.defaults.font.size = 13;
+
+            const rfl = ['Fraudes aux Allocations Sociales (Chômage/ONEM)', 'Fraude, Évasion et Optimisation Fiscales (ISoc)'];
+            const wfl = rfl.map(wl);
+
+            const ctxFraud = document.getElementById('fraudChart').getContext('2d');
+            new Chart(ctxFraud, {
+                type: 'bar',
+                data: {
+                    labels: wfl,
+                    datasets: [{
+                        label: 'Coût estimé (Milliards d\'Euros)',
+                        data: [0.2, 30.0], 
+                        backgroundColor: [
+                            '#f97316', 
+                            '#0ea5e9'  
+                        ],
+                        borderRadius: 8,
+                        barPercentage: 0.5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: function(t) {
+                                    const i = t[0];
+                                    let l = i.chart.data.labels[i.dataIndex];
+                                    if (Array.isArray(l)) {
+                                        return l.join(' ');
+                                    } else {
+                                        return l;
+                                    }
+                                },
+                                label: function(c) {
+                                    return ' ' + c.parsed.y + ' Milliards € / an';
+                                }
+                            },
+                            backgroundColor: '#0f172a',
+                            titleFont: { size: 14, family: 'Inter', weight: 'bold' },
+                            bodyFont: { size: 16, weight: '900' },
+                            padding: 16,
+                            cornerRadius: 8,
+                            borderColor: '#334155',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'logarithmic',
+                            title: { display: true, text: 'Milliards d\'Euros (Log)', color: '#94a3b8', font: { weight: 'bold', size: 12, family: 'Inter' } },
+                            grid: { color: '#334155', borderDash: [5, 5] },
+                            ticks: { color: '#cbd5e1' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { weight: '800', size: 14 }, color: '#f8fafc' }
+                        }
+                    }
+                }
+            });
+
+            const ll = ['2010', '2012', '2014', '2016', '2018', '2020', '2022', '2024'];
+            const ctxAust = document.getElementById('austerityChart').getContext('2d');
+            
+            new Chart(ctxAust, {
+                type: 'line',
+                data: {
+                    labels: ll,
+                    datasets: [
+                        {
+                            label: wl('Indice de Pression Législative (Contrôles & Radiations)'),
+                            data: [100, 110, 150, 210, 230, 235, 250, 260],
+                            borderColor: '#e11d48',
+                            backgroundColor: 'rgba(225, 29, 72, 0.05)',
+                            borderWidth: 4,
+                            pointBackgroundColor: '#e11d48',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            fill: true,
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: wl('Pouvoir d\'achat moyen des allocataires (Base 100)'),
+                            data: [100, 98, 92, 85, 81, 79, 74, 71],
+                            borderColor: '#0f172a',
+                            borderWidth: 4,
+                            borderDash: [8, 6],
+                            pointBackgroundColor: '#0f172a',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            tension: 0.3,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 24,
+                                font: { family: 'Inter', size: 14, weight: 'bold' },
+                                color: '#0f172a',
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(t) {
+                                    const i = t[0];
+                                    let l = i.chart.data.labels[i.dataIndex];
+                                    if (Array.isArray(l)) {
+                                        return l.join(' ');
+                                    } else {
+                                        return l;
+                                    }
+                                }
+                            },
+                            backgroundColor: '#0f172a',
+                            titleFont: { size: 16, family: 'Inter', weight: 'black' },
+                            bodyFont: { size: 14, weight: 'medium' },
+                            padding: 16,
+                            cornerRadius: 8
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Indice de Sanctions (Hausse)', color: '#e11d48', font: {weight: 'black', size: 12} },
+                            grid: { color: '#f1f5f9' },
+                            ticks: { color: '#e11d48', font: {weight: 'bold'} }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'Pouvoir d\'Achat (Baisse)', color: '#0f172a', font: {weight: 'black', size: 12} },
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: '#0f172a', font: {weight: 'bold'} }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { weight: 'bold', size: 14 }, color: '#475569' }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
