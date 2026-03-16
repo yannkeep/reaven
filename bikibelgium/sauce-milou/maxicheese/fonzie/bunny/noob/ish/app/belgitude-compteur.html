@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>⏱️ LE COMPTEUR — Le Coût Humain en Temps Réel</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@300;400;700&family=Orbitron:wght@400;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0908;--surface:#12110e;--gold:#c9a84c;--gold-dim:#4a3c1a;--gold-glow:rgba(201,168,76,.1);--red:#b71c1c;--red-bright:#ff1744;--white:#e8e4d8;--dim:#666;--serif:'Playfair Display',serif;--mono:'JetBrains Mono',monospace;--display:'Orbitron',sans-serif}
+html{font-size:16px}
+body{background:var(--bg);color:var(--white);font-family:var(--serif);line-height:1.6;overflow-x:hidden;
+  background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.8' numOctaves='4' type='fractalNoise'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23n)' opacity='.02'/%3E%3C/svg%3E");
+}
+::selection{background:var(--gold);color:var(--bg)}
+
+.memorial{text-align:center;padding:clamp(3rem,8vw,6rem) 1.5rem;border-bottom:1px solid var(--gold-dim)}
+.memorial .epitaph{font:300 .6rem var(--display);color:var(--gold-dim);letter-spacing:.5em;text-transform:uppercase;margin-bottom:2rem}
+.memorial h1{font:900 clamp(2rem,6vw,4rem)/1.1 var(--serif);color:var(--gold);text-shadow:0 0 30px var(--gold-glow)}
+.memorial .sub{font:italic 1.1rem var(--serif);color:var(--dim);margin-top:1rem;max-width:550px;display:inline-block}
+
+/* COUNTERS */
+.counters{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;
+  background:var(--gold-dim);max-width:1000px;margin:0 auto;
+}
+.counter-card{
+  background:var(--bg);padding:clamp(1.5rem,4vw,3rem) 1.5rem;text-align:center;
+  position:relative;overflow:hidden;
+}
+.counter-card::before{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:40px;height:2px;background:var(--gold);
+}
+.counter-card .label{
+  font:300 .5rem var(--display);color:var(--gold-dim);letter-spacing:.3em;
+  text-transform:uppercase;margin-bottom:.8rem;display:block;
+}
+.counter-card .number{
+  font:900 clamp(2.5rem,7vw,4.5rem) var(--display);color:var(--gold);
+  display:block;line-height:1;text-shadow:0 0 30px var(--gold-glow);
+  font-variant-numeric:tabular-nums;
+}
+.counter-card .number.red{color:var(--red-bright);text-shadow:0 0 30px rgba(255,23,68,.15)}
+.counter-card .context{font:italic .85rem var(--serif);color:var(--dim);margin-top:.6rem;max-width:280px;display:inline-block}
+.counter-card .src{font:300 .55rem var(--mono);color:#333;margin-top:.5rem;display:block}
+
+/* ENGRAVING */
+.engraving{
+  text-align:center;padding:3rem 1.5rem;border-top:1px solid var(--gold-dim);border-bottom:1px solid var(--gold-dim);
+  background:linear-gradient(180deg,var(--bg),var(--surface),var(--bg));
+}
+.engraving blockquote{
+  font:italic clamp(1.1rem,2.5vw,1.5rem)/1.5 var(--serif);color:var(--gold);
+  max-width:650px;margin:0 auto;
+}
+.engraving cite{display:block;font:300 .6rem var(--display);color:var(--gold-dim);margin-top:1rem;letter-spacing:.2em;font-style:normal}
+
+/* EACH COUNTS */
+.names{padding:3rem 1.5rem;max-width:800px;margin:0 auto}
+.names h2{font:900 clamp(1.3rem,3vw,2rem) var(--serif);color:var(--gold);text-align:center;margin-bottom:2rem}
+.name-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem}
+.name-card{border-left:2px solid var(--gold-dim);padding:1rem 1.2rem;transition:border-color .3s}
+.name-card:hover{border-color:var(--gold)}
+.name-card .who{font:700 1rem var(--serif);color:var(--white);margin-bottom:.3rem}
+.name-card .story{font:300 .8rem var(--mono);color:var(--dim);line-height:1.5}
+.name-card .story strong{color:var(--white)}
+
+/* TICK ANIMATION */
+@keyframes tick{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}
+.ticking{animation:tick 1s ease-in-out infinite}
+
+/* COST BAR */
+.cost{text-align:center;padding:3rem 1.5rem;border-top:1px solid var(--gold-dim)}
+.cost h2{font:900 1.3rem var(--serif);color:var(--gold);margin-bottom:1.5rem}
+.cost-row{display:flex;align-items:center;gap:1rem;margin:.8rem auto;max-width:600px}
+.cost-label{font:300 .7rem var(--mono);color:var(--dim);width:140px;text-align:right;flex-shrink:0}
+.cost-bar-bg{flex:1;height:20px;background:var(--surface);border:1px solid var(--gold-dim);position:relative;overflow:hidden}
+.cost-bar{height:100%;transition:width 2s ease}
+.cost-bar.gold{background:linear-gradient(90deg,var(--gold-dim),var(--gold))}
+.cost-bar.red{background:linear-gradient(90deg,var(--red),var(--red-bright))}
+.cost-val{font:700 .65rem var(--display);color:var(--gold);width:80px;flex-shrink:0}
+
+footer{text-align:center;padding:3rem 1.5rem;border-top:1px solid var(--gold-dim);font:300 .6rem var(--mono);color:#333}
+footer strong{color:var(--gold)}
+</style>
+</head>
+<body>
+
+<div class="memorial">
+  <div class="epitaph">Mémorial des Exclus · Belgique · 2025—2027</div>
+  <h1>Le Compteur</h1>
+  <div class="sub">Chaque seconde qui passe, le système broie. Ces chiffres ne sont pas abstraits. Chacun est un nom, une adresse, une famille. Le compteur tourne. Le gouvernement regarde ailleurs.</div>
+</div>
+
+<div class="counters">
+  <div class="counter-card">
+    <span class="label">Exclusions chômage programmées</span>
+    <span class="number red ticking" id="c1">180 000</span>
+    <div class="context">D'ici juillet 2027. Par vagues synchronisées. ¾ des bénéficiaires AGR sont des femmes.</div>
+    <span class="src">ONEM · vagues jan. 2026 — juil. 2027</span>
+  </div>
+  <div class="counter-card">
+    <span class="label">Insécurité alimentaire</span>
+    <span class="number red">900 000</span>
+    <div class="context">+125% en quatre ans. Neuf cent mille personnes dans un des pays les plus riches du monde.</div>
+    <span class="src">Oxfam Belgique, 2023</span>
+  </div>
+  <div class="counter-card">
+    <span class="label">Sans-abri à Bruxelles</span>
+    <span class="number red">10 000</span>
+    <div class="context">+24,5% en deux ans. Plan Grand Froid : subsides supprimés par l'Arizona.</div>
+    <span class="src">Bruss'Help, avril 2025</span>
+  </div>
+  <div class="counter-card">
+    <span class="label">Malades longue durée</span>
+    <span class="number">549 996</span>
+    <div class="context">Seuil des 500 000 franchi. 60% femmes. Sanctions ×4 prévues. Le CNT : « Aucune preuve. »</div>
+    <span class="src">INAMI, fin 2024 · CNT, 5 mai 2025</span>
+  </div>
+  <div class="counter-card">
+    <span class="label">Enfants pauvres — Bruxelles</span>
+    <span class="number red">44%</span>
+    <div class="context">Presque un enfant sur deux dans la capitale de l'Europe. Objectif 2030 : ne sera pas atteint.</div>
+    <span class="src">AROPE / Statbel</span>
+  </div>
+  <div class="counter-card">
+    <span class="label">Renoncement aux soins</span>
+    <span class="number">41%</span>
+    <div class="context">Femmes : 48%. Familles monoparentales : 60%. En hausse continue depuis 2015.</div>
+    <span class="src">Solidaris, Baromètre 2024-2025</span>
+  </div>
+  <div class="counter-card">
+    <span class="label">Décès prématurés évitables</span>
+    <span class="number red">28%</span>
+    <div class="context">Des décès prématurés en Belgique sont attribuables aux inégalités sociales. C'est de la médecine.</div>
+    <span class="src">Sciensano / Journal du Médecin</span>
+  </div>
+  <div class="counter-card">
+    <span class="label">Précarité énergétique — Wallonie</span>
+    <span class="number">410 000</span>
+    <div class="context">11,3% des ménages. Flandre : 2,3%. Le froid rend les enfants malades.</div>
+    <span class="src">IWEPS, 2025</span>
+  </div>
+</div>
+
+<div class="engraving">
+  <blockquote>La maladie est récession. La santé est croissance. Chaque dose d'austérité est associée à 74 000 à 115 000 décès supplémentaires par an dans les pays à hauts revenus.</blockquote>
+  <cite>Pr. Dennis Ostwald · Meta-analyses Stuckler & Basu, Rajmil et al.</cite>
+</div>
+
+<div class="names">
+  <h2>Derrière chaque chiffre, un visage</h2>
+  <div class="name-grid">
+    <div class="name-card">
+      <div class="who">Laetitia</div>
+      <div class="story">Mère célibataire, trois enfants, filmée par RTL-TVI. <strong>« L'image qu'ils ont donnée de moi est fausse. J'ai reçu énormément d'insultes. »</strong></div>
+    </div>
+    <div class="name-card">
+      <div class="who">Gaëlle Denys</div>
+      <div class="story">Présidente du CPAS de Verviers. Interviewée <strong>60 minutes</strong>. Montage final : <strong>30 secondes</strong>. Tout ce qui expliquait la réalité : coupé.</div>
+    </div>
+    <div class="name-card">
+      <div class="who">Les 360+ associations</div>
+      <div class="story">Coalition inédite signant une carte blanche en mars 2025. Nasci : 70% de subsides. Cover : 23 travailleurs dans l'incertitude. <strong>« Le tissu associatif s'effiloche. »</strong></div>
+    </div>
+    <div class="name-card">
+      <div class="who">Les étudiants invisibles</div>
+      <div class="story"><strong>19 200</strong> au RIS via les CPAS. Doublé en dix ans. 41% bossent pour payer leurs études. Les « non-finançables » : jetés du système éducatif.</div>
+    </div>
+    <div class="name-card">
+      <div class="who">Les aidants proches</div>
+      <div class="story">Ignorés par la réforme du chômage. Le <strong>Handistreaming</strong> (Plan fédéral Handicap 2021-2024) violé. Esenca dénonce une exclusion injuste et illégale.</div>
+    </div>
+    <div class="name-card">
+      <div class="who">Le tiers qui « disparaît »</div>
+      <div class="story">La Cour des comptes confirme que le gouvernement <strong>assume qu'un tiers des exclus « disparaîtra du radar »</strong>. Disparaître du radar = disparaître de la société.</div>
+    </div>
+  </div>
+</div>
+
+<div class="cost">
+  <h2>Ce que ça coûte vs. ce que ça rapporte</h2>
+  <div class="cost-row">
+    <span class="cost-label">Taxe patrimoine possible</span>
+    <div class="cost-bar-bg"><div class="cost-bar gold" style="width:85%"></div></div>
+    <span class="cost-val">4,7-10 Mrd€</span>
+  </div>
+  <div class="cost-row">
+    <span class="cost-label">Effort Arizona total</span>
+    <div class="cost-bar-bg"><div class="cost-bar red" style="width:100%"></div></div>
+    <span class="cost-val">23,3 Mrd€</span>
+  </div>
+  <div class="cost-row">
+    <span class="cost-label">Effets retour fantasmés</span>
+    <div class="cost-bar-bg"><div class="cost-bar red" style="width:34%"></div></div>
+    <span class="cost-val">7,9 Mrd€</span>
+  </div>
+  <div class="cost-row">
+    <span class="cost-label">Effets retour réalistes</span>
+    <div class="cost-bar-bg"><div class="cost-bar gold" style="width:9%"></div></div>
+    <span class="cost-val">~2 Mrd€</span>
+  </div>
+  <div class="cost-row">
+    <span class="cost-label">Surcoût réel CPAS</span>
+    <div class="cost-bar-bg"><div class="cost-bar red" style="width:5%"></div></div>
+    <span class="cost-val">1,21 Mrd€</span>
+  </div>
+  <div class="cost-row">
+    <span class="cost-label">Fraude sociale récupérée</span>
+    <div class="cost-bar-bg"><div class="cost-bar gold" style="width:0.5%"></div></div>
+    <span class="cost-val">22 M€</span>
+  </div>
+</div>
+
+<div class="engraving" style="border-bottom:none">
+  <blockquote>Le compteur ne s'arrête pas. Chaque jour qui passe sans action est un jour de plus où quelqu'un bascule. La question n'est pas de savoir si on a les moyens d'agir. C'est de savoir pourquoi on choisit de ne pas le faire.</blockquote>
+</div>
+
+<footer>Co-produit par Yan & Claude · <strong>ouaisfieu</strong> · intelligence citoyenne · mars 2026<br>CC BY-NC-SA 4.0 · Fork · Hack · Spread</footer>
+
+<script>
+// Subtle counter animation on the 180,000 number
+const c1 = document.getElementById('c1');
+let base = 117000; // already excluded as of march 2026
+function tick(){
+  base += Math.random() > .7 ? 1 : 0;
+  if(base > 180000) base = 180000;
+  c1.textContent = base.toLocaleString('fr-BE');
+  setTimeout(tick, 2000 + Math.random()*3000);
+}
+tick();
+</script>
+<!-- BELGITUDE™ Navigation — injected by build script -->
+<style>
+.belg-nav{position:fixed;bottom:0;left:0;right:0;z-index:99999;
+  background:rgba(28,25,23,.97);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-top:1px solid rgba(255,255,255,.08);
+  padding:.5rem .8rem calc(.5rem + env(safe-area-inset-bottom,0px));
+  display:flex;align-items:center;gap:.4rem;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+.belg-nav a,.belg-nav button{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;
+  color:#a8a29e;font-size:.7rem;padding:.35rem .6rem;cursor:pointer;text-decoration:none;
+  transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:.3rem;
+}
+.belg-nav a:active,.belg-nav button:active{transform:scale(.95);background:rgba(255,255,255,.12)}
+.belg-nav a:hover,.belg-nav button:hover{color:#fff;border-color:rgba(255,255,255,.2)}
+.belg-nav .home{color:#b45309;border-color:rgba(180,83,9,.3)}
+.belg-nav .home:hover{background:rgba(180,83,9,.15);color:#f59e0b}
+.belg-nav .spacer{flex:1}
+.belg-nav .brand{font-size:.55rem;color:#57534e;letter-spacing:.05em}
+.belg-nav .brand strong{color:#b45309}
+</style>
+<div class="belg-nav">
+  <a href="index.html" class="home">☰ Carnet</a>
+  <a href="belgitude-autopsie.html">‹ Préc.</a>
+  <span class="spacer"></span>
+  <span class="brand"><strong>Belgitude™</strong> · ouaisfieu</span>
+  <span class="spacer"></span>
+  <a href="belgitude-preuves.html">Suiv. ›</a>
+  <a href="https://ouaisfieu.github.io/ccplc" target="_blank" rel="noopener" style="font-size:.6rem">ouaisfi.eu ↗</a>
+</div>
+<!-- /BELGITUDE™ Navigation -->
+</body>
+</html>

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WAKE UP — Les Exclus de la Matrice Belge</title>
+<meta name="description" content="900 000 en insécurité alimentaire. 10 000 sans-abri à Bruxelles. 549 996 malades longue durée. 44% de pauvreté infantile à Bruxelles. 180 000 exclusions du chômage. Chaque chiffre est une personne. Chaque personne est invisible. Sources institutionnelles.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Source+Serif+4:ital,wght@0,400;0,700;1,400&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0a;--fg:#c0c0c0;--green:#00ff41;--green-dim:#0a3d0a;--green-mid:#1aff5c;
+  --red:#ff0040;--amber:#ffbf00;--cyan:#00e5ff;--white:#e0e0e0;
+  --mono:'Share Tech Mono',monospace;--display:'Orbitron',sans-serif;--serif:'Source Serif 4',serif;
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{background:var(--bg);color:var(--fg);font-family:var(--mono);line-height:1.7;overflow-x:hidden}
+
+/* MATRIX RAIN CANVAS */
+#rain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.06}
+
+/* SCANLINE */
+body::after{
+  content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 1px,rgba(0,255,65,.015) 1px,rgba(0,255,65,.015) 2px);
+}
+::selection{background:var(--green);color:var(--bg)}
+
+/* LAYOUT */
+.container{max-width:1000px;margin:0 auto;padding:0 1.5rem;position:relative;z-index:1}
+
+/* HERO */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  padding:3rem 1.5rem;position:relative;z-index:1;
+  border-bottom:1px solid var(--green-dim);
+}
+.wake{
+  font:900 clamp(3rem,10vw,7rem)/1 var(--display);color:var(--green);
+  text-shadow:0 0 30px rgba(0,255,65,.4),0 0 60px rgba(0,255,65,.2);
+  letter-spacing:.1em;animation:flicker 4s infinite;
+}
+@keyframes flicker{0%,97%,100%{opacity:1}98%{opacity:.7}99%{opacity:.9}}
+.hero-sub{
+  font:400 clamp(.85rem,1.8vw,1rem) var(--mono);color:var(--fg);
+  max-width:700px;margin:1.5rem 0 2.5rem;
+}
+.hero-sub .hl{color:var(--green)}
+.hero-sub .red{color:var(--red)}
+.hero-prompt{color:var(--green-dim);font:.8rem var(--mono)}
+.hero-prompt::before{content:'> ';color:var(--green)}
+
+/* SECTIONS */
+section{padding:clamp(2.5rem,6vw,5rem) 0;border-bottom:1px solid #151515;position:relative;z-index:1}
+
+.tag{
+  font:700 .55rem var(--display);color:var(--green);letter-spacing:.4em;text-transform:uppercase;
+  margin-bottom:.8rem;display:block;opacity:.7;
+}
+.tag::before{content:'[ ';color:var(--green-dim)}.tag::after{content:' ]';color:var(--green-dim)}
+
+h2{font:700 clamp(1.5rem,4vw,2.5rem)/1.15 var(--display);color:var(--white);margin-bottom:1.2rem}
+h2 .green{color:var(--green)}
+h2 .red{color:var(--red)}
+h2 .amber{color:var(--amber)}
+
+.prose{max-width:750px;font:.88rem var(--mono);color:#888;margin-bottom:1.5rem}
+.prose strong{color:var(--white)}
+.prose .g{color:var(--green)}
+.prose .r{color:var(--red)}
+.prose .a{color:var(--amber)}
+
+/* PERSON CARDS */
+.persons{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2px;
+  background:#111;margin:2rem 0;
+}
+.person{
+  background:var(--bg);padding:1.5rem;border-left:3px solid var(--green-dim);
+  position:relative;transition:all .3s;
+}
+.person:hover{border-left-color:var(--green);background:#0d0d0d}
+.person .count{
+  font:900 clamp(1.8rem,4vw,2.8rem) var(--display);color:var(--red);
+  display:block;line-height:1;letter-spacing:-.02em;
+}
+.person .count.green{color:var(--green)}
+.person .count.amber{color:var(--amber)}
+.person .count.cyan{color:var(--cyan)}
+.person .who{
+  font:700 .75rem var(--display);color:var(--white);text-transform:uppercase;
+  letter-spacing:.15em;margin:.5rem 0 .3rem;display:block;
+}
+.person .detail{font:.75rem var(--mono);color:#666;line-height:1.5}
+.person .detail strong{color:#999}
+.person .src{font:.55rem var(--mono);color:#333;margin-top:.5rem;display:block}
+.person .status{
+  display:inline-block;font:.55rem var(--display);letter-spacing:.1em;
+  padding:.15rem .5rem;margin-top:.5rem;border:1px solid;
+}
+.person .status.critical{color:var(--red);border-color:var(--red)}
+.person .status.warning{color:var(--amber);border-color:var(--amber)}
+.person .status.invisible{color:#444;border-color:#333}
+
+/* TERMINAL BLOCK */
+.terminal{
+  background:#050505;border:1px solid #1a1a1a;padding:1.5rem;margin:1.5rem 0;
+  font:.8rem var(--mono);color:var(--green);overflow-x:auto;
+}
+.terminal .prompt{color:var(--green-dim)}
+.terminal .prompt::before{content:'root@belgique:~# ';color:#444}
+.terminal .output{color:#666;margin:.3rem 0 .8rem;padding-left:1rem;border-left:1px solid #1a1a1a}
+.terminal .error{color:var(--red)}
+.terminal .warn{color:var(--amber)}
+.terminal .ok{color:var(--green)}
+
+/* GLITCH BAR */
+.glitch-bar{
+  background:var(--red);padding:.6rem 1.5rem;text-align:center;
+  font:700 .7rem var(--display);color:var(--bg);letter-spacing:.3em;
+  text-transform:uppercase;position:relative;z-index:1;
+  animation:glitch-bg 3s infinite;
+}
+@keyframes glitch-bg{0%,95%,100%{background:var(--red)}96%{background:var(--green)}97%{background:var(--amber)}}
+
+/* COMPARISON */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#111;margin:2rem 0}
+.split-col{background:var(--bg);padding:1.5rem}
+.split-col h3{font:700 .7rem var(--display);letter-spacing:.2em;margin-bottom:1rem;text-transform:uppercase}
+.split-col.left h3{color:var(--green)}
+.split-col.right h3{color:var(--red)}
+.split-item{font:.78rem var(--mono);color:#666;padding:.4rem 0;border-bottom:1px solid #111}
+.split-item strong{color:var(--white)}
+
+/* QUOTE */
+.mx-quote{
+  border-left:2px solid var(--green);padding:1rem 1.5rem;margin:1.5rem 0;
+  font:italic .95rem var(--serif);color:var(--green);max-width:650px;
+}
+.mx-quote cite{display:block;font:400 .65rem var(--mono);color:#444;margin-top:.5rem;font-style:normal}
+
+/* FOOTER */
+footer{
+  padding:3rem 1.5rem;text-align:center;
+  border-top:1px solid var(--green-dim);position:relative;z-index:1;
+}
+footer .end{font:italic .95rem var(--serif);color:var(--green);margin-bottom:1.5rem;max-width:600px;margin-left:auto;margin-right:auto}
+footer .sig{font:.65rem var(--mono);color:#333}
+footer .sig strong{color:var(--green)}
+
+@media(max-width:768px){
+  .persons{grid-template-columns:1fr}
+  .split{grid-template-columns:1fr}
+}
+
+/* PULSE DOT */
+.pulse{display:inline-block;width:8px;height:8px;background:var(--red);border-radius:50%;animation:pulse-dot 1.5s infinite}
+@keyframes pulse-dot{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,0,64,.7)}70%{opacity:.7;box-shadow:0 0 0 10px rgba(255,0,64,0)}}
+
+/* COUNTER ANIMATION */
+.big-counter{
+  text-align:center;padding:3rem 0;
+}
+.big-counter .num{
+  font:900 clamp(3rem,8vw,6rem) var(--display);color:var(--red);
+  text-shadow:0 0 40px rgba(255,0,64,.3);display:block;line-height:1;
+}
+.big-counter .label{font:.75rem var(--mono);color:#555;margin-top:.5rem;display:block}
+</style>
+</head>
+<body>
+
+<!-- MATRIX RAIN -->
+<canvas id="rain"></canvas>
+<script>
+const c=document.getElementById('rain'),x=c.getContext('2d');
+function resize(){c.width=window.innerWidth;c.height=window.innerHeight}
+resize();window.addEventListener('resize',resize);
+const chars='アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン01';
+const cols=Math.floor(c.width/14);const drops=Array(cols).fill(1);
+function draw(){
+  x.fillStyle='rgba(10,10,10,.05)';x.fillRect(0,0,c.width,c.height);
+  x.fillStyle='#00ff41';x.font='12px monospace';
+  for(let i=0;i<drops.length;i++){
+    const t=chars[Math.floor(Math.random()*chars.length)];
+    x.fillText(t,i*14,drops[i]*14);
+    if(drops[i]*14>c.height&&Math.random()>.975)drops[i]=0;
+    drops[i]++;
+  }
+}
+setInterval(draw,45);
+</script>
+
+<!-- ═══════ HERO ═══════ -->
+<div class="hero">
+  <div class="container">
+    <div class="hero-prompt">system.query("qui sont les exclus de la matrice belge ?")</div>
+    <h1 class="wake">WAKE UP</h1>
+    <p class="hero-sub">
+      Tu as vu les chiffres du système. <span class="hl">99,73% de discipline de vote</span>. 
+      <span class="hl">31 806 mandataires</span>. <span class="hl">108,7 M€ de dotation</span>.
+      Mais derrière la Matrice, il y a des gens. <span class="red">900 000</span> en insécurité alimentaire. 
+      <span class="red">10 000</span> sans-abri rien qu'à Bruxelles. <span class="red">549 996</span> malades longue durée. 
+      <span class="red">44%</span> d'enfants pauvres dans la capitale de l'Europe. 
+      Ce ne sont pas des statistiques. Ce sont des personnes que le système a décidé de ne pas voir.
+    </p>
+    <div class="hero-prompt">output: AFFICHAGE DES EXCLUS · TOUS SECTEURS · DONNÉES MARS 2026</div>
+  </div>
+</div>
+
+<!-- ═══════ GLITCH BAR ═══════ -->
+<div class="glitch-bar">
+  <span class="pulse"></span>&ensp;
+  LE GOUVERNEMENT ASSUME QU'UN TIERS DES EXCLUS « DISPARAÎTRA DU RADAR » — COUR DES COMPTES
+  &ensp;<span class="pulse"></span>
+</div>
+
+<!-- ═══════ LES 180 000 ═══════ -->
+<section>
+  <div class="container">
+    <span class="tag">Les Radiés</span>
+    <h2>Les <span class="red">180 000</span> qu'on jette du système</h2>
+    <p class="prose">
+      La limitation du chômage à 24 mois les éjecte par vagues synchronisées. 
+      <strong>Vague 1</strong> (jan. 2026) : ~28 000 personnes, +20 ans d'inoccupation. 
+      <strong>Vague 2</strong> (mars 2026) : ~43 000, entre 8 et 20 ans. 
+      <strong>Vague 3</strong> (avril 2026) : ~47 000, moins de 8 ans de travail. 
+      Leur destination : le CPAS. Leur nouveau revenu : <span class="r">893,65€</span> pour un cohabitant. 
+      <span class="r">1 340€</span> pour un isolé. Sous le seuil de pauvreté. 
+      Les <strong>¾ des bénéficiaires de l'allocation de garantie de revenus sont des femmes</strong>. 
+      Le Collecti.e.f 8 maars a qualifié l'Arizona de <span class="r">« déclaration de guerre contre les femmes »</span>.
+    </p>
+
+    <div class="terminal">
+      <div class="prompt">cat /sys/social/ris_tarifs_mars_2026.csv</div>
+      <div class="output">
+        CATÉGORIE&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;MONTANT&emsp;&emsp;&emsp;STATUS<br>
+        Cohabitant&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;893,65€&emsp;&emsp;&emsp;<span class="error">SOUS SEUIL PAUVRETÉ</span><br>
+        Personne isolée&emsp;&emsp;&emsp;&emsp;&emsp;1.340,47€&emsp;&emsp;<span class="error">SOUS SEUIL PAUVRETÉ</span><br>
+        Famille à charge&emsp;&emsp;&emsp;&emsp;1.811,57€&emsp;&emsp;<span class="warn">SEUIL CRITIQUE</span><br>
+      </div>
+      <div class="prompt">cat /sys/social/compensation_cpas.log</div>
+      <div class="output">
+        Gouvernement budgété :&emsp;&emsp;300 M€/an<br>
+        Fédération CPAS wallons :&emsp;<span class="error">1,21 Mrd€ sur la législature (surcoût réel)</span><br>
+        Bénéficiaires RIS BXL :&emsp;&emsp;<span class="warn">+26% entre 2019 et 2024</span><br>
+        Non-recours au RIS :&emsp;&emsp;&emsp;<span class="error">57 à 76% ne réclament pas leur dû</span><br>
+        Non-recours GRAPA :&emsp;&emsp;&emsp;&emsp;<span class="error">79% — étude TAKE, SPF Sécu Sociale</span><br>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ LES INVISIBLES ═══════ -->
+<section>
+  <div class="container">
+    <span class="tag">Les Invisibles</span>
+    <h2>Cartographie des <span class="green">exclus</span> de la Matrice</h2>
+    <p class="prose">
+      Chaque carte est une catégorie de personnes que le système a décidé de ne pas voir. 
+      Chaque chiffre est institutionnel. Chaque source est vérifiable. 
+      <strong>Ce ne sont pas des cas marginaux. C'est la Belgique réelle.</strong>
+    </p>
+  </div>
+
+  <div class="persons">
+    <div class="person">
+      <span class="count">10 000</span>
+      <span class="who">Sans-abri — Bruxelles seule</span>
+      <div class="detail">+24,5% en deux ans. Record absolu. Dans la capitale de l'Europe. 
+      Le Plan Grand Froid a perdu ses subsides fédéraux — <strong>65 000€ supprimés par l'Arizona</strong>. 
+      Engagement international d'éradication du sans-abrisme d'ici 2030 (Déclaration de Lisbonne) : <strong>non tenu</strong>.</div>
+      <span class="src">Bruss'Help, avril 2025</span>
+      <span class="status critical">URGENCE VITALE</span>
+    </div>
+    <div class="person">
+      <span class="count">900 000</span>
+      <span class="who">Insécurité alimentaire</span>
+      <div class="detail">+125% entre 2019 et 2023. Neuf cent mille personnes qui ne mangent pas correctement 
+      dans un pays membre du G7. Les ménages sous le seuil sacrifient en priorité <strong>l'alimentation en protéines 
+      et nutriments frais</strong> → obésité morbide, diabète type 2.</div>
+      <span class="src">Oxfam Belgique, 2023</span>
+      <span class="status critical">URGENCE VITALE</span>
+    </div>
+    <div class="person">
+      <span class="count">549 996</span>
+      <span class="who">Malades longue durée</span>
+      <div class="detail">+4,46% en un an. Seuil des 500 000 franchi. <strong>37-38% troubles mentaux</strong> (burn-out +70% depuis 2018). 
+      <strong>31-32% troubles musculo-squelettiques</strong>. 60% de femmes. 75% de plus de 45 ans. 
+      L'Arizona veut « remettre 100 000 malades au travail ». Le Conseil National du Travail : 
+      <strong>« Aucune preuve scientifique que sanctionner contribue à une réintégration positive. »</strong></div>
+      <span class="src">INAMI, fin 2024 / CNT, 5 mai 2025</span>
+      <span class="status critical">SANCTIONS ×4 PRÉVUES</span>
+    </div>
+    <div class="person">
+      <span class="count amber">2,4 M</span>
+      <span class="who">Bénéficiaires BIM</span>
+      <div class="detail">21% de la population belge. +400 000 depuis 2020. La perte du statut BIM déclenche un 
+      <strong>effet cascade</strong> : fin remboursements majorés soins, perte tarif social énergie, 
+      suppression réductions transports, perte supplément allocations familiales. 
+      Les taux marginaux effectifs dépassent <strong>100%</strong> — gagner plus = perdre plus.</div>
+      <span class="src">INAMI, juin 2025</span>
+      <span class="status warning">PIÈGE À PAUVRETÉ</span>
+    </div>
+    <div class="person">
+      <span class="count">44%</span>
+      <span class="who">Enfants pauvres — Bruxelles</span>
+      <div class="detail">Presque un enfant sur deux dans la capitale de l'Europe vit en risque de pauvreté (AROPE). 
+      National : <strong>19%</strong>. Wallonie : <strong>24,8%</strong>. 
+      Cible belge de réduction à 12,1% d'ici 2030 : <strong>ne sera pas atteinte</strong>.</div>
+      <span class="src">AROPE / Statbel</span>
+      <span class="status critical">OBJECTIF 2030 : ÉCHEC</span>
+    </div>
+    <div class="person">
+      <span class="count">48%</span>
+      <span class="who">Femmes renonçant aux soins</span>
+      <div class="detail">Contre 33% des hommes. Familles monoparentales : <strong>60%</strong> (+13 points). 
+      Isolées : 45%. En hausse continue depuis 2015. 
+      Le gouvernement Arizona ne compte que <strong>4 femmes sur 15 ministres</strong> — recul net vs. De Croo (paritaire).</div>
+      <span class="src">Solidaris, Baromètre 2024-2025</span>
+      <span class="status critical">DÉGRADATION CONTINUE</span>
+    </div>
+    <div class="person">
+      <span class="count cyan">19 200</span>
+      <span class="who">Étudiants au RIS</span>
+      <div class="detail">9% des 18-24 ans. <strong>Doublé en dix ans</strong>. 41,6% des étudiants travaillent pour financer 
+      leurs études. Les « non-finançables » (Décret Paysage) : refus de réinscription. 
+      La privation matérielle affecte les résultats académiques → cercle vicieux.</div>
+      <span class="src">InES, 2022 / Croix-Rouge, 2023 / Girès, Brussels Studies, 2024</span>
+      <span class="status warning">DOUBLEMENT EN 10 ANS</span>
+    </div>
+    <div class="person">
+      <span class="count">1 sur 4</span>
+      <span class="who">Jeunes en détresse mentale</span>
+      <div class="detail">Un jeune belge de 15-24 ans sur quatre présente des symptômes de dépression ou d'anxiété. 
+      <strong>0,4% des 14-18 ans</strong> sont membres d'un parti. 54,8% des jeunes flamands voteraient si le vote 
+      n'était pas obligatoire. <strong>Zéro eurodéputé belge de moins de 35 ans</strong> élu en 2024.</div>
+      <span class="src">Sciensano, 2023-2024 / Participatiesurvey / European Youth Forum</span>
+      <span class="status critical">DÉCROCHAGE CIVIQUE</span>
+    </div>
+    <div class="person">
+      <span class="count amber">410 000</span>
+      <span class="who">Précarité énergétique — Wallonie</span>
+      <div class="detail">11,3% des ménages wallons. Flandre : 2,3%. Le problème n'est pas l'isolation — 
+      c'est le <strong>pouvoir d'achat</strong>. Réduction du chauffage → moisissures → <strong>asthme infantile, BPCO</strong>. 
+      L'ETS2 et la hausse des accises vont aggraver la situation.</div>
+      <span class="src">IWEPS, 2025</span>
+      <span class="status warning">WALLONIE : ×5 LA FLANDRE</span>
+    </div>
+    <div class="person">
+      <span class="count">1 sur 10</span>
+      <span class="who">Bruxellois en situation de handicap</span>
+      <div class="detail">Le secteur a manifesté devant le Parlement en juin 2025. Les listes d'attente sont 
+      <strong>chroniques</strong>. L'absence de gouvernement pendant 613 jours a empêché toute planification. 
+      La réforme du chômage a <strong>ignoré le Handistreaming</strong> (Plan fédéral Handicap 2021-2024). 
+      Esenca dénonce une violation frontale.</div>
+      <span class="src">Fédérations du secteur handicap / Esenca</span>
+      <span class="status critical">DROITS VIOLÉS</span>
+    </div>
+    <div class="person">
+      <span class="count">360+</span>
+      <span class="who">Associations en détresse</span>
+      <div class="detail">Coalition inédite de 360+ associations signant une carte blanche en mars 2025. 
+      <strong>Nasci</strong> : 70% de subsides, 2,5 postes en moins. <strong>Syner Santé</strong> (Petits Riens) : 
+      subsides sans date. <strong>Cover</strong> : 23 travailleurs dans l'incertitude. 
+      « Sans gouvernance, c'est tout le tissu associatif qui s'effiloche. »</div>
+      <span class="src">Agence pour le non-marchand / La Libre / RTBF</span>
+      <span class="status warning">TISSU ASSOCIATIF EN RUINE</span>
+    </div>
+    <div class="person">
+      <span class="count">1 sur 5</span>
+      <span class="who">Santé mentale — population générale</span>
+      <div class="detail">Près d'un Belge sur cinq souffre de troubles de santé mentale. 
+      Coûts directs et indirects : <strong>5% du PIB</strong> — l'un des taux les plus élevés de l'OCDE. 
+      BELHEALTH (2022-2024) : 1 personne sur 10 très insatisfaite de sa vie, 
+      1 sur 5 pessimiste quant à l'avenir. Détérioration continue post-COVID.</div>
+      <span class="src">Sciensano / OCDE, 2018 / BELHEALTH 2022-2024</span>
+      <span class="status critical">5% DU PIB</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ GLITCH BAR 2 ═══════ -->
+<div class="glitch-bar" style="background:var(--amber);color:var(--bg)">
+  L'ÉCART ENTRE LA SITUATION SOCIALE ET LE PIB S'EST SYSTÉMATIQUEMENT CREUSÉ DEPUIS 2017 — IWEPS, DÉCEMBRE 2025
+</div>
+
+<!-- ═══════ LES INÉGALITÉS MASQUÉES ═══════ -->
+<section>
+  <div class="container">
+    <span class="tag">Le Mensonge des Moyennes</span>
+    <h2>Les inégalités que la <span class="amber">Matrice</span> cache</h2>
+
+    <div class="split">
+      <div class="split-col left">
+        <h3>Ce que dit la Matrice</h3>
+        <div class="split-item">Gini officiel des revenus : <strong>24,2</strong> — « pays égalitaire »</div>
+        <div class="split-item">Couverture santé « universelle »</div>
+        <div class="split-item">Vote obligatoire = « démocratie forte »</div>
+        <div class="split-item">Sécurité sociale « parmi les meilleures au monde »</div>
+        <div class="split-item">Non-recours = « choix individuel »</div>
+      </div>
+      <div class="split-col right">
+        <h3>Ce que cachent les données</h3>
+        <div class="split-item">Gini corrigé (Kuypers, UAntwerpen, 2024) : <strong>0,262 → 0,339</strong> — hausse massive masquée</div>
+        <div class="split-item">41% de renoncement aux soins. Couverture ambulatoire/dentaire <strong>sous la moyenne UE</strong></div>
+        <div class="split-item">50-60% voteraient sans obligation. 1,3M de votes non valables. 75-80% de défiance</div>
+        <div class="split-item">Le coût de l'invalidité <strong>dépasse celui du chômage</strong>. 28% des décès prématurés liés aux inégalités</div>
+        <div class="split-item">57-76% de non-recours au RIS. 79% pour la GRAPA. Stigmatisation = « aller au CPAS = mendier »</div>
+      </div>
+    </div>
+
+    <div class="terminal">
+      <div class="prompt">diff --stat belgique_officielle.csv belgique_reelle.csv</div>
+      <div class="output">
+        <span class="warn">revenus_capital.csv</span>&emsp;| Gini > 95. Croissent plus vite que le revenu national depuis 2010.<br>
+        <span class="error">insecurite_alim.csv</span>&emsp;| +125% en 4 ans. 900 000 personnes.<br>
+        <span class="error">sante_mentale.csv</span>&emsp;&emsp;| 5% du PIB. Détérioration continue.<br>
+        <span class="error">pauvrete_enfant.csv</span>&emsp;| 44% BXL. Objectif 2030 : impossible.<br>
+        <span class="warn">energie_wallonie.csv</span>&emsp;| 11,3% vs 2,3% Flandre. Facteur ×5.<br>
+        <span class="error">deces_prematures.csv</span>&emsp;| 28% attribuables aux inégalités sociales.<br>
+        <span class="ok">dotation_partis.csv</span>&emsp;&emsp;| 108,7 M€. Stable. Indépendant du citoyen.<br>
+      </div>
+      <div class="prompt">echo $?</div>
+      <div class="output"><span class="error">EXIT CODE 1 — SYSTEM FAILURE</span></div>
+    </div>
+
+    <div class="mx-quote">
+      La maladie est récession. La santé est croissance. Chaque « dose d'austérité » est associée à 
+      74 000 à 115 000 décès supplémentaires par an dans les pays à hauts revenus.
+      <cite>— Pr. Dennis Ostwald / Meta-analyses Stuckler & Basu</cite>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ LE GRAND COMPTEUR ═══════ -->
+<section style="border-bottom:none">
+  <div class="container">
+    <span class="tag">Le Signal</span>
+    <h2>Ce que le système <span class="red">refuse</span> de <span class="green">compter</span></h2>
+    <p class="prose">
+      Quand le gouvernement dit <span class="g">« 80% de taux d'emploi »</span>, il ne compte pas les 549 996 invalides, 
+      ni les 180 000 exclus du chômage qui « disparaissent du radar », ni les 900 000 en insécurité alimentaire, 
+      ni les 10 000 sans-abri, ni les 19 200 étudiants au CPAS, ni les 410 000 en précarité énergétique. 
+      Il ne compte pas les <span class="r">57-76%</span> qui ne réclament même pas le RIS auquel ils ont droit parce que 
+      le stigmate est plus fort que la faim. Il ne compte pas les <span class="r">360 associations</span> qui ferment 
+      pendant que les présidents de parti négocient. Il ne compte pas les enfants. 
+      Il ne compte pas parce que <strong>compter obligerait à agir</strong>.
+    </p>
+
+    <div class="big-counter">
+      <span class="num">28%</span>
+      <span class="label">DES DÉCÈS PRÉMATURÉS EN BELGIQUE SONT ATTRIBUABLES AUX INÉGALITÉS SOCIALES<br>
+      <span style="color:var(--green);font-size:.65rem">SOURCE : SCIENSANO / JOURNAL DU MÉDECIN</span></span>
+    </div>
+
+    <div class="terminal">
+      <div class="prompt">cat /sys/social/leviers_restants.md</div>
+      <div class="output">
+        <span class="ok">[1] COUR CONSTITUTIONNELLE</span> — Seul contre-pouvoir capable d'annuler les lois de la particratie<br>
+        <span class="ok">[2] ARTICLE 23 — STANDSTILL</span> — Outil juridique actif (arrêt 115/2025, arrêt 8/2025)<br>
+        <span class="ok">[3] TRIBUNAUX DU TRAVAIL</span> — Écartement dispositions (Liège, 3 mars 2023)<br>
+        <span class="ok">[4] IFDH AVIS 14/2025</span> — Sanctions = « recul significatif » violant art. 23<br>
+        <span class="ok">[5] SATURATION CPAS</span> — Demandes légitimes massives<br>
+        <span class="ok">[6] INFORMATION</span> — Précise, sourcée, impossible à confisquer<br>
+        <br>
+        <span class="warn">> Les exclus ne sont pas un bug du système.</span><br>
+        <span class="warn">> Les exclus SONT le système.</span><br>
+        <span class="warn">> Le système fonctionne exactement comme prévu.</span><br>
+        <span class="warn">> La seule question : pour qui.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ FOOTER ═══════ -->
+<footer>
+  <p class="end">
+    « Il n'y a pas de pilule rouge. Il n'y a que des preuves.<br>
+    Et les preuves disent que ce pays sacrifie un cinquième de sa population<br>
+    pour maintenir un système qui n'a de comptes à rendre qu'à lui-même. »
+  </p>
+  <p class="sig">
+    <strong>WAKE UP — Les Exclus de la Matrice Belge</strong><br>
+    Co-produit par Yan &amp; Claude · <strong>ouaisfieu</strong> · intelligence citoyenne · mars 2026<br>
+    Sources : Bruss'Help · Oxfam · INAMI · Sciensano · Solidaris · IWEPS · Statbel · ONEM ·<br>
+    SPF Sécu Sociale (TAKE) · CNT · IFDH · Cour des comptes · Kuypers/UAntwerpen ·<br>
+    InES · Croix-Rouge · Esenca · European Youth Forum · OCDE · Commission EU<br>
+    Licence CC BY-NC-SA 4.0 · Fork · Hack · Spread
+  </p>
+</footer>
+
+<!-- BELGITUDE™ Navigation — injected by build script -->
+<style>
+.belg-nav{position:fixed;bottom:0;left:0;right:0;z-index:99999;
+  background:rgba(28,25,23,.97);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-top:1px solid rgba(255,255,255,.08);
+  padding:.5rem .8rem calc(.5rem + env(safe-area-inset-bottom,0px));
+  display:flex;align-items:center;gap:.4rem;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+.belg-nav a,.belg-nav button{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;
+  color:#a8a29e;font-size:.7rem;padding:.35rem .6rem;cursor:pointer;text-decoration:none;
+  transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:.3rem;
+}
+.belg-nav a:active,.belg-nav button:active{transform:scale(.95);background:rgba(255,255,255,.12)}
+.belg-nav a:hover,.belg-nav button:hover{color:#fff;border-color:rgba(255,255,255,.2)}
+.belg-nav .home{color:#b45309;border-color:rgba(180,83,9,.3)}
+.belg-nav .home:hover{background:rgba(180,83,9,.15);color:#f59e0b}
+.belg-nav .spacer{flex:1}
+.belg-nav .brand{font-size:.55rem;color:#57534e;letter-spacing:.05em}
+.belg-nav .brand strong{color:#b45309}
+</style>
+<div class="belg-nav">
+  <a href="index.html" class="home">☰ Carnet</a>
+  <a href="belgitude-ligne-claire.html">‹ Préc.</a>
+  <span class="spacer"></span>
+  <span class="brand"><strong>Belgitude™</strong> · ouaisfieu</span>
+  <span class="spacer"></span>
+  <a href="belgitude-autopsie.html">Suiv. ›</a>
+  <a href="https://ouaisfieu.github.io/ccplc" target="_blank" rel="noopener" style="font-size:.6rem">ouaisfi.eu ↗</a>
+</div>
+<!-- /BELGITUDE™ Navigation -->
+</body>
+</html>

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f5f0e8">
+<link rel="manifest" href="manifest.json">
+<meta name="description" content="Belgitude™ — 10 notes sourcées sur la démocratie belge. 900 000 en insécurité alimentaire. 180 000 exclusions. 44% d'enfants pauvres à Bruxelles. Sources institutionnelles. Zéro tracking.">
+<meta property="og:title" content="Belgitude™ — Carnet de Résistance Citoyenne">
+<meta property="og:description" content="10 notes sourcées. Chaque chiffre est une personne. Chaque source est vérifiable.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_BE">
+<title>Carnet · Belgitude™</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,400;0,500;0,700&family=JetBrains+Mono:wght@300;400&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --cream:#f5f0e8;--warm:#ebe4d8;--paper:#fffdf8;--ink:#1c1917;--ink-mid:#57534e;--ink-light:#a8a29e;
+  --accent:#b45309;--accent-light:#fef3c7;--red:#dc2626;--green:#16a34a;--blue:#2563eb;
+  --purple:#7c3aed;--pink:#db2777;--cyan:#0891b2;
+  --serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --radius:12px;
+}
+html,body{height:100%;background:var(--cream);color:var(--ink);font-family:var(--sans)}
+body{overflow:hidden;display:flex;flex-direction:column}
+
+/* ═══ HEADER ═══ */
+.header{
+  flex-shrink:0;padding:.8rem 1rem;
+  display:flex;align-items:center;gap:.8rem;
+  background:var(--cream);border-bottom:1px solid var(--warm);
+  position:relative;z-index:100;
+}
+.h-logo{
+  font:italic 1.2rem var(--serif);color:var(--accent);flex-shrink:0;
+}
+.h-sep{width:1px;height:18px;background:var(--warm);flex-shrink:0}
+.h-title{
+  font:500 .75rem var(--sans);color:var(--ink-light);flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:all .3s;
+}
+.h-count{
+  font:300 .65rem var(--mono);color:var(--ink-light);flex-shrink:0;
+  background:var(--warm);padding:.15rem .5rem;border-radius:1rem;
+}
+.h-btn{
+  width:32px;height:32px;border-radius:8px;border:1px solid var(--warm);
+  background:var(--paper);color:var(--ink-mid);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:.85rem;
+  transition:all .15s;flex-shrink:0;
+}
+.h-btn:active{transform:scale(.92);background:var(--warm)}
+
+/* ═══ VIEWS ═══ */
+.views{flex:1;overflow:hidden;position:relative}
+
+/* ── CARD INDEX (home) ── */
+.card-index{
+  position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;padding:1rem;
+  transition:opacity .35s,transform .35s;
+}
+.card-index.hidden{opacity:0;transform:scale(.97);pointer-events:none}
+
+.cards{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:.8rem;padding-bottom:calc(1rem + var(--safe-b));
+}
+
+.card{
+  background:var(--paper);border-radius:var(--radius);
+  border:1px solid var(--warm);overflow:hidden;
+  cursor:pointer;transition:all .2s;position:relative;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+.card:active{transform:scale(.98);box-shadow:0 0 0 rgba(0,0,0,0)}
+.card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateY(-2px)}
+
+.card-color{height:4px;width:100%}
+.card-top{padding:1rem 1.2rem .8rem;display:flex;align-items:flex-start;gap:.8rem}
+.card-icon{
+  width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;flex-shrink:0;
+}
+.card-info{flex:1;min-width:0}
+.card-info h3{font:400 1rem var(--serif);color:var(--ink);margin-bottom:.15rem;line-height:1.25}
+.card-info .desc{font:400 .75rem var(--sans);color:var(--ink-light);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+.card-tags{padding:0 1.2rem .8rem;display:flex;flex-wrap:wrap;gap:.3rem}
+.card-tag{
+  font:300 .55rem var(--mono);color:var(--ink-light);
+  background:var(--cream);padding:.15rem .45rem;border-radius:4px;
+}
+
+.card-bottom{
+  padding:.6rem 1.2rem;border-top:1px solid var(--cream);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-bottom .read{font:500 .7rem var(--sans);color:var(--accent)}
+.card-bottom .arrow{color:var(--ink-light);font-size:.7rem;transition:transform .2s}
+.card:hover .card-bottom .arrow{transform:translateX(3px)}
+
+/* ── PAGE VIEW (full) ── */
+.page-view{
+  position:absolute;inset:0;
+  background:var(--cream);z-index:50;
+  transform:translateX(100%);transition:transform .4s cubic-bezier(.4,0,.15,1);
+}
+.page-view.open{transform:translateX(0)}
+.page-view iframe{width:100%;height:100%;border:none}
+
+.page-view .back-bar{
+  position:absolute;top:0;left:0;right:0;z-index:60;
+  display:flex;align-items:center;gap:.6rem;
+  padding:.5rem .8rem;
+  background:linear-gradient(180deg,var(--cream) 70%,transparent);
+}
+.back-btn{
+  display:flex;align-items:center;gap:.4rem;
+  background:var(--paper);border:1px solid var(--warm);border-radius:2rem;
+  padding:.4rem .8rem;cursor:pointer;font:500 .75rem var(--sans);color:var(--ink-mid);
+  box-shadow:0 2px 8px rgba(0,0,0,.06);transition:all .15s;
+}
+.back-btn:active{transform:scale(.95);background:var(--warm)}
+.back-btn .chevron{font-size:.7rem}
+.back-title{font:italic .8rem var(--serif);color:var(--ink-light);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* page loading */
+.page-loader{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:var(--cream);z-index:55;transition:opacity .3s;
+}
+.page-loader.hidden{opacity:0;pointer-events:none}
+.pl-spinner{
+  width:24px;height:24px;border:2px solid var(--warm);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══ INTRO QUOTE ═══ */
+.intro{
+  text-align:center;padding:2rem 1.5rem 1rem;
+}
+.intro blockquote{
+  font:italic 1rem var(--serif);color:var(--ink-mid);
+  max-width:480px;margin:0 auto;line-height:1.5;
+}
+.intro cite{font:300 .6rem var(--mono);color:var(--ink-light);display:block;margin-top:.5rem}
+
+/* ═══ SECTION LABELS ═══ */
+.section-label{
+  font:500 .6rem var(--sans);color:var(--ink-light);letter-spacing:.1em;text-transform:uppercase;
+  padding:1.5rem 0 .5rem;
+}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:600px){
+  .cards{grid-template-columns:1fr}
+}
+@media(min-width:768px){
+  .cards{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <span class="h-logo">Belgitude™</span>
+  <div class="h-sep"></div>
+  <span class="h-title" id="viewTitle">Carnet de notes</span>
+  <span class="h-count" id="pageCount"></span>
+</div>
+
+<!-- VIEWS -->
+<div class="views">
+  <!-- CARD INDEX -->
+  <div class="card-index" id="cardIndex">
+    <div class="intro">
+      <blockquote>« Ils ont le pouvoir. On a les preuves. À la longue, les preuves gagnent. »</blockquote>
+      <cite>ouaisfieu · intelligence citoyenne · mars 2026</cite>
+    </div>
+    <div id="cardContainer"></div>
+  </div>
+
+  <!-- PAGE VIEW -->
+  <div class="page-view" id="pageView">
+    <div class="back-bar">
+      <button class="back-btn" onclick="closePage()">
+        <span class="chevron">‹</span> Carnet
+      </button>
+      <span class="back-title" id="backTitle"></span>
+    </div>
+    <div class="page-loader" id="pageLoader">
+      <div class="pl-spinner"></div>
+    </div>
+    <iframe id="pageFrame" src="about:blank"></iframe>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// PAGE REGISTRY
+// ═══════════════════════════════════════
+const PAGES = [
+  {
+    id:'etsi', icon:'🫵', title:'Et si c\'était toi ?',
+    desc:'Sept vies. Toutes au « tu ». Toutes vraies. Le chômeur de 52 ans à Verviers. La mère seule à Molenbeek. Le cadre IT en burn-out. Le gosse de 6 ans qui ne comprend pas pourquoi.',
+    file:'belgitude-et-si.html', color:'#1c1917',
+    tags:['immersif','7 vies','scroll','émotionnel'],
+    section:'ressentir'
+  },
+  {
+    id:'guide', icon:'🎮', title:'Le Guide de Survie',
+    desc:'Les 3 armes qui marchent vraiment, expliquées comme à un pote. Boss final, power-ups, niveaux d\'implication. Pas besoin d\'être expert. Juste d\'être là.',
+    file:'belgitude-cartoon-guide.html', color:'#FF6B9D',
+    tags:['accessible','cartoon','action','tout public'],
+    section:'comprendre'
+  },
+  {
+    id:'machine', icon:'🔧', title:'La Machine',
+    desc:'Comment le système se nourrit de toi : le circuit fermé en 7 étapes. De ton vote obligatoire jusqu\'aux 108,7M€ que les partis encaissent sans te demander ton avis.',
+    file:'belgitude-machine.html', color:'#C62828',
+    tags:['soviétique','circuit fermé','flux','pouvoir'],
+    section:'comprendre'
+  },
+  {
+    id:'system', icon:'⚙️', title:'Le Diagnostic',
+    desc:'99,73% de discipline de vote. 87% de financement public. 31 806 mandataires. 0 référendums depuis 1950. Le tableau de bord complet de la particratie belge.',
+    file:'belgitude-fanclub.html', color:'#48bb78',
+    tags:['CRT','chiffres','système','particratie'],
+    section:'documenter'
+  },
+  {
+    id:'scandales', icon:'💣', title:'Les Scandales',
+    desc:'L\'affaire Deborsu : 410 860 téléspectateurs de propagande anti-pauvre. 120:1 au montage. Loi Quintin. 3 000 caméras. La consanguinité médiatico-politique documentée.',
+    file:'belgitude-ligne-claire.html', color:'#D7263D',
+    tags:['ligne claire','Deborsu','RTL-TVI','Quintin'],
+    section:'documenter'
+  },
+  {
+    id:'exclus', icon:'👁️', title:'Les Exclus',
+    desc:'900 000 en insécurité alimentaire. 10 000 sans-abri à Bruxelles. 44% d\'enfants pauvres. 550 000 malades longue durée. Le système les a décidé invisibles.',
+    file:'belgitude-matrix-exclus.html', color:'#00e676',
+    tags:['Matrix','exclusion','invisibles','données'],
+    section:'documenter'
+  },
+  {
+    id:'autopsie', icon:'🔬', title:'L\'Autopsie',
+    desc:'Dissection d\'une seule mesure — la limitation du chômage à 24 mois — de l\'accord de coalition jusqu\'à la mort sociale. Chaque organe du système examiné.',
+    file:'belgitude-autopsie.html', color:'#7c3aed',
+    tags:['forensic','timeline','180K','épidémiologie'],
+    section:'documenter'
+  },
+  {
+    id:'compteur', icon:'⏱️', title:'Le Compteur',
+    desc:'Le coût humain qui s\'accumule. Chaque chiffre est un nom, une adresse, une famille. Le compteur tourne. Le gouvernement regarde ailleurs.',
+    file:'belgitude-compteur.html', color:'#c9a84c',
+    tags:['mémorial','temps réel','visages','coût'],
+    section:'ressentir'
+  },
+  {
+    id:'preuves', icon:'📌', title:'Le Mur des Preuves',
+    desc:'Toutes les pièces à conviction. Tous les liens. Un seul mur. Zéro théorie du complot — que des sources institutionnelles épinglées sur du liège.',
+    file:'belgitude-preuves.html', color:'#C4A265',
+    tags:['cork board','preuves','liens','sources'],
+    section:'documenter'
+  },
+  {
+    id:'warroom', icon:'⚔️', title:'Les Trois Guerres',
+    desc:'Guerre du Récit. Guerre de la Dé-sidération. Guerre du Prétoire. Le manuel opérationnel : arsenal juridique, précédents, article 23, saturation.',
+    file:'belgitude-warroom.html', color:'#ffbf00',
+    tags:['stratégie','droit','art.23','lawfare'],
+    section:'agir'
+  },
+  // ─── AJOUTEZ VOS PAGES ICI ───
+];
+
+const SECTIONS = {
+  ressentir: { label: 'Ressentir', emoji: '💔' },
+  comprendre: { label: 'Comprendre', emoji: '🧠' },
+  documenter: { label: 'Documenter', emoji: '📂' },
+  agir: { label: 'Agir', emoji: '⚡' },
+};
+
+// ═══════════════════════════════════════
+// BUILD
+// ═══════════════════════════════════════
+function build(){
+  const container = document.getElementById('cardContainer');
+  document.getElementById('pageCount').textContent = PAGES.length + ' notes';
+
+  // Group by section
+  const grouped = {};
+  PAGES.forEach(p => {
+    if(!grouped[p.section]) grouped[p.section] = [];
+    grouped[p.section].push(p);
+  });
+
+  // Render sections
+  const order = ['ressentir','comprendre','documenter','agir'];
+  order.forEach(key => {
+    if(!grouped[key]) return;
+    const sec = SECTIONS[key];
+
+    const label = document.createElement('div');
+    label.className = 'section-label';
+    label.textContent = sec.emoji + ' ' + sec.label;
+    container.appendChild(label);
+
+    const grid = document.createElement('div');
+    grid.className = 'cards';
+    grouped[key].forEach(p => {
+      grid.appendChild(createCard(p));
+    });
+    container.appendChild(grid);
+  });
+}
+
+function createCard(p){
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.onclick = () => openPage(p);
+
+  card.innerHTML = `
+    <div class="card-color" style="background:${p.color}"></div>
+    <div class="card-top">
+      <div class="card-icon" style="background:${p.color}12;color:${p.color}">${p.icon}</div>
+      <div class="card-info">
+        <h3>${p.title}</h3>
+        <div class="desc">${p.desc}</div>
+      </div>
+    </div>
+    <div class="card-tags">
+      ${p.tags.map(t => `<span class="card-tag">${t}</span>`).join('')}
+    </div>
+    <div class="card-bottom">
+      <span class="read">Ouvrir</span>
+      <span class="arrow">›</span>
+    </div>
+  `;
+  return card;
+}
+
+// ═══════════════════════════════════════
+// PAGE VIEW
+// ═══════════════════════════════════════
+function openPage(p){
+  const view = document.getElementById('pageView');
+  const frame = document.getElementById('pageFrame');
+  const loader = document.getElementById('pageLoader');
+  const title = document.getElementById('backTitle');
+  const viewTitle = document.getElementById('viewTitle');
+
+  title.textContent = p.title;
+  viewTitle.textContent = p.title;
+  loader.classList.remove('hidden');
+
+  frame.onload = () => loader.classList.add('hidden');
+  frame.src = p.file;
+
+  view.classList.add('open');
+  document.getElementById('cardIndex').classList.add('hidden');
+}
+
+function closePage(){
+  const view = document.getElementById('pageView');
+  const frame = document.getElementById('pageFrame');
+  const viewTitle = document.getElementById('viewTitle');
+
+  view.classList.remove('open');
+  document.getElementById('cardIndex').classList.remove('hidden');
+  viewTitle.textContent = 'Carnet de notes';
+
+  // Delayed cleanup
+  setTimeout(() => { frame.src = 'about:blank'; }, 400);
+}
+
+// Back gesture (swipe right from left edge)
+let touchSX = 0, touchSY = 0;
+document.getElementById('pageView').addEventListener('touchstart', e => {
+  touchSX = e.touches[0].clientX;
+  touchSY = e.touches[0].clientY;
+}, {passive:true});
+document.getElementById('pageView').addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchSX;
+  const dy = Math.abs(e.changedTouches[0].clientY - touchSY);
+  if(touchSX < 30 && dx > 80 && dy < 100){
+    closePage();
+  }
+}, {passive:true});
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closePage();
+});
+
+// ═══════════════════════════════════════
+// GO
+// ═══════════════════════════════════════
+build();
+</script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
+</body>
+</html>
