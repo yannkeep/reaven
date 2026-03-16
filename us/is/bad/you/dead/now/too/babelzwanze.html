@@ -1,0 +1,2061 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BABEL'ZWANZE | Réappropriation Numérique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   BABEL'ZWANZE - ULTIMATE EDITION
+   Mode sombre + néons + terminal switch
+   ═══════════════════════════════════════ */
+
+:root {
+  --bg: #06070a;
+  --bg-panel: #0c0d12;
+  --bg-card: #101117;
+  --border: #1a1d2a;
+  --border-glow: #2a2d4a;
+  
+  --text: #e8eaef;
+  --text-muted: #8b8fa8;
+  --text-dim: #5a5d70;
+  
+  --mint: #7cffc4;
+  --mint-dim: #4a9973;
+  --mint-glow: rgba(124, 255, 196, 0.4);
+  
+  --lilas: #cbb7ff;
+  --lilas-dim: #8a7ab3;
+  --lilas-glow: rgba(203, 183, 255, 0.3);
+  
+  --coral: #ff7b7b;
+  --gold: #ffd93d;
+  --cyan: #7bffff;
+  
+  --radius: 12px;
+  --radius-sm: 6px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+body.console-mode {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+body.console-mode * {
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+::selection { background: var(--mint); color: var(--bg); }
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--mint-dim); }
+
+/* ═══════════════════════════════════════
+   BACKGROUND EFFECTS
+   ═══════════════════════════════════════ */
+
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(124,255,196,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,255,196,0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 70%);
+}
+
+.bg-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(800px 600px at 20% 20%, rgba(124,255,196,0.06), transparent),
+    radial-gradient(600px 400px at 80% 80%, rgba(203,183,255,0.05), transparent),
+    radial-gradient(400px 400px at 50% 50%, rgba(124,255,196,0.03), transparent);
+}
+
+.noise {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+.scanlines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9997;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.1) 2px,
+    rgba(0,0,0,0.1) 4px
+  );
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+body.console-mode .scanlines { opacity: 1; }
+
+/* ═══════════════════════════════════════
+   CANVAS PARTICLES
+   ═══════════════════════════════════════ */
+
+#particles {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════ */
+
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding: 1rem 2rem;
+  background: rgba(6,7,10,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  transition: all 0.3s;
+}
+
+nav.scrolled {
+  background: rgba(6,7,10,0.95);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.5), 0 0 60px rgba(124,255,196,0.05);
+}
+
+.nav-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+}
+
+.nav-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--mint), var(--lilas));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: var(--bg);
+  box-shadow: 0 0 20px var(--mint-glow);
+  position: relative;
+}
+
+.nav-logo::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--mint), var(--lilas));
+  z-index: -1;
+  opacity: 0.5;
+  filter: blur(8px);
+}
+
+.nav-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+}
+
+.nav-title .main {
+  background: linear-gradient(135deg, var(--mint), var(--lilas));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-title .sub {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.nav-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--mint), var(--lilas));
+  transition: width 0.3s;
+}
+
+.nav-links a:hover { color: var(--mint); }
+.nav-links a:hover::after { width: 100%; }
+
+.nav-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.5rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.nav-switch:hover {
+  border-color: var(--mint);
+  box-shadow: 0 0 15px rgba(124,255,196,0.2);
+}
+
+.nav-switch-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.nav-switch-toggle {
+  width: 44px;
+  height: 24px;
+  background: var(--border);
+  border-radius: 12px;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.nav-switch-toggle::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+
+body.console-mode .nav-switch-toggle {
+  background: var(--mint);
+  box-shadow: 0 0 15px var(--mint-glow);
+}
+
+body.console-mode .nav-switch-toggle::before {
+  left: 23px;
+  background: var(--bg);
+}
+
+/* ═══════════════════════════════════════
+   HERO SECTION
+   ═══════════════════════════════════════ */
+
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8rem 2rem 5rem;
+  position: relative;
+  z-index: 10;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.6rem 1.4rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  margin-bottom: 2rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.hero-badge .dot {
+  width: 8px;
+  height: 8px;
+  background: var(--mint);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--mint);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--mint); }
+  50% { opacity: 0.5; box-shadow: 0 0 5px var(--mint); }
+}
+
+.hero-title {
+  font-size: clamp(3rem, 12vw, 8rem);
+  font-weight: 800;
+  letter-spacing: -3px;
+  line-height: 0.95;
+  margin-bottom: 1.5rem;
+}
+
+.hero-title .line1 {
+  display: block;
+  background: linear-gradient(135deg, var(--mint) 0%, var(--lilas) 50%, var(--mint) 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+.hero-title .line2 {
+  display: block;
+  font-size: 0.35em;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+.hero-sub {
+  max-width: 700px;
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  line-height: 1.8;
+}
+
+.hero-sub strong {
+  color: var(--mint);
+  font-weight: 600;
+}
+
+.hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+
+.tag {
+  padding: 0.5rem 1.2rem;
+  border-radius: 25px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  border: 1px solid;
+}
+
+.tag-mint {
+  background: rgba(124,255,196,0.1);
+  border-color: rgba(124,255,196,0.3);
+  color: var(--mint);
+}
+
+.tag-lilas {
+  background: rgba(203,183,255,0.1);
+  border-color: rgba(203,183,255,0.3);
+  color: var(--lilas);
+}
+
+.tag-gold {
+  background: rgba(255,217,61,0.1);
+  border-color: rgba(255,217,61,0.3);
+  color: var(--gold);
+}
+
+.hero-btns {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn {
+  padding: 1rem 2.5rem;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--mint), var(--lilas));
+  color: var(--bg);
+  box-shadow: 0 4px 25px var(--mint-glow);
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 40px var(--mint-glow), 0 0 60px rgba(124,255,196,0.3);
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--lilas), var(--mint));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.btn-primary:hover::before { opacity: 1; }
+.btn-primary span { position: relative; z-index: 1; }
+
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--lilas);
+  color: var(--lilas);
+}
+
+.btn-outline:hover {
+  background: rgba(203,183,255,0.1);
+  box-shadow: 0 0 30px var(--lilas-glow);
+  transform: translateY(-3px);
+}
+
+/* ═══════════════════════════════════════
+   SECTIONS
+   ═══════════════════════════════════════ */
+
+section {
+  padding: 6rem 2rem;
+  position: relative;
+  z-index: 10;
+}
+
+.container {
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.sec-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.sec-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--mint);
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+.sec-tag::before {
+  content: '>';
+  color: var(--mint);
+}
+
+.sec-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: -1px;
+  margin-bottom: 1rem;
+}
+
+.sec-title span {
+  background: linear-gradient(135deg, var(--mint), var(--lilas));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sec-desc {
+  max-width: 650px;
+  margin: 0 auto;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+/* ═══════════════════════════════════════
+   INTRO CARDS
+   ═══════════════════════════════════════ */
+
+.intro-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.intro-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s;
+}
+
+.intro-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--mint), var(--lilas));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.intro-card:hover {
+  border-color: var(--mint-dim);
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 40px rgba(124,255,196,0.05);
+}
+
+.intro-card:hover::before { opacity: 1; }
+
+.intro-card-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.intro-card h3 {
+  font-size: 1.1rem;
+  color: var(--mint);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.intro-card p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* ═══════════════════════════════════════
+   WHO SECTION
+   ═══════════════════════════════════════ */
+
+.who-section {
+  background: linear-gradient(180deg, transparent, rgba(124,255,196,0.02), transparent);
+}
+
+.who-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.who-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  position: relative;
+}
+
+.who-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, rgba(124,255,196,0.05), rgba(203,183,255,0.03));
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.who-card:hover::after { opacity: 1; }
+
+.who-card h3 {
+  font-size: 1.15rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.who-card h3 span { color: var(--mint); }
+
+.who-card p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.who-card a {
+  color: var(--lilas);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.who-card a:hover { text-decoration: underline; }
+
+/* ═══════════════════════════════════════
+   TOOLS SECTION
+   ═══════════════════════════════════════ */
+
+.tools-section {
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.tools-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+
+.tools-nav button {
+  padding: 0.6rem 1.4rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 25px;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.tools-nav button:hover {
+  border-color: var(--lilas);
+  color: var(--lilas);
+}
+
+.tools-nav button.active {
+  background: linear-gradient(135deg, var(--mint), var(--lilas));
+  border-color: transparent;
+  color: var(--bg);
+  box-shadow: 0 0 20px var(--mint-glow);
+}
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 1.5rem;
+}
+
+.tool-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.8rem;
+  position: relative;
+  transition: all 0.4s;
+  overflow: hidden;
+}
+
+.tool-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(124,255,196,0.03), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.tool-card:hover {
+  border-color: var(--mint-dim);
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.4), 0 0 30px rgba(124,255,196,0.08);
+}
+
+.tool-card:hover::before { opacity: 1; }
+
+.tool-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.tool-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tool-badge {
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--radius-sm);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.tool-badge.validate {
+  background: rgba(255,217,61,0.15);
+  color: var(--gold);
+  border: 1px solid rgba(255,217,61,0.3);
+}
+
+.tool-badge.ready {
+  background: rgba(124,255,196,0.15);
+  color: var(--mint);
+  border: 1px solid rgba(124,255,196,0.3);
+}
+
+.tool-desc {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.tool-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tool-tag {
+  padding: 0.25rem 0.6rem;
+  background: var(--bg-panel);
+  border-radius: var(--radius-sm);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.tool-links {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.tool-link {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--lilas);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: color 0.3s;
+}
+
+.tool-link:hover { color: var(--mint); }
+
+/* ═══════════════════════════════════════
+   PARCOURS
+   ═══════════════════════════════════════ */
+
+.parcours-grid {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.parcours-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.5rem;
+  padding: 1.8rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  align-items: start;
+  transition: all 0.3s;
+}
+
+.parcours-item:hover {
+  border-color: var(--mint-dim);
+  box-shadow: 0 0 30px rgba(124,255,196,0.08);
+}
+
+.parcours-num {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, var(--mint), var(--lilas));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: var(--bg);
+  box-shadow: 0 0 20px var(--mint-glow);
+}
+
+.parcours-content h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.4rem;
+  color: var(--text);
+}
+
+.parcours-content p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.parcours-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* ═══════════════════════════════════════
+   PARTNERSHIP CTA
+   ═══════════════════════════════════════ */
+
+.partner-section {
+  padding: 8rem 2rem;
+}
+
+.partner-box {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 4rem;
+  background: 
+    radial-gradient(800px 400px at 30% 20%, rgba(124,255,196,0.08), transparent),
+    radial-gradient(600px 300px at 70% 80%, rgba(203,183,255,0.06), transparent),
+    var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.partner-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--mint), var(--lilas), var(--mint));
+  background-size: 200% auto;
+  animation: shimmer 3s linear infinite;
+}
+
+.partner-box h2 {
+  font-size: 2.2rem;
+  margin-bottom: 1rem;
+}
+
+.partner-box > p {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  margin-bottom: 2.5rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.partner-logos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.partner-logo {
+  padding: 1rem 2rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.partner-logo:hover {
+  border-color: var(--mint);
+  box-shadow: 0 0 25px rgba(124,255,196,0.2);
+  transform: translateY(-3px);
+}
+
+.partner-note {
+  padding: 1.5rem 2rem;
+  background: rgba(255,217,61,0.08);
+  border: 1px solid rgba(255,217,61,0.2);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  color: var(--gold);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ═══════════════════════════════════════
+   DOWNLOADS
+   ═══════════════════════════════════════ */
+
+.downloads-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.download-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.download-card:hover {
+  border-color: var(--mint-dim);
+  box-shadow: 0 0 30px rgba(124,255,196,0.1);
+}
+
+.download-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.download-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.download-card p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
+  background: linear-gradient(135deg, var(--mint), var(--lilas));
+  color: var(--bg);
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.download-btn:hover {
+  box-shadow: 0 0 25px var(--mint-glow);
+  transform: translateY(-2px);
+}
+
+.download-btn.soon {
+  background: var(--border);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* ═══════════════════════════════════════
+   PRINCIPLES
+   ═══════════════════════════════════════ */
+
+.principles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.principle {
+  padding: 1.5rem;
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.principle:hover {
+  border-style: solid;
+  border-color: var(--lilas-dim);
+}
+
+.principle-icon {
+  font-size: 2rem;
+  margin-bottom: 0.8rem;
+}
+
+.principle h3 {
+  font-size: 0.95rem;
+  color: var(--mint);
+  margin-bottom: 0.4rem;
+}
+
+.principle p {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* ═══════════════════════════════════════
+   CONTACT
+   ═══════════════════════════════════════ */
+
+.contact-section {
+  padding: 6rem 2rem;
+}
+
+.contact-box {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 3rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.contact-box h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.contact-box > p {
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+.contact-email {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.2rem;
+  color: var(--mint);
+  text-decoration: none;
+  padding: 1rem 2rem;
+  background: rgba(124,255,196,0.1);
+  border: 1px solid rgba(124,255,196,0.3);
+  border-radius: var(--radius);
+  transition: all 0.3s;
+}
+
+.contact-email:hover {
+  background: rgba(124,255,196,0.15);
+  box-shadow: 0 0 30px var(--mint-glow);
+}
+
+.contact-note {
+  margin-top: 2rem;
+  padding: 1rem 1.5rem;
+  background: rgba(255,123,123,0.08);
+  border: 1px solid rgba(255,123,123,0.2);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  color: var(--coral);
+}
+
+/* ═══════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════ */
+
+footer {
+  padding: 3rem 2rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  position: relative;
+  z-index: 10;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.footer-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.3s;
+}
+
+.footer-links a:hover { color: var(--mint); }
+
+.footer-copy {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+/* ═══════════════════════════════════════
+   CONSOLE MODE OVERRIDES
+   ═══════════════════════════════════════ */
+
+body.console-mode .hero-title {
+  font-size: clamp(2rem, 8vw, 5rem);
+  letter-spacing: 0;
+}
+
+body.console-mode .hero-title .line1::before {
+  content: '> ';
+  color: var(--mint);
+}
+
+body.console-mode .sec-title::before {
+  content: '## ';
+  color: var(--mint);
+}
+
+body.console-mode .tool-name::before {
+  content: '$ ';
+  color: var(--mint);
+}
+
+body.console-mode .intro-card,
+body.console-mode .tool-card,
+body.console-mode .who-card,
+body.console-mode .parcours-item,
+body.console-mode .download-card,
+body.console-mode .principle {
+  border-radius: 0;
+}
+
+body.console-mode .btn,
+body.console-mode .tag,
+body.console-mode .tool-badge,
+body.console-mode .nav-switch,
+body.console-mode .hero-badge {
+  border-radius: 0;
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  .nav-links { display: none; }
+  .hero { padding: 7rem 1.5rem 4rem; }
+  .parcours-item { grid-template-columns: 1fr; }
+  .partner-box { padding: 2.5rem 1.5rem; }
+}
+
+@media (max-width: 600px) {
+  .hero-title { letter-spacing: -1px; }
+  .tools-grid { grid-template-columns: 1fr; }
+  section { padding: 4rem 1rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div class="noise"></div>
+<div class="scanlines"></div>
+<canvas id="particles"></canvas>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-brand">
+      <div class="nav-logo">BZ</div>
+      <div class="nav-title">
+        <span class="main">BABEL'ZWANZE</span>
+        <span class="sub">Réappropriation numérique</span>
+      </div>
+    </a>
+    
+    <div class="nav-links">
+      <a href="#outils">Outils</a>
+      <a href="#parcours">Parcours</a>
+      <a href="#telecharger">Télécharger</a>
+      <a href="#partenariat">Partenariat</a>
+      <a href="#contact">Contact</a>
+    </div>
+    
+    <div class="nav-switch" id="consoleSwitch">
+      <span class="nav-switch-label">Console</span>
+      <div class="nav-switch-toggle"></div>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-badge">
+    <span class="dot"></span>
+    <span>SYSTÈME ACTIF</span>
+  </div>
+  
+  <h1 class="hero-title">
+    <span class="line1">BABEL'ZWANZE</span>
+    <span class="line2">SE RÉAPPROPRIER LE NUMÉRIQUE DE A À Z</span>
+  </h1>
+  
+  <p class="hero-sub">
+    Ressources <strong>libres</strong>, <strong>gratuites</strong> et <strong>téléchargeables</strong> 
+    pour comprendre, maîtriser et transmettre les outils numériques. 
+    Sans dépendance. Sans surveillance. Sans bullshit.
+  </p>
+  
+  <div class="hero-tags">
+    <span class="tag tag-mint">Ateliers asynchrones</span>
+    <span class="tag tag-lilas">Low-tech first</span>
+    <span class="tag tag-gold">100% offline</span>
+  </div>
+  
+  <div class="hero-btns">
+    <a href="#outils" class="btn btn-primary"><span>Explorer les outils</span></a>
+    <a href="#telecharger" class="btn btn-outline">Télécharger le kit</a>
+  </div>
+</header>
+
+<section>
+  <div class="container">
+    <div class="intro-grid">
+      <div class="intro-card">
+        <div class="intro-card-icon">🎯</div>
+        <h3>Objectif</h3>
+        <p>Permettre à chacun·e de comprendre et maîtriser le numérique sans dépendre de formations payantes ou de GAFAM.</p>
+      </div>
+      <div class="intro-card">
+        <div class="intro-card-icon">📦</div>
+        <h3>Low-tech</h3>
+        <p>Tout fonctionne hors-ligne, sur des machines modestes, et peut être imprimé. Zéro dépendance cloud.</p>
+      </div>
+      <div class="intro-card">
+        <div class="intro-card-icon">🔄</div>
+        <h3>Asynchrone</h3>
+        <p>Apprenez à votre rythme, où vous voulez. Les ressources sont autonomes et auto-suffisantes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="who-section" id="qui">
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-tag">identification</div>
+      <h2 class="sec-title">Qui <span>porte ce projet</span> ?</h2>
+      <p class="sec-desc">Une initiative citoyenne, transparente sur ses méthodes et ses outils.</p>
+    </div>
+    
+    <div class="who-grid">
+      <div class="who-card">
+        <h3>🌿 <span>Babel'Zwanze</span></h3>
+        <p>Projet du <strong>CCPLC</strong> (Collectif Citoyen pour la Participation Libre et Consciente).</p>
+        <p>Le nom fusionne "Babel" (papoter en bruxellois) et "Zwanze" (l'humour bruxellois) — en hommage au Babel'zin d'Auderghem.</p>
+        <a href="https://ouaisfieu.github.io/ccplc/" target="_blank">↗ ouaisfieu.github.io/ccplc</a>
+      </div>
+      <div class="who-card">
+        <h3>🤝 <span>Partenaires visés</span></h3>
+        <p><strong>Babel'zin</strong> — Lieu de liens à Auderghem avec informaticiens publics et ateliers créatifs.</p>
+        <p><strong>Informaticien Public</strong> — Réseau de 79 permanences d'aide numérique (Bruxelles + Wallonie).</p>
+        <a href="https://babelzin.be" target="_blank">↗ babelzin.be</a> · 
+        <a href="https://informaticienpublic.be" target="_blank">↗ informaticienpublic.be</a>
+      </div>
+      <div class="who-card">
+        <h3>⚠️ <span>Transparence</span></h3>
+        <p>Ce site et ces ressources sont générés avec l'aide d'une <strong>IA</strong> (Claude, Anthropic), sous supervision humaine.</p>
+        <p>Tous les outils listés portent le tag <strong>#àValider</strong> jusqu'à validation terrain par les partenaires.</p>
+        <p>Code source libre et modifiable.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tools-section" id="outils">
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-tag">catalogue</div>
+      <h2 class="sec-title">Outils <span>disponibles</span></h2>
+      <p class="sec-desc">Ressources libres pour chaque étape. Tout est #àValider jusqu'à test terrain.</p>
+    </div>
+    
+    <div class="tools-nav">
+      <button class="active" data-filter="all">Tous</button>
+      <button data-filter="debutant">Débutant</button>
+      <button data-filter="intermediaire">Intermédiaire</button>
+      <button data-filter="avance">Avancé</button>
+      <button data-filter="formateur">Formateur</button>
+    </div>
+    
+    <div class="tools-grid">
+      
+      <!-- DÉBUTANT -->
+      <div class="tool-card" data-level="debutant">
+        <div class="tool-header">
+          <span class="tool-name">📧 Email sécurisé</span>
+          <span class="tool-badge validate">#àValider</span>
+        </div>
+        <p class="tool-desc">Créer une adresse ProtonMail ou Tutanota. Comprendre le chiffrement, la vie privée, éviter le spam.</p>
+        <div class="tool-meta">
+          <span class="tool-tag">HTML offline</span>
+          <span class="tool-tag">PDF</span>
+          <span class="tool-tag">~15 min</span>
+        </div>
+        <div class="tool-links">
+          <a href="#" class="tool-link">📄 Télécharger</a>
+          <a href="#" class="tool-link">👁️ Aperçu</a>
+        </div>
+      </div>
+      
+      <div class="tool-card" data-level="debutant">
+        <div class="tool-header">
+          <span class="tool-name">🔑 Mots de passe</span>
+          <span class="tool-badge validate">#àValider</span>
+        </div>
+        <p class="tool-desc">KeePassXC : créer, stocker et organiser ses mots de passe localement. Zero cloud.</p>
+        <div class="tool-meta">
+          <span class="tool-tag">Logiciel libre</span>
+          <span class="tool-tag">Multi-OS</span>
+          <span class="tool-tag">~30 min</span>
+        </div>
+        <div class="tool-links">
+          <a href="https://keepassxc.org/" class="tool-link" target="_blank">↗ KeePassXC</a>
+          <a href="#" class="tool-link">📄 Guide</a>
+        </div>
+      </div>
+      
+      <div class="tool-card" data-level="debutant">
+        <div class="tool-header">
+          <span class="tool-name">🌐 Navigation privée</span>
+          <span class="tool-badge validate">#àValider</span>
+        </div>
+        <p class="tool-desc">Firefox + uBlock Origin. Paramètres vie privée. Moteurs de recherche alternatifs.</p>
+        <div class="tool-meta">
+          <span class="tool-tag">Firefox</span>
+          <span class="tool-tag">Extensions</span>
+          <span class="tool-tag">~20 min</span>
+        </div>
+        <div class="tool-links">
+          <a href="https://www.mozilla.org/fr/firefox/" class="tool-link" target="_blank">↗ Firefox</a>
+          <a href="#" class="tool-link">📄 Guide</a>
+        </div>
+      </div>
+      
+      <div class="tool-card" data-level="debutant">
+        <div class="tool-header">
+          <span class="tool-name">📱 Smartphone basics</span>
+          <span class="tool-badge validate">#àValider</span>
+        </div>
+        <p class="tool-desc">Android : paramètres essentiels, permissions apps, batterie, sauvegardes, désinstaller le bloatware.</p>
+        <div class="tool-meta">
+          <span class="tool-tag">Android</span>
+          <span class="tool-tag">PDF illustré</span>
+          <span class="tool-tag">~45 min</span>
+        </div>
+        <div class="tool-links">
+          <a href="#" class="tool-link">📄 Télécharger</a>
+        </div>
+      </div>
+      
+      <!-- INTERMÉDIAIRE -->
+      <div class="tool-card" data-level="intermediaire">
+        <div class="tool-header">
+          <span class="tool-name">📝 LibreOffice Writer</span>
+          <span class="tool-badge validate">#àValider</span>
+        </div>
+        <p class="tool-desc">Traitement de texte : CV, lettres, styles. Alternative gratuite à Word.</p>
+        <div class="tool-meta">
+          <span class="tool-tag">Logiciel libre</span>
+          <span class="tool-tag">Multi-OS</span>
+          <span class="tool-tag">~1h</span>
+        </div>
+        <div class="tool-links">
+          <a href="https://fr.libreoffice.org/" class="tool-link" target="_blank">↗ LibreOffice</a>
+          <a href="#" class="tool-link">📄 Guide</a>
+        </div>
+      </div>
+      
+      <div class="tool-card" data-level="intermediaire">
+        <div class="tool-header">
+          <span class="tool-name">📊 Tableur budget</span>
+          <span class="tool-badge validate">#àValider</span>
+        </div>
+        <p class="tool-desc">LibreOffice Calc : gérer un budget, listes, formules simples. Exercices pratiques inclus.</p>
+        <div class="tool-meta">
+          <span class="tool-tag">Calc</span>
+          <span class="tool-tag">Exercices</span>
+          <span class="tool-tag">~1h30</span>
+        </div>
+        <div class="tool-links">
+          <a href="#" class="tool-link">📄 Télécharger</a>
+        </div>
+      </div>
+      
+      <div class="tool-card" data-level="intermediaire">
+        <div class="tool-header">
+          <span class="tool-name">🏛️ Démarches BE</span>
+          <span class="tool-badge validate">#àValider</span>
+        </div>
+        <p class="tool-desc">Guides illustrés : itsme, Tax-on-web, MyBEnefits, eBox, CPAS, communes.</p>
+        <div class="tool-meta">
+          <span class="tool-tag">Belgique</span>
+          <span class="tool-tag">PDF</span>
+          <span class="tool-tag">Variable</span>
+        </div>
+        <div class="tool-links">
+          <a href="#" class="tool-link">📄 Pack complet</a>
+        </div>
+      </div>
+      
+      <div class="tool-card" data-level="intermediaire">
+        <div class="tool-header">
+          <span class="tool-name">🖼️ GIMP basics</span>
+          <span class="tool-badge validate">#àValider</span>
+        </div>
+        <p class="tool-desc">Retouche photo : recadrer, redimensionner, luminosité, yeux rouges.</p>
+        <div class="tool-meta">
+          <span class="tool-tag">Logiciel libre</span>
+          <span class="tool-tag">Multi-OS</span>
+          <span class="tool-tag">~1h</span>
+        </div>
+        <div class="tool-links">
+          <a href="https://www.gimp.org/" class="tool-link" target="_blank">↗ GIMP</a>
+          <a href="#" class="tool-link">📄 Guide</a>
+        </div>
+      </div>
+      
+      <div class="tool-card" data-level="intermediaire">
+        <div class="tool-header">
+          <span class="tool-name">☁️ Cloud vs Local</span>
+          <span class="tool-badge validate">#àValider</span>
+        </div>
+        <p class="tool-desc">Où sont vos données ? Alternatives : disques durs, clés USB, NAS. Stratégies de backup.</p>
+        <div class="tool-meta">
+          <span class="tool-tag">Concept</span>
+          <span class="tool-tag">PDF</span>
+          <span class="tool-tag">~30 min</span>
+        </div>
+        <div class="tool-links">
+          <a href="#" class="tool-link">📄 Télécharger</a>
+        </div>
+      </div>
+      
+      <!-- AVANCÉ -->
+      <div class="tool-card" data-level="avance">
+        <div class="tool-header">
+          <span class="tool-name">🐧 Linux Mint</span>
+          <span class="tool-badge validate">#àValider</span>
+        </div>
+        <p class="tool-desc">Installation dual-boot ou sur vieux PC. Premiers pas, logiciels essentiels. Recyclage hardware.</p>
+        <div class="tool-meta">
+          <span class="tool-tag">Système libre</span>
+          <span class="tool-tag">Recyclage</span>
+          <span class="tool-tag">~2h</span>
+        </div>
+        <div class="tool-links">
+          <a href="https://linuxmint.com/" class="tool-link" target="_blank">↗ Linux Mint</a>
+          <a href="#" class="tool-link">📄 Guide</a>
+        </div>
+      </div>
+      
+      <div class="tool-card" data-level="avance">
+        <div class="tool-header">
+          <span class="tool-name">🌐 Créer un site</span>
+          <span class="tool-badge validate">#àValider</span>
+        </div>
+        <p class="tool-desc">HTML/CSS de base. Page personnelle statique. Hébergement gratuit : GitHub Pages, Neocities.</p>
+        <div class="tool-meta">
+          <span class="tool-tag">Code</span>
+          <span class="tool-tag">Gratuit</span>
+          <span class="tool-tag">~3h</span>
+        </div>
+        <div class="tool-links">
+          <a href="https://neocities.org/" class="tool-link" target="_blank">↗ Neocities</a>
+          <a href="#" class="tool-link">📄 Guide</a>
+        </div>
+      </div>
+      
+      <div class="tool-card" data-level="avance">
+        <div class="tool-header">
+          <span class="tool-name">🔒 Chiffrement</span>
+          <span class="tool-badge validate">#àValider</span>
+        </div>
+        <p class="tool-desc">VeraCrypt : conteneur chiffré pour documents sensibles. Protection sans cloud.</p>
+        <div class="tool-meta">
+          <span class="tool-tag">Logiciel libre</span>
+          <span class="tool-tag">Sécurité</span>
+          <span class="tool-tag">~45 min</span>
+        </div>
+        <div class="tool-links">
+          <a href="https://www.veracrypt.fr/" class="tool-link" target="_blank">↗ VeraCrypt</a>
+          <a href="#" class="tool-link">📄 Guide</a>
+        </div>
+      </div>
+      
+      <div class="tool-card" data-level="avance">
+        <div class="tool-header">
+          <span class="tool-name">📡 Auto-hébergement</span>
+          <span class="tool-badge validate">#àValider</span>
+        </div>
+        <p class="tool-desc">Concepts : serveur, DNS, Raspberry Pi. Héberger ses propres services.</p>
+        <div class="tool-meta">
+          <span class="tool-tag">Concept</span>
+          <span class="tool-tag">Hardware</span>
+          <span class="tool-tag">~1h lecture</span>
+        </div>
+        <div class="tool-links">
+          <a href="#" class="tool-link">📄 Télécharger</a>
+        </div>
+      </div>
+      
+      <!-- FORMATEUR -->
+      <div class="tool-card" data-level="formateur">
+        <div class="tool-header">
+          <span class="tool-name">📋 Kit animateur</span>
+          <span class="tool-badge validate">#àValider</span>
+        </div>
+        <p class="tool-desc">Fiches animation : déroulé type, exercices, évaluation, adaptation publics.</p>
+        <div class="tool-meta">
+          <span class="tool-tag">Animation</span>
+          <span class="tool-tag">Imprimable</span>
+          <span class="tool-tag">Modulable</span>
+        </div>
+        <div class="tool-links">
+          <a href="#" class="tool-link">📄 Télécharger</a>
+        </div>
+      </div>
+      
+      <div class="tool-card" data-level="formateur">
+        <div class="tool-header">
+          <span class="tool-name">🎯 Diagnostic</span>
+          <span class="tool-badge validate">#àValider</span>
+        </div>
+        <p class="tool-desc">Questionnaire papier pour évaluer le niveau numérique. Inspiré PIX/CAF.</p>
+        <div class="tool-meta">
+          <span class="tool-tag">Évaluation</span>
+          <span class="tool-tag">PDF</span>
+          <span class="tool-tag">~10 min</span>
+        </div>
+        <div class="tool-links">
+          <a href="#" class="tool-link">📄 Télécharger</a>
+        </div>
+      </div>
+      
+      <div class="tool-card" data-level="formateur">
+        <div class="tool-header">
+          <span class="tool-name">🖥️ Simulateurs</span>
+          <span class="tool-badge validate">#àValider</span>
+        </div>
+        <p class="tool-desc">Mini-sites HTML simulant des interfaces (email, admin, banque) pour s'entraîner sans risque.</p>
+        <div class="tool-meta">
+          <span class="tool-tag">HTML offline</span>
+          <span class="tool-tag">Simulation</span>
+          <span class="tool-tag">Safe</span>
+        </div>
+        <div class="tool-links">
+          <a href="#" class="tool-link">📄 Télécharger</a>
+        </div>
+      </div>
+      
+      <div class="tool-card" data-level="formateur">
+        <div class="tool-header">
+          <span class="tool-name">📚 Ressources externes</span>
+          <span class="tool-badge ready">✓ Prêt</span>
+        </div>
+        <p class="tool-desc">Liste commentée : Les Bons Clics, La Digitale, Framasoft, PIX...</p>
+        <div class="tool-meta">
+          <span class="tool-tag">Liens</span>
+          <span class="tool-tag">Gratuit</span>
+          <span class="tool-tag">Vérifié</span>
+        </div>
+        <div class="tool-links">
+          <a href="https://ladigitale.dev/" class="tool-link" target="_blank">↗ La Digitale</a>
+          <a href="https://framasoft.org/" class="tool-link" target="_blank">↗ Framasoft</a>
+          <a href="https://pix.fr/" class="tool-link" target="_blank">↗ PIX</a>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</section>
+
+<section id="parcours">
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-tag">progression</div>
+      <h2 class="sec-title">Parcours <span>suggérés</span></h2>
+      <p class="sec-desc">Chemins d'apprentissage progressifs selon votre objectif.</p>
+    </div>
+    
+    <div class="parcours-grid">
+      <div class="parcours-item">
+        <div class="parcours-num">1</div>
+        <div class="parcours-content">
+          <h3>🚀 Démarrer en sécurité</h3>
+          <p>Les bases pour utiliser internet sans se faire piéger : email, mots de passe, navigation privée.</p>
+          <div class="parcours-tags">
+            <span class="tag tag-mint">Email sécurisé</span>
+            <span class="tag tag-mint">Mots de passe</span>
+            <span class="tag tag-mint">Navigation</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="parcours-item">
+        <div class="parcours-num">2</div>
+        <div class="parcours-content">
+          <h3>🏛️ Démarches administratives</h3>
+          <p>Autonomie face aux services belges : itsme, Tax-on-web, communes, mutuelles.</p>
+          <div class="parcours-tags">
+            <span class="tag tag-mint">Démarches BE</span>
+            <span class="tag tag-mint">Smartphone</span>
+            <span class="tag tag-mint">Email</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="parcours-item">
+        <div class="parcours-num">3</div>
+        <div class="parcours-content">
+          <h3>💼 Bureautique complète</h3>
+          <p>Documents professionnels : CV, lettres, tableaux budget, présentations.</p>
+          <div class="parcours-tags">
+            <span class="tag tag-lilas">Writer</span>
+            <span class="tag tag-lilas">Calc</span>
+            <span class="tag tag-lilas">Impress</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="parcours-item">
+        <div class="parcours-num">4</div>
+        <div class="parcours-content">
+          <h3>🔐 Maîtriser ses données</h3>
+          <p>Comprendre où sont stockées vos données et comment les protéger.</p>
+          <div class="parcours-tags">
+            <span class="tag tag-lilas">Cloud vs local</span>
+            <span class="tag tag-lilas">Chiffrement</span>
+            <span class="tag tag-lilas">Backup</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="parcours-item">
+        <div class="parcours-num">5</div>
+        <div class="parcours-content">
+          <h3>🌐 Créer sur le web</h3>
+          <p>Publier du contenu : site personnel, portfolio. Sans dépendre des réseaux sociaux.</p>
+          <div class="parcours-tags">
+            <span class="tag tag-gold">HTML/CSS</span>
+            <span class="tag tag-gold">Hébergement</span>
+            <span class="tag tag-gold">Domaine</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="partner-section" id="partenariat">
+  <div class="container">
+    <div class="partner-box">
+      <h2 class="sec-title">Proposition de <span>partenariat</span></h2>
+      <p>
+        Ressources gratuites pour les structures d'accompagnement numérique. 
+        Objectif : co-construire des outils validés par le terrain.
+      </p>
+      
+      <div class="partner-logos">
+        <a href="https://babelzin.be" target="_blank" class="partner-logo">🌿 Babel'zin</a>
+        <a href="https://informaticienpublic.be" target="_blank" class="partner-logo">💻 Informaticien Public</a>
+        <a href="https://lbsm.be" target="_blank" class="partner-logo">🧠 LBSM</a>
+      </div>
+      
+      <div class="partner-note">
+        ⚠️ Ce partenariat est une <strong>proposition</strong>. Les ressources portent #àValider 
+        jusqu'à test terrain. Nous ne prétendons pas représenter ces organisations.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="telecharger">
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-tag">téléchargements</div>
+      <h2 class="sec-title">Tout <span>télécharger</span></h2>
+      <p class="sec-desc">Contenus libres, fonctionnent hors-ligne, imprimables.</p>
+    </div>
+    
+    <div class="downloads-grid">
+      <div class="download-card">
+        <div class="download-icon">📦</div>
+        <h3>Kit complet</h3>
+        <p>Tous les guides PDF + tutoriels HTML (~50 Mo estimé)</p>
+        <a href="#" class="download-btn soon">⏳ Bientôt</a>
+      </div>
+      
+      <div class="download-card">
+        <div class="download-icon">📄</div>
+        <h3>Fiches PDF</h3>
+        <p>Versions imprimables sans tutoriels interactifs</p>
+        <a href="#" class="download-btn soon">⏳ Bientôt</a>
+      </div>
+      
+      <div class="download-card">
+        <div class="download-icon">🌐</div>
+        <h3>Site offline</h3>
+        <p>Cette page en HTML autonome</p>
+        <a href="#" class="download-btn soon">⏳ Bientôt</a>
+      </div>
+      
+      <div class="download-card">
+        <div class="download-icon">💾</div>
+        <h3>Code source</h3>
+        <p>Tout sur GitHub, libre de modification</p>
+        <a href="https://github.com/ouaisfieu" target="_blank" class="download-btn">↗ GitHub</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-tag">principes</div>
+      <h2 class="sec-title">Nos <span>engagements</span></h2>
+    </div>
+    
+    <div class="principles-grid">
+      <div class="principle">
+        <div class="principle-icon">🔓</div>
+        <h3>Libre</h3>
+        <p>Copiez, modifiez, redistribuez</p>
+      </div>
+      <div class="principle">
+        <div class="principle-icon">📴</div>
+        <h3>Offline-first</h3>
+        <p>Zero dépendance internet</p>
+      </div>
+      <div class="principle">
+        <div class="principle-icon">🖨️</div>
+        <h3>Imprimable</h3>
+        <p>Conçu pour le papier</p>
+      </div>
+      <div class="principle">
+        <div class="principle-icon">🐢</div>
+        <h3>Low-tech</h3>
+        <p>Fonctionne partout</p>
+      </div>
+      <div class="principle">
+        <div class="principle-icon">🎯</div>
+        <h3>Autonomisant</h3>
+        <p>Pas de dépendance créée</p>
+      </div>
+      <div class="principle">
+        <div class="principle-icon">🔍</div>
+        <h3>Transparent</h3>
+        <p>IA assumée et documentée</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="contact-section" id="contact">
+  <div class="container">
+    <div class="contact-box">
+      <h2>Contact</h2>
+      <p>Questions, suggestions, propositions de collaboration ?</p>
+      <a href="mailto:ccplc.contact@proton.me" class="contact-email">
+        📧 ccplc.contact@proton.me
+      </a>
+      <div class="contact-note">
+        ⚠️ Identité confidentielle dans un premier temps. Contact email uniquement.
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-links">
+      <a href="https://ouaisfieu.github.io/ccplc/" target="_blank">CCPLC</a>
+      <a href="https://babelzin.be" target="_blank">Babel'zin</a>
+      <a href="https://informaticienpublic.be" target="_blank">Informaticien Public</a>
+      <a href="https://framasoft.org" target="_blank">Framasoft</a>
+      <a href="https://ladigitale.dev" target="_blank">La Digitale</a>
+    </div>
+    <p class="footer-copy">
+      BABEL'ZWANZE — CCPLC · Contenus libres · 2026
+    </p>
+  </div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════
+// PARTICLES SYSTEM
+// ═══════════════════════════════════════
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let particles = [];
+let mouseX = 0, mouseY = 0;
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+function createParticles() {
+  particles = [];
+  const count = Math.floor((canvas.width * canvas.height) / 15000);
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      size: Math.random() * 2 + 0.5,
+      color: Math.random() > 0.5 ? '#7cffc4' : '#cbb7ff',
+      alpha: Math.random() * 0.5 + 0.2
+    });
+  }
+}
+
+function drawParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  particles.forEach((p, i) => {
+    // Mouse attraction
+    const dx = mouseX - p.x;
+    const dy = mouseY - p.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 200) {
+      p.vx += dx * 0.00005;
+      p.vy += dy * 0.00005;
+    }
+    
+    p.x += p.vx;
+    p.y += p.vy;
+    
+    // Boundaries
+    if (p.x < 0) p.x = canvas.width;
+    if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height;
+    if (p.y > canvas.height) p.y = 0;
+    
+    // Draw particle
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.alpha;
+    ctx.fill();
+    
+    // Draw connections
+    particles.forEach((p2, j) => {
+      if (j <= i) return;
+      const dx2 = p.x - p2.x;
+      const dy2 = p.y - p2.y;
+      const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+      if (dist2 < 120) {
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.strokeStyle = p.color;
+        ctx.globalAlpha = (1 - dist2 / 120) * 0.15;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    });
+  });
+  
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(drawParticles);
+}
+
+window.addEventListener('resize', () => {
+  resizeCanvas();
+  createParticles();
+});
+
+window.addEventListener('mousemove', (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
+
+resizeCanvas();
+createParticles();
+drawParticles();
+
+// ═══════════════════════════════════════
+// CONSOLE MODE TOGGLE
+// ═══════════════════════════════════════
+const consoleSwitch = document.getElementById('consoleSwitch');
+consoleSwitch.addEventListener('click', () => {
+  document.body.classList.toggle('console-mode');
+});
+
+// ═══════════════════════════════════════
+// NAV SCROLL EFFECT
+// ═══════════════════════════════════════
+window.addEventListener('scroll', () => {
+  const nav = document.querySelector('nav');
+  if (window.scrollY > 50) {
+    nav.classList.add('scrolled');
+  } else {
+    nav.classList.remove('scrolled');
+  }
+});
+
+// ═══════════════════════════════════════
+// TOOLS FILTER
+// ═══════════════════════════════════════
+const filterButtons = document.querySelectorAll('.tools-nav button');
+const toolCards = document.querySelectorAll('.tool-card');
+
+filterButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const filter = btn.dataset.filter;
+    
+    filterButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    toolCards.forEach(card => {
+      if (filter === 'all' || card.dataset.level === filter) {
+        card.style.display = 'block';
+        card.style.animation = 'fadeIn 0.4s ease';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+});
+
+// ═══════════════════════════════════════
+// SMOOTH SCROLL
+// ═══════════════════════════════════════
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href !== '#') {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  });
+});
+
+// ═══════════════════════════════════════
+// INTERSECTION OBSERVER FOR ANIMATIONS
+// ═══════════════════════════════════════
+const observerOptions = { threshold: 0.1 };
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, observerOptions);
+
+document.querySelectorAll('.intro-card, .who-card, .tool-card, .parcours-item, .download-card, .principle').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(30px)';
+  el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+  observer.observe(el);
+});
+
+// ═══════════════════════════════════════
+// GLITCH EFFECT ON TITLE (random)
+// ═══════════════════════════════════════
+const heroTitle = document.querySelector('.hero-title');
+setInterval(() => {
+  if (Math.random() > 0.97) {
+    heroTitle.style.textShadow = `
+      2px 0 var(--coral),
+      -2px 0 var(--cyan)
+    `;
+    setTimeout(() => {
+      heroTitle.style.textShadow = 'none';
+    }, 100);
+  }
+}, 200);
+
+// Add fadeIn keyframe
+const style = document.createElement('style');
+style.textContent = `
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}`;
+document.head.appendChild(style);
+</script>
+
+</body>
+</html>
