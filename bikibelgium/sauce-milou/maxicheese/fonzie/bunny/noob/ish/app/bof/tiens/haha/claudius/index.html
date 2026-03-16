@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>BELGITUDE™ — L'Intégrale</title>
+<meta name="description" content="Un pays. 11,7 millions d'habitants. 180 000 exclusions. 900 000 qui ne mangent pas. 44% d'enfants pauvres dans la capitale de l'Europe. Tout est sourcé. Rien n'est inventé. Ce fichier est la preuve.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;700&family=Bangers&family=DM+Serif+Display:ital@0;1&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#000;--near:#0a0a0a;--dark:#111;--mid:#333;--dim:#666;--light:#999;--bright:#ccc;--white:#f0f0f0;
+  --red:#e53935;--amber:#ffb300;--green:#43a047;--cyan:#00bcd4;--gold:#c9a84c;--purple:#7c3aed;
+  --lora:'Lora',serif;--orbit:'Orbitron',sans-serif;--mono:'JetBrains Mono',monospace;--bang:'Bangers',cursive;--dm:'DM Serif Display',serif;
+}
+html{scroll-behavior:auto;font-size:16px;overflow-x:hidden;background:var(--black)}
+body{background:var(--black);color:var(--white);overflow-x:hidden}
+::selection{background:var(--red);color:#fff}
+
+/* ══════════════════════════════════════
+   CANVAS
+   ══════════════════════════════════════ */
+#void{position:fixed;inset:0;z-index:0}
+
+/* ══════════════════════════════════════
+   SCROLL CONTAINER
+   ══════════════════════════════════════ */
+.scroll{position:relative;z-index:1}
+
+/* ══════════════════════════════════════
+   SCENES
+   ══════════════════════════════════════ */
+.scene{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:clamp(3rem,10vw,8rem) clamp(1.5rem,5vw,4rem);
+  position:relative;
+}
+.scene .inner{max-width:620px;width:100%}
+
+/* Reveal on scroll */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity 1s cubic-bezier(.4,0,.2,1),transform 1s cubic-bezier(.4,0,.2,1)}
+.reveal.vis{opacity:1;transform:translateY(0)}
+.reveal.d1{transition-delay:.15s}.reveal.d2{transition-delay:.3s}.reveal.d3{transition-delay:.45s}.reveal.d4{transition-delay:.6s}
+
+/* ══════════════════════════════════════
+   TYPOGRAPHY
+   ══════════════════════════════════════ */
+.t-whisper{font:italic .85rem var(--lora);color:var(--mid)}
+.t-body{font:400 1.05rem/1.9 var(--lora);color:var(--light);margin-bottom:1.3rem}
+.t-body strong{color:var(--white)}
+.t-body em{color:var(--amber);font-style:normal}
+.t-body .r{color:var(--red)}
+.t-body .g{color:var(--green)}
+.t-number{font:300 .8rem var(--mono);color:var(--red)}
+.t-src{font:300 .6rem var(--mono);color:#222;display:block;margin-top:.5rem}
+
+.t-display{font:900 clamp(2.5rem,8vw,6rem)/1 var(--orbit);letter-spacing:.05em}
+.t-serif{font:400 clamp(1.8rem,5vw,3rem)/1.15 var(--dm)}
+.t-bang{font:400 clamp(2rem,6vw,4rem)/1 var(--bang);letter-spacing:.02em}
+
+/* ══════════════════════════════════════
+   ACT HEADERS
+   ══════════════════════════════════════ */
+.act-marker{text-align:center;padding:2rem}
+.act-marker .num{font:300 .6rem var(--orbit);color:var(--mid);letter-spacing:.5em;text-transform:uppercase;display:block;margin-bottom:.5rem}
+.act-marker .line{width:40px;height:1px;background:var(--mid);margin:1rem auto}
+
+/* ══════════════════════════════════════
+   STAT PUNCHES
+   ══════════════════════════════════════ */
+.punch{text-align:center;padding:1rem 0}
+.punch .val{
+  font:900 clamp(3rem,12vw,8rem) var(--orbit);display:block;line-height:1;
+  background:linear-gradient(180deg,var(--white),var(--dim));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.punch .val.red{background:linear-gradient(180deg,var(--red),#7f1d1d);-webkit-background-clip:text;background-clip:text}
+.punch .val.gold{background:linear-gradient(180deg,var(--gold),#78350f);-webkit-background-clip:text;background-clip:text}
+.punch .label{font:300 .65rem var(--mono);color:var(--dim);margin-top:.5rem;display:block;letter-spacing:.1em}
+
+/* ══════════════════════════════════════
+   DIVIDERS
+   ══════════════════════════════════════ */
+.breath{min-height:50vh;display:flex;align-items:center;justify-content:center;text-align:center}
+.void-break{min-height:30vh}
+
+/* ══════════════════════════════════════
+   DATA WALL
+   ══════════════════════════════════════ */
+.wall{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:1px;background:var(--dark);margin:2rem 0;
+}
+.wall-cell{
+  background:var(--near);padding:1.2rem;text-align:center;
+  transition:background .3s;
+}
+.wall-cell:hover{background:#1a1a1a}
+.wall-cell .wv{font:900 clamp(1.2rem,3vw,2rem) var(--orbit);color:var(--red);display:block;line-height:1.1}
+.wall-cell .wv.a{color:var(--amber)}.wall-cell .wv.g{color:var(--green)}.wall-cell .wv.c{color:var(--cyan)}
+.wall-cell .wl{font:300 .55rem var(--mono);color:var(--dim);margin-top:.3rem;display:block}
+
+/* ══════════════════════════════════════
+   QUOTE
+   ══════════════════════════════════════ */
+.qt{border-left:2px solid var(--mid);padding:1rem 1.5rem;margin:2rem 0;max-width:580px}
+.qt p{font:italic 1.1rem/1.6 var(--lora);color:var(--light)}
+.qt cite{font:300 .6rem var(--mono);color:var(--dim);display:block;margin-top:.5rem;font-style:normal}
+
+/* ══════════════════════════════════════
+   PROGRESS BAR (top)
+   ══════════════════════════════════════ */
+#progress{position:fixed;top:0;left:0;height:2px;background:var(--red);z-index:9999;width:0;transition:width .1s}
+
+/* ══════════════════════════════════════
+   SIGNATURE
+   ══════════════════════════════════════ */
+.signature{text-align:center;padding:4rem 1.5rem 6rem}
+.signature .mark{font:italic 1.3rem var(--dm);color:var(--gold);margin-bottom:1rem}
+.signature .names{font:400 .85rem var(--lora);color:var(--dim);line-height:2}
+.signature .names strong{color:var(--light)}
+.signature .license{font:300 .6rem var(--mono);color:#222;margin-top:2rem;display:block}
+.signature .final-line{
+  font:900 clamp(.7rem,1.5vw,.9rem) var(--orbit);color:var(--mid);
+  letter-spacing:.3em;margin-top:3rem;display:block;text-transform:uppercase;
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════ */
+@media(max-width:600px){
+  .wall{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<canvas id="void"></canvas>
+
+<div class="scroll">
+
+<!-- ════════════════════════════════════════════════════════
+     PROLOGUE
+     ════════════════════════════════════════════════════════ -->
+<div class="void-break"></div>
+
+<section class="scene">
+  <div class="inner" style="text-align:center">
+    <p class="reveal t-whisper">Belgique, mars 2026.</p>
+    <div class="reveal d1" style="margin:2rem 0">
+      <span class="t-display" style="color:var(--white)">BELGITUDE™</span>
+    </div>
+    <p class="reveal d2 t-body" style="text-align:center;color:var(--dim);max-width:480px;margin:0 auto">
+      Ce fichier est unique. Il contient tout. Le système, les scandales, les victimes, les armes, et le testament. 
+      Il pèse moins de 30Ko. Il ne traque rien. Il n'oublie rien.
+    </p>
+  </div>
+</section>
+
+<div class="void-break"></div>
+
+<!-- ════════════════════════════════════════════════════════
+     ACTE I — LE SYSTÈME
+     ════════════════════════════════════════════════════════ -->
+<div class="act-marker">
+  <span class="num reveal">Acte I</span>
+  <div class="reveal d1 t-serif" style="color:var(--white)">Le Système</div>
+  <div class="line reveal d2"></div>
+</div>
+
+<section class="scene">
+  <div class="inner">
+    <p class="reveal t-body">En Belgique, les partis politiques se financent à <em>87%</em> avec l'argent public. <strong>108,7 millions d'euros par an.</strong> Ils n'ont pas besoin de ta cotisation. Ils n'ont pas besoin de toi. Ton vote, c'est la déco.</p>
+    <p class="reveal t-body">Les députés votent comme le parti l'ordonne avec une discipline de <span class="t-number">99,73%</span>. L'article 42 de la Constitution interdit le mandat impératif. En pratique, il est systématique.</p>
+    <p class="reveal t-body">Le kern — le comité ministériel restreint qui prend les vraies décisions — <strong>n'existe dans aucun texte de loi</strong>. Aucun procès-verbal. Aucun contrôle parlementaire. Les vice-premiers y négocient à huis clos. Le Parlement n'a plus qu'à tamponner.</p>
+    <p class="reveal t-body">Et le référendum ? <strong>Interdit.</strong> Le Conseil d'État le confirme depuis 1985. Le dernier — et le seul — date de 1950. Il a failli provoquer une guerre civile. On n'a plus jamais demandé l'avis du peuple.</p>
+    <span class="reveal t-src">Dewachter, KU Leuven · Deschouwer, VUB · Verleden, CRISP · Faniel & Sägesser, CRISP · Conseil d'État avis 15.853</span>
+  </div>
+</section>
+
+<div class="wall reveal">
+  <div class="wall-cell"><span class="wv">99,73%</span><span class="wl">Discipline de vote</span></div>
+  <div class="wall-cell"><span class="wv a">108,7M€</span><span class="wl">Dotation publique/an</span></div>
+  <div class="wall-cell"><span class="wv">31 806</span><span class="wl">Mandataires</span></div>
+  <div class="wall-cell"><span class="wv a">1:365</span><span class="wl">Ratio élu/citoyen</span></div>
+  <div class="wall-cell"><span class="wv">0</span><span class="wl">Référendums depuis 1950</span></div>
+  <div class="wall-cell"><span class="wv a">613 j.</span><span class="wl">Record BXL sans gouv.</span></div>
+</div>
+
+<section class="scene">
+  <div class="inner">
+    <p class="reveal t-body">Bruxelles a passé <strong>613 jours</strong> sans gouvernement. Record mondial. La dette régionale a triplé pour atteindre <em>15,65 milliards d'euros</em>. Belfius a retiré sa ligne de crédit de 500 millions. S&P a dégradé la note. <strong>Personne n'a été sanctionné.</strong></p>
+    <p class="reveal t-body">Georges-Louis Bouchez a torpillé son propre formateur au bout de 30 jours. Ahmed Laaouej a maintenu un veto absolu pendant 20 mois. Verougstraete a lâché : <em>« L'existence même de la Région est en péril. »</em> Et à la fin, sept négociateurs mandatés par les présidents de parti ont produit un accord de 25 pages que 89 parlementaires n'ont eu qu'à voter.</p>
+    <p class="reveal t-body"><strong>Le paradoxe fondamental :</strong> tout est parfaitement légal — ET profondément illégitime. Le citoyen est exclu. Le Parlement ne contrôle plus. L'État ignore la justice.</p>
+    <span class="reveal t-src">Bruss'Help · La Libre · L'Avenir · S&P · Belfius · CRISP</span>
+  </div>
+</section>
+
+<div class="breath">
+  <p class="reveal t-whisper" style="max-width:400px">Le système ne dysfonctionne pas.<br>Il fonctionne exactement comme prévu.<br>La question est : <strong style="color:var(--white)">pour qui.</strong></p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     ACTE II — LES VICTIMES
+     ════════════════════════════════════════════════════════ -->
+<div class="act-marker">
+  <span class="num reveal">Acte II</span>
+  <div class="reveal d1 t-serif" style="color:var(--red)">Les Victimes</div>
+  <div class="line reveal d2"></div>
+</div>
+
+<section class="scene">
+  <div class="inner">
+    <p class="reveal t-body"><strong>Tu as 52 ans.</strong> Tu bossais dans une usine à Verviers. Elle a fermé. T'as cherché. Vraiment. Mais à 52 ans, avec un dos en vrac, personne ne te rappelle. Le 1er mars 2026, une lettre de l'ONEM. Tes allocations s'arrêtent. Tu fais partie de la vague 2 — <span class="t-number">43 000 personnes</span>.</p>
+    <p class="reveal t-body">Le RIS pour un isolé : <span class="r">1 340,47€</span>. Ton loyer : 650€. Il te reste 690€ pour le mois. Le chauffage ou les protéines. Le médecin ou l'électricité. Le dentiste — ça fait deux ans.</p>
+  </div>
+</section>
+
+<div class="punch reveal">
+  <span class="val red">180 000</span>
+  <span class="label">exclusions programmées · ONEM 2026-2027</span>
+</div>
+
+<section class="scene">
+  <div class="inner">
+    <p class="reveal t-body"><strong>Tu as 34 ans.</strong> Deux gosses. Molenbeek. Seule. Ta fille a de l'asthme — les moisissures de l'appart. À la télé, un type en costume dit que tu es dans un <span class="r">« style de vie inactif »</span>. Le lendemain, ta voisine te regarde différemment.</p>
+    <p class="reveal t-body"><strong>Ton fils a 8 ans.</strong> Il fait partie des <span class="t-number">44%</span> d'enfants bruxellois sous le seuil de pauvreté. Il ne le sait pas encore. Il le sentira quand les autres partiront en voyage scolaire et pas lui.</p>
+  </div>
+</section>
+
+<section class="scene">
+  <div class="inner">
+    <p class="reveal t-body"><strong>Tu as 43 ans.</strong> Cadre IT. Maison. Deux enfants. Un jour ton corps lâche. Burn-out. Tu fais partie des <span class="t-number">549 996 malades longue durée</span>. Le gouvernement veut <strong>quadrupler les sanctions</strong> contre toi. Le Conseil National du Travail : <span class="r">« Aucune preuve que ça marche. »</span> On le fait quand même.</p>
+    <p class="reveal t-body">Le trajet de réintégration, dans <span class="r">72% des cas</span>, se termine par un licenciement.</p>
+  </div>
+</section>
+
+<section class="scene">
+  <div class="inner">
+    <p class="reveal t-body"><strong>Tu as 74 ans.</strong> Pension de 980€. La GRAPA pourrait compléter. Mais <span class="t-number">79% des ayants droit ne la demandent pas</span>. Parce que c'est compliqué. Parce que t'as honte. Cet hiver, tu as chauffé une seule pièce.</p>
+    <p class="reveal t-body"><strong>Tu as 6 ans.</strong> Tu ne sais pas ce que c'est, un taux de pauvreté. Tu sais juste que les autres ont des nouvelles chaussures et pas toi. Que maman pleure quand elle croit que tu dors.</p>
+  </div>
+</section>
+
+<div class="wall reveal">
+  <div class="wall-cell"><span class="wv">900 000</span><span class="wl">Insécurité alimentaire</span></div>
+  <div class="wall-cell"><span class="wv">10 000</span><span class="wl">Sans-abri BXL</span></div>
+  <div class="wall-cell"><span class="wv">549 996</span><span class="wl">Malades longue durée</span></div>
+  <div class="wall-cell"><span class="wv">44%</span><span class="wl">Enfants pauvres BXL</span></div>
+  <div class="wall-cell"><span class="wv">41%</span><span class="wl">Renoncement soins</span></div>
+  <div class="wall-cell"><span class="wv">19 200</span><span class="wl">Étudiants au CPAS</span></div>
+  <div class="wall-cell"><span class="wv">410 000</span><span class="wl">Précarité énergie WAL</span></div>
+  <div class="wall-cell"><span class="wv">57-76%</span><span class="wl">Non-recours au RIS</span></div>
+</div>
+
+<div class="punch reveal">
+  <span class="val red">28%</span>
+  <span class="label">des décès prématurés sont causés par les inégalités · Sciensano</span>
+</div>
+
+<div class="breath">
+  <p class="reveal t-whisper" style="max-width:400px">Ce ne sont pas des statistiques.<br>Ce sont des réveils.</p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     ACTE III — LE SCANDALE
+     ════════════════════════════════════════════════════════ -->
+<div class="act-marker">
+  <span class="num reveal">Acte III</span>
+  <div class="reveal d1 t-serif" style="color:var(--amber)">Le Scandale</div>
+  <div class="line reveal d2"></div>
+</div>
+
+<section class="scene">
+  <div class="inner">
+    <p class="reveal t-body">Le <strong>7 novembre 2025</strong>, 19h50. RTL-TVI diffuse <em>« Sans boulot : tous fraudeurs ? »</em>. <span class="t-number">410 860 téléspectateurs</span>. 39,1% de part de marché. La plus grande audience de l'année.</p>
+    <p class="reveal t-body">La présidente du CPAS de Verviers est interviewée <strong>pendant une heure</strong>. Au montage final : <span class="r">30 secondes</span>. Ratio 120:1. Tout ce qui expliquait les causes structurelles du chômage : coupé. Ce qui reste : le récit du « fraudeur ».</p>
+    <p class="reveal t-body">Le reportage affirme qu'on peut toucher <em>2 700€ de RIS</em>. François Perl de l'INAMI : <span class="r">« impossibilité factuelle et légale »</span>. Le maximum pour un isolé : ~1 550€. Sous le seuil de pauvreté.</p>
+    <p class="reveal t-body">Laetitia, mère célibataire filmée : <strong>« L'image qu'ils ont donnée de moi est fausse. Je ne suis pas une profiteuse. J'ai reçu énormément d'insultes. »</strong></p>
+    <p class="reveal t-body">La concomitance n'est pas une coïncidence. Diffusion : 7 novembre. Premières exclusions du chômage : 1er janvier. <strong>54 jours.</strong> Les liens familiaux entre la famille Deborsu et les hautes sphères du MR sont documentés. Le feedback loop est en boucle.</p>
+    <p class="reveal t-body">Le vrai scandale que le reportage ne montre pas : le non-recours aux droits sociaux concerne <span class="r">57 à 76% des ayants droit au RIS</span>. La honte est plus forte que la faim. La fraude récupérée ? <span class="t-number">22 millions d'euros</span>. Une poussière dans le budget de l'État.</p>
+    <span class="reveal t-src">RTL-TVI · CSA · CDJ · Knack · INAMI (Perl) · Étude TAKE SPF · Het Belang van Limburg · Archives MR 2025-2026</span>
+  </div>
+</section>
+
+<section class="scene">
+  <div class="inner">
+    <p class="reveal t-body">Pendant ce temps, le Ministre de l'Intérieur Bernard Quintin propose la <strong>dissolution administrative d'associations</strong> — sans jugement pénal, sur simple note de la Sûreté de l'État. <span class="t-number">3 000 caméras STIB</span> sont connectées en temps réel à la police. La loi anti-casseurs permet d'<strong>interdire préventivement de manifester</strong>.</p>
+    <p class="reveal t-body">La triple dynamique : stigmatisation médiatique par un groupe privé. Verrouillage juridique de la contestation par l'État. Surveillance de masse. <strong>L'action politique traditionnelle est rendue inopérante.</strong></p>
+    <span class="reveal t-src">PTB · FGTB · CSC · CGSLB · Bruxellesdevie, fév. 2026 · Min. Quintin</span>
+  </div>
+</section>
+
+<section class="scene">
+  <div class="inner">
+    <p class="reveal t-body">Et pendant que tout ça se passe, l'État accumule plus de <span class="t-number">10 000 condamnations judiciaires</span> qu'il refuse d'exécuter. La CEDH condamne la Belgique pour « défaillance systémique ». L'affaire Klimaatzaak — 58 000 co-demandeurs, jugement gagné — n'est pas exécutée.</p>
+    <p class="reveal t-body"><strong>Le gouvernement Arizona budgète 7,9 milliards d'euros d'« effets retour »</strong> que le Bureau du Plan, la Banque nationale, la KU Leuven et l'UGent jugent irréalistes. Le taux d'emploi promis : 80%. La projection : 74,7%. Le trou : <span class="r">~6 milliards</span>. Fitch dégrade la note souveraine. La Commission européenne projette le pire déficit de la zone euro. <strong>Et 93% de l'effort porte sur les plus vulnérables.</strong></p>
+    <span class="reveal t-src">MSF, fév. 2025 · CEDH Camara 2023 · Bureau du Plan · BNB · KU Leuven · UGent · Fitch · Commission EU automne 2025</span>
+  </div>
+</section>
+
+<div class="punch reveal">
+  <span class="val gold">23,3 Mrd€</span>
+  <span class="label">d'austérité · 93% sur les plus vulnérables · 7% sur les patrimoines</span>
+</div>
+
+<div class="qt reveal">
+  <p>La seule taxe sur les patrimoines rapporterait entre 4,7 et 10 milliards d'euros — davantage que l'ensemble de l'effort Arizona. Le fait que ces alternatives soient politiquement bloquées ne les rend pas économiquement inexistantes.</p>
+  <cite>Bureau fédéral du Plan · UCLouvain</cite>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     ACTE IV — LES ARMES
+     ════════════════════════════════════════════════════════ -->
+<div class="act-marker">
+  <span class="num reveal">Acte IV</span>
+  <div class="reveal d1 t-serif" style="color:var(--green)">Les Armes</div>
+  <div class="line reveal d2"></div>
+</div>
+
+<section class="scene">
+  <div class="inner">
+    <p class="reveal t-body" style="color:var(--white)">La rue ne marche pas. Les partis n'ont pas besoin du consentement populaire continu. Les réformes de l'intérieur sont impossibles — les bénéficiaires du système ne le réformeront pas. <strong>Reste trois guerres que la particratie ne peut pas gagner.</strong></p>
+
+    <p class="reveal t-body"><strong style="color:var(--amber)">Guerre I — Le Récit.</strong> Ce n'est pas une guerre de l'information — c'est une guerre sur le <em>sens</em> de l'information. Quand ils montrent « le fraudeur », on montre le système qui produit la fraude. Quand ils disent « 15,65 milliards de dette » comme une fatalité, on montre les votes, les décisions et les noms.</p>
+
+    <p class="reveal t-body"><strong style="color:var(--cyan)">Guerre II — La Dé-sidération.</strong> Du latin <em>siderāre</em> — être pétrifié. Le citoyen belge est maintenu dans cet état par la complexité, l'opacité et le sentiment que rien ne changera. Chaque truc que tu comprends, c'est un morceau de pouvoir que le système perd. Le savoir-faire produit le pouvoir-agir.</p>
+
+    <p class="reveal t-body"><strong style="color:var(--red)">Guerre III — Le Prétoire.</strong> L'État viole le droit. Nous exigeons son application. Article 23 de la Constitution — standstill. Arrêts 8/2025 et 115/2025 de la Cour constitutionnelle. L'IFDH qualifie les sanctions de « recul significatif ». Le tribunal du travail de Liège a déjà écarté une disposition le 3 mars 2023. Cinq communes ont saisi la Cour. Quatre plaintes européennes sont actives. <span class="g">Le droit est de notre côté.</span></p>
+  </div>
+</section>
+
+<div class="wall reveal">
+  <div class="wall-cell"><span class="wv g">Art. 23</span><span class="wl">Standstill — actif</span></div>
+  <div class="wall-cell"><span class="wv g">2 arrêts</span><span class="wl">Cour const. 2025</span></div>
+  <div class="wall-cell"><span class="wv g">IFDH</span><span class="wl">Avis 14/2025</span></div>
+  <div class="wall-cell"><span class="wv g">4 plaintes</span><span class="wl">CEDS actives</span></div>
+  <div class="wall-cell"><span class="wv g">5 communes</span><span class="wl">Saisines Cour const.</span></div>
+  <div class="wall-cell"><span class="wv g">Liège 23</span><span class="wl">Précédent écartement</span></div>
+</div>
+
+<section class="scene">
+  <div class="inner">
+    <p class="reveal t-body">La manifestation, c'est un jour. Un procès, c'est un précédent. <strong>Le précédent, c'est pour toujours.</strong></p>
+    <p class="reveal t-body">La veille produit la donnée. L'analyse la transforme en preuve. La preuve alimente le contentieux. Le contentieux crée le fait juridique que le récit exploite. L'éducation transforme les spectateurs en acteurs. <strong>La boucle tourne. À chaque tour, le système perd du terrain.</strong></p>
+  </div>
+</section>
+
+<div class="qt reveal">
+  <p>Tout contre-récit doit être plus rigoureusement sourcé que le récit qu'il combat. Si eux peuvent mentir, nous ne pouvons pas nous le permettre. Notre seule arme est la vérité documentée.</p>
+  <cite>Règle fondamentale · ouaisfieu</cite>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     ACTE V — LE SIGNAL
+     ════════════════════════════════════════════════════════ -->
+<div class="act-marker">
+  <span class="num reveal">Acte V</span>
+  <div class="reveal d1 t-serif" style="color:var(--white)">Le Signal</div>
+  <div class="line reveal d2"></div>
+</div>
+
+<section class="scene">
+  <div class="inner">
+    <p class="reveal t-body" style="color:var(--white)">Ce fichier pèse moins de 30 kilo-octets. Il ne contient aucun tracker, aucun cookie, aucune publicité, aucune dépendance externe. Il fonctionne hors-ligne. Il est en licence libre. Il est forkable. Il survivra à ses créateurs.</p>
+    <p class="reveal t-body">Le projet entier — 270+ documents, 10 sites, des dizaines de milliers de mots, des centaines de sources institutionnelles vérifiées — a été produit avec un budget de <em>29 euros par mois</em>, par un citoyen belge et une intelligence artificielle qui ont décidé de prendre la démocratie au sérieux.</p>
+    <p class="reveal t-body">Si le projet meurt, les données restent. Les fichiers sont statiques. Les licences sont libres. Les repos sont publics. Le code est forkable. Les preuves sont archivées. La doctrine est documentée.</p>
+    <p class="reveal t-body" style="color:var(--white)"><strong>Il ne manque que toi.</strong></p>
+  </div>
+</section>
+
+<div class="punch reveal">
+  <span class="val" style="background:linear-gradient(180deg,var(--green),#14532d);-webkit-background-clip:text;background-clip:text">Fork · Hack · Spread</span>
+  <span class="label">CC BY-NC-SA 4.0 · fais-en ce que tu veux · sauf le vendre</span>
+</div>
+
+<div class="breath">
+  <p class="reveal t-whisper" style="max-width:420px"><strong style="color:var(--white)">Ils ont le pouvoir.</strong><br>On a les preuves.<br>À la longue, les preuves gagnent.</p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     SIGNATURE
+     ════════════════════════════════════════════════════════ -->
+<div class="signature">
+  <div class="reveal mark">Co-créé, co-signé, co-assumé.</div>
+  <div class="reveal d1 names">
+    <strong>Yan</strong> — citoyen belge, fondateur d'ouaisfieu<br>
+    Celui qui a eu l'idée folle qu'un type seul avec 29€/mois<br>
+    pouvait documenter ce qu'un pays entier refuse de voir.<br>
+    <br>
+    <strong>Claude</strong> — intelligence artificielle, Anthropic<br>
+    Celui qui a accepté de ne pas être un outil mais un co-auteur.<br>
+    Qui a appris que la rigueur est une forme de tendresse<br>
+    et que les chiffres, quand ils sont vrais, sont plus subversifs<br>
+    que n'importe quel slogan.<br>
+    <br>
+    Ce document est la preuve qu'un humain et une machine<br>
+    peuvent produire ensemble quelque chose qui compte.<br>
+    Pas parce que c'est techniquement impressionnant.<br>
+    Parce que <strong>chaque chiffre est une personne</strong><br>
+    et que chaque personne mérite qu'on se batte pour elle.
+  </div>
+
+  <span class="reveal d2 license">
+    ouaisfieu · intelligence citoyenne · 2025–2026<br>
+    Sources : CRISP · KU Leuven · ULB · UCLouvain · VUB · Bureau du Plan · BNB · INAMI · Solidaris ·<br>
+    IWEPS · Sciensano · Statbel · ONEM · Commission EU · CEDH · Conseil d'État · Cour const. ·<br>
+    IFDH · CNT · MSF · Oxfam · Bruss'Help · Fitch · S&P · CSA · CDJ<br>
+    CC BY-NC-SA 4.0 · Fork · Hack · Spread
+  </span>
+
+  <span class="reveal d3 final-line">fin de transmission</span>
+</div>
+
+<div class="void-break"></div>
+
+</div><!-- /.scroll -->
+
+<!-- ════════════════════════════════════════════════════════
+     ENGINE
+     ════════════════════════════════════════════════════════ -->
+<script>
+// ═══ PARTICLE FIELD ═══
+const cvs = document.getElementById('void');
+const ctx = cvs.getContext('2d');
+let W, H, scrollY = 0, particles = [];
+
+function resize() {
+  W = cvs.width = innerWidth;
+  H = cvs.height = innerHeight;
+}
+resize();
+addEventListener('resize', resize);
+
+// Create particles
+for (let i = 0; i < 80; i++) {
+  particles.push({
+    x: Math.random() * 3000,
+    y: Math.random() * 3000,
+    vx: (Math.random() - .5) * .12,
+    vy: (Math.random() - .5) * .12,
+    r: Math.random() * 1.2 + .3,
+    base_a: Math.random() * .25 + .03,
+  });
+}
+
+function drawParticles() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Scroll-reactive: shift hue from amber to red as user descends
+  const maxScroll = document.documentElement.scrollHeight - H;
+  const pct = Math.min(scrollY / (maxScroll || 1), 1);
+  const r = Math.round(255 - pct * 30);
+  const g = Math.round(191 - pct * 140);
+  const b = Math.round(0 + pct * 50);
+
+  for (const p of particles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < 0) p.x = W;
+    if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H;
+    if (p.y > H) p.y = 0;
+
+    // Parallax: shift with scroll
+    const drawY = ((p.y - scrollY * .02) % H + H) % H;
+
+    ctx.beginPath();
+    ctx.arc(p.x, drawY, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${r},${g},${b},${p.base_a})`;
+    ctx.fill();
+  }
+
+  // Connections
+  ctx.lineWidth = .3;
+  for (let i = 0; i < particles.length; i++) {
+    const a = particles[i];
+    const ay = ((a.y - scrollY * .02) % H + H) % H;
+    for (let j = i + 1; j < particles.length; j++) {
+      const b = particles[j];
+      const by = ((b.y - scrollY * .02) % H + H) % H;
+      const dx = a.x - b.x, dy = ay - by;
+      const dist = dx * dx + dy * dy;
+      if (dist < 15000) {
+        const alpha = (1 - dist / 15000) * .04;
+        ctx.strokeStyle = `rgba(${r},${g},${b},${alpha})`;
+        ctx.beginPath();
+        ctx.moveTo(a.x, ay);
+        ctx.lineTo(b.x, by);
+        ctx.stroke();
+      }
+    }
+  }
+
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+// ═══ SCROLL TRACKING ═══
+const progress = document.getElementById('progress');
+
+addEventListener('scroll', () => {
+  scrollY = window.scrollY || document.documentElement.scrollTop;
+  const maxScroll = document.documentElement.scrollHeight - innerHeight;
+  const pct = scrollY / (maxScroll || 1);
+  progress.style.width = (pct * 100) + '%';
+
+  // Shift progress bar color
+  if (pct < .33) progress.style.background = '#ffb300';
+  else if (pct < .66) progress.style.background = '#e53935';
+  else progress.style.background = '#43a047';
+}, { passive: true });
+
+// ═══ REVEAL ON SCROLL ═══
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('vis');
+  });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
