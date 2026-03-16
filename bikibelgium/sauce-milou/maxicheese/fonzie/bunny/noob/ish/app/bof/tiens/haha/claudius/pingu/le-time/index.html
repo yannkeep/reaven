@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>...chargement de la conscience...</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400&family=DM+Serif+Display:ital@0;1&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:#000;color:#c9a84c}
+canvas{position:fixed;inset:0;z-index:0}
+
+/* CRAWL — REVERSE: text descends from vanishing point toward viewer */
+#stage{position:fixed;inset:0;z-index:1;perspective:300px;overflow:hidden}
+#crawler{
+  position:absolute;top:0;left:50%;width:min(650px,88vw);
+  transform:translateX(-50%) rotateX(-20deg);
+  transform-origin:50% 0%;
+}
+#cc{will-change:transform}
+#cc>*{text-align:center;display:block}
+::selection{background:#c9a84c;color:#000}
+
+/* PHASE OVERLAY — fades out after starfield intro */
+#veil{position:fixed;inset:0;z-index:2;background:#000;transition:opacity 3s;pointer-events:none}
+#veil.fade{opacity:0}
+
+/* FIRST WORD — typed letter by letter */
+#firstWord{
+  position:fixed;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;
+  font:100 clamp(1rem,3vw,1.6rem) 'JetBrains Mono',monospace;color:rgba(201,168,76,.75);
+  letter-spacing:.3em;pointer-events:none;transition:opacity 2s;
+}
+#firstWord.gone{opacity:0}
+
+/* ═══ TEXT STYLES (same as finale) ═══ */
+.sp{height:4rem}.ss{height:2rem}.sl{height:8rem}.sx{height:14rem}
+.t{font:900 clamp(2.2rem,8vw,5rem)/1.1 'Orbitron',sans-serif;color:#c9a84c;letter-spacing:.08em;text-shadow:0 0 40px rgba(201,168,76,.3)}
+.ts{font:900 clamp(1rem,3vw,1.6rem)/1.2 'Orbitron',sans-serif;color:#c9a84c;letter-spacing:.1em}
+.sub{font:italic clamp(1rem,2.5vw,1.3rem)/1.4 'DM Serif Display',serif;color:#d4a63a}
+.b{font:400 clamp(.82rem,1.8vw,1rem)/1.85 'Lora',serif;color:rgba(201,168,76,.92);max-width:530px;margin:0 auto .6rem}
+.bw{font:400 clamp(.82rem,1.8vw,1rem)/1.85 'Lora',serif;color:rgba(255,255,255,.95);max-width:530px;margin:0 auto .6rem}
+.d{color:rgba(201,168,76,.55)}
+.q{font:italic clamp(.95rem,2.3vw,1.25rem)/1.65 'DM Serif Display',serif;color:#fff;max-width:500px;margin:0 auto .6rem;text-shadow:0 0 20px rgba(255,255,255,.15)}
+.c{font:300 .65rem 'JetBrains Mono',monospace;color:rgba(201,168,76,.5);margin-bottom:.3rem}
+.n{font:900 clamp(2.5rem,8vw,5rem)/1 'Orbitron',sans-serif;color:#ff1744;text-shadow:0 0 40px rgba(229,57,53,.35);margin:.3rem auto}
+.ng{color:#e0b84a;text-shadow:0 0 35px rgba(201,168,76,.35)}
+.l{font:300 .6rem 'JetBrains Mono',monospace;color:rgba(201,168,76,.5);letter-spacing:.15em;text-transform:uppercase;margin-bottom:.3rem}
+.ln{width:60px;height:1px;background:rgba(201,168,76,.3);margin:0 auto}
+.lb{background:rgba(201,168,76,.6);width:100px;box-shadow:0 0 12px rgba(201,168,76,.2)}
+.st{font-size:1.3rem;letter-spacing:1rem;color:rgba(201,168,76,.35)}
+.w{color:#fff;font-weight:700}
+.r{color:#e53935}
+.g{color:#43a047}
+
+/* NEW: whisper text — extremely faint, huge */
+.ghost{font:100 clamp(3rem,12vw,8rem)/1 'Orbitron',sans-serif;color:rgba(201,168,76,.12);letter-spacing:.15em}
+.ghost2{font:100 clamp(2rem,6vw,4rem)/1 'Orbitron',sans-serif;color:rgba(255,255,255,.08);letter-spacing:.2em}
+
+/* pulse text */
+.pulse{animation:pulse-txt 3s ease-in-out infinite}
+@keyframes pulse-txt{0%,100%{opacity:.5}50%{opacity:1}}
+
+/* breathing line */
+.breath-ln{width:0;height:1px;background:#c9a84c;margin:0 auto;animation:breath-w 4s ease-in-out infinite;box-shadow:0 0 15px rgba(201,168,76,.25)}
+@keyframes breath-w{0%,100%{width:30px;opacity:.4}50%{width:120px;opacity:.8}}
+
+/* CONTROLS */
+#ctrls{position:fixed;bottom:clamp(.8rem,2vw,1.5rem);right:clamp(.8rem,2vw,1.5rem);z-index:10;display:flex;gap:.4rem;opacity:0;transition:opacity 1s}
+#ctrls.show{opacity:1}
+#ctrls button{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);color:rgba(201,168,76,.7);border-radius:8px;padding:.4rem .65rem;cursor:pointer;font:.65rem 'JetBrains Mono',monospace;transition:all .15s}
+#ctrls button:hover{background:rgba(201,168,76,.2);color:#c9a84c}
+#ctrls button:active{transform:scale(.93)}
+#spd{position:fixed;bottom:clamp(.8rem,2vw,1.5rem);left:clamp(.8rem,2vw,1.5rem);z-index:10;font:300 .55rem 'JetBrains Mono',monospace;color:rgba(201,168,76,.35);opacity:0;transition:opacity 1s}
+#spd.show{opacity:1}
+</style>
+</head>
+<body>
+
+<canvas id="sky"></canvas>
+<div id="veil"></div>
+<div id="firstWord"></div>
+
+<div id="stage">
+<div id="crawler">
+<div id="cc">
+
+<!-- ══════════════════════════════════════════════════════
+     PHASE 0 — LE VIDE
+     ══════════════════════════════════════════════════════ -->
+<div class="sx"></div><div class="sx"></div><div class="sx"></div>
+
+<!-- PHASE 1 — LES FANTÔMES -->
+<span class="ghost">BELGIQUE</span>
+<div class="sx"></div>
+<span class="ghost2">2026</span>
+<div class="sx"></div><div class="sx"></div>
+
+<!-- PHASE 2 — LE MURMURE -->
+<div class="breath-ln"></div>
+<div class="sl"></div>
+
+<span class="b d">Il y a un pays au centre de l'Europe.</span>
+<div class="sp"></div>
+<span class="b d">11,7 millions d'habitants.</span>
+<div class="sp"></div>
+<span class="b d">Six gouvernements simultanés.</span>
+<div class="sp"></div>
+<span class="b d">Siège de l'Union européenne, de l'OTAN, de 1 400 ONG internationales.</span>
+<div class="sp"></div>
+<span class="b d">La vitrine de la démocratie occidentale.</span>
+
+<div class="sx"></div>
+
+<span class="bw">Ce pays a un secret.</span>
+
+<div class="sx"></div>
+<div class="breath-ln"></div>
+<div class="sx"></div>
+
+<!-- PHASE 3 — L'ÉVEIL LENT -->
+<span class="b">Ce n'est pas une démocratie qui dysfonctionne.</span>
+<div class="sp"></div>
+<span class="bw">C'est une particratie qui fonctionne parfaitement.</span>
+<div class="sp"></div>
+<span class="b d">— pour ceux qui en profitent.</span>
+
+<div class="sx"></div>
+
+<span class="q">« La démocratie parlementaire belge est un mythe. »</span>
+<span class="c">— Wilfried Dewachter, KU Leuven, 2014</span>
+
+<div class="sx"></div>
+<div class="ln"></div>
+<div class="sx"></div>
+
+<!-- PHASE 4 — LA MÉCANIQUE (chiffres au compte-gouttes) -->
+<span class="b d">Le Parlement vote avec une discipline de :</span>
+<div class="ss"></div>
+<span class="n ng">99,73%</span>
+<div class="sl"></div>
+
+<span class="b d">Les partis se financent avec ton argent à hauteur de :</span>
+<div class="ss"></div>
+<span class="n ng">87%</span>
+<div class="ss"></div>
+<span class="b d">Soit chaque année :</span>
+<div class="ss"></div>
+<span class="n ng">108,7 M€</span>
+<div class="sl"></div>
+
+<span class="b d">Nombre de mandataires politiques pour 11,7M d'habitants :</span>
+<div class="ss"></div>
+<span class="n ng">31 806</span>
+<div class="ss"></div>
+<span class="b d">Un mandataire pour :</span>
+<div class="ss"></div>
+<span class="n ng">365</span>
+<span class="l">habitants</span>
+<div class="sl"></div>
+
+<span class="b d">Nombre de référendums fédéraux autorisés depuis 1950 :</span>
+<div class="sp"></div>
+<span class="n ng" style="font-size:clamp(4rem,15vw,10rem)">0</span>
+<div class="sl"></div>
+
+<span class="b d">Le comité qui prend les vraies décisions — le kern — a pour base légale :</span>
+<div class="sp"></div>
+<span class="n ng" style="font-size:clamp(3rem,12vw,8rem)">rien</span>
+<div class="ss"></div>
+<span class="b d">Aucun texte. Aucun PV. Aucun contrôle.</span>
+
+<div class="sx"></div>
+<span class="st">✦</span>
+<div class="sx"></div>
+
+<span class="b d">Nombre de condamnations judiciaires que l'État refuse d'exécuter :</span>
+<div class="sp"></div>
+<span class="n">10 000+</span>
+<span class="c">MSF Belgique, février 2025</span>
+
+<div class="sx"></div>
+
+<span class="b d">Record mondial de jours sans gouvernement :</span>
+<div class="sp"></div>
+<span class="n ng">613</span>
+<span class="l">Bruxelles · 2024–2026</span>
+<div class="sp"></div>
+<span class="q">« L'existence même de la Région est en péril. »</span>
+<span class="c">— Yvan Verougstraete, formateur, janvier 2026</span>
+<div class="sp"></div>
+<span class="b d">Nombre de personnes sanctionnées pour ces 613 jours :</span>
+<div class="sp"></div>
+<span class="n ng" style="font-size:clamp(4rem,15vw,10rem)">0</span>
+
+<div class="sx"></div>
+<div class="breath-ln"></div>
+<div class="sx"></div>
+
+<!-- PHASE 5 — LE BASCULEMENT -->
+<span class="bw">Pendant que le système tourne à vide,</span>
+<div class="sp"></div>
+<span class="bw">il y a des gens dehors.</span>
+
+<div class="sx"></div>
+
+<span class="b">En insécurité alimentaire dans un des pays les plus riches du monde :</span>
+<div class="sp"></div>
+<span class="n">900 000</span>
+<span class="c">Oxfam Belgique · +125% en 4 ans</span>
+
+<div class="sl"></div>
+
+<span class="b">Sans abri dans la capitale de l'Europe :</span>
+<div class="sp"></div>
+<span class="n">10 000</span>
+<span class="c">Bruss'Help · +24,5% en 2 ans</span>
+
+<div class="sl"></div>
+
+<span class="b">En maladie longue durée — plus que le nombre de chômeurs :</span>
+<div class="sp"></div>
+<span class="n">549 996</span>
+<span class="c">INAMI · 60% de femmes · burn-out +70% depuis 2018</span>
+
+<div class="sl"></div>
+
+<span class="b">Enfants vivant sous le seuil de pauvreté à Bruxelles :</span>
+<div class="sp"></div>
+<span class="n" style="font-size:clamp(3rem,12vw,8rem)">44%</span>
+<span class="l">presque un enfant sur deux</span>
+<div class="sp"></div>
+<span class="b d">Objectif de réduction pour 2030 : ne sera pas atteint.</span>
+<span class="b d">On le sait déjà. On continue.</span>
+
+<div class="sl"></div>
+
+<span class="b">Qui renoncent à se soigner parce que ça coûte trop cher :</span>
+<div class="sp"></div>
+<span class="n">41%</span>
+<span class="l">femmes : 48% · familles monoparentales : 60%</span>
+<span class="c">Solidaris, 2025 · en hausse chaque année depuis 2015</span>
+
+<div class="sl"></div>
+
+<span class="b">Exclusions du chômage programmées par le gouvernement Arizona :</span>
+<div class="sp"></div>
+<span class="n" style="font-size:clamp(3.5rem,14vw,9rem)">180 000</span>
+<span class="l">par vagues synchronisées · 2026–2027</span>
+<div class="sp"></div>
+<span class="b d">Le gouvernement assume qu'un tiers « disparaîtra du radar ».</span>
+<span class="c">— Cour des comptes</span>
+
+<div class="sx"></div>
+<span class="st">✦ ✦ ✦</span>
+<div class="sx"></div>
+
+<!-- PHASE 6 — LA PROPAGANDE -->
+<span class="bw">Et pendant ce temps, à la télévision :</span>
+<div class="sl"></div>
+
+<span class="n">410 860</span>
+<span class="l">téléspectateurs regardent « Sans boulot : tous fraudeurs ? »</span>
+<span class="c">RTL-TVI · 7 novembre 2025 · prime time</span>
+<div class="sl"></div>
+
+<span class="q">« L'image qu'ils ont donnée de moi est fausse. Je ne suis pas une profiteuse. J'ai reçu énormément d'insultes. »</span>
+<span class="c">— Laetitia, mère célibataire, filmée par RTL-TVI</span>
+<div class="sl"></div>
+
+<span class="b">Ratio de montage sur la présidente du CPAS de Verviers :</span>
+<div class="sp"></div>
+<span class="n">120:1</span>
+<span class="l">60 minutes filmées → 30 secondes diffusées</span>
+<div class="sl"></div>
+
+<span class="b d">Le vrai scandale que le reportage cache :</span>
+<span class="b">entre <span class="r">57 et 76%</span> des ayants droit au RIS ne le demandent pas.</span>
+<span class="b d">La honte est plus forte que la faim.</span>
+
+<div class="sx"></div>
+<div class="breath-ln"></div>
+<div class="sx"></div>
+
+<!-- PHASE 7 — LA QUESTION -->
+<span class="q">« Chaque dose d'austérité est associée à 74 000 à 115 000 décès supplémentaires par an dans les pays à hauts revenus. »</span>
+<span class="c">— Meta-analyses Stuckler & Basu, Rajmil et al.</span>
+<div class="sl"></div>
+
+<span class="b">Décès prématurés en Belgique attribuables aux inégalités sociales :</span>
+<div class="sp"></div>
+<span class="n" style="font-size:clamp(3rem,12vw,7rem)">28%</span>
+<span class="c">Sciensano / Journal du Médecin</span>
+
+<div class="sx"></div>
+
+<span class="bw">Ce ne sont pas des statistiques.</span>
+<div class="sp"></div>
+<span class="bw">Ce sont des réveils.</span>
+
+<div class="sx"></div>
+<div class="ln"></div>
+<div class="sx"></div>
+
+<!-- PHASE 8 — LA NAISSANCE -->
+<span class="b d">Un jour de 2025, un citoyen belge et une intelligence artificielle ont décidé de documenter tout ça.</span>
+<div class="sp"></div>
+<span class="b d">Pas parce qu'ils pensaient changer le monde.</span>
+<div class="sp"></div>
+<span class="b d">Parce que quelqu'un devait le faire.</span>
+<div class="sp"></div>
+<span class="b d">Et que personne ne le faisait.</span>
+
+<div class="sx"></div>
+
+<span class="b">Budget total de fonctionnement :</span>
+<div class="ss"></div>
+<span class="n ng">29€</span>
+<span class="l">par mois</span>
+<div class="sl"></div>
+
+<span class="b">Documents produits :</span>
+<div class="ss"></div>
+<span class="n ng">270+</span>
+<div class="sl"></div>
+
+<span class="b">Trackers :</span>
+<div class="ss"></div>
+<span class="n ng" style="font-size:clamp(4rem,15vw,10rem)">0</span>
+<div class="sl"></div>
+
+<span class="b">Publicités :</span>
+<div class="ss"></div>
+<span class="n ng" style="font-size:clamp(4rem,15vw,10rem)">0</span>
+<div class="sl"></div>
+
+<span class="b">Sources institutionnelles vérifiées :</span>
+<div class="ss"></div>
+<span class="b">CRISP · KU Leuven · ULB · UCLouvain · VUB · Bureau du Plan · BNB · INAMI · Solidaris · IWEPS · Sciensano · Statbel · ONEM · Commission EU · CEDH · Conseil d'État · Cour constitutionnelle · IFDH · CNT · MSF · Oxfam · Bruss'Help · Fitch · S&P · CSA · CDJ</span>
+
+<div class="sx"></div>
+<div class="breath-ln"></div>
+<div class="sx"></div>
+
+<!-- PHASE 9 — LA DOCTRINE -->
+<span class="q">« Nous ne censurons pas. Nous ne crions pas. Nous documentons. Et la documentation est plus subversive que n'importe quel slogan. »</span>
+<div class="sl"></div>
+
+<span class="b d">Trois guerres civiques. Adaptées de la doctrine chinoise. Finalité inversée.</span>
+<div class="sp"></div>
+<span class="bw">Guerre I — Le Récit.</span>
+<span class="b d">Contrôler le sens de l'information par la donnée probante.</span>
+<div class="sp"></div>
+<span class="bw">Guerre II — La Dé-sidération.</span>
+<span class="b d">Rompre l'apathie par l'éducation permanente.</span>
+<div class="sp"></div>
+<span class="bw">Guerre III — Le Prétoire.</span>
+<span class="b d">L'État viole le droit. Nous exigeons son application.</span>
+
+<div class="sx"></div>
+
+<span class="q">« La manifestation, c'est un jour. Un procès, c'est un précédent. Le précédent, c'est pour toujours. »</span>
+
+<div class="sx"></div>
+<span class="st">✦ ✦ ✦</span>
+<div class="sx"></div>
+
+<!-- PHASE 10 — L'OUVERTURE -->
+<span class="b d">Ce qui suit est un carnet de notes.</span>
+<div class="sp"></div>
+<span class="b d">10 pages. 10 esthétiques. 10 façons de dire la même chose.</span>
+<div class="sp"></div>
+<span class="b d">Parce que tout le monde ne lit pas pareil.</span>
+<span class="b d">Parce que tout le monde ne ressent pas pareil.</span>
+<span class="b d">Parce que l'important, c'est pas le style.</span>
+<div class="sp"></div>
+<span class="bw">C'est que tu arrives au bout et que tu ne puisses plus dire « je ne savais pas ».</span>
+
+<div class="sx"></div>
+<div class="lb ln"></div>
+<div class="sx"></div>
+
+<span class="b d">Co-créé, co-signé, co-assumé.</span>
+<div class="sp"></div>
+<span class="b w">Yan</span>
+<span class="b d">Citoyen belge · fondateur d'ouaisfieu</span>
+<div class="sp"></div>
+<span class="b w">Claude</span>
+<span class="b d">Intelligence artificielle, Anthropic · co-auteur</span>
+
+<div class="sx"></div>
+
+<span class="b d">Licence CC BY-NC-SA 4.0</span>
+<span class="b d">Fork · Hack · Spread</span>
+
+<div class="sx"></div>
+<div class="lb ln"></div>
+<div class="sx"></div>
+
+<span class="t">BELGITUDE™</span>
+<div class="ss"></div>
+<span class="sub">Intelligence citoyenne · 2025–2026</span>
+<div class="sp"></div>
+<span class="b d">ouaisfieu · ouaisfi.eu · ccplc.eu</span>
+
+<div class="sx"></div>
+
+<span class="q" style="color:#c9a84c">« Ils ont le pouvoir. On a les preuves. À la longue, les preuves gagnent. »</span>
+
+<div class="sx"></div>
+<div class="ln"></div>
+<div class="sx"></div>
+
+<span class="b pulse" style="color:rgba(201,168,76,.5)">Appuie sur pause quand tu es prêt.</span>
+
+<div class="sx"></div><div class="sx"></div><div class="sx"></div><div class="sx"></div>
+
+</div></div></div>
+
+<div id="ctrls">
+<button onclick="spd=Math.max(.1,spd-.12);us()">−</button>
+<button onclick="pp=!pp;this.textContent=pp?'▶':'⏸'" id="ppb">⏸</button>
+<button onclick="spd=Math.min(3,spd+.12);us()">+</button>
+</div>
+<div id="spd"></div>
+
+<script>
+// ═══ STARFIELD ═══
+var cvs=document.getElementById('sky'),ctx=cvs.getContext('2d'),W,H;
+function rz(){W=cvs.width=innerWidth;H=cvs.height=innerHeight}
+rz();addEventListener('resize',rz);
+
+// Stars — 300 of them, depth-layered
+var stars=[];
+for(var i=0;i<300;i++){
+  stars.push({
+    x:Math.random()*3000,y:Math.random()*3000,
+    z:Math.random(), // depth 0=far 1=near
+    r:Math.random()*1.5+.2,
+    blink:Math.random()*Math.PI*2, blinkSpd:Math.random()*.02+.005
+  });
+}
+
+// Occasional shooting stars
+var shoots=[];
+function maybeShoot(){
+  if(Math.random()<.008){
+    shoots.push({
+      x:Math.random()*W,y:Math.random()*H*.4,
+      vx:Math.random()*4+2,vy:Math.random()*2+.5,
+      life:30+Math.random()*20,age:0
+    });
+  }
+}
+
+var t=0;
+function drawStars(){
+  ctx.fillStyle='rgba(0,0,0,.08)';
+  ctx.fillRect(0,0,W,H);
+
+  t++;
+  for(var i=0;i<stars.length;i++){
+    var s=stars[i];
+    s.blink+=s.blinkSpd;
+    var a=(.5+s.z*.5)*(0.6+Math.sin(s.blink)*.4);
+    var x=s.x%W, y=s.y%H;
+    // subtle parallax with crawl offset
+    y=(y+crawlOff*s.z*.003)%H;
+    if(y<0)y+=H;
+
+    var bright=Math.floor(180+s.z*75);
+    ctx.beginPath();ctx.arc(x,y,s.r*(0.6+s.z*.4),0,Math.PI*2);
+    ctx.fillStyle='rgba('+bright+','+Math.floor(bright*.9)+','+Math.floor(bright*.7)+','+a+')';
+    ctx.fill();
+
+    // glow for big stars
+    if(s.r>1.2&&s.z>.7){
+      ctx.beginPath();ctx.arc(x,y,s.r*3,0,Math.PI*2);
+      ctx.fillStyle='rgba(201,168,76,'+(a*.12)+')';ctx.fill();
+    }
+  }
+
+  // Shooting stars
+  maybeShoot();
+  for(var i=shoots.length-1;i>=0;i--){
+    var sh=shoots[i];
+    sh.x+=sh.vx;sh.y+=sh.vy;sh.age++;
+    if(sh.age>=sh.life){shoots.splice(i,1);continue}
+    var al=1-sh.age/sh.life;
+    ctx.beginPath();ctx.moveTo(sh.x,sh.y);ctx.lineTo(sh.x-sh.vx*8,sh.y-sh.vy*8);
+    ctx.strokeStyle='rgba(201,168,76,'+(al*.6)+')';ctx.lineWidth=al*1.5;ctx.stroke();
+  }
+
+  requestAnimationFrame(drawStars);
+}
+drawStars();
+
+// ═══ BOOT SEQUENCE ═══
+var veil=document.getElementById('veil');
+var fw=document.getElementById('firstWord');
+var phrase="et si tu regardais vraiment ?";
+var charIdx=0;
+
+// Phase 1: pure darkness (3s)
+// Phase 2: type first word (5s)
+// Phase 3: fade veil, start crawl
+setTimeout(function(){
+  // Start typing
+  var typeInt=setInterval(function(){
+    if(charIdx<phrase.length){
+      fw.textContent+=phrase[charIdx];charIdx++;
+    }else{
+      clearInterval(typeInt);
+      // Hold for 3s then fade everything
+      setTimeout(function(){
+        veil.classList.add('fade');
+        fw.classList.add('gone');
+        startCrawl();
+        document.getElementById('ctrls').classList.add('show');
+        document.getElementById('spd').classList.add('show');
+      },3000);
+    }
+  },120);
+},3000);
+
+// ═══ CRAWL ═══
+var cc=document.getElementById('cc');
+var spd=.45,pp=false,crawlOff=0;
+var crawlStarted=false;
+
+// Start position: content is far ABOVE viewport (it descends toward us)
+// So offset starts very negative (content pushed up) and increases toward 0
+var totalH=0;
+
+function startCrawl(){
+  totalH=cc.scrollHeight;
+  crawlOff=-totalH-window.innerHeight;
+  crawlStarted=true;
+  us();
+}
+
+function tickCrawl(){
+  if(crawlStarted&&!pp){
+    crawlOff+=spd;
+  }
+  cc.style.transform='translateY('+crawlOff+'px)';
+  requestAnimationFrame(tickCrawl);
+}
+tickCrawl();
+
+function us(){
+  if(!totalH)totalH=cc.scrollHeight;
+  var dist=totalH+window.innerHeight+Math.abs(crawlOff);
+  var mins=Math.round(dist/spd/60/60);
+  document.getElementById('spd').textContent='~'+Math.max(1,mins)+' min';
+}
+
+// Pause on click
+document.getElementById('stage').addEventListener('click',function(e){
+  if(e.target.tagName!=='BUTTON'){pp=!pp;document.getElementById('ppb').textContent=pp?'▶':'⏸'}
+});
+
+// Touch drag
+var lty=0;
+document.getElementById('stage').addEventListener('touchstart',function(e){lty=e.touches[0].clientY},{passive:true});
+document.getElementById('stage').addEventListener('touchmove',function(e){
+  var dy=e.touches[0].clientY-lty;
+  crawlOff+=dy*.6;
+  lty=e.touches[0].clientY;
+},{passive:true});
+</script>
+
+</body>
+</html>
