@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BROL-OS // Terminal d'Audit Citoyen</title>
+    <style>
+        :root {
+            --bg: #050505;
+            --green: #22c55e;
+            --yellow: #facc15;
+            --red: #ef4444;
+            --font: 'Courier New', Courier, monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--green);
+            font-family: var(--font);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            text-transform: uppercase;
+        }
+
+        /* Effet d'écran cathodique / Scanlines */
+        body::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        header {
+            border-bottom: 2px solid var(--green);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #000;
+        }
+
+        .sys-title { font-weight: bold; font-size: 1.2rem; }
+        .sys-status { color: var(--red); animation: blink 1s infinite; }
+
+        main {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            flex-grow: 1;
+            gap: 1px;
+            background: var(--green); /* Pour faire les bordures internes */
+        }
+
+        .panel {
+            background: var(--bg);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .panel-title {
+            color: var(--yellow);
+            border-bottom: 1px dashed var(--yellow);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        /* COL 1: FLUX DE DONNÉES */
+        #data-stream { font-size: 0.8rem; line-height: 1.4; color: #15803d; }
+        .log-entry { margin-bottom: 0.5rem; }
+        .log-alert { color: var(--red); }
+
+        /* COL 2: DÉCRYPTEUR */
+        .decrypter-container { flex-grow: 1; display: flex; flex-direction: column; gap: 1rem; }
+        textarea {
+            background: #000;
+            border: 1px solid var(--green);
+            color: var(--green);
+            font-family: var(--font);
+            padding: 1rem;
+            height: 150px;
+            resize: none;
+            outline: none;
+        }
+        button {
+            background: var(--green);
+            color: #000;
+            border: none;
+            padding: 1rem;
+            font-family: var(--font);
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover { background: var(--yellow); }
+        .output-box {
+            border: 1px solid var(--red);
+            padding: 1rem;
+            flex-grow: 1;
+            background: rgba(239, 68, 68, 0.05);
+            color: var(--text);
+            display: none;
+        }
+        .truth-reveal { color: var(--red); font-weight: bold; margin-top: 1rem; font-size: 1.1rem;}
+
+        /* COL 3: MÉTRIQUES */
+        .metric-box { margin-bottom: 2rem; border: 1px solid var(--yellow); padding: 1rem; }
+        .metric-value { font-size: 2.5rem; color: var(--yellow); margin: 0.5rem 0; }
+        .progress-bar { height: 10px; background: #333; margin-top: 0.5rem; position: relative; }
+        .progress-fill { height: 100%; background: var(--red); width: 0%; transition: width 1s; }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--green); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="sys-title">BROL-OS // V.2026.3 // OUAISFIEU_NETWORK</div>
+        <div>NOEUD : BRUXELLES_01 | CONNEXION : SÉCURISÉE</div>
+        <div class="sys-status">[ ALERTE ENTROPIE DÉTECTÉE ]</div>
+    </header>
+
+    <main>
+        <div class="panel">
+            <div class="panel-title">> FLUX_INTERCEPTION_INSTITUTIONNELLE</div>
+            <div id="data-stream">
+                </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">> MODULE_DE_TRADUCTION_POLITIQUE</div>
+            <div class="decrypter-container">
+                <p style="font-size: 0.8rem; color: var(--yellow);">Entrez un élément de langage politique belge ci-dessous pour lancer l'audit algorithmique.</p>
+                
+                <textarea id="jargon-input" placeholder="Ex: 'Nous devons responsabiliser les demandeurs d'emploi pour sauvegarder notre modèle.'"></textarea>
+                
+                <button onclick="decryptText()">> EXÉCUTER L'AUDIT SÉMANTIQUE</button>
+
+                <div id="output-box" class="output-box">
+                    <div style="font-size: 0.7rem; color: #888; margin-bottom: 1rem;">[ TRADUCTION TERMINÉE ]</div>
+                    <div id="truth-text" class="truth-reveal"></div>
+                    <div id="truth-source" style="margin-top: 1rem; font-size: 0.8rem; color: var(--yellow);"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">> MONITEUR_DE_DOMMAGES_COLLATÉRAUX</div>
+            
+            <div class="metric-box">
+                <div style="font-size: 0.8rem;">CIBLE ARIZONA : EXCLUSIONS CHÔMAGE</div>
+                <div class="metric-value" id="counter-exclusion">0</div>
+                <div style="font-size: 0.7rem; color: #888;">Objectif Juillet 2027 : 184 463 citoyens</div>
+                <div class="progress-bar"><div class="progress-fill" id="bar-exclusion"></div></div>
+            </div>
+
+            <div class="metric-box" style="border-color: var(--green);">
+                <div style="font-size: 0.8rem; color: var(--green);">DISCIPLINE DE VOTE PARLEMENTAIRE</div>
+                <div class="metric-value" style="color: var(--green);">99,73%</div>
+                <div style="font-size: 0.7rem; color: #888;">Violation Art. 42 de la Constitution.</div>
+            </div>
+
+            <div class="metric-box" style="border-color: var(--red);">
+                <div style="font-size: 0.8rem; color: var(--red);">ANOMALIE DU RATIO 120</div>
+                <div style="display: flex; justify-content: space-between; margin-top: 1rem; font-size: 0.8rem;">
+                    <span>FRAUDE SOCIALE : 250 M€</span>
+                    <span style="color: var(--red);">FRAUDE FISCALE : 30 MRD€</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- 1. SIMULATEUR DE FLUX DE DONNÉES (COLONNE 1) ---
+        const streamData = [
+            "Scan serveur Chambre des Représentants...",
+            "Interception: Dépôt projet de loi #4592.",
+            "[ALERTE] Vote bloqué par président de parti.",
+            "Transfert de 188 M€ vers ASBL partisane confirmé.",
+            "Analyse géographique CPAS en cours...",
+            "[CRITIQUE] 139 des 140 communes impactées = Francophones.",
+            "Surveillance Arrêtés Ministériels (Covid-19)...",
+            "Ignorance condamnation CEDH (Dossier Asile) : +1.",
+            "Scan Constitution: Art. 33 et 42 en échec critique.",
+            "Ratio 120 stabilisé. Traque de la précarité maintenue."
+        ];
+
+        const streamContainer = document.getElementById('data-stream');
+        let streamIndex = 0;
+
+        function updateStream() {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const text = streamData[streamIndex % streamData.length];
+            
+            if (text.includes('[ALERTE]') || text.includes('[CRITIQUE]')) {
+                entry.classList.add('log-alert');
+            }
+            
+            entry.innerText = `[${new Date().toLocaleTimeString()}] ${text}`;
+            streamContainer.prepend(entry);
+            
+            if (streamContainer.children.length > 20) {
+                streamContainer.removeChild(streamContainer.lastChild);
+            }
+            
+            streamIndex++;
+            setTimeout(updateStream, Math.random() * 2000 + 500);
+        }
+        setTimeout(updateStream, 1000);
+
+        // --- 2. DÉCRYPTEUR SÉMANTIQUE (COLONNE 2) ---
+        function decryptText() {
+            const input = document.getElementById('jargon-input').value.toLowerCase();
+            const outputBox = document.getElementById('output-box');
+            const truthText = document.getElementById('truth-text');
+            const truthSource = document.getElementById('truth-source');
+
+            outputBox.style.display = 'block';
+            truthText.innerText = "Analyse algorithmique en cours...";
+            truthSource.innerText = "";
+
+            setTimeout(() => {
+                if (input.includes('emploi') || input.includes('responsabiliser') || input.includes('chômage') || input.includes('activation')) {
+                    truthText.innerText = "DÉCODAGE : Démantèlement de l'État social. Transfert de la charge vers les pouvoirs locaux (CPAS). 184 463 citoyens exclus d'ici 2027.";
+                    truthSource.innerText = "SOURCE : Rapport Prospectif / Coalition Arizona";
+                } 
+                else if (input.includes('discipline') || input.includes('loyauté') || input.includes('stabilité') || input.includes('majorité')) {
+                    truthText.innerText = "DÉCODAGE : Particratie consulaire. Le parlementaire n'est plus qu'un exécutant (99,73% de discipline de vote). Les décisions sont prises hors les murs par les présidents de partis.";
+                    truthSource.innerText = "SOURCE : Violation constatée des Articles 33 et 42 de la Constitution.";
+                }
+                else if (input.includes('financement') || input.includes('démocratie') || input.includes('partis')) {
+                    truthText.innerText = "DÉCODAGE : Verrouillage financier. Maintien d'une rente publique de 188 Millions d'euros pour des structures sous statut privé (ASBL).";
+                    truthSource.innerText = "SOURCE : Rapport de la Cour des Comptes / Particratie.";
+                }
+                else {
+                    truthText.innerText = "DÉCODAGE GÉNÉRIQUE : Brol systémique détecté. Langage conçu pour dissimuler l'entropie administrative (7 parlements, 6 gouvernements, 31 806 élus).";
+                    truthSource.innerText = "ACTION : Appliquer la doctrine Fork · Hack · Spread.";
+                }
+            }, 1000);
+        }
+
+        // --- 3. ANIMATION DU COMPTEUR ARIZONA (COLONNE 3) ---
+        const counterElement = document.getElementById('counter-exclusion');
+        const barElement = document.getElementById('bar-exclusion');
+        let currentCount = 0;
+        const targetCount = 184463;
+
+        function animateCounter() {
+            if (currentCount < targetCount) {
+                // Accélération dramatique
+                currentCount += Math.floor(Math.random() * 500) + 100; 
+                if (currentCount > targetCount) currentCount = targetCount;
+                
+                counterElement.innerText = currentCount.toLocaleString('fr-FR');
+                barElement.style.width = (currentCount / targetCount * 100) + '%';
+                
+                setTimeout(animateCounter, 30);
+            }
+        }
+        setTimeout(animateCounter, 1500);
+
+    </script>
+</body>
+</html>
