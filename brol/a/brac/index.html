@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La citoyenneté, c'est le brol - Infographie Interactive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#0f172a',
+                            light: '#f8fafc',
+                            accent1: '#e11d48',
+                            accent2: '#06b6d4',
+                            surface: '#ffffff',
+                            text: '#334155',
+                            muted: '#94a3b8'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['Merriweather', 'Georgia', 'serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            color: #334155;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 45vh;
+            max-height: 450px;
+            min-height: 300px;
+        }
+
+        .diagram-box {
+            transition: all 0.3s ease;
+        }
+        
+        .diagram-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(225,29,72,0.05) 0%, rgba(6,182,212,0.05) 100%);
+            border: 1px solid rgba(225,29,72,0.1);
+        }
+
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #f8fafc; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="font-sans antialiased">
+
+    <!-- Chosen Palette: Vibrant High-Contrast (Slate-900 #0f172a, Slate-50 #f8fafc, Rose-600 #e11d48, Cyan-500 #06b6d4) -->
+    
+    <!-- Application Structure Plan: 
+         A linear narrative SPA designed to visually prove the thesis of the report. 
+         1. Introduction/Hero sets the tone ("Le Brol", "Particratie").
+         2. Data Section 1: Contrasts theoretical constitutional power with actual power using a grouped bar chart, establishing the "problem".
+         3. Data Section 2: Shows the consequences (the "fossé") over time with a dual-axis line chart (trust vs abstention).
+         4. Organizational Section: Visualizes the financial weight of the system with a doughnut chart.
+         5. Solution Section: A purely HTML/CSS flowchart showing the alternative (Municipalism) to conclude the narrative.
+         This flow takes the user from realization of the issue to understanding its depth, and finally to a structural solution.
+    -->
+
+    <!-- Visualization & Content Choices: 
+         - Power Contrast -> Goal: Compare -> Grouped Bar Chart (Chart.js) -> Justification: Clearest way to show disparity between Art. 33 and reality for specific actors. (Canvas, NO SVG).
+         - Systemic Deficit -> Goal: Change -> Line Chart with Dual Axes (Chart.js) -> Justification: Effectively plots two inverse trends (Trust going down, Abstention going up) over time. (Canvas, NO SVG).
+         - Financial Weight -> Goal: Inform/Proportions -> Doughnut Chart (Chart.js) -> Justification: Highlights the massive share of state funding captured by traditional parties. (Canvas, NO SVG).
+         - Municipalist Alternative -> Goal: Organize -> HTML/CSS Grid Diagram -> Justification: Shows a bottom-up process flow without relying on external diagramming tools or SVGs. (HTML/CSS, NO SVG, NO Mermaid).
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <header class="bg-brand-dark text-brand-light py-24 px-6 border-b-8 border-brand-accent1">
+        <div class="max-w-5xl mx-auto">
+            <div class="inline-block bg-brand-accent1 text-white font-mono text-xs font-bold px-3 py-1 rounded uppercase tracking-widest mb-6">
+                Rapport d'Analyse Stratégique
+            </div>
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 font-serif leading-tight">
+                LA CITOYENNETÉ,<br>
+                <span class="text-brand-accent2">C'EST LE BROL.</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-slate-400 mb-10 max-w-3xl leading-relaxed">
+                Anatomie du fossé structurel entre ceux qui décident et ceux qui subissent en Belgique. Une déconstruction de la particratie et de la fabrique du consentement.
+            </p>
+            <div class="flex flex-wrap gap-4 font-mono text-sm text-slate-300">
+                <span class="bg-slate-800 px-4 py-2 rounded shadow-inner">Yan & Claude (Anthropic)</span>
+                <span class="bg-slate-800 px-4 py-2 rounded shadow-inner">Projet ouaisfieu</span>
+                <span class="text-brand-accent2 font-bold px-4 py-2 border border-brand-accent2 rounded">Fork &middot; Hack &middot; Spread</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-32">
+
+        <section id="l-illusion">
+            <div class="mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-brand-dark mb-4 border-l-4 border-brand-accent1 pl-4">L'Illusion Constitutionnelle vs. La Particratie</h2>
+                <p class="text-lg text-brand-text leading-relaxed max-w-4xl">
+                    Le mythe fondateur de la Belgique repose sur l'Article 33 de la Constitution : "Tous les pouvoirs émanent de la Nation." Or, l'analyse systémique démontre un accaparement total du pouvoir par une oligarchie non élue directement : les présidents de partis. Ce graphique illustre le décalage brutal entre l'autorité conférée par les textes légaux et la réalité de l'exercice du pouvoir.
+                </p>
+            </div>
+
+            <div class="bg-brand-surface rounded-2xl shadow-xl p-6 md:p-10 border border-slate-200">
+                <div class="chart-container">
+                    <canvas id="powerChart"></canvas>
+                </div>
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-brand-text bg-slate-50 p-6 rounded-xl">
+                    <div>
+                        <strong class="text-brand-accent1 text-lg block mb-2">&#10008; Le Parlement Court-circuité</strong>
+                        Les représentants élus (Art. 42) sont réduits à des chambres d'enregistrement. Les décisions majeures, les budgets et les réformes sont actés lors de "conclaves" extralégaux réunissant uniquement les chefs de file des partis.
+                    </div>
+                    <div>
+                        <strong class="text-brand-accent1 text-lg block mb-2">&#10008; Le Citoyen Relégué</strong>
+                        Le citoyen, censé être la source de tout pouvoir, est maintenu dans un rôle passif de validation électorale quadriennale, sans prise réelle sur l'agenda politique ou les processus décisionnels continus.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="le-fosse">
+            <div class="mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-brand-dark mb-4 border-l-4 border-brand-accent2 pl-4">La Mesure du Fossé : Confiance et Abstention</h2>
+                <p class="text-lg text-brand-text leading-relaxed max-w-4xl">
+                    La confiscation du pouvoir génère un effondrement structurel de la légitimité des institutions. Ce phénomène se traduit par deux courbes qui se croisent inexorablement : la chute de la confiance publique envers les partis et l'augmentation constante du "non-vote effectif" (abstention, votes blancs et nuls), malgré l'obligation de vote en Belgique.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="stat-card p-6 rounded-2xl">
+                        <div class="text-5xl font-extrabold text-brand-accent1 mb-2">12%</div>
+                        <h3 class="font-bold text-brand-dark text-lg mb-2">Confiance Résiduelle</h3>
+                        <p class="text-sm text-brand-text">Moins d'un citoyen sur dix accorde aujourd'hui sa confiance aux partis politiques pour gérer la res publica (Source: OCDE, 2022).</p>
+                    </div>
+                    <div class="stat-card p-6 rounded-2xl border-brand-accent2">
+                        <div class="text-5xl font-extrabold text-brand-accent2 mb-2">&gt;25%</div>
+                        <h3 class="font-bold text-brand-dark text-lg mb-2">Grève Électorale</h3>
+                        <p class="text-sm text-brand-text">Plus d'un quart de l'électorat refuse de valider l'offre politique, choisissant l'illégalité (absence) ou le vote blanc de contestation.</p>
+                    </div>
+                </div>
+                <div class="lg:col-span-8 bg-brand-surface rounded-2xl shadow-xl p-6 border border-slate-200">
+                    <div class="chart-container">
+                        <canvas id="trustChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="le-financement">
+            <div class="mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-brand-dark mb-4 border-l-4 border-brand-accent1 pl-4">Le Nerf de la Guerre : L'Auto-Financement</h2>
+                <p class="text-lg text-brand-text leading-relaxed max-w-4xl">
+                    Comment le "brol" se maintient-il ? Par une asymétrie financière colossale. Les partis ont organisé leur propre dotation sur les deniers publics, créant une barrière à l'entrée insurmontable pour les mouvements citoyens. Ce graphique illustre la répartition des ressources : l'écrasante majorité est captée par la reproduction du système particratique.
+                </p>
+            </div>
+
+            <div class="bg-brand-dark text-brand-light rounded-2xl shadow-2xl p-6 md:p-12">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <div class="chart-container">
+                        <canvas id="fundingChart"></canvas>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-white mb-6">Le Cartel Financier</h3>
+                        <ul class="space-y-6">
+                            <li class="flex items-start">
+                                <span class="text-brand-accent1 text-2xl mr-4">&#9888;</span>
+                                <div>
+                                    <h4 class="font-bold text-brand-accent2 text-lg">Dotations Publiques</h4>
+                                    <p class="text-slate-400 text-sm mt-1">Des dizaines de millions d'euros par an votés par les partis... pour les partis. Une rente d'État qui les rend indépendants de leurs membres.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-brand-accent1 text-2xl mr-4">&#9888;</span>
+                                <div>
+                                    <h4 class="font-bold text-brand-accent2 text-lg">Propagande Permanente</h4>
+                                    <p class="text-slate-400 text-sm mt-1">Ces fonds massifs alimentent la "fabrique du consentement" (Chomsky) via des campagnes publicitaires ciblées (Psychopolitique) sur les réseaux sociaux.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="l-alternative">
+            <div class="mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-brand-dark mb-4 border-l-4 border-brand-accent2 pl-4">L'Alternative : Architecture du Municipalisme</h2>
+                <p class="text-lg text-brand-text leading-relaxed max-w-4xl">
+                    Inverser le paradigme. Face à la structure descendante de la particratie, les théories de l'entraide (Kropotkine) et du municipalisme libertaire (Bookchin) proposent une architecture du pouvoir radicalement ascendante, ancrée dans la réalité locale des citoyens.
+                </p>
+            </div>
+
+            <div class="bg-brand-surface rounded-2xl shadow-lg p-8 border border-slate-200">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-8 relative">
+                    
+                    <div class="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-gradient-to-r from-brand-accent2 to-brand-accent1 transform -translate-y-1/2 z-0 opacity-30"></div>
+
+                    <div class="diagram-box bg-white z-10 w-full md:w-1/3 border-2 border-brand-accent2 rounded-xl p-6 text-center shadow-md relative">
+                        <div class="text-4xl mb-4">&#128101;</div>
+                        <h3 class="font-bold text-xl text-brand-dark mb-2">L'Assemblée Citoyenne</h3>
+                        <p class="text-sm text-brand-text">Base du pouvoir local. Démocratie directe dans les quartiers. Décisions délibératives sans intermédiaires professionnels.</p>
+                        <div class="md:hidden text-2xl text-brand-accent2 my-4">&#x2193;</div>
+                    </div>
+
+                    <div class="diagram-box bg-white z-10 w-full md:w-1/3 border-2 border-brand-accent1 border-dashed rounded-xl p-6 text-center shadow-md relative">
+                        <div class="text-4xl mb-4">&#128257;</div>
+                        <h3 class="font-bold text-xl text-brand-dark mb-2">Les Délégués Mandatés</h3>
+                        <p class="text-sm text-brand-text">Porte-paroles désignés par les assemblées. Mandat impératif, strictement révocable à tout moment. Fin du "chèque en blanc".</p>
+                        <div class="md:hidden text-2xl text-brand-accent1 my-4">&#x2193;</div>
+                    </div>
+
+                    <div class="diagram-box bg-slate-800 z-10 w-full md:w-1/3 border-2 border-slate-600 rounded-xl p-6 text-center shadow-md text-white relative">
+                        <div class="text-4xl mb-4">&#127963;</div>
+                        <h3 class="font-bold text-xl mb-2 text-brand-accent2">Conseil Confédéral</h3>
+                        <p class="text-sm text-slate-300">Coordination administrative des communes. Aucun pouvoir de décision autonome, simple exécution des directives des assemblées.</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-brand-dark text-slate-400 py-12 px-6 border-t border-slate-800">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-sm font-mono">
+            <div>
+                <p class="text-white font-bold text-lg mb-1">PROJET OUAISFIEU</p>
+                <p>Éducation permanente &middot; Belgique 2026</p>
+            </div>
+            <div class="text-center md:text-right">
+                <p class="mb-2">Inspiré par : Delwit, Verleden, Chomsky, Stiegler, Bookchin, Freire.</p>
+                <p class="text-xs text-slate-500">Licence CC BY-SA 4.0 &middot; Les données graphiques sont des représentations analytiques basées sur les tendances du rapport.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function wrapLabel(text, maxChars = 16) {
+            if (text.length <= maxChars) return text;
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            words.forEach(word => {
+                if ((currentLine + word).length > maxChars) {
+                    if (currentLine) lines.push(currentLine.trim());
+                    currentLine = word + ' ';
+                } else {
+                    currentLine += word + ' ';
+                }
+            });
+            if (currentLine) lines.push(currentLine.trim());
+            return lines.length > 1 ? lines : lines[0];
+        }
+
+        const commonTooltipConfig = {
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const item = tooltipItems[0];
+                            let label = item.chart.data.labels[item.dataIndex];
+                            if (Array.isArray(label)) {
+                                return label.join(' ');
+                            } else {
+                                return label;
+                            }
+                        }
+                    },
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                    titleFont: { family: 'Fira Code', size: 14 },
+                    bodyFont: { family: 'Inter', size: 14 },
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: true
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            Chart.defaults.font.family = "'Inter', 'system-ui', 'sans-serif'";
+            Chart.defaults.color = '#64748b';
+
+            const ctxPower = document.getElementById('powerChart').getContext('2d');
+            const labelsPower = ['Les Citoyens (Souveraineté)', 'Le Parlement (Législatif)', 'Le Gouvernement (Exécutif)', 'Présidents de Partis (Particratie)'].map(l => wrapLabel(l));
+            
+            new Chart(ctxPower, {
+                type: 'bar',
+                data: {
+                    labels: labelsPower,
+                    datasets: [
+                        {
+                            label: 'Pouvoir Théorique (Constitution)',
+                            data: [100, 80, 60, 5],
+                            backgroundColor: '#06b6d4',
+                            borderRadius: 6,
+                            borderWidth: 0
+                        },
+                        {
+                            label: 'Pouvoir Réel Exercé',
+                            data: [10, 25, 45, 100],
+                            backgroundColor: '#e11d48',
+                            borderRadius: 6,
+                            borderWidth: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            max: 110,
+                            grid: { color: 'rgba(226, 232, 240, 0.5)', drawBorder: false },
+                            title: { display: true, text: 'Indice d\'influence relative' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    },
+                    ...commonTooltipConfig
+                }
+            });
+
+            const ctxTrust = document.getElementById('trustChart').getContext('2d');
+            const labelsTrust = ['1999', '2003', '2007', '2010', '2014', '2019', '2024'].map(l => wrapLabel(l));
+            
+            const configTrust = JSON.parse(JSON.stringify(commonTooltipConfig));
+            configTrust.plugins.tooltip.mode = 'index';
+            configTrust.plugins.tooltip.intersect = false;
+
+            new Chart(ctxTrust, {
+                type: 'line',
+                data: {
+                    labels: labelsTrust,
+                    datasets: [
+                        {
+                            label: 'Confiance envers les partis politiques (%)',
+                            data: [42, 38, 30, 24, 18, 14, 12],
+                            borderColor: '#e11d48',
+                            backgroundColor: 'rgba(225, 29, 72, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#e11d48',
+                            pointRadius: 5,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Non-vote effectif (Abstention + Blancs/Nuls %)',
+                            data: [14, 15, 16, 17, 18, 21, 26],
+                            borderColor: '#06b6d4',
+                            borderDash: [5, 5],
+                            backgroundColor: 'transparent',
+                            tension: 0.4,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#06b6d4',
+                            pointRadius: 5,
+                            yAxisID: 'y'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            max: 50,
+                            grid: { color: 'rgba(226, 232, 240, 0.5)' },
+                            title: { display: true, text: 'Pourcentage (%)' }
+                        },
+                        x: { grid: { display: false } }
+                    },
+                    ...configTrust
+                }
+            });
+
+            const ctxFunding = document.getElementById('fundingChart').getContext('2d');
+            const labelsFunding = [
+                'Partis Politiques (Dotations d\'État)', 
+                'Infrastructures Parlementaires Réelles', 
+                'Initiatives Citoyennes Indépendantes'
+            ].map(l => wrapLabel(l));
+
+            const configFunding = JSON.parse(JSON.stringify(commonTooltipConfig));
+            configFunding.plugins.legend = { position: 'bottom', labels: { color: '#f8fafc', padding: 20 } };
+
+            new Chart(ctxFunding, {
+                type: 'doughnut',
+                data: {
+                    labels: labelsFunding,
+                    datasets: [{
+                        data: [85, 13, 2],
+                        backgroundColor: ['#e11d48', '#0f172a', '#06b6d4'],
+                        borderColor: '#0f172a',
+                        borderWidth: 4,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    ...configFunding
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
