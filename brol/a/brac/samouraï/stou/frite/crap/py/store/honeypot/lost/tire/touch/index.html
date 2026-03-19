@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BROL 2.0 – Dashboard central</title>
+  <style>
+    /* VARIABLES MODERNISÉES */
+    :root {
+      --bg-color: #0b0f19;
+      --panel-bg: rgba(20, 25, 40, 0.6);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --accent-primary: #3b82f6; /* Bleu moderne */
+      --accent-success: #10b981; /* Vert émeraude */
+      --accent-warning: #f59e0b; /* Orange */
+      --accent-purple: #8b5cf6;  /* Violet */
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --font-main: "Inter", system-ui, -apple-system, sans-serif;
+      --font-mono: "Fira Code", "SFMono-Regular", Consolas, monospace;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
+      --shadow-panel: 0 8px 32px rgba(0, 0, 0, 0.4);
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* SCROLLBARS CUSTOM */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+    body {
+      min-height: 100vh;
+      font-family: var(--font-main);
+      background-color: var(--bg-color);
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 50%),
+        radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 50%);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* HEADER GLASSMORPHISM */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(11, 15, 25, 0.7);
+      border-bottom: 1px solid var(--panel-border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-left { display: flex; align-items: center; gap: 1rem; }
+
+    .logo-frame {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
+      padding: 2px;
+      box-shadow: var(--shadow-glow);
+    }
+
+    .logo-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: calc(var(--radius-md) - 2px);
+      background: #0b0f19;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      color: var(--text-main);
+    }
+
+    .title-main {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      background: linear-gradient(to right, #fff, #9ca3af);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-right {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-align: right;
+      line-height: 1.4;
+    }
+
+    /* LAYOUT PRINCIPAL */
+    main {
+      flex: 1;
+      padding: 1.5rem 2rem;
+      display: grid;
+      grid-template-columns: 320px 1fr 300px; /* Colonne gauche fixe, centre fluide, droite fixe */
+      gap: 1.5rem;
+      height: calc(100vh - 80px); /* Hauteur fixe pour scroller à l'intérieur des panels */
+    }
+
+    @media (max-width: 1200px) {
+      main { grid-template-columns: 280px 1fr; grid-template-rows: 1fr auto; height: auto; }
+      .side-panel { grid-column: span 2; }
+    }
+    @media (max-width: 860px) {
+      main { grid-template-columns: 1fr; display: flex; flex-direction: column; }
+      header { flex-direction: column; align-items: flex-start; gap: 1rem; padding: 1rem; }
+      .header-right { text-align: left; }
+    }
+
+    /* PANELS COMMUNS */
+    .panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-panel);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 1.25rem 1.25rem 0.75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+
+    .panel-header h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 0.5rem;
+    }
+
+    .panel-body {
+      padding: 0.75rem 1.25rem 1.25rem;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* FORMULAIRES (RECHERCHE & SELECT) */
+    .search-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="search"], select {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      padding: 0.6rem 1rem;
+      font-family: var(--font-main);
+      font-size: 0.85rem;
+      transition: var(--transition);
+      outline: none;
+    }
+
+    input[type="search"]:focus, select:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+
+    select option { background: var(--bg-color); }
+
+    .stats-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      padding: 0 0.25rem;
+    }
+
+    .badge-small {
+      background: rgba(255,255,255,0.05);
+      border-radius: 999px;
+      padding: 0.2rem 0.6rem;
+      font-family: var(--font-mono);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    /* LISTE DES MODULES (GAUCHE) */
+    .modules-list { display: flex; flex-direction: column; gap: 1rem; }
+    
+    .group-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+      padding-left: 0.25rem;
+    }
+
+    .module-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .module-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .module-item.active {
+      background: rgba(59, 130, 246, 0.1);
+      border-color: var(--accent-primary);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    }
+
+    .module-main { min-width: 0; flex: 1; }
+    
+    .module-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 0.2rem;
+    }
+
+    .module-sub { font-size: 0.75rem; color: var(--text-muted); }
+
+    .module-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.3rem;
+      min-width: 80px;
+    }
+
+    .module-file {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .module-kind {
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Couleurs des tags */
+    .kind-base   { background: rgba(16, 185, 129, 0.1); color: #34d399; }
+    .kind-brol   { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+    .kind-univ   { background: rgba(139, 92, 246, 0.1); color: #a78bfa; }
+    .kind-intra  { background: rgba(245, 158, 11, 0.1); color: #fbbf24; }
+    .kind-ia     { background: rgba(239, 68, 68, 0.1); color: #f87171; }
+    .kind-meta   { background: rgba(156, 163, 175, 0.1); color: #9ca3af; }
+
+    /* VIEWER CENTRAL */
+    .viewer-panel { display: flex; flex-direction: column; height: 100%; }
+    
+    .viewer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.25rem;
+      border-bottom: 1px solid var(--panel-border);
+      background: rgba(0,0,0,0.2);
+    }
+
+    .viewer-title-block { flex: 1; min-width: 0; }
+    
+    .viewer-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .viewer-subtitle { font-size: 0.85rem; color: var(--text-muted); }
+
+    .viewer-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+    .viewer-badge {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .viewer-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent-success);
+      box-shadow: 0 0 8px var(--accent-success);
+    }
+
+    .viewer-iframe-wrapper {
+      flex: 1;
+      background: #000;
+      position: relative;
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      overflow: hidden;
+    }
+
+    #viewerFrame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      position: absolute;
+      top: 0; left: 0;
+    }
+
+    .viewer-footer {
+      padding: 0.75rem 1.25rem;
+      background: rgba(0,0,0,0.3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--panel-border);
+    }
+
+    .viewer-file {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .btn-open {
+      background: var(--accent-primary);
+      color: #fff;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-open:hover {
+      background: #2563eb;
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    }
+
+    /* PANEL DROIT (EMBEDS) */
+    .embed-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .embed-btn {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-main);
+      padding: 0.6rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      transition: var(--transition);
+      text-align: center;
+    }
+
+    .embed-btn:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.2);
+      transform: translateY(-2px);
+    }
+
+    .embed-btn span.icon { font-size: 1.25rem; margin-bottom: 2px; }
+
+    .yt-container {
+      margin-top: 1rem;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--panel-border);
+    }
+
+    /* FOOTER */
+    footer {
+      padding: 1rem 2rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--panel-border);
+      background: rgba(11, 15, 25, 0.8);
+    }
+    footer a { color: var(--accent-primary); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo-frame">
+      <div class="logo-inner">BROL</div>
+    </div>
+    <div class="header-titles">
+      <div class="title-main">BROL 2.0</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted);">Dashboard central / Centraal Dashboord</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div>Niveau Actuel : <strong style="color: #fff;">0</strong></div>
+    <div>Bienvenue dans le système.</div>
+  </div>
+</header>
+
+<main>
+  <section class="panel side-panel">
+    <div class="panel-header">
+      <h2>Pages & Modules</h2>
+      <div class="search-row">
+        <input type="search" id="moduleSearch" placeholder="Rechercher (nom, fichier)...">
+        <select id="moduleCategory">
+          <option value="all">Toutes catégories</option>
+          <option value="base">La Base</option>
+          <option value="brol">BAC À SPAM</option>
+          <option value="univ">Univers & jeu</option>
+          <option value="intra">Liens en vrac</option>
+          <option value="ia">IA fictive</option>
+          <option value="meta">Tests</option>
+        </select>
+      </div>
+      <div class="stats-row">
+        <span class="badge-small" id="modulesCount">0 module</span>
+        <span>Système en ligne</span>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="modules-list" id="modulesContainer">
+        </div>
+    </div>
+  </section>
+
+  <section class="panel viewer-panel">
+    <div class="viewer-header">
+      <div class="viewer-title-block">
+        <div class="viewer-title" id="viewerTitle">Sélectionnez un module</div>
+        <div class="viewer-subtitle" id="viewerSubtitle">...</div>
+      </div>
+      <div class="viewer-badges">
+        <span class="viewer-badge">
+          <span class="viewer-dot"></span>
+          <span id="viewerCategoryBadge">Catégorie</span>
+        </span>
+        <span class="viewer-badge" id="viewerKindBadge" style="border-color: rgba(255,255,255,0.2);">Type</span>
+      </div>
+    </div>
+    
+    <div class="viewer-iframe-wrapper">
+      <iframe id="viewerFrame" src="about:blank"></iframe>
+    </div>
+    
+    <div class="viewer-footer">
+      <div class="viewer-file" id="viewerFile">Fichier : ...</div>
+      <a href="#" id="viewerOpenNew" class="btn-open" target="_blank" rel="noopener noreferrer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        Ouvrir l'onglet
+      </a>
+    </div>
+  </section>
+
+  <section class="panel side-panel">
+    <div class="panel-header">
+      <h2>Distractions & Annexes</h2>
+    </div>
+    <div class="panel-body">
+      <div class="embed-grid">
+        <button type="button" class="embed-btn" data-embed="penguin"><span class="icon">🐧</span> Tarot</button>
+        <button type="button" class="embed-btn" data-embed="intranet"><span class="icon">🌐</span> Intranet</button>
+        <button type="button" class="embed-btn" data-embed="youtube"><span class="icon">▶️</span> Vidéo YT</button>
+        <button type="button" class="embed-btn" data-embed="youtubeu"><span class="icon">📼</span> Intro Brol</button>
+        <button type="button" class="embed-btn" data-embed="spotify"><span class="icon">🎵</span> Spotify</button>
+        <button type="button" class="embed-btn" data-embed="pdf-plaidoyer-2"><span class="icon">📄</span> PDF ULB</button>
+        <button type="button" class="embed-btn" data-embed="pdf-plaidoyer-1"><span class="icon">📄</span> PDF JP</button>
+        <button type="button" class="embed-btn" data-embed="pdf-veille-1"><span class="icon">📄</span> Veille 1</button>
+        <button type="button" class="embed-btn" data-embed="pdf-veille-2"><span class="icon">📄</span> Veille 2</button>
+        <button type="button" class="embed-btn" data-embed="speaker"><span class="icon">🎙️</span> Com'</button>
+        <button type="button" class="embed-btn" data-embed="king"><span class="icon">🐧</span> Tux</button>
+        <button type="button" class="embed-btn" data-embed="dices"><span class="icon">🎲</span> Dés</button>
+      </div>
+
+      <div class="yt-container">
+        <iframe width="100%" height="200" src="https://www.youtube.com/embed/vzkUUpms_aU" title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  BROL 2.0 – Dashboard central | Aller au <a href="https://dl.ouaisfi.eu/usba/1/index.html" target="_blank">niveau suivant</a>
+</footer>
+
+<script>
+  const modules = [
+    { id: "site-ultime", title: "LE SITE ULTIME (index)", file: "index.html", category: "base", kind: "niveaux -1 → 3", description: "Le fichier qui permet de partir de zéro et monter progressivement." },
+    { id: "scratchy", title: "Support technique", file: "404.html", category: "base", kind: "au cas où", description: "Il faut éteindre et rallumer." },
+    { id: "branques2", title: "Politique des Cookies", file: "browniz-politik.html", category: "base", kind: "débutant+", description: "Si tu passes pas ce test, t'as raté ta vie." },
+    { id: "pas-a-pas", title: "Boussole de valeurs", file: "valeurs.html", category: "base", kind: "boussole", description: "Pour faire le point de temps en temps." },
+    { id: "hub-illustre", title: "Hub illustré", file: "portail.html", category: "brol", kind: "codigic", description: "Pour faire tout à fait autre chose." },
+    { id: "rolex", title: "Lien suspect", file: "777.html", category: "brol", kind: "#piraté", description: "Pour faire encore autre chose." },
+    { id: "amazing", title: "Lien HYPER suspect", file: "amazing.html", category: "brol", kind: "#vendu", description: "Pour faire encore TOUT autre chose." },
+    { id: "stic-anarchie", title: "STIC de l’anarchie – jeu licornes & bisounours", file: "stic-anarchie.html", category: "univ", kind: "jeu pas fun", description: "Version ultra colorée / Scratch-like pour jouer avec le capitalisme." },
+    { id: "detective", title: "Agence détective publique", file: "veilleuxses.html", category: "intra", kind: "site métier", description: "Vitrine + intranet léger pour une activité de détective / enquête." },
+    { id: "extranet", title: "Extronet organisation lambda", file: "xyno.html", category: "intra", kind: "extronet", description: "Modèle extranet." },
+    { id: "kalifox", title: "Extronet organisation bêta", file: "kalifox.html", category: "intra", kind: "outil", description: "Parce que bon parfois." },
+    { id: "gork", title: "GORK / Pauvre Gork", file: "minitel.html", category: "ia", kind: "graph", description: "Il voudrait être débranché." },
+    { id: "gorki", title: "GORKI / Pauvre GorkI", file: "terminal-ia.html", category: "ia", kind: "grave", description: "Il voudrait AUSSI être débranché." },
+    { id: "test-1", title: "À réussir d'urgence", file: "test-1.html", category: "ib", kind: "bisous", description: "C'est ça ou rien." },
+    { id: "mon-projet", title: "Mon projet secret", file: "veille-1160.html", category: "univ", kind: "univers perso", description: "Description courte de ce que contient cette page." }
+  ];
+
+  const embeds = {
+    penguin: { label: "Tarot pas illustré", url: "https://ouaisfieu.appsmith.com/app/tarotboulotproto-v3-1/tarotsimpletirage-68555a12a22d7c48aa0d27ad", description: "Tarot de Boulot et de Marseille sans illustration." },
+    intranet: { label: "Intranet", url: "https://boot-a-rat.vercel.app/", description: "C'est par là que ça se passe." },
+    youtube: { label: "YouTube – exemple", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", description: "Exemple d’embed YouTube. Remplace l’ID de vidéo par ce que tu veux." },
+    youtubeu: { label: "YouTube – exemple", url: "capture.jpg", description: "Exemple d’embed YouTube. Remplace l’ID de vidéo par ce que tu veux." },
+    spotify: { label: "Spotify – playlist exemple", url: "https://open.spotify.com/embed/playlist/7eTeIkIqbfmyXnC6Ilo4d2?si=QRW5lAbiRwerORLkra3Raw", description: "Exemple de playlist Spotify (embed). Remplace l’URL par la tienne." },
+    "pdf-plaidoyer-2": { label: "plaidoyer-ulb.pdf", url: "https://www.ulb-cooperation.org/wp-content/uploads/2020/08/manuel-plaidoyer-2.pdf", description: "PDF externe" },
+    "pdf-plaidoyer-1": { label: "plaidoyer-jp.pdf", url: "pdfs/manuel-plaidoyer-jp.pdf", description: "PDF local" },
+    "pdf-veille-1": { label: "Veille (1)", url: "pdfs/veille-citoyenne-enjeux.pdf", description: "PDF local : idem." },
+    "pdf-veille-2": { label: "Veille (2)", url: "pdfs/guide-reseau-veille.pdf", description: "PDF local : idem." },
+    speaker: { label: "Chargé de com'", url: "https://ouaisfieu.github.io/vitrine/", description: "Chargé de communication en boucle sur la communication" },
+    king: { label: "Tux", url: "https://fr.wikipedia.org/wiki/Tux#/media/Fichier:Tux.svg", description: "Pingouins." },
+    dices: { label: "Tirage de dés", url: "https://tirage-one.vercel.app/", description: "Application." }
+  };
+
+  const moduleSearch   = document.getElementById("moduleSearch");
+  const moduleCategory = document.getElementById("moduleCategory");
+  const modulesContainer = document.getElementById("modulesContainer");
+  const modulesCount   = document.getElementById("modulesCount");
+
+  const viewerTitle    = document.getElementById("viewerTitle");
+  const viewerSubtitle = document.getElementById("viewerSubtitle");
+  const viewerCategoryBadge = document.getElementById("viewerCategoryBadge");
+  const viewerKindBadge = document.getElementById("viewerKindBadge");
+  const viewerFile     = document.getElementById("viewerFile");
+  const viewerFrame    = document.getElementById("viewerFrame");
+  const viewerOpenNew  = document.getElementById("viewerOpenNew");
+
+  let filteredModules = [];
+  let activeModuleId = null;
+
+  function categoryLabel(cat) {
+    switch (cat) {
+      case "base": return "La Base";
+      case "brol": return "BAC À SPAM";
+      case "univ": return "Univers & jeu";
+      case "intra": return "Liens en vrac";
+      case "ia": return "IA fictive";
+      case "meta": return "Tests";
+      default: return "Autre";
+    }
+  }
+
+  function kindClass(cat) {
+    switch (cat) {
+      case "base": return "kind-base";
+      case "brol": return "kind-brol";
+      case "univ": return "kind-univ";
+      case "intra": return "kind-intra";
+      case "ia": return "kind-ia";
+      case "meta": return "kind-meta";
+      default: return "";
+    }
+  }
+
+  function applyModuleFilter() {
+    const q = moduleSearch.value.trim().toLowerCase();
+    const cat = moduleCategory.value;
+
+    filteredModules = modules.filter(m => {
+      if (cat !== "all" && m.category !== cat) return false;
+      if (!q) return true;
+      const h = (m.title + " " + m.file + " " + (m.description || "")).toLowerCase();
+      return h.includes(q);
+    });
+
+    renderModules();
+  }
+
+  function renderModules() {
+    modulesContainer.innerHTML = "";
+    if (!filteredModules.length) {
+      modulesContainer.innerHTML = '<div style="padding:1rem; color:var(--text-muted); text-align:center;">Aucun module trouvé.</div>';
+      modulesCount.textContent = "0 module";
+      return;
+    }
+
+    modulesCount.textContent = filteredModules.length + " module" + (filteredModules.length > 1 ? "s" : "");
+
+    const groups = {};
+    filteredModules.forEach(m => {
+      if (!groups[m.category]) groups[m.category] = [];
+      groups[m.category].push(m);
+    });
+
+    Object.keys(groups).sort().forEach(cat => {
+      const groupEl = document.createElement("div");
+      const title = document.createElement("div");
+      title.className = "group-title";
+      title.textContent = categoryLabel(cat);
+      groupEl.appendChild(title);
+
+      groups[cat].forEach(m => {
+        const item = document.createElement("div");
+        item.className = "module-item";
+        if (m.id === activeModuleId) item.classList.add("active");
+        item.dataset.id = m.id;
+
+        item.innerHTML = `
+          <div class="module-main">
+            <div class="module-title" title="${m.title}">${m.title}</div>
+            <div class="module-sub">${m.description || ""}</div>
+          </div>
+          <div class="module-meta">
+            <div class="module-kind ${kindClass(m.category)}">${m.kind || ""}</div>
+            <div class="module-file" title="${m.file}">${m.file}</div>
+          </div>
+        `;
+
+        item.addEventListener("click", () => selectModule(m.id));
+        groupEl.appendChild(item);
+      });
+
+      modulesContainer.appendChild(groupEl);
+    });
+  }
+
+  function selectModule(id) {
+    const m = modules.find(x => x.id === id);
+    if (!m) return;
+    activeModuleId = id;
+
+    const items = modulesContainer.querySelectorAll(".module-item");
+    items.forEach(el => {
+      el.classList.toggle("active", el.dataset.id === id);
+    });
+
+    viewerTitle.textContent = m.title;
+    viewerSubtitle.textContent = m.description || "";
+    viewerCategoryBadge.textContent = categoryLabel(m.category);
+    viewerKindBadge.textContent = m.kind || "";
+    viewerFile.textContent = "Fichier / URL : " + m.file;
+    viewerFrame.src = m.file;
+    viewerOpenNew.href = m.file;
+  }
+
+  moduleSearch.addEventListener("input", applyModuleFilter);
+  moduleCategory.addEventListener("change", applyModuleFilter);
+
+  const embedButtons = document.querySelectorAll(".embed-btn");
+  embedButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.embed;
+      const e = embeds[key];
+      if (!e) return;
+      activeModuleId = null;
+
+      const items = modulesContainer.querySelectorAll(".module-item");
+      items.forEach(el => el.classList.remove("active"));
+
+      viewerTitle.textContent = e.label;
+      viewerSubtitle.textContent = e.description || "";
+      viewerCategoryBadge.textContent = "Embed externe";
+      viewerKindBadge.textContent = "annexe / distraction";
+      viewerFile.textContent = "Fichier / URL : " + e.url;
+
+      viewerFrame.src = e.url;
+      viewerOpenNew.href = e.url;
+    });
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    applyModuleFilter();
+    const defaultModule = modules.find(m => m.id === "site-ultime") || modules[0];
+    if (defaultModule) {
+      selectModule(defaultModule.id);
+    }
+  });
+</script>
+</body>
+</html>
