@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>░▒▓ MEDIAKRASH ▓▒░ — punk player</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  @keyframes scanlines {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 4px; }
+  }
+
+  @keyframes glitchX {
+    0%, 100% { transform: translateX(0); }
+    10% { transform: translateX(-3px); }
+    20% { transform: translateX(2px); }
+    30% { transform: translateX(-1px); }
+    40% { transform: translateX(3px); }
+    50% { transform: translateX(-2px); }
+    60% { transform: translateX(0); }
+  }
+
+  @keyframes glitchColor {
+    0%, 100% { text-shadow: 2px 0 #ff0055, -2px 0 #00ffaa; }
+    25% { text-shadow: -3px 0 #ff0055, 3px 0 #00ffaa; }
+    50% { text-shadow: 1px 0 #ff0055, -1px 0 #ffee00; }
+    75% { text-shadow: -2px 0 #ffee00, 2px 0 #00ffaa; }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  @keyframes flicker {
+    0%, 100% { opacity: 1; }
+    5% { opacity: 0.8; }
+    10% { opacity: 1; }
+    15% { opacity: 0.6; }
+    20% { opacity: 1; }
+    92% { opacity: 1; }
+    93% { opacity: 0.7; }
+    94% { opacity: 1; }
+  }
+
+  @keyframes rainbowBorder {
+    0% { border-color: #ff0055; }
+    16% { border-color: #ffee00; }
+    33% { border-color: #00ffaa; }
+    50% { border-color: #00ccff; }
+    66% { border-color: #aa00ff; }
+    83% { border-color: #ff6600; }
+    100% { border-color: #ff0055; }
+  }
+
+  @keyframes marqueeScroll {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
+
+  @keyframes noiseMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 100px 100px; }
+  }
+
+  :root {
+    --punk-pink: #ff0055;
+    --punk-green: #00ffaa;
+    --punk-yellow: #ffee00;
+    --punk-cyan: #00ccff;
+    --punk-orange: #ff6600;
+    --crt-dark: #0a0a0a;
+    --crt-surface: #111111;
+    --crt-glow: rgba(0, 255, 170, 0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--crt-dark);
+    color: var(--punk-green);
+    font-family: 'VT323', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    position: relative;
+    overflow-x: hidden;
+    animation: flicker 8s infinite;
+  }
+
+  /* CRT scanlines overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.15) 2px,
+      rgba(0, 0, 0, 0.15) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+    animation: scanlines 0.1s linear infinite;
+  }
+
+  /* Noise texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    animation: noiseMove 1s linear infinite;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 860px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ---- HEADER ---- */
+  .header {
+    text-align: center;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border: 2px dashed var(--punk-pink);
+    position: relative;
+    animation: rainbowBorder 3s linear infinite;
+  }
+
+  .header::before {
+    content: '╔══════════════════════════════════════════════╗';
+    display: block;
+    font-size: 0.6rem;
+    color: var(--punk-pink);
+    opacity: 0.4;
+    letter-spacing: -0.5px;
+    overflow: hidden;
+  }
+
+  .header::after {
+    content: '╚══════════════════════════════════════════════╝';
+    display: block;
+    font-size: 0.6rem;
+    color: var(--punk-pink);
+    opacity: 0.4;
+    letter-spacing: -0.5px;
+    overflow: hidden;
+  }
+
+  .header h1 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(1rem, 4vw, 1.8rem);
+    color: var(--punk-pink);
+    animation: glitchColor 0.5s infinite;
+    margin: 0.5rem 0;
+    line-height: 1.6;
+  }
+
+  .header .subtitle {
+    font-size: 1.1rem;
+    color: var(--punk-yellow);
+    letter-spacing: 0.15em;
+  }
+
+  .ascii-skull {
+    font-size: 0.55rem;
+    line-height: 1.1;
+    color: var(--punk-green);
+    opacity: 0.5;
+    white-space: pre;
+    display: inline-block;
+    margin-top: 0.5rem;
+  }
+
+  /* ---- MARQUEE ---- */
+  .marquee-bar {
+    background: var(--punk-pink);
+    color: var(--crt-dark);
+    padding: 0.3rem 0;
+    overflow: hidden;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.55rem;
+    margin-bottom: 1rem;
+    white-space: nowrap;
+  }
+
+  .marquee-bar span {
+    display: inline-block;
+    animation: marqueeScroll 15s linear infinite;
+  }
+
+  /* ---- INPUT ZONE ---- */
+  .input-zone {
+    background: var(--crt-surface);
+    border: 2px solid var(--punk-green);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    position: relative;
+  }
+
+  .input-zone::before {
+    content: '> INPUT_MEDIA.exe';
+    display: block;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.7rem;
+    color: var(--punk-cyan);
+    margin-bottom: 0.5rem;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+
+  .input-row input {
+    flex: 1;
+    background: #000;
+    border: 1px solid var(--punk-green);
+    color: var(--punk-green);
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    padding: 0.6rem 0.75rem;
+    outline: none;
+    caret-color: var(--punk-yellow);
+  }
+
+  .input-row input::placeholder {
+    color: rgba(0, 255, 170, 0.3);
+  }
+
+  .input-row input:focus {
+    border-color: var(--punk-yellow);
+    box-shadow: 0 0 10px rgba(255, 238, 0, 0.2), inset 0 0 10px rgba(255, 238, 0, 0.05);
+  }
+
+  .btn-smash {
+    background: var(--punk-pink);
+    color: #fff;
+    border: 2px solid var(--punk-yellow);
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.6rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.1s;
+    white-space: nowrap;
+  }
+
+  .btn-smash:hover {
+    background: var(--punk-yellow);
+    color: #000;
+    animation: glitchX 0.3s;
+    box-shadow: 0 0 20px var(--punk-yellow);
+  }
+
+  .btn-smash:active {
+    transform: scale(0.95) rotate(-1deg);
+  }
+
+  /* ---- QUICK TAGS ---- */
+  .tags {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .tags button {
+    background: transparent;
+    border: 1px solid var(--punk-green);
+    color: var(--punk-green);
+    font-family: 'VT323', monospace;
+    font-size: 0.95rem;
+    padding: 0.25rem 0.65rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .tags button::before {
+    content: '[ ';
+    color: var(--punk-yellow);
+  }
+
+  .tags button::after {
+    content: ' ]';
+    color: var(--punk-yellow);
+  }
+
+  .tags button:hover {
+    background: var(--punk-green);
+    color: #000;
+    box-shadow: 0 0 8px var(--punk-green);
+    text-shadow: none;
+  }
+
+  /* ---- VIEWPORT ---- */
+  .viewport-frame {
+    border: 3px solid var(--punk-pink);
+    position: relative;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 0 30px rgba(255, 0, 85, 0.15), inset 0 0 60px rgba(0,0,0,0.5);
+  }
+
+  .viewport-frame::before {
+    content: 'REC ●';
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.45rem;
+    color: var(--punk-pink);
+    z-index: 10;
+    animation: blink 1s infinite;
+  }
+
+  .viewport-frame::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--punk-pink), var(--punk-yellow), var(--punk-green), var(--punk-cyan), var(--punk-pink));
+    background-size: 200% 100%;
+    animation: rainbowBorder 2s linear infinite;
+  }
+
+  .viewport {
+    background: #000;
+    aspect-ratio: 16/9;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .viewport iframe,
+  .viewport video,
+  .viewport audio {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  .viewport.audio-mode {
+    aspect-ratio: unset;
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: repeating-linear-gradient(
+      45deg,
+      #0a0a0a,
+      #0a0a0a 10px,
+      #0f0f0f 10px,
+      #0f0f0f 20px
+    );
+  }
+
+  .viewport.audio-mode audio { width: 85%; height: auto; }
+
+  .placeholder-punk {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--punk-green);
+    background: repeating-linear-gradient(
+      45deg,
+      #0a0a0a,
+      #0a0a0a 10px,
+      #0d0d0d 10px,
+      #0d0d0d 20px
+    );
+  }
+
+  .placeholder-punk .ascii-big {
+    font-size: 0.5rem;
+    line-height: 1.15;
+    white-space: pre;
+    color: var(--punk-pink);
+    opacity: 0.7;
+    animation: glitchColor 2s infinite;
+  }
+
+  .placeholder-punk p {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.5rem;
+    color: var(--punk-yellow);
+    margin-top: 1rem;
+    animation: blink 1.5s infinite;
+  }
+
+  /* ---- STATUS BAR ---- */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--crt-surface);
+    border: 1px solid var(--punk-green);
+    border-top: none;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .status-bar .status-text {
+    color: var(--punk-cyan);
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .status-bar .status-text strong { color: var(--punk-yellow); }
+
+  .btn-embed-punk {
+    background: none;
+    border: 1px solid var(--punk-orange);
+    color: var(--punk-orange);
+    font-family: 'VT323', monospace;
+    font-size: 0.9rem;
+    padding: 0.2rem 0.6rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-embed-punk:hover {
+    background: var(--punk-orange);
+    color: #000;
+    box-shadow: 0 0 10px rgba(255, 102, 0, 0.4);
+  }
+
+  /* ---- PLAYLIST / QUEUE ---- */
+  .queue-section {
+    border: 2px solid var(--punk-cyan);
+    background: var(--crt-surface);
+    position: relative;
+  }
+
+  .queue-header {
+    background: var(--punk-cyan);
+    color: #000;
+    padding: 0.4rem 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.5rem;
+    text-transform: uppercase;
+  }
+
+  .queue-items {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .queue-items::-webkit-scrollbar { width: 8px; }
+  .queue-items::-webkit-scrollbar-track { background: #000; }
+  .queue-items::-webkit-scrollbar-thumb {
+    background: var(--punk-green);
+    border: 1px solid #000;
+  }
+
+  .queue-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    cursor: pointer;
+    border-bottom: 1px dashed rgba(0, 255, 170, 0.15);
+    transition: all 0.1s;
+  }
+
+  .queue-item:hover {
+    background: rgba(0, 255, 170, 0.05);
+    padding-left: 1.25rem;
+  }
+
+  .queue-item.active {
+    background: rgba(255, 0, 85, 0.1);
+    border-left: 3px solid var(--punk-pink);
+  }
+
+  .queue-item.active .q-idx { color: var(--punk-pink); }
+
+  .q-idx {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.75rem;
+    color: var(--punk-green);
+    min-width: 2rem;
+    opacity: 0.6;
+  }
+
+  .q-icon {
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--punk-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .q-info { flex: 1; min-width: 0; }
+
+  .q-info .q-title {
+    font-size: 1rem;
+    color: var(--punk-yellow);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .q-info .q-source {
+    font-size: 0.85rem;
+    color: var(--punk-green);
+    opacity: 0.5;
+  }
+
+  .q-remove {
+    background: none;
+    border: none;
+    color: var(--punk-pink);
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.15s;
+  }
+
+  .queue-item:hover .q-remove { opacity: 1; }
+  .q-remove:hover { text-shadow: 0 0 8px var(--punk-pink); }
+
+  .empty-queue {
+    padding: 2.5rem;
+    text-align: center;
+    color: var(--punk-green);
+    opacity: 0.3;
+    font-size: 1rem;
+  }
+
+  /* ---- FOOTER ---- */
+  .footer-punk {
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--punk-green);
+    opacity: 0.3;
+    letter-spacing: 0.1em;
+  }
+
+  .footer-punk span { color: var(--punk-pink); }
+
+  /* ---- MODAL ---- */
+  .modal-punk-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-punk-overlay.open { display: flex; }
+
+  .modal-punk {
+    background: var(--crt-surface);
+    border: 3px solid var(--punk-yellow);
+    padding: 1.25rem;
+    width: 90%;
+    max-width: 560px;
+    position: relative;
+    box-shadow: 0 0 40px rgba(255, 238, 0, 0.15);
+  }
+
+  .modal-punk::before {
+    content: '// EMBED_CODE.raw';
+    display: block;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.65rem;
+    color: var(--punk-cyan);
+    margin-bottom: 0.75rem;
+  }
+
+  .modal-punk textarea {
+    width: 100%;
+    background: #000;
+    border: 1px solid var(--punk-green);
+    color: var(--punk-green);
+    font-family: 'Fira Code', monospace;
+    font-size: 0.78rem;
+    padding: 0.75rem;
+    resize: vertical;
+    min-height: 100px;
+    outline: none;
+  }
+
+  .modal-punk textarea:focus {
+    border-color: var(--punk-yellow);
+  }
+
+  .modal-punk-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .modal-punk-actions button {
+    font-family: 'VT323', monospace;
+    font-size: 1rem;
+    padding: 0.35rem 1rem;
+    cursor: pointer;
+    border: 1px solid;
+    transition: all 0.15s;
+  }
+
+  .btn-punk-cancel {
+    background: none;
+    border-color: var(--punk-green) !important;
+    color: var(--punk-green);
+  }
+
+  .btn-punk-cancel:hover {
+    background: var(--punk-green);
+    color: #000;
+  }
+
+  .btn-punk-copy {
+    background: var(--punk-yellow);
+    border-color: var(--punk-yellow) !important;
+    color: #000;
+  }
+
+  .btn-punk-copy:hover {
+    box-shadow: 0 0 15px var(--punk-yellow);
+  }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 600px) {
+    .input-row { flex-direction: column; }
+    .btn-smash { width: 100%; }
+    .header h1 { font-size: 0.9rem; }
+    .status-bar { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+    .status-bar .status-text { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <h1>░▒▓ MEDIAKRASH ▓▒░</h1>
+    <div class="subtitle">// PUNK MEDIA PLAYER v0.666 //</div>
+    <div class="ascii-skull">
+    _______________
+   /               \
+  |  R.I.P.  DRM   |
+  |   KILL YOUR    |
+  |    TELEVISION  |
+   \_____  _______/
+         \/
+    </div>
+  </div>
+
+  <div class="marquee-bar">
+    <span>★ NO TRACKING ★ NO ADS ★ NO COOKIES ★ NO BULLSHIT ★ FORK THIS ★ STEAL THIS ★ COPY LEFT ★ CULTURE IS NOT A COMMODITY ★ INFORMATION WANTS TO BE FREE ★ NO TRACKING ★ NO ADS ★ NO COOKIES ★ NO BULLSHIT ★</span>
+  </div>
+
+  <div class="input-zone">
+    <div class="input-row">
+      <input type="text" id="punkInput" placeholder="COLLE TON URL ICI OU CREVE... (youtube, vimeo, etc)" />
+      <button class="btn-smash" onclick="punkLoad()">▶ SMASH!</button>
+    </div>
+  </div>
+
+  <div class="tags">
+    <button onclick="punkExample('youtube')">YouTube</button>
+    <button onclick="punkExample('vimeo')">Vimeo</button>
+    <button onclick="punkExample('soundcloud')">SoundCloud</button>
+    <button onclick="punkExample('dailymotion')">Dailymotion</button>
+    <button onclick="punkExample('spotify')">Spotify</button>
+    <button onclick="punkExample('peertube')">PeerTube</button>
+  </div>
+
+  <div class="viewport-frame">
+    <div class="viewport" id="punkViewport">
+      <div class="placeholder-punk" id="punkPlaceholder">
+        <div class="ascii-big">
+ ██████╗ ██████╗ ███████╗███████╗███████╗
+ ██╔══██╗██╔══██╗██╔════╝██╔════╝██╔════╝
+ ██████╔╝██████╔╝█████╗  ███████╗███████╗
+ ██╔═══╝ ██╔══██╗██╔══╝  ╚════██║╚════██║
+ ██║     ██║  ██║███████╗███████║███████║
+ ╚═╝     ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝
+ ██████╗ ██╗      █████╗ ██╗   ██╗
+ ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝
+ ██████╔╝██║     ███████║ ╚████╔╝
+ ██╔═══╝ ██║     ██╔══██╗  ╚██╔╝
+ ██║     ███████╗██║  ██║   ██║
+ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝
+        </div>
+        <p>EN ATTENTE DE SIGNAL...</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-text" id="punkStatus">
+      sys:// <strong>IDLE</strong> — en attente de média
+    </div>
+    <button class="btn-embed-punk" onclick="punkShowEmbed()">&lt;/&gt; EMBED</button>
+  </div>
+
+  <div class="queue-section">
+    <div class="queue-header">
+      <span>★ QUEUE DE DESTRUCTION ★</span>
+      <span id="punkQueueCount">0x00</span>
+    </div>
+    <div class="queue-items" id="punkQueue">
+      <div class="empty-queue" id="punkEmptyMsg">
+        [ RIEN ICI... NOURRIS LA BÊTE ]
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-punk">
+    MEDIAKRASH — made with <span>♥</span> & <span>rage</span> — copyleft ∞ — fork me if you can
+  </div>
+</div>
+
+<!-- Embed Modal -->
+<div class="modal-punk-overlay" id="punkModal">
+  <div class="modal-punk">
+    <textarea id="punkEmbedCode" readonly></textarea>
+    <div class="modal-punk-actions">
+      <button class="btn-punk-cancel" onclick="punkCloseModal()">FERMER</button>
+      <button class="btn-punk-copy" onclick="punkCopyEmbed()">COPIER</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const punkPlaylist = [];
+  let punkCurrent = -1;
+
+  function punkDetect(input) {
+    input = input.trim();
+
+    if (input.startsWith('<iframe') || input.startsWith('<embed') || input.startsWith('<object')) {
+      return { type: 'embed', html: input, label: 'EMBED CUSTOM', source: 'HTML', icon: '⚡' };
+    }
+
+    let m = input.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]+)/);
+    if (m) return { type: 'iframe', url: `https://www.youtube.com/embed/${m[1]}?autoplay=1`, label: `YT::${m[1]}`, source: 'YouTube', icon: '▶' };
+
+    m = input.match(/vimeo\.com\/(\d+)/);
+    if (m) return { type: 'iframe', url: `https://player.vimeo.com/video/${m[1]}?autoplay=1`, label: `VIM::${m[1]}`, source: 'Vimeo', icon: '▶' };
+
+    m = input.match(/dailymotion\.com\/video\/([\w]+)/);
+    if (m) return { type: 'iframe', url: `https://www.dailymotion.com/embed/video/${m[1]}?autoplay=1`, label: `DM::${m[1]}`, source: 'Dailymotion', icon: '▶' };
+
+    if (input.includes('soundcloud.com')) {
+      return { type: 'iframe', url: `https://w.soundcloud.com/player/?url=${encodeURIComponent(input)}&auto_play=true&color=%23ff0055`, label: 'SOUNDCLOUD', source: 'SoundCloud', icon: '♫', audio: true };
+    }
+
+    m = input.match(/open\.spotify\.com\/(track|album|playlist)\/([\w]+)/);
+    if (m) return { type: 'iframe', url: `https://open.spotify.com/embed/${m[1]}/${m[2]}`, label: `SPOT::${m[1]}`, source: 'Spotify', icon: '♫', audio: true };
+
+    m = input.match(/(https?:\/\/[^/]+)\/(?:videos\/watch|w)\/([\w-]+)/);
+    if (m) return { type: 'iframe', url: `${m[1]}/videos/embed/${m[2]}?autoplay=1`, label: `PEER::${m[2].slice(0,8)}`, source: 'PeerTube', icon: '⊕' };
+
+    if (input.match(/\.(mp4|webm|ogv)(\?|$)/i)) {
+      return { type: 'video', url: input, label: input.split('/').pop().split('?')[0], source: 'RAW_VIDEO', icon: '▶' };
+    }
+    if (input.match(/\.(mp3|ogg|wav|flac)(\?|$)/i)) {
+      return { type: 'audio', url: input, label: input.split('/').pop().split('?')[0], source: 'RAW_AUDIO', icon: '♫', audio: true };
+    }
+
+    if (input.startsWith('http')) {
+      return { type: 'iframe', url: input, label: input.slice(0, 40), source: 'URL', icon: '⊕' };
+    }
+
+    return null;
+  }
+
+  function punkLoad() {
+    const input = document.getElementById('punkInput').value;
+    if (!input.trim()) return;
+
+    const media = punkDetect(input);
+    if (!media) {
+      alert('⚠ ERREUR: FORMAT NON RECONNU. ESSAIE ENCORE, CAMARADE.');
+      return;
+    }
+
+    media.raw = input;
+    punkPlaylist.push(media);
+    punkCurrent = punkPlaylist.length - 1;
+    punkRender(media);
+    punkRenderQueue();
+    document.getElementById('punkInput').value = '';
+  }
+
+  function punkRender(media) {
+    const vp = document.getElementById('punkViewport');
+    vp.classList.remove('audio-mode');
+    if (media.audio) vp.classList.add('audio-mode');
+
+    if (media.type === 'embed') {
+      vp.innerHTML = media.html;
+    } else if (media.type === 'iframe') {
+      vp.innerHTML = `<iframe src="${media.url}" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+    } else if (media.type === 'video') {
+      vp.innerHTML = `<video src="${media.url}" controls autoplay></video>`;
+    } else if (media.type === 'audio') {
+      vp.innerHTML = `<audio src="${media.url}" controls autoplay style="width:85%"></audio>`;
+    }
+
+    document.getElementById('punkStatus').innerHTML = `sys:// <strong>PLAYING</strong> — ${media.label} [${media.source}]`;
+  }
+
+  function punkRenderQueue() {
+    const container = document.getElementById('punkQueue');
+    const count = document.getElementById('punkQueueCount');
+    count.textContent = `0x${punkPlaylist.length.toString(16).toUpperCase().padStart(2, '0')}`;
+
+    if (punkPlaylist.length === 0) {
+      container.innerHTML = '<div class="empty-queue">[ RIEN ICI... NOURRIS LA BÊTE ]</div>';
+      return;
+    }
+
+    container.innerHTML = punkPlaylist.map((item, i) => `
+      <div class="queue-item ${i === punkCurrent ? 'active' : ''}" onclick="punkPlay(${i})">
+        <span class="q-idx">${String(i).padStart(2, '0')}:</span>
+        <div class="q-icon">${item.icon}</div>
+        <div class="q-info">
+          <div class="q-title">${item.label}</div>
+          <div class="q-source">${item.source}</div>
+        </div>
+        <button class="q-remove" onclick="event.stopPropagation();punkRemove(${i})">[X]</button>
+      </div>
+    `).join('');
+  }
+
+  function punkPlay(i) {
+    punkCurrent = i;
+    punkRender(punkPlaylist[i]);
+    punkRenderQueue();
+  }
+
+  function punkRemove(i) {
+    punkPlaylist.splice(i, 1);
+    if (punkCurrent >= punkPlaylist.length) punkCurrent = punkPlaylist.length - 1;
+    if (punkPlaylist.length === 0) {
+      punkCurrent = -1;
+      document.getElementById('punkViewport').innerHTML = `
+        <div class="placeholder-punk">
+          <div class="ascii-big" style="font-size:1.5rem; color:var(--punk-pink)">☠</div>
+          <p>EN ATTENTE DE SIGNAL...</p>
+        </div>`;
+      document.getElementById('punkViewport').classList.remove('audio-mode');
+      document.getElementById('punkStatus').innerHTML = 'sys:// <strong>IDLE</strong> — en attente de média';
+    }
+    punkRenderQueue();
+  }
+
+  function punkShowEmbed() {
+    if (punkCurrent < 0) return;
+    const media = punkPlaylist[punkCurrent];
+    let code = '';
+    if (media.type === 'embed') code = media.html;
+    else if (media.type === 'iframe') code = `<iframe src="${media.url}" width="860" height="484" frameborder="0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
+    else if (media.type === 'video') code = `<video src="${media.url}" width="860" controls></video>`;
+    else if (media.type === 'audio') code = `<audio src="${media.url}" controls></audio>`;
+    document.getElementById('punkEmbedCode').value = code;
+    document.getElementById('punkModal').classList.add('open');
+  }
+
+  function punkCloseModal() { document.getElementById('punkModal').classList.remove('open'); }
+
+  function punkCopyEmbed() {
+    const ta = document.getElementById('punkEmbedCode');
+    ta.select();
+    navigator.clipboard.writeText(ta.value);
+    const btn = document.querySelector('.btn-punk-copy');
+    btn.textContent = 'COPIÉ ✓';
+    setTimeout(() => btn.textContent = 'COPIER', 1500);
+  }
+
+  function punkExample(type) {
+    const examples = {
+      youtube: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      vimeo: 'https://vimeo.com/148751763',
+      soundcloud: 'https://soundcloud.com/flaboradio/sets/electro',
+      dailymotion: 'https://www.dailymotion.com/video/x8ozoux',
+      spotify: 'https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT',
+      peertube: 'https://framatube.org/w/9c9de5e8-0a1e-484a-b099-e80766180a6d'
+    };
+    document.getElementById('punkInput').value = examples[type] || '';
+  }
+
+  document.getElementById('punkModal').addEventListener('click', function(e) {
+    if (e.target === this) punkCloseModal();
+  });
+
+  document.getElementById('punkInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') punkLoad();
+  });
+</script>
+</body>
+</html>
