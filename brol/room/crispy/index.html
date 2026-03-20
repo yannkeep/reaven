@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exploration Interactive : L'Écosystème du CRISP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Merriweather:wght@300;400;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fcfcfc;
+            color: #1e293b;
+        }
+
+        h1, h2, h3, .serif-font {
+            font-family: 'Merriweather', serif;
+        }
+
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 600px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            height: 300px; 
+            max-height: 400px; 
+        } 
+        @media (min-width: 768px) { 
+            .chart-container { 
+                height: 350px; 
+            } 
+        }
+
+        .tab-btn.active {
+            background-color: #1d4ed8;
+            color: white;
+            border-color: #1d4ed8;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutral Background (#fcfcfc), Deep Blue Accents (#1d4ed8), Slate Gray Text (#1e293b), Muted Borders (#e2e8f0) -->
+    <!-- Application Structure Plan: The SPA is structured as a continuous scrolling dashboard with a sticky navigation bar for easy access. It is divided into four logical sections: 1. "Vue d'ensemble" (Overview) introduces the entity and key metrics using large numbers. 2. "L'Écosystème Éditorial" uses an interactive tabbed interface to explore different publication formats without cluttering the screen. 3. "Thématiques de Recherche" visualizes the distribution of topics via a dynamic donut chart. 4. "Outils & Bases de données" provides a functional mock interface of their political vocabulary tool, demonstrating the practical value of their data. This structure was chosen to move the user from a high-level understanding down to specific, actionable data explorations, mirroring a natural research process. -->
+    <!-- Visualization & Content Choices: 
+         1. Stats -> Goal: Inform quickly -> Viz: Large numeric counters (HTML/Tailwind) -> Interaction: None (static impact) -> Justification: Establishes authority immediately.
+         2. Publications -> Goal: Organize & Compare -> Viz: Tabbed layout with detail panel -> Interaction: Click tabs to reveal descriptions and frequency data -> Justification: Allows exploration of a complex ecosystem without overwhelming text walls.
+         3. Research Themes -> Goal: Show proportions -> Viz: Donut Chart (Chart.js) -> Interaction: Hover for tooltips, visual segmentation -> Justification: Best for showing parts of a whole (the research portfolio). NO SVG/Mermaid used. 
+         4. Political Vocabulary -> Goal: Organize & Inform -> Viz: Searchable List (HTML/JS) -> Interaction: Text input filtering -> Justification: Demonstrates the utility of the database interactively. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased selection:bg-blue-200 selection:text-blue-900">
+
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0 flex items-center gap-2">
+                    <div class="w-6 h-6 bg-blue-700 text-white flex items-center justify-center font-bold text-xs rounded-sm shadow-inner">C</div>
+                    <span class="font-bold text-xl text-slate-800 tracking-tight">Ecosystème CRISP</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#overview" class="text-slate-600 hover:text-blue-700 px-3 py-2 text-sm font-medium transition-colors">Vue d'ensemble</a>
+                    <a href="#ecosystem" class="text-slate-600 hover:text-blue-700 px-3 py-2 text-sm font-medium transition-colors">Publications</a>
+                    <a href="#themes" class="text-slate-600 hover:text-blue-700 px-3 py-2 text-sm font-medium transition-colors">Thématiques</a>
+                    <a href="#tools" class="text-slate-600 hover:text-blue-700 px-3 py-2 text-sm font-medium transition-colors">Outils</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-slate-900 text-white py-20 px-4 relative overflow-hidden">
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-blue-700 rounded-full opacity-20 blur-3xl pointer-events-none"></div>
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+            <p class="text-blue-400 font-semibold tracking-wider uppercase text-sm mb-4">&#9878; Analyse Socio-Politique Belge</p>
+            <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">Comprendre les rouages du pouvoir en Belgique</h1>
+            <p class="text-lg md:text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
+                Le Centre de recherche et d'information socio-politiques (CRISP) est l'institution de référence indépendante étudiant la décision politique, les acteurs socio-économiques et les institutions belges depuis 1959.
+            </p>
+            <a href="#overview" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-slate-900 bg-white hover:bg-slate-100 transition-colors shadow-lg shadow-white/10">
+                Explorer l'écosystème &#8595;
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+        <section id="overview" class="scroll-mt-24">
+            <div class="max-w-3xl mb-10">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4 border-l-4 border-blue-700 pl-4">L'Institution en Chiffres</h2>
+                <p class="text-slate-600 leading-relaxed text-lg">
+                    Cette section offre une vue panoramique sur l'empreinte historique et quantitative du CRISP. Ces données illustrent la profondeur de la base de connaissances accumulée au fil des décennies, servant de socle à la recherche académique, au journalisme et à la compréhension citoyenne en Belgique.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div class="text-4xl mb-2">&#127979;</div>
+                    <div class="text-5xl font-black text-blue-700 mb-2">1959</div>
+                    <div class="text-sm uppercase tracking-wide text-slate-500 font-semibold">Année de fondation</div>
+                    <p class="text-slate-600 text-sm mt-3">Plus de 60 ans d'indépendance et de rigueur analytique.</p>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div class="text-4xl mb-2">&#128218;</div>
+                    <div class="text-5xl font-black text-blue-700 mb-2">2500+</div>
+                    <div class="text-sm uppercase tracking-wide text-slate-500 font-semibold">Courriers Hebdomadaires</div>
+                    <p class="text-slate-600 text-sm mt-3">La collection de monographies la plus riche sur la vie politique belge.</p>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div class="text-4xl mb-2">&#128214;</div>
+                    <div class="text-5xl font-black text-blue-700 mb-2">1500+</div>
+                    <div class="text-sm uppercase tracking-wide text-slate-500 font-semibold">Termes Politiques</div>
+                    <p class="text-slate-600 text-sm mt-3">Définis, contextualisés et mis à jour dans le Vocabulaire Politique.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="ecosystem" class="scroll-mt-24 bg-slate-50 rounded-2xl p-6 md:p-10 border border-slate-200">
+            <div class="max-w-3xl mb-10">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4 border-l-4 border-blue-700 pl-4">L'Écosystème Éditorial</h2>
+                <p class="text-slate-600 leading-relaxed text-lg">
+                    Le CRISP ne produit pas qu'un seul type de document. Il a développé au fil du temps une architecture éditoriale complexe pour répondre à différents besoins (analyses rapides, ouvrages de fond, outils de référence). Interagissez avec le menu ci-dessous pour comprendre la vocation de chaque pilier de diffusion.
+                </p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="lg:w-1/3 flex flex-col gap-2" id="pub-tabs">
+                    <!-- Tabs generated by JS -->
+                </div>
+                
+                <div class="lg:w-2/3 bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+                    <div id="pub-content" class="fade-in">
+                        <!-- Content injected by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="themes" class="scroll-mt-24">
+            <div class="max-w-3xl mb-10">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4 border-l-4 border-blue-700 pl-4">Thématiques de Recherche</h2>
+                <p class="text-slate-600 leading-relaxed text-lg">
+                    L'analyse du système de décision belge nécessite une approche multidimensionnelle. Ce graphique illustre la répartition historique et stratégique des domaines d'études du CRISP. Survolez les segments pour découvrir le poids relatif de chaque grand champ de recherche, témoignant de l'interdépendance entre les sphères institutionnelles, politiques et socio-économiques.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center">
+                <div class="w-full mb-6 text-center">
+                    <h3 class="text-xl font-bold text-slate-800">Répartition des axes d'analyse (Estimation)</h3>
+                    <p class="text-sm text-slate-500 mt-1">Données illustratives basées sur l'historique des publications.</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="themesChart"></canvas>
+                </div>
+                
+                <div class="mt-10 w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="border border-slate-200 rounded-lg p-4 bg-slate-50">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-3 h-3 rounded-full bg-[#1d4ed8]"></div>
+                            <h4 class="font-bold text-slate-800">Institutions & État</h4>
+                        </div>
+                        <p class="text-sm text-slate-600">Réformes de l'État, fédéralisme, compétences des régions et communautés, fonctionnement des gouvernements et parlements.</p>
+                    </div>
+                    <div class="border border-slate-200 rounded-lg p-4 bg-slate-50">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-3 h-3 rounded-full bg-[#0ea5e9]"></div>
+                            <h4 class="font-bold text-slate-800">Acteurs Socio-Économiques</h4>
+                        </div>
+                        <p class="text-sm text-slate-600">Syndicats, patronat, concertation sociale, évolution de l'actionnariat des entreprises belges.</p>
+                    </div>
+                    <div class="border border-slate-200 rounded-lg p-4 bg-slate-50">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-3 h-3 rounded-full bg-[#f59e0b]"></div>
+                            <h4 class="font-bold text-slate-800">Partis & Élections</h4>
+                        </div>
+                        <p class="text-sm text-slate-600">Systèmes électoraux, financement des partis, évolution idéologique, accords de gouvernement.</p>
+                    </div>
+                    <div class="border border-slate-200 rounded-lg p-4 bg-slate-50">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-3 h-3 rounded-full bg-[#10b981]"></div>
+                            <h4 class="font-bold text-slate-800">Politiques Publiques</h4>
+                        </div>
+                        <p class="text-sm text-slate-600">Sécurité sociale, énergie, environnement, politiques économiques et enjeux européens impactant la Belgique.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tools" class="scroll-mt-24 mb-20">
+            <div class="max-w-3xl mb-10">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4 border-l-4 border-blue-700 pl-4">Outils & Bases de données</h2>
+                <p class="text-slate-600 leading-relaxed text-lg">
+                    Au-delà des analyses classiques, le CRISP met à disposition des bases de données structurées uniques, telles que le répertoire de l'actionnariat wallon ou le "Vocabulaire Politique". Cet outil interactif simule la richesse de ce dernier : utilisez la barre de recherche pour explorer des concepts clés spécifiques à la politique belge, démontrant comment des données complexes sont rendues accessibles.
+                </p>
+            </div>
+
+            <div class="bg-[#1e293b] rounded-2xl p-8 shadow-xl text-white">
+                <div class="flex flex-col md:flex-row gap-8 items-start">
+                    <div class="md:w-1/3">
+                        <div class="text-4xl mb-4">&#128269;</div>
+                        <h3 class="text-2xl font-bold mb-2">Vocabulaire Politique Belge</h3>
+                        <p class="text-slate-400 text-sm mb-6">
+                            Tapez un mot-clé (ex: "Cordon", "Piliers", "Linguistique") pour découvrir sa définition dans le contexte politique de la Belgique.
+                        </p>
+                        <input type="text" id="vocab-search" placeholder="Rechercher un terme..." class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-600 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                    </div>
+                    
+                    <div class="md:w-2/3 w-full bg-slate-800 rounded-xl p-6 h-96 overflow-y-auto border border-slate-700 relative" id="vocab-results">
+                        <!-- Results injected by JS -->
+                        <div class="text-center text-slate-500 mt-20" id="vocab-empty-state">
+                            Commencez à taper pour filtrer les concepts clés...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-10 text-center border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4">
+            <p class="mb-4 text-sm">Ceci est une application interactive conceptuelle destinée à explorer la structure et les thématiques du CRISP.</p>
+            <a href="https://www.crisp.be/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-blue-400 hover:text-blue-300 font-medium transition-colors">
+                Visiter le site officiel du CRISP &#8599;
+            </a>
+            <p class="mt-8 text-xs text-slate-600">&copy; 2026 Exploration Éducative. Non affilié officiellement au CRISP.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Data Configuration
+        const ecosystemData = [
+            {
+                id: 'ch',
+                title: 'Courrier hebdomadaire',
+                icon: '&#128196;',
+                description: 'La publication phare du CRISP depuis 1959. Le Courrier hebdomadaire est une monographie scientifique, d\'une quarantaine de pages, consacrée à l\'analyse approfondie d\'un thème spécifique de la vie politique, économique ou sociale en Belgique.',
+                stats: '35 à 40 numéros par an',
+                audience: 'Chercheurs, décideurs, journalistes, professeurs.',
+                color: 'bg-blue-100 text-blue-800 border-blue-200'
+            },
+            {
+                id: 'dossiers',
+                title: 'Dossiers du CRISP',
+                icon: '&#128213;',
+                description: 'Des ouvrages de fond plus volumineux que le Courrier hebdomadaire. Ils proposent des synthèses larges, des bilans de législatures, ou l\'étude d\'une matière nécessitant des développements historiques et institutionnels étendus.',
+                stats: 'Publications ponctuelles (ouvrages)',
+                audience: 'Étudiants, acteurs politiques, grand public informé.',
+                color: 'bg-amber-100 text-amber-800 border-amber-200'
+            },
+            {
+                id: 'vocab',
+                title: 'Vocabulaire politique',
+                icon: '&#128214;',
+                description: 'Une base de données en ligne essentielle. Elle explicite, contextualise et retrace l\'origine de plus de 1 500 termes, expressions et acronymes propres au vocabulaire politique et institutionnel belge (ex: "Cordon sanitaire", "Waffle iron politics").',
+                stats: 'Mise à jour continue, >1500 termes',
+                audience: 'Citoyens, médias, monde éducatif.',
+                color: 'bg-emerald-100 text-emerald-800 border-emerald-200'
+            },
+            {
+                id: 'bases',
+                title: 'Bases de données (Actionnariat)',
+                icon: '&#128187;',
+                description: 'Le CRISP détient une expertise unique sur la morphologie des groupes d\'entreprises. Le Répertoire permanent de l\'actionnariat des entreprises décrypte les liens capitalistiques et les réseaux de pouvoir économique.',
+                stats: 'Mise à jour annuelle, milliers d\'entreprises',
+                audience: 'Syndicats, analystes économiques, chercheurs.',
+                color: 'bg-purple-100 text-purple-800 border-purple-200'
+            }
+        ];
+
+        const vocabData = [
+            { term: "Cordon sanitaire", def: "Accord politique visant à exclure les partis d'extrême droite (notamment le Vlaams Belang) de toute majorité politique ou coalition, tant au niveau local que régional ou fédéral." },
+            { term: "Piliers", def: "Réseaux d'organisations sociales (syndicats, mutuelles, écoles, presse) structurés historiquement autour d'affinités idéologiques (chrétien, socialiste, libéral) qui encadrent la population." },
+            { term: "Clivages", def: "Lignes de fracture qui divisent la société et structurent le champ politique belge : Église/État (philosophique), Possédants/Travailleurs (socio-économique), et Centre/Périphérie (communautaire/linguistique)." },
+            { term: "Fédéralisme", def: "Système institutionnel de la Belgique depuis 1993. Le pouvoir est réparti entre l'État fédéral, les Régions (compétences liées au territoire/économie) et les Communautés (compétences liées aux personnes/langue/culture)." },
+            { term: "Facilités linguistiques", def: "Régime d'exception accordé à certaines communes situées près de la frontière linguistique ou à Bruxelles, permettant aux citoyens de communiquer avec l'administration dans une autre langue que la langue officielle de la région." },
+            { term: "Concertation sociale", def: "Système de négociations institutionnalisées entre les organisations patronales et les syndicats (partenaires sociaux), jouant un rôle central dans la détermination des conditions de travail et de la sécurité sociale." },
+            { term: "Informateur / Formateur", def: "Missions royales lors de la formation d'un gouvernement. L'informateur déblaie le terrain politique. Le formateur (souvent le futur Premier ministre) négocie l'accord de gouvernement et forme la coalition." },
+            { term: "Waffle iron politics (Politique du gaufrier)", def: "Ancienne pratique politique (avant la fédéralisation budgétaire) consistant à allouer des financements publics équivalents ou proportionnels à la Flandre et à la Wallonie pour maintenir l'équilibre communautaire." },
+            { term: "Majorité spéciale", def: "Majorité requise pour modifier des lois institutionnelles clés : majorité des 2/3 dans l'ensemble du parlement, ET majorité absolue dans chaque groupe linguistique (francophone et néerlandophone)." },
+            { term: "Consociationalisme", def: "Modèle démocratique pacifiant une société profondément divisée (comme la Belgique par ses clivages) via des mécanismes de recherche de consensus au sommet entre les élites des différents groupes (piliers)." }
+        ];
+
+        // 1. Ecosystem Interactions
+        const tabsContainer = document.getElementById('pub-tabs');
+        const contentContainer = document.getElementById('pub-content');
+
+        function renderEcosystemTabContent(id) {
+            const data = ecosystemData.find(item => item.id === id);
+            if(!data) return;
+
+            contentContainer.classList.remove('fade-in');
+            void contentContainer.offsetWidth; // trigger reflow
+            contentContainer.classList.add('fade-in');
+
+            contentContainer.innerHTML = `
+                <div class="flex items-center gap-4 mb-6 border-b border-slate-100 pb-4">
+                    <div class="text-5xl">${data.icon}</div>
+                    <h3 class="text-2xl font-bold text-slate-800">${data.title}</h3>
+                </div>
+                <p class="text-slate-600 text-lg leading-relaxed mb-6">${data.description}</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="block text-xs uppercase tracking-wider text-slate-500 mb-1 font-bold">Fréquence / Volume</span>
+                        <span class="text-slate-800 font-medium">${data.stats}</span>
+                    </div>
+                    <div class="p-4 rounded-lg bg-slate-50 border border-slate-100">
+                        <span class="block text-xs uppercase tracking-wider text-slate-500 mb-1 font-bold">Public cible</span>
+                        <span class="text-slate-800 font-medium">${data.audience}</span>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${data.color}">
+                        Catégorie d'Édition
+                    </span>
+                </div>
+            `;
+
+            // Update active state on buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if(btn.dataset.id === id) {
+                    btn.classList.add('bg-blue-700', 'text-white', 'border-blue-700', 'shadow-md');
+                    btn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200');
+                } else {
+                    btn.classList.remove('bg-blue-700', 'text-white', 'border-blue-700', 'shadow-md');
+                    btn.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
+                }
+            });
+        }
+
+        // Initialize tabs
+        ecosystemData.forEach((item, index) => {
+            const btn = document.createElement('button');
+            btn.className = `tab-btn text-left px-5 py-4 rounded-xl border font-semibold transition-all duration-200 hover:border-blue-300 flex items-center justify-between ${index === 0 ? 'bg-blue-700 text-white border-blue-700 shadow-md' : 'bg-white text-slate-700 border-slate-200'}`;
+            btn.dataset.id = item.id;
+            btn.innerHTML = `<span>${item.title}</span> <span class="text-xl opacity-80">${item.icon}</span>`;
+            btn.addEventListener('click', () => renderEcosystemTabContent(item.id));
+            tabsContainer.appendChild(btn);
+        });
+
+        // Load first tab
+        renderEcosystemTabContent(ecosystemData[0].id);
+
+        // 2. Themes Chart (Chart.js)
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('themesChart').getContext('2d');
+            
+            // Configuration for responsive donut chart
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Institutions & État', 'Acteurs Socio-Économiques', 'Partis & Élections', 'Politiques Publiques'],
+                    datasets: [{
+                        data: [35, 25, 20, 20],
+                        backgroundColor: [
+                            '#1d4ed8', // Deep Blue
+                            '#0ea5e9', // Light Blue
+                            '#f59e0b', // Amber
+                            '#10b981'  // Emerald
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // CRITICAL: Allows CSS to dictate size
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    family: "'Inter', sans-serif",
+                                    size: 13
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                            titleFont: { family: "'Inter', sans-serif", size: 14 },
+                            bodyFont: { family: "'Inter', sans-serif", size: 13 },
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.label + ': ~' + context.parsed + '% des publications';
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%' // Makes it a donut
+                }
+            });
+        });
+
+        // 3. Vocab Search Logic
+        const searchInput = document.getElementById('vocab-search');
+        const resultsContainer = document.getElementById('vocab-results');
+        const emptyState = document.getElementById('vocab-empty-state');
+
+        function renderVocabResults(query = "") {
+            const q = query.toLowerCase();
+            const filtered = vocabData.filter(item => 
+                item.term.toLowerCase().includes(q) || 
+                item.def.toLowerCase().includes(q)
+            );
+
+            // Clear previous
+            resultsContainer.innerHTML = '';
+
+            if (filtered.length === 0) {
+                resultsContainer.innerHTML = `<div class="text-center text-slate-500 mt-20">Aucun résultat trouvé pour "${query}". Essayez "Clivages" ou "Piliers".</div>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'mb-4 p-4 bg-slate-700/50 rounded-lg border border-slate-600 hover:border-blue-400 transition-colors';
+                
+                // Highlight term if matched
+                let displayTerm = item.term;
+                if(q && item.term.toLowerCase().includes(q)) {
+                    const regex = new RegExp(`(${q})`, "gi");
+                    displayTerm = item.term.replace(regex, `<span class="bg-blue-600/50 text-white rounded px-1">$1</span>`);
+                }
+
+                el.innerHTML = `
+                    <h4 class="text-lg font-bold text-blue-300 mb-2">${displayTerm}</h4>
+                    <p class="text-slate-300 text-sm leading-relaxed">${item.def}</p>
+                `;
+                resultsContainer.appendChild(el);
+            });
+        }
+
+        // Initialize with all results
+        renderVocabResults();
+
+        searchInput.addEventListener('input', (e) => {
+            renderVocabResults(e.target.value);
+        });
+
+    </script>
+</body>
+</html>
