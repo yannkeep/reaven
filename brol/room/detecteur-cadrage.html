@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>◇ DÉMOGARCHIE — Détecteur de Cadrage</title>
+<meta name="description" content="Collez un article. L'outil identifie comment on vous fait penser — pas si c'est vrai ou faux.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Bitter:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#07080a;--surface:#0d0e12;--panel:#12131a;--border:#1c1d28;
+  --text:#bfc0cc;--dim:#555668;--white:#eeeef5;
+  --cyan:#06b6d4;--cyan-dim:rgba(6,182,212,0.12);
+  --red:#ef4444;--red-dim:rgba(239,68,68,0.12);
+  --amber:#f59e0b;--amber-dim:rgba(245,158,11,0.12);
+  --green:#10b981;--green-dim:rgba(16,185,129,0.12);
+  --violet:#8b5cf6;--violet-dim:rgba(139,92,246,0.12);
+  --mono:'IBM Plex Mono',monospace;--serif:'Bitter',Georgia,serif;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+.header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.logo{font-family:var(--serif);font-weight:900;font-size:1.4rem;color:var(--cyan)}
+.logo span{color:var(--dim);font-weight:400;font-size:.8rem}
+.badge{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;padding:.25rem .6rem;border:1px solid var(--cyan);color:var(--cyan);border-radius:2px}
+.header-right{font-size:.7rem;color:var(--dim);text-align:right}
+
+.container{max-width:800px;margin:0 auto;padding:2rem 1.5rem 6rem}
+
+/* INTRO */
+.intro{padding:2.5rem 0 2rem;border-bottom:1px solid var(--border);margin-bottom:2rem}
+.intro h1{font-family:var(--serif);font-weight:900;font-size:2.2rem;line-height:1.15;color:var(--white);margin-bottom:1rem}
+.intro h1 em{font-style:normal;color:var(--cyan)}
+.intro p{font-size:.82rem;line-height:1.7;color:var(--dim);max-width:600px}
+.intro .warning{margin-top:1rem;padding:.8rem 1rem;background:var(--cyan-dim);border:1px solid rgba(6,182,212,0.25);border-radius:2px;font-size:.75rem;color:var(--cyan);line-height:1.5}
+
+/* INPUT AREA */
+.input-section{margin-bottom:2rem}
+.input-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;color:var(--dim);margin-bottom:.6rem}
+textarea{
+  width:100%;min-height:220px;padding:1.2rem;
+  background:var(--panel);border:1px solid var(--border);color:var(--text);
+  font-family:var(--mono);font-size:.82rem;line-height:1.7;
+  border-radius:2px;resize:vertical;outline:none;transition:border-color .2s
+}
+textarea:focus{border-color:var(--cyan)}
+textarea::placeholder{color:var(--dim)}
+.input-meta{display:flex;justify-content:space-between;margin-top:.5rem;font-size:.65rem;color:var(--dim)}
+.analyze-btn{
+  display:block;width:100%;padding:1.1rem;margin-top:1rem;
+  background:var(--cyan);color:var(--bg);border:none;
+  font-family:var(--mono);font-size:.85rem;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .2s
+}
+.analyze-btn:hover{background:#0891b2}
+.analyze-btn:disabled{background:var(--panel);color:var(--dim);cursor:not-allowed}
+
+/* LOADING */
+.loading{display:none;text-align:center;padding:3rem 0}
+.loading.active{display:block}
+.loading-bar{width:100%;height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin:1rem 0}
+.loading-fill{height:100%;background:var(--cyan);border-radius:2px;animation:loadPulse 2s ease infinite}
+@keyframes loadPulse{0%{width:0}50%{width:70%}100%{width:100%}}
+.loading-text{font-size:.75rem;color:var(--dim)}
+
+/* RESULTS */
+#results{display:none}
+
+/* SCORE HEADER */
+.score-header{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem;margin-bottom:2rem}
+.score-card{padding:1.2rem;background:var(--panel);border:1px solid var(--border);border-radius:2px;text-align:center}
+.score-card .sc-value{font-family:var(--serif);font-weight:900;font-size:1.8rem;line-height:1}
+.score-card .sc-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-top:.3rem}
+.sc-value.high{color:var(--red)}
+.sc-value.medium{color:var(--amber)}
+.sc-value.low{color:var(--green)}
+
+/* FRAME IDENTIFICATION */
+.frame-section{margin-bottom:2.5rem}
+.section-title{
+  font-family:var(--serif);font-weight:700;font-size:1.05rem;color:var(--white);
+  margin-bottom:1.2rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)
+}
+.frame-tag{
+  display:inline-block;padding:.5rem 1rem;margin:.3rem;
+  font-size:.75rem;font-weight:600;border-radius:2px;
+  border:1px solid var(--border);background:var(--panel)
+}
+.frame-tag.primary{border-color:var(--cyan);background:var(--cyan-dim);color:var(--cyan)}
+.frame-tag.secondary{border-color:var(--violet);background:var(--violet-dim);color:var(--violet)}
+
+.frame-explain{margin-top:1rem;font-size:.8rem;line-height:1.7;color:var(--text)}
+.frame-explain strong{color:var(--white)}
+
+/* HIGHLIGHTED TEXT */
+.highlighted-text{
+  margin:2rem 0;padding:1.5rem;
+  background:var(--surface);border:1px solid var(--border);border-radius:2px;
+  font-size:.78rem;line-height:2;color:var(--text);
+  max-height:400px;overflow-y:auto
+}
+.hl-emotional{background:var(--red-dim);border-bottom:2px solid var(--red);padding:0 2px;cursor:help}
+.hl-authority{background:var(--violet-dim);border-bottom:2px solid var(--violet);padding:0 2px;cursor:help}
+.hl-vague{background:var(--amber-dim);border-bottom:2px solid var(--amber);padding:0 2px;cursor:help}
+.hl-stat{background:var(--green-dim);border-bottom:2px solid var(--green);padding:0 2px;cursor:help}
+.hl-legend{display:flex;flex-wrap:wrap;gap:1rem;margin-top:.8rem;font-size:.65rem;color:var(--dim)}
+.hl-legend span{display:flex;align-items:center;gap:.3rem}
+.hl-dot{width:10px;height:3px;border-radius:1px}
+
+/* ANALYSIS CARDS */
+.analysis-card{
+  padding:1.5rem;margin-bottom:1rem;
+  background:var(--panel);border:1px solid var(--border);border-radius:2px
+}
+.ac-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.8rem}
+.ac-title{font-weight:700;font-size:.85rem;color:var(--white)}
+.ac-badge{font-size:.6rem;padding:.2rem .5rem;border-radius:2px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.ac-badge.danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,0.3)}
+.ac-badge.warning{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.3)}
+.ac-badge.info{background:var(--cyan-dim);color:var(--cyan);border:1px solid rgba(6,182,212,0.3)}
+.ac-badge.ok{background:var(--green-dim);color:var(--green);border:1px solid rgba(16,185,129,0.3)}
+.ac-body{font-size:.78rem;line-height:1.7;color:var(--text)}
+.ac-body strong{color:var(--white)}
+.ac-list{margin-top:.6rem;font-size:.75rem;color:var(--dim);line-height:1.8}
+.ac-list li{margin-left:1rem;list-style:none}
+.ac-list li::before{content:'→ ';color:var(--cyan)}
+
+/* CUI BONO */
+.cuibono{
+  margin:2rem 0;padding:2rem;
+  background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:0 2px 2px 0
+}
+.cuibono h3{font-family:var(--serif);font-weight:700;font-size:1rem;color:var(--red);margin-bottom:.8rem}
+.cuibono p{font-size:.8rem;line-height:1.7;color:var(--text)}
+.cuibono strong{color:var(--white)}
+
+/* COUNTER-FRAME */
+.counter-frame{
+  margin:2rem 0;padding:2rem;
+  background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:0 2px 2px 0
+}
+.counter-frame h3{font-family:var(--serif);font-weight:700;font-size:1rem;color:var(--green);margin-bottom:.8rem}
+.counter-frame p{font-size:.8rem;line-height:1.7;color:var(--text)}
+.counter-frame strong{color:var(--white)}
+
+/* CHECKLIST */
+.checklist{margin:2rem 0}
+.cl-item{display:flex;gap:.8rem;padding:.7rem 0;border-bottom:1px solid rgba(28,29,40,0.5)}
+.cl-icon{font-size:1rem;flex-shrink:0;margin-top:.1rem}
+.cl-text{font-size:.78rem;line-height:1.5;color:var(--text)}
+
+/* CTA */
+.cta-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:2.5rem}
+.cta-btn{padding:.8rem 1rem;font-family:var(--mono);font-size:.75rem;font-weight:600;cursor:pointer;border-radius:2px;transition:all .15s;text-align:center;text-decoration:none;display:block}
+.cta-btn.primary{background:var(--cyan);color:var(--bg);border:1px solid var(--cyan)}
+.cta-btn.primary:hover{background:#0891b2}
+.cta-btn.secondary{background:transparent;color:var(--text);border:1px solid var(--border)}
+.cta-btn.secondary:hover{border-color:var(--dim)}
+
+.footer{margin-top:4rem;padding:1.5rem 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;font-size:.65rem;color:var(--dim)}
+.footer a{color:var(--green);text-decoration:none}
+
+@media(max-width:600px){
+  .container{padding:1.5rem 1rem 4rem}
+  .intro h1{font-size:1.7rem}
+  .score-header{grid-template-columns:1fr}
+  .cta-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:1rem">
+    <div class="logo">◇ DÉMOGARCHIE <span>/ cadrage</span></div>
+    <div class="badge">舆论战 OPINION</div>
+  </div>
+  <div class="header-right">MICRO · Module 03/17</div>
+</div>
+
+<div class="container">
+
+  <div class="intro">
+    <h1>Détecteur de <em>cadrage</em></h1>
+    <p>
+      Cet outil ne fait pas du fact-checking (vrai/faux). Il fait du <strong>frame-checking</strong> : il analyse <em>comment</em> un texte vous fait penser. Quel angle est choisi, quels mots orientent, quelles perspectives sont absentes, et à qui profite ce cadrage.
+    </p>
+    <div class="warning">
+      ⚠ Analyse heuristique locale — aucun texte n'est envoyé nulle part. L'outil détecte des patterns, pas des vérités. Il aiguise votre regard, il ne le remplace pas.
+    </div>
+  </div>
+
+  <!-- INPUT -->
+  <div class="input-section">
+    <div class="input-label">Collez le texte de l'article</div>
+    <textarea id="article-input" placeholder="Collez ici le texte complet d'un article de presse, un post, un communiqué, un discours politique...&#10;&#10;Plus le texte est long, plus l'analyse est précise. Minimum ~100 mots recommandé." oninput="updateCount()"></textarea>
+    <div class="input-meta">
+      <span id="word-count">0 mots</span>
+      <span>Tout reste dans votre navigateur</span>
+    </div>
+    <button class="analyze-btn" id="analyze-btn" disabled onclick="analyze()">Analyser le cadrage</button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading" id="loading">
+    <div class="loading-text">Analyse en cours...</div>
+    <div class="loading-bar"><div class="loading-fill"></div></div>
+    <div class="loading-text" id="loading-step">Détection du cadrage dominant...</div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results"></div>
+
+</div>
+
+<script>
+// ============================================================
+// LEXICONS & PATTERN DATABASES
+// ============================================================
+
+const EMOTIONAL_WORDS = {
+  negative: ['scandale','scandaleux','honte','indigne','intolérable','choquant','révoltant','catastrophe','catastrophique','effondrement','menace','menacer','danger','dangereux','crise','chaos','terreur','peur','effroyable','horrible','dramatique','tragique','alarmant','inquiétant','grave','gravissime','ravage','dévastateur','fléau','faillite','dérive','abus','arnaque','escroquerie','fraude','fraudeur','frauduleux','pillage','racket','hold-up','détournement','profiteur','parasite','assisté','oisif','fainéant','irresponsable','incompétent','laxisme','immobilisme','impuissance','ruine','explosion','hémorragie','gouffre','naufrage'],
+  positive: ['réforme','modernisation','progrès','innovation','dynamique','ambitieux','courage','courageux','responsable','nécessaire','indispensable','inévitable','incontournable','pragmatique','réaliste','efficace','performant','compétitif','attractif','croissance','relance','redressement','assainissement','optimisation','rationalisation','simplification','flexibilité','agilité','mérite','effort','travail','liberté','choix'],
+  authoritarian: ['il faut','on doit','nous devons','les experts','tout le monde sait','évidemment','bien entendu','naturellement','force est de constater','nul ne peut nier','il est clair que','sans aucun doute','incontestablement','objectivement','les faits montrent','la réalité est','il n\'y a pas d\'alternative','TINA']
+};
+
+const FRAME_PATTERNS = {
+  economic: {
+    name: 'Cadrage économique',
+    color: 'var(--amber)',
+    keywords: ['budget','coût','prix','dette','déficit','PIB','croissance','marché','compétitivité','investissement','profit','rentabilité','efficience','productivité','dépense','recette','fiscal','taxe','impôt','emploi','chômage','salaire','pouvoir d\'achat','inflation','épargne','patrimoine','entreprise','industrie','commerce','exportation','milliard','million','euro','pourcent','taux'],
+    description: 'Le texte présente le sujet principalement sous l\'angle des coûts, des chiffres et de la logique marchande.',
+    bias: 'Ce cadrage réduit des questions sociales, humaines ou démocratiques à une équation financière. Il invisibilise les dimensions qui ne se chiffrent pas : dignité, lien social, santé mentale, droits fondamentaux.'
+  },
+  security: {
+    name: 'Cadrage sécuritaire',
+    color: 'var(--red)',
+    keywords: ['sécurité','insécurité','criminalité','délinquance','violence','agression','vol','cambriolage','drogue','trafic','police','justice','tribunal','prison','peine','sanction','répression','contrôle','surveillance','ordre','désordre','radicalisation','terrorisme','extrémisme','frontière','migration','clandestin','illégal','expulsion','récidive'],
+    description: 'Le texte présente le sujet sous l\'angle de la menace, du danger et de la protection.',
+    bias: 'Ce cadrage active la peur et justifie des mesures restrictives. Il tend à simplifier des problèmes complexes (pauvreté, exclusion, santé mentale) en questions d\'ordre public.'
+  },
+  moral: {
+    name: 'Cadrage moral',
+    color: 'var(--violet)',
+    keywords: ['valeur','mérite','effort','responsabilité','devoir','droit','justice','injustice','équité','solidarité','égoïsme','courage','lâcheté','honnêteté','intégrité','dignité','respect','abus','profiteur','assistanat','fraude','triche','privilège','sacrifice','contribution','citoyen','communauté','bien commun','génération future'],
+    description: 'Le texte juge les acteurs en termes de bien/mal, mérite/démérite, responsabilité individuelle.',
+    bias: 'Ce cadrage individualise les problèmes systémiques. "Les fraudeurs" remplace "un système qui produit de la fraude". La responsabilité collective disparaît derrière le jugement moral individuel.'
+  },
+  identity: {
+    name: 'Cadrage identitaire',
+    color: 'var(--red)',
+    keywords: ['communauté','identité','culture','tradition','valeur','intégration','assimilation','communautarisme','laïcité','religion','islam','voile','église','nation','national','patriote','étranger','immigration','migrant','réfugié','diaspora','origine','racine','appartenance','flamand','wallon','francophone','néerlandophone','bruxellois'],
+    description: 'Le texte présente le sujet à travers le prisme du "nous" vs "eux", de l\'appartenance et de la différence.',
+    bias: 'Ce cadrage divise pour mieux régner. Il détourne l\'attention des intérêts économiques et politiques communs vers des lignes de fracture identitaires souvent instrumentalisées.'
+  },
+  technocratic: {
+    name: 'Cadrage technocratique',
+    color: 'var(--cyan)',
+    keywords: ['expert','étude','rapport','recommandation','commission','comité','institution','organisme','agence','paramètre','indicateur','objectif','cible','benchmark','norme','standard','procédure','méthodologie','évaluation','audit','monitoring','gouvernance','réforme structurelle','trajectoire','conformité','directive','règlement'],
+    description: 'Le texte présente le sujet comme une question technique réservée aux experts.',
+    bias: 'Ce cadrage dépolitise les choix. "Il faut réformer les pensions" devient une question technique alors que c\'est un choix de société. L\'expertise remplace le débat démocratique.'
+  },
+  humanitarian: {
+    name: 'Cadrage humanitaire',
+    color: 'var(--green)',
+    keywords: ['victime','souffrance','détresse','précarité','pauvreté','vulnérable','fragilité','exclusion','marginalisation','discrimination','inégalité','aide','soutien','accompagnement','protection','enfant','famille','personne âgée','handicap','maladie','sans-abri','isolement','abandon','urgence sociale','compassion','empathie'],
+    description: 'Le texte présente le sujet sous l\'angle de la souffrance humaine et de la compassion.',
+    bias: 'Ce cadrage peut être sincère, mais il remplace parfois l\'analyse structurelle par l\'émotion. Montrer des victimes sans expliquer le système qui les produit, c\'est faire de la charité, pas de la politique.'
+  }
+};
+
+const VAGUE_EXPRESSIONS = [
+  'certains','on dit que','il paraît','il semblerait','selon des sources','des observateurs','d\'aucuns','nombreux sont ceux','beaucoup estiment','la plupart','en général','globalement','fondamentalement','essentiellement','d\'une manière générale','tout porte à croire','il va sans dire','comme chacun sait','nul n\'ignore','force est de','il est notoire'
+];
+
+const AUTHORITY_MARKERS = [
+  'selon l\'expert','un spécialiste affirme','les économistes','les analystes','un rapport','une étude','d\'après','selon une source','un responsable','un haut fonctionnaire','un proche du dossier','milieux autorisés','cercles informés','en haut lieu','de source sûre','un connaisseur du dossier'
+];
+
+const CUI_BONO_PATTERNS = {
+  government: ['gouvernement','ministre','premier ministre','coalition','majorité','exécutif','cabinet','arrêté','décret','projet de loi'],
+  parties: ['parti','MR','PS','Ecolo','PTB','N-VA','Vooruit','CD&V','Open VLD','DéFI','Les Engagés','Vlaams Belang','PVDA','opposition','majorité'],
+  employers: ['employeur','entreprise','fédération','patronat','FEB','UCM','UNIZO','investisseur','actionnaire','secteur privé','compétitivité','charges','coût salarial'],
+  unions: ['syndicat','FGTB','CSC','CGSLB','front commun','grève','mobilisation','négociation','concertation','travailleur','salarié'],
+  media: ['rédaction','éditorial','chroniqueur','commentateur','journaliste','média','presse','audience','lecteur','spectateur']
+};
+
+// ============================================================
+// ANALYSIS ENGINE
+// ============================================================
+
+function updateCount() {
+  const text = document.getElementById('article-input').value;
+  const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+  document.getElementById('word-count').textContent = words + ' mots';
+  document.getElementById('analyze-btn').disabled = words < 30;
+}
+
+function analyze() {
+  const text = document.getElementById('article-input').value;
+  document.getElementById('loading').classList.add('active');
+  document.getElementById('analyze-btn').disabled = true;
+
+  const steps = [
+    'Détection du cadrage dominant...',
+    'Analyse du vocabulaire émotionnel...',
+    'Recherche de sources non attribuées...',
+    'Identification des perspectives manquantes...',
+    'Calcul du cui bono...',
+    'Génération du contre-cadrage...'
+  ];
+
+  let step = 0;
+  const stepInterval = setInterval(() => {
+    step++;
+    if (step < steps.length) {
+      document.getElementById('loading-step').textContent = steps[step];
+    }
+  }, 400);
+
+  setTimeout(() => {
+    clearInterval(stepInterval);
+    document.getElementById('loading').classList.remove('active');
+    const results = performAnalysis(text);
+    renderResults(results, text);
+  }, 2500);
+}
+
+function performAnalysis(text) {
+  const lower = text.toLowerCase();
+  const words = lower.split(/\s+/);
+  const wordCount = words.length;
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
+
+  // 1. FRAME DETECTION
+  const frameScores = {};
+  for (const [key, frame] of Object.entries(FRAME_PATTERNS)) {
+    let score = 0;
+    const found = [];
+    frame.keywords.forEach(kw => {
+      const regex = new RegExp('\\b' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
+      const matches = lower.match(regex);
+      if (matches) {
+        score += matches.length;
+        if (!found.includes(kw)) found.push(kw);
+      }
+    });
+    frameScores[key] = { score: score / wordCount * 100, found, ...frame };
+  }
+
+  const sortedFrames = Object.entries(frameScores).sort((a, b) => b[1].score - a[1].score);
+  const primaryFrame = sortedFrames[0];
+  const secondaryFrame = sortedFrames[1].score > sortedFrames[0].score * 0.4 ? sortedFrames[1] : null;
+
+  // 2. EMOTIONAL LANGUAGE
+  const emotionalFound = { negative: [], positive: [], authoritarian: [] };
+  for (const [type, wordList] of Object.entries(EMOTIONAL_WORDS)) {
+    wordList.forEach(w => {
+      if (lower.includes(w.toLowerCase())) {
+        emotionalFound[type].push(w);
+      }
+    });
+  }
+  const emotionalScore = (emotionalFound.negative.length + emotionalFound.authoritarian.length) / wordCount * 100;
+
+  // 3. VAGUENESS
+  const vagueFound = [];
+  VAGUE_EXPRESSIONS.forEach(v => {
+    if (lower.includes(v.toLowerCase())) vagueFound.push(v);
+  });
+
+  // 4. AUTHORITY SOURCING
+  const authorityFound = [];
+  AUTHORITY_MARKERS.forEach(a => {
+    if (lower.includes(a.toLowerCase())) authorityFound.push(a);
+  });
+
+  // Count named sources vs vague sources
+  const namedSourcePattern = /selon\s+[A-Z][a-zéèêëàâîïôûùç]+\s+[A-Z][a-zéèêëàâîïôûùç]+|d'après\s+[A-Z][a-zéèêëàâîïôûùç]+/g;
+  const namedSources = text.match(namedSourcePattern) || [];
+
+  // 5. STATISTICS CHECK
+  const statsPattern = /\d+[\s,.]?\d*\s*(%|pour\s*cent|milliard|million|€|euro)/gi;
+  const statsFound = text.match(statsPattern) || [];
+  const hasSourcedStats = statsFound.length > 0 && (namedSources.length > 0 || authorityFound.length > 0);
+
+  // 6. CUI BONO
+  const cuiBonoScores = {};
+  for (const [actor, keywords] of Object.entries(CUI_BONO_PATTERNS)) {
+    let score = 0;
+    keywords.forEach(kw => {
+      if (lower.includes(kw.toLowerCase())) score++;
+    });
+    cuiBonoScores[actor] = score;
+  }
+  const topBeneficiary = Object.entries(cuiBonoScores).sort((a, b) => b[1] - a[1])[0];
+
+  // 7. PERSPECTIVE CHECK — what's missing
+  const presentFrames = sortedFrames.filter(f => f[1].score > 0.5).map(f => f[0]);
+  const missingFrames = Object.keys(FRAME_PATTERNS).filter(f => !presentFrames.includes(f));
+
+  // 8. BIAS SCORE (0-100)
+  const biasScore = Math.min(100, Math.round(
+    emotionalScore * 8 +
+    vagueFound.length * 5 +
+    (namedSources.length === 0 ? 15 : 0) +
+    (missingFrames.length * 5) +
+    (emotionalFound.authoritarian.length * 8)
+  ));
+
+  return {
+    primaryFrame,
+    secondaryFrame,
+    frameScores: sortedFrames,
+    emotionalFound,
+    emotionalScore,
+    vagueFound,
+    authorityFound,
+    namedSources,
+    statsFound,
+    hasSourcedStats,
+    cuiBonoScores,
+    topBeneficiary,
+    missingFrames,
+    presentFrames,
+    biasScore,
+    wordCount,
+    sentenceCount: sentences.length
+  };
+}
+
+function renderResults(r, originalText) {
+  const el = document.getElementById('results');
+  const biasLevel = r.biasScore > 60 ? 'high' : r.biasScore > 30 ? 'medium' : 'low';
+  const biasLabel = r.biasScore > 60 ? 'Cadrage fort' : r.biasScore > 30 ? 'Cadrage modéré' : 'Cadrage faible';
+  const emotLevel = r.emotionalScore > 3 ? 'high' : r.emotionalScore > 1.5 ? 'medium' : 'low';
+  const srcLevel = r.namedSources.length >= 3 ? 'low' : r.namedSources.length >= 1 ? 'medium' : 'high';
+
+  // Highlight text
+  let highlighted = originalText;
+  // Emotional words
+  r.emotionalFound.negative.concat(r.emotionalFound.authoritarian).forEach(w => {
+    const regex = new RegExp('\\b(' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')\\b', 'gi');
+    highlighted = highlighted.replace(regex, '<span class="hl-emotional" title="Vocabulaire émotionnel">$1</span>');
+  });
+  // Vague
+  r.vagueFound.forEach(v => {
+    const regex = new RegExp('(' + v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+    highlighted = highlighted.replace(regex, '<span class="hl-vague" title="Expression vague / non sourcée">$1</span>');
+  });
+  // Stats
+  const statsRegex = /(\d+[\s,.]?\d*\s*(%|pour\s*cent|milliard|million|€|euro))/gi;
+  highlighted = highlighted.replace(statsRegex, '<span class="hl-stat" title="Statistique — source ?">$1</span>');
+
+  // Missing frames text
+  const missingLabels = r.missingFrames.map(f => FRAME_PATTERNS[f]?.name || f);
+
+  // Cui bono text
+  const cuiBonoNames = { government: 'le gouvernement/pouvoir en place', parties: 'les partis politiques', employers: 'le patronat/secteur privé', unions: 'les syndicats/travailleurs', media: 'les médias eux-mêmes' };
+
+  // Counter-frame
+  const primaryKey = r.primaryFrame[0];
+  const counterFrames = {
+    economic: "Et si au lieu de demander \"combien ça coûte ?\", on demandait \"combien ça rapporte en dignité, en santé, en cohésion sociale\" ? Le PIB ne mesure pas le bien-être. Le coût du non-investissement (santé mentale, décrochage, non-recours) est rarement chiffré.",
+    security: "Et si au lieu de demander \"comment punir ?\", on demandait \"qu'est-ce qui produit cette situation ?\" La criminalité corrèle avec la pauvreté, l'exclusion et le manque de perspectives — pas avec le manque de policiers.",
+    moral: "Et si au lieu de juger les individus, on analysait le système ? Quand 20 à 50% des éligibles ne réclament pas leurs droits, le problème n'est pas la morale des gens — c'est l'architecture administrative.",
+    identity: "Et si au lieu de \"nous\" vs \"eux\", on regardait qui profite de cette division ? Les intérêts économiques traversent toutes les communautés. Les lignes de fracture identitaires masquent les solidarités de classe.",
+    technocratic: "Et si au lieu de \"les experts disent\", on demandait \"qui a mandaté ces experts, avec quelle question, et quelles alternatives ont été exclues d'office ?\" La technique est toujours au service d'un choix politique.",
+    humanitarian: "Et si au lieu de montrer des victimes, on montrait le mécanisme qui les produit ? La compassion sans analyse structurelle, c'est de la charité — pas de la justice."
+  };
+
+  el.innerHTML = `
+    <!-- SCORES -->
+    <div class="score-header">
+      <div class="score-card">
+        <div class="sc-value ${biasLevel}">${r.biasScore}</div>
+        <div class="sc-label">${biasLabel}</div>
+      </div>
+      <div class="score-card">
+        <div class="sc-value ${emotLevel}">${r.emotionalFound.negative.length + r.emotionalFound.authoritarian.length}</div>
+        <div class="sc-label">Mots émotionnels</div>
+      </div>
+      <div class="score-card">
+        <div class="sc-value ${srcLevel}">${r.namedSources.length}</div>
+        <div class="sc-label">Sources nommées</div>
+      </div>
+    </div>
+
+    <!-- PRIMARY FRAME -->
+    <div class="frame-section">
+      <div class="section-title">Cadrage détecté</div>
+      <div>
+        <span class="frame-tag primary">${r.primaryFrame[1].name}</span>
+        ${r.secondaryFrame ? `<span class="frame-tag secondary">${r.secondaryFrame[1].name}</span>` : ''}
+      </div>
+      <div class="frame-explain">
+        <strong>${r.primaryFrame[1].name}</strong> — ${r.primaryFrame[1].description}
+        <br><br>
+        <strong>Biais associé :</strong> ${r.primaryFrame[1].bias}
+        <br><br>
+        <strong>Mots-clés détectés :</strong> ${r.primaryFrame[1].found.slice(0, 12).join(', ')}${r.primaryFrame[1].found.length > 12 ? '...' : ''}
+      </div>
+    </div>
+
+    <!-- HIGHLIGHTED TEXT -->
+    <div class="frame-section">
+      <div class="section-title">Texte annoté</div>
+      <div class="highlighted-text">${highlighted}</div>
+      <div class="hl-legend">
+        <span><span class="hl-dot" style="background:var(--red)"></span> Émotionnel</span>
+        <span><span class="hl-dot" style="background:var(--amber)"></span> Vague / non sourcé</span>
+        <span><span class="hl-dot" style="background:var(--green)"></span> Statistique</span>
+      </div>
+    </div>
+
+    <!-- ANALYSIS CARDS -->
+    <div class="frame-section">
+      <div class="section-title">Analyse détaillée</div>
+
+      <!-- Emotional -->
+      <div class="analysis-card">
+        <div class="ac-header">
+          <div class="ac-title">Vocabulaire émotionnel</div>
+          <div class="ac-badge ${r.emotionalFound.negative.length > 5 ? 'danger' : r.emotionalFound.negative.length > 2 ? 'warning' : 'ok'}">
+            ${r.emotionalFound.negative.length > 5 ? 'Élevé' : r.emotionalFound.negative.length > 2 ? 'Modéré' : 'Faible'}
+          </div>
+        </div>
+        <div class="ac-body">
+          ${r.emotionalFound.negative.length > 0 ? `<strong>Mots négatifs/alarmistes :</strong> ${r.emotionalFound.negative.join(', ')}` : 'Peu de vocabulaire émotionnel négatif détecté.'}
+          ${r.emotionalFound.positive.length > 0 ? `<br><strong>Mots positifs/légitimants :</strong> ${r.emotionalFound.positive.join(', ')}` : ''}
+          ${r.emotionalFound.authoritarian.length > 0 ? `<br><strong>Formules d'autorité :</strong> ${r.emotionalFound.authoritarian.join(', ')} — ces expressions ferment le débat en présentant une opinion comme un fait.` : ''}
+        </div>
+      </div>
+
+      <!-- Sources -->
+      <div class="analysis-card">
+        <div class="ac-header">
+          <div class="ac-title">Qualité des sources</div>
+          <div class="ac-badge ${r.namedSources.length >= 3 ? 'ok' : r.namedSources.length >= 1 ? 'warning' : 'danger'}">
+            ${r.namedSources.length >= 3 ? 'Correct' : r.namedSources.length >= 1 ? 'Insuffisant' : 'Absent'}
+          </div>
+        </div>
+        <div class="ac-body">
+          <strong>Sources nommées :</strong> ${r.namedSources.length > 0 ? r.namedSources.join(', ') : 'Aucune source clairement identifiée par nom.'}
+          <br><strong>Statistiques présentes :</strong> ${r.statsFound.length > 0 ? r.statsFound.length + ' chiffres détectés' : 'Aucun chiffre précis.'} ${!r.hasSourcedStats && r.statsFound.length > 0 ? '— <em style="color:var(--amber)">Chiffres sans source identifiable = drapeau rouge.</em>' : ''}
+          ${r.vagueFound.length > 0 ? `<br><strong>Expressions vagues :</strong> "${r.vagueFound.join('", "')}" — ces formules masquent l'absence de source vérifiable.` : ''}
+        </div>
+      </div>
+
+      <!-- Missing perspectives -->
+      <div class="analysis-card">
+        <div class="ac-header">
+          <div class="ac-title">Perspectives absentes</div>
+          <div class="ac-badge ${r.missingFrames.length > 3 ? 'danger' : r.missingFrames.length > 1 ? 'warning' : 'info'}">
+            ${r.missingFrames.length} angle${r.missingFrames.length > 1 ? 's' : ''} absent${r.missingFrames.length > 1 ? 's' : ''}
+          </div>
+        </div>
+        <div class="ac-body">
+          Le texte aborde le sujet sous l'angle <strong>${r.primaryFrame[1].name.toLowerCase()}</strong> mais ne mentionne pas :
+          <ul class="ac-list">
+            ${missingLabels.map(l => `<li>${l} — un angle qui apporterait un éclairage différent</li>`).join('')}
+          </ul>
+          Un article équilibré devrait au minimum évoquer les perspectives qu'il choisit de ne pas développer.
+        </div>
+      </div>
+    </div>
+
+    <!-- CUI BONO -->
+    <div class="cuibono">
+      <h3>Cui bono ? — À qui profite ce cadrage ?</h3>
+      <p>
+        En présentant le sujet sous l'angle <strong>${r.primaryFrame[1].name.toLowerCase()}</strong>,
+        ce texte tend à servir les intérêts de <strong>${cuiBonoNames[r.topBeneficiary[0]] || 'acteurs non identifiés'}</strong>.
+        <br><br>
+        Ce n'est pas forcément intentionnel. Le cadrage dominant d'une époque s'impose souvent inconsciemment aux journalistes eux-mêmes.
+        Mais le résultat est le même : <strong>certaines questions ne sont jamais posées, certaines voix ne sont jamais entendues</strong>.
+        <br><br>
+        La question à se poser : <em>si cet article avait été écrit par quelqu'un qui défend l'intérêt opposé, quels mots changeraient ? Quels chiffres apparaîtraient ? Quelles personnes seraient interviewées ?</em>
+      </p>
+    </div>
+
+    <!-- COUNTER-FRAME -->
+    <div class="counter-frame">
+      <h3>Contre-cadrage possible</h3>
+      <p>${counterFrames[primaryKey] || 'Essayez de reformuler le titre de l\'article en changeant complètement l\'angle. Si le titre dit "La dette explose", essayez "L\'investissement public s\'effondre". Même données, autre histoire.'}</p>
+    </div>
+
+    <!-- CHECKLIST -->
+    <div class="frame-section">
+      <div class="section-title">Réflexes d'autodéfense</div>
+      <div class="checklist">
+        <div class="cl-item"><div class="cl-icon">${r.namedSources.length >= 2 ? '✅' : '❌'}</div><div class="cl-text"><strong>Sources nommées ?</strong> — Tout chiffre ou affirmation devrait être attribué à une source identifiable. "${r.vagueFound[0] || 'Selon des experts'}" n'est pas une source.</div></div>
+        <div class="cl-item"><div class="cl-icon">${r.missingFrames.length <= 2 ? '✅' : '❌'}</div><div class="cl-text"><strong>Perspectives multiples ?</strong> — L'article donne-t-il la parole aux personnes concernées, pas seulement aux décideurs ou aux experts ?</div></div>
+        <div class="cl-item"><div class="cl-icon">${r.emotionalFound.negative.length <= 3 ? '✅' : '⚠️'}</div><div class="cl-text"><strong>Vocabulaire mesuré ?</strong> — Les mots émotionnels orientent avant que vous ayez le temps de réfléchir. "Explosion de la dette" ≠ "Augmentation de la dette".</div></div>
+        <div class="cl-item"><div class="cl-icon">🔍</div><div class="cl-text"><strong>Qui parle ? Qui ne parle pas ?</strong> — Comptez les sources citées. Qui est interviewé ? Qui est décrit sans avoir la parole ?</div></div>
+        <div class="cl-item"><div class="cl-icon">🔍</div><div class="cl-text"><strong>Quel est le contexte historique ?</strong> — Un fait isolé de son contexte peut signifier n'importe quoi. "Le chômage baisse" ne dit rien sans la période, la méthode de calcul, et ce qui a changé.</div></div>
+        <div class="cl-item"><div class="cl-icon">🔍</div><div class="cl-text"><strong>Qui finance ce média ?</strong> — Publicité, subsides publics, propriétaire industriel ? Cherchez sur l'Observatoire des médias.</div></div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-row">
+      <button class="cta-btn primary" onclick="exportAnalysis()">📋 Copier l'analyse</button>
+      <button class="cta-btn secondary" onclick="resetTool()">Analyser un autre texte</button>
+      <a class="cta-btn secondary" href="kit-contre-narratif.html">Kit contre-narratif →</a>
+      <a class="cta-btn secondary" href="miroir-noir.html">← Miroir Noir</a>
+    </div>
+
+    <div class="footer">
+      <div>◇ DÉMOGARCHIE · <a href="https://ouaisfi.eu">ouaisfieu</a> · CC BY-NC 4.0</div>
+      <div>舆论战 Module 03/17 · Fork • Hack • Spread</div>
+    </div>
+  `;
+
+  el.style.display = 'block';
+  setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+}
+
+function resetTool() {
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('article-input').value = '';
+  document.getElementById('analyze-btn').disabled = true;
+  document.getElementById('word-count').textContent = '0 mots';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function exportAnalysis() {
+  const el = document.getElementById('results');
+  const text = el.innerText.substring(0, 1500) + '\n\n[Analyse complète sur DÉMOGARCHIE]\n#Démogarchie #DétecteurDeCadrage';
+  navigator.clipboard.writeText(text).then(() => alert('Analyse copiée.')).catch(() => alert('Erreur'));
+}
+</script>
+
+</body>
+</html>
