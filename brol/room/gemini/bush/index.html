@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Analytique Interactive : Projet Reaven</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-base: #F9FAFB;
+            --text-main: #1F2937;
+            --accent-room4: #0F766E;
+            --accent-brol: #C2410C;
+            --highlight: #4338CA;
+            --card-bg: #FFFFFF;
+        }
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 380px;
+            }
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-btn {
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .nav-btn.active {
+            border-bottom-color: var(--highlight);
+            color: var(--highlight);
+            font-weight: 600;
+        }
+        .metric-card {
+            background: var(--card-bg);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border-top: 4px solid transparent;
+            transition: transform 0.2s;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Chosen Palette: Calm Harmony with Distinct Functional Accents (Base: #F9FAFB, Text: #1F2937, Room4/Stable: #0F766E, Brol/Chaos: #C2410C, Highlight: #4338CA) -->
+    <!-- Application Structure Plan: A tabbed dashboard SPA architecture. This allows users to easily compartmentalize the cognitive load. The 'Vue d'Ensemble' gives immediate high-level health. The 'Room 4' tab dives into critical stability metrics using time-series data with interactive timeframe toggles. The 'Brol' tab focuses on error classification and exploratory analysis of chaotic data using distribution charts and an interactive log filter. This logical separation mirrors the repository architecture while unifying the monitoring experience. -->
+    <!-- Visualization & Content Choices: 
+      - Goal: Compare overall health -> Viz: KPI Cards -> Interaction: Hover effects -> Justification: Immediate status check.
+      - Goal: Change over time (Room 4) -> Viz: Line Chart (Chart.js) -> Interaction: Timeframe toggle (24h vs 7j) & Tooltips -> Justification: Shows resource trends clearly.
+      - Goal: Inform on Latency (Room 4) -> Viz: Bar Chart (Chart.js) -> Interaction: Tooltips -> Justification: Compares specific time blocks.
+      - Goal: Organize Event Types (Brol) -> Viz: Doughnut Chart (Chart.js) -> Interaction: Hover to see exact percentages -> Justification: Shows proportion of error categories.
+      - Goal: Relationships Payload vs Latency (Brol) -> Viz: Scatter Plot (Chart.js) -> Interaction: Tooltips -> Justification: Identifies outliers in the chaotic test environment.
+      - Goal: Drill-down exploration (Brol) -> Viz: HTML Interactive Table -> Interaction: Dropdown filter -> Justification: Allows deep dive into specific event types without SVG icons.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between py-4">
+                <div>
+                    <h1 class="text-2xl font-bold" style="color: var(--text-main);">Portail Analytique <span style="color: var(--highlight);">Reaven</span></h1>
+                    <p class="text-sm text-gray-500 mt-1">Surveillance unifiée : Instances Room 4 & Brol</p>
+                </div>
+                <nav class="flex space-x-6 mt-4 md:mt-0 overflow-x-auto pb-2 md:pb-0">
+                    <button class="nav-btn active pb-1 text-gray-600 hover:text-indigo-600 whitespace-nowrap" data-target="overview">Vue d'Ensemble</button>
+                    <button class="nav-btn pb-1 text-gray-600 hover:text-indigo-600 whitespace-nowrap" data-target="room4">Analyse : Room 4</button>
+                    <button class="nav-btn pb-1 text-gray-600 hover:text-indigo-600 whitespace-nowrap" data-target="brol">Exploration : Brol</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <section id="overview" class="tab-content active">
+            <div class="mb-8">
+                <h2 class="text-3xl font-semibold mb-3">Synthèse Globale des Opérations</h2>
+                <p class="text-gray-600 max-w-4xl text-lg">
+                    Cette vue centralise l'état de santé du projet Reaven. Elle consolide les indicateurs de stabilité de l'environnement de production critique (Room 4) avec l'activité asynchrone et les anomalies détectées dans le sas de test (Brol). Utilisez cette synthèse pour évaluer la fiabilité globale du système avant de plonger dans les détails spécifiques de chaque instance.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="metric-card" style="border-top-color: var(--accent-room4);">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Disponibilité (Room 4)</div>
+                    <div class="text-4xl font-bold" style="color: var(--accent-room4);">99.98%</div>
+                    <div class="text-xs text-green-600 mt-2">↑ +0.02% vs mois dernier</div>
+                </div>
+                <div class="metric-card" style="border-top-color: var(--accent-room4);">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Latence Globale Moy.</div>
+                    <div class="text-4xl font-bold text-gray-800">42ms</div>
+                    <div class="text-xs text-gray-500 mt-2">Optimal (&lt; 100ms)</div>
+                </div>
+                <div class="metric-card" style="border-top-color: var(--accent-brol);">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Volume Journalier (Brol)</div>
+                    <div class="text-4xl font-bold" style="color: var(--accent-brol);">12.4K</div>
+                    <div class="text-xs text-red-600 mt-2">↑ Pics d'activité détectés</div>
+                </div>
+                <div class="metric-card" style="border-top-color: var(--highlight);">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Anomalies Critiques Non Résolues</div>
+                    <div class="text-4xl font-bold text-gray-800">3</div>
+                    <div class="text-xs text-gray-500 mt-2">En cours d'investigation</div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-indigo-500">
+                <h3 class="text-lg font-semibold mb-2">Recommandation du Système</h3>
+                <p class="text-gray-700">L'environnement Room 4 présente une excellente stabilité. Cependant, l'augmentation soudaine du volume d'événements dans le dépôt Brol nécessite une attention particulière. Il est conseillé de consulter l'onglet "Exploration : Brol" pour filtrer les récents timeouts de connexion.</p>
+            </div>
+        </section>
+
+        <section id="room4" class="tab-content">
+            <div class="mb-8 flex flex-col lg:flex-row lg:justify-between lg:items-end">
+                <div class="max-w-3xl">
+                    <h2 class="text-3xl font-semibold mb-3">Télémétrie : Instance "Room 4"</h2>
+                    <p class="text-gray-600 text-lg">
+                        L'environnement Room 4 est le cœur opérationnel. Cette section analyse l'allocation des ressources matérielles et la réactivité du système face à la charge. Des performances constantes ici sont le garant de l'expérience utilisateur finale.
+                    </p>
+                </div>
+                <div class="mt-4 lg:mt-0 flex space-x-2 bg-gray-100 p-1 rounded-lg">
+                    <button id="btn-24h" class="px-4 py-2 text-sm font-medium rounded shadow bg-white text-teal-700">Dernières 24h</button>
+                    <button id="btn-7d" class="px-4 py-2 text-sm font-medium rounded text-gray-600 hover:bg-gray-200">7 Jours</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <h3 class="text-xl font-medium text-gray-800 mb-1">Consommation des Ressources (CPU/RAM)</h3>
+                    <p class="text-sm text-gray-500 mb-6">Surveillez les pics de charge pour anticiper les besoins de scaling horizontal.</p>
+                    <div class="chart-container">
+                        <canvas id="resourceChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <h3 class="text-xl font-medium text-gray-800 mb-1">Distribution de la Latence de Traitement</h3>
+                    <p class="text-sm text-gray-500 mb-6">Temps de réponse moyen par bloc horaire, permettant d'identifier les goulots d'étranglement.</p>
+                    <div class="chart-container">
+                        <canvas id="latencyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="brol" class="tab-content">
+            <div class="mb-8">
+                <h2 class="text-3xl font-semibold mb-3">Sas d'Analyse : Dépôt "Brol"</h2>
+                <p class="text-gray-600 max-w-4xl text-lg">
+                    Le dépôt Brol agglomère des données hétérogènes, des logs de tests et des erreurs asynchrones. Cette section permet de structurer ce chaos apparent en classifiant les anomalies et en explorant les corrélations entre la taille des données envoyées et les dégradations de performance (timeouts).
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 lg:col-span-1">
+                    <h3 class="text-xl font-medium text-gray-800 mb-1">Typologie des Événements Ingérés</h3>
+                    <p class="text-sm text-gray-500 mb-6">Répartition catégorielle des entrées du dépôt.</p>
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="brolTypesChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 lg:col-span-2">
+                    <h3 class="text-xl font-medium text-gray-800 mb-1">Analyse de Charge : Payload vs Latence</h3>
+                    <p class="text-sm text-gray-500 mb-6">Identification des requêtes anormales provoquant des ralentissements dans l'environnement de test.</p>
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="brolScatterChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                    <h3 class="text-xl font-medium text-gray-800">Explorateur de Logs (Brol)</h3>
+                    <div class="mt-4 sm:mt-0 w-full sm:w-auto">
+                        <label for="logFilter" class="sr-only">Filtrer par type</label>
+                        <select id="logFilter" class="w-full sm:w-64 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 p-2.5">
+                            <option value="all">Tous les types d'événements</option>
+                            <option value="timeout">Timeouts de Connexion</option>
+                            <option value="parsing">Erreurs de Parsing JSON</option>
+                            <option value="warning">Avertissements Mineurs</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 rounded-l-lg">Horodatage</th>
+                                <th scope="col" class="px-6 py-3">Type</th>
+                                <th scope="col" class="px-6 py-3">Source</th>
+                                <th scope="col" class="px-6 py-3 rounded-r-lg">Détails du message</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const navBtns = document.querySelectorAll('.nav-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            navBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const target = btn.getAttribute('data-target');
+                    
+                    navBtns.forEach(b => {
+                        b.classList.remove('active', 'border-indigo-600');
+                        b.classList.add('border-transparent');
+                    });
+                    btn.classList.add('active');
+
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if(content.id === target) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+
+            const wrapLabel = (label) => {
+                if (label.length <= 16) return label;
+                const words = label.split(' ');
+                const lines = [];
+                let currentLine = '';
+                words.forEach(word => {
+                    if ((currentLine + word).length > 16) {
+                        if (currentLine) lines.push(currentLine.trim());
+                        currentLine = word + ' ';
+                    } else {
+                        currentLine += word + ' ';
+                    }
+                });
+                if (currentLine) lines.push(currentLine.trim());
+                return lines;
+            };
+
+            const multiLineTooltipConfig = {
+                callbacks: {
+                    title: function(tooltipItems) {
+                        const item = tooltipItems[0];
+                        let label = item.chart.data.labels[item.dataIndex];
+                        if (Array.isArray(label)) {
+                            return label.join(' ');
+                        } else {
+                            return label;
+                        }
+                    }
+                }
+            };
+
+            Chart.defaults.font.family = "'Inter', system-ui, -apple-system, sans-serif";
+            Chart.defaults.color = '#6B7280';
+            Chart.defaults.scale.grid.color = '#F3F4F6';
+
+            const room4Data24h = {
+                labels: ["00:00 Nuit Profonde", "04:00 Cycle Maintenance", "08:00 Début d'Activité", "12:00 Pic Journalier", "16:00 Activité Soutenue", "20:00 Baisse Progressive", "24:00 Clôture"].map(wrapLabel),
+                cpu: [12, 18, 45, 75, 60, 40, 15],
+                ram: [35, 35, 50, 80, 70, 55, 35]
+            };
+
+            const room4Data7d = {
+                labels: ["Lundi Début Semaine", "Mardi Routine", "Mercredi Mi-Semaine", "Jeudi Charge Élevée", "Vendredi Fin Semaine", "Samedi Repos", "Dimanche Repos"].map(wrapLabel),
+                cpu: [55, 60, 58, 70, 65, 20, 18],
+                ram: [60, 65, 62, 75, 70, 30, 28]
+            };
+
+            let currentRoom4Data = room4Data24h;
+
+            const ctxResource = document.getElementById('resourceChart').getContext('2d');
+            let resourceChart = new Chart(ctxResource, {
+                type: 'line',
+                data: {
+                    labels: currentRoom4Data.labels,
+                    datasets: [
+                        {
+                            label: 'Utilisation CPU (%)',
+                            data: currentRoom4Data.cpu,
+                            borderColor: '#0F766E',
+                            backgroundColor: 'rgba(15, 118, 110, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#0F766E'
+                        },
+                        {
+                            label: 'Utilisation RAM (%)',
+                            data: currentRoom4Data.ram,
+                            borderColor: '#4338CA',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#4338CA'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: multiLineTooltipConfig,
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, max: 100 }
+                    }
+                }
+            });
+
+            const btn24h = document.getElementById('btn-24h');
+            const btn7d = document.getElementById('btn-7d');
+
+            const updateResourceChart = (data, activeBtn, inactiveBtn) => {
+                resourceChart.data.labels = data.labels;
+                resourceChart.data.datasets[0].data = data.cpu;
+                resourceChart.data.datasets[1].data = data.ram;
+                resourceChart.update();
+
+                activeBtn.classList.replace('text-gray-600', 'text-teal-700');
+                activeBtn.classList.replace('hover:bg-gray-200', 'bg-white');
+                activeBtn.classList.add('shadow');
+
+                inactiveBtn.classList.replace('text-teal-700', 'text-gray-600');
+                inactiveBtn.classList.replace('bg-white', 'hover:bg-gray-200');
+                inactiveBtn.classList.remove('shadow');
+            };
+
+            btn24h.addEventListener('click', () => updateResourceChart(room4Data24h, btn24h, btn7d));
+            btn7d.addEventListener('click', () => updateResourceChart(room4Data7d, btn7d, btn24h));
+
+            const ctxLatency = document.getElementById('latencyChart').getContext('2d');
+            new Chart(ctxLatency, {
+                type: 'bar',
+                data: {
+                    labels: ["00h - 04h Repos", "04h - 08h Matin", "08h - 12h Pic", "12h - 16h Après-midi", "16h - 20h Soirée", "20h - 24h Nuit"].map(wrapLabel),
+                    datasets: [{
+                        label: 'Latence Moyenne (ms)',
+                        data: [25, 30, 55, 80, 65, 35],
+                        backgroundColor: '#4338CA',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: multiLineTooltipConfig,
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            const brolLabels = ["Timeouts de Connexion API", "Avertissements Paramètres Manquants", "Erreurs de Structure JSON", "Processus Suspendus Automatiquement"].map(wrapLabel);
+            const ctxBrolTypes = document.getElementById('brolTypesChart').getContext('2d');
+            new Chart(ctxBrolTypes, {
+                type: 'doughnut',
+                data: {
+                    labels: brolLabels,
+                    datasets: [{
+                        data: [45, 25, 20, 10],
+                        backgroundColor: ['#C2410C', '#EA580C', '#F97316', '#FDBA74'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        tooltip: multiLineTooltipConfig,
+                        legend: { position: 'bottom', labels: { boxWidth: 12 } }
+                    }
+                }
+            });
+
+            const generateScatterData = () => {
+                const data = [];
+                for (let i = 0; i < 40; i++) {
+                    data.push({ x: Math.random() * 500, y: Math.random() * 200 + 20 });
+                }
+                for (let i = 0; i < 15; i++) {
+                    data.push({ x: Math.random() * 400 + 600, y: Math.random() * 500 + 300 });
+                }
+                return data;
+            };
+
+            const ctxScatter = document.getElementById('brolScatterChart').getContext('2d');
+            new Chart(ctxScatter, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Requêtes de Test',
+                        data: generateScatterData(),
+                        backgroundColor: 'rgba(194, 65, 12, 0.5)',
+                        borderColor: '#C2410C',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Payload: ${Math.round(context.parsed.x)} Ko | Latence: ${Math.round(context.parsed.y)} ms`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Taille du Payload (Ko)' } },
+                        y: { title: { display: true, text: 'Temps de réponse (ms)' }, beginAtZero: true }
+                    }
+                }
+            });
+
+            const brolLogs = [
+                { time: "10:42:05", type: "timeout", source: "API Gateway", msg: "Connexion expirée après 3000ms vers le service de paiement sandbox." },
+                { time: "10:41:12", type: "warning", source: "Module Auth", msg: "Jeton de session généré sans paramètre de région." },
+                { time: "10:39:55", type: "parsing", source: "Data Ingestion", msg: "Caractère inattendu à la ligne 42, colonne 15. Validation JSON échouée." },
+                { time: "10:35:10", type: "timeout", source: "Worker Node 3", msg: "Tâche de fond interrompue (délai dépassé)." },
+                { time: "10:28:44", type: "warning", source: "Database Proxy", msg: "Requête non optimisée détectée. Utilisation de l'index complet." },
+                { time: "10:22:01", type: "parsing", source: "User Form", msg: "Format de date invalide reçu dans le payload." }
+            ];
+
+            const logTableBody = document.getElementById('logTableBody');
+            const logFilter = document.getElementById('logFilter');
+
+            const renderLogs = (filterType) => {
+                logTableBody.innerHTML = '';
+                const filteredLogs = filterType === 'all' ? brolLogs : brolLogs.filter(log => log.type === filterType);
+                
+                if(filteredLogs.length === 0) {
+                    logTableBody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Aucun événement correspondant.</td></tr>';
+                    return;
+                }
+
+                filteredLogs.forEach(log => {
+                    let badgeColor = '';
+                    let typeLabel = '';
+                    switch(log.type) {
+                        case 'timeout': badgeColor = 'bg-red-100 text-red-800'; typeLabel = 'Timeout'; break;
+                        case 'parsing': badgeColor = 'bg-orange-100 text-orange-800'; typeLabel = 'Parsing'; break;
+                        case 'warning': badgeColor = 'bg-yellow-100 text-yellow-800'; typeLabel = 'Warning'; break;
+                    }
+
+                    const row = document.createElement('tr');
+                    row.className = 'bg-white border-b hover:bg-gray-50';
+                    row.innerHTML = `
+                        <td class="px-6 py-4 font-mono text-xs">${log.time}</td>
+                        <td class="px-6 py-4"><span class="px-2 py-1 rounded-full text-xs font-medium ${badgeColor}">${typeLabel}</span></td>
+                        <td class="px-6 py-4 font-medium text-gray-900">${log.source}</td>
+                        <td class="px-6 py-4">${log.msg}</td>
+                    `;
+                    logTableBody.appendChild(row);
+                });
+            };
+
+            renderLogs('all');
+
+            logFilter.addEventListener('change', (e) => {
+                renderLogs(e.target.value);
+            });
+
+        });
+    </script>
+</body>
+</html>
