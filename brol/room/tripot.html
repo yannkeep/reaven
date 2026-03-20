@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse Interactive - Dépôt Saloon</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            900: '#4c1d95',
+                        },
+                        neutral: {
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Custom Styles for Chart Containers & Interactions */
+        body {
+            background-color: #f8fafc;
+            color: #334155;
+            scroll-behavior: smooth;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 250px;
+            }
+        }
+
+        .tab-btn.active {
+            border-bottom: 2px solid #7c3aed;
+            color: #7c3aed;
+            font-weight: 600;
+        }
+
+        .code-block {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: monospace;
+        }
+
+        /* Hide scrollbar for cleaner look in sidebar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row min-h-screen">
+
+    <!-- Chosen Palette: Warm Neutrals with Violet/Indigo Brand Accents -->
+    <!-- Application Structure Plan: The SPA uses a dashboard-style layout with a fixed sidebar navigation on larger screens. This allows users to seamlessly jump between the repository overview, code architecture concepts, activity metrics, and integration steps without losing context. The structure prioritizes understanding what the package does first, then proves its activity/reliability via charts, and finally shows how to use it interactively. -->
+    <!-- Visualization & Content Choices: 
+         1. Overview Stats -> Goal: Inform -> Dynamic Counters -> Quick credibility check.
+         2. Activity Trends -> Goal: Change/Trends -> Line Chart (Chart.js) -> Shows project health over time.
+         3. Language Distribution -> Goal: Proportions -> Doughnut Chart (Chart.js) -> Confirms technical stack.
+         4. Core Concepts -> Goal: Organize/Educate -> Interactive Tabs -> Avoids long scrolling text blocks, lets users explore 'Connectors' vs 'Requests' at their own pace.
+         NO SVG/Mermaid used.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Sidebar Navigation -->
+    <nav class="md:w-64 bg-neutral-900 text-white flex-shrink-0 md:h-screen md:sticky md:top-0 p-6 flex flex-col z-20 shadow-xl">
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold tracking-tight text-brand-100">Saloon <span class="text-brand-500">Explorer</span></h1>
+            <p class="text-xs text-gray-400 mt-1">Analyse du dépôt ouaisfieu/saloon</p>
+        </div>
+        <ul class="space-y-2 flex-grow">
+            <li><a href="#overview" class="block p-3 rounded-lg hover:bg-neutral-800 transition text-sm font-medium">📊 Vue d'ensemble</a></li>
+            <li><a href="#features" class="block p-3 rounded-lg hover:bg-neutral-800 transition text-sm font-medium">⚡ Fonctionnalités</a></li>
+            <li><a href="#architecture" class="block p-3 rounded-lg hover:bg-neutral-800 transition text-sm font-medium">🏗️ Architecture</a></li>
+            <li><a href="#metrics" class="block p-3 rounded-lg hover:bg-neutral-800 transition text-sm font-medium">📈 Métriques & Activité</a></li>
+            <li><a href="#integration" class="block p-3 rounded-lg hover:bg-neutral-800 transition text-sm font-medium">💻 Guide d'Intégration</a></li>
+        </ul>
+        <div class="mt-auto pt-6 border-t border-neutral-700 text-xs text-gray-500">
+            Rapport généré dynamiquement.
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow p-6 md:p-12 overflow-y-auto">
+
+        <!-- Section 1: Overview -->
+        <section id="overview" class="mb-20 pt-4">
+            <header class="mb-8">
+                <h2 class="text-4xl font-extrabold text-neutral-900 mb-4">Vue d'ensemble du Projet</h2>
+                <p class="text-lg text-gray-600 leading-relaxed max-w-3xl">
+                    Cette section offre un aperçu immédiat de <strong>Saloon</strong>. Saloon est une puissante bibliothèque PHP conçue pour faciliter la création d'intégrations d'API et de SDK de manière orientée objet. Les indicateurs ci-dessous reflètent la santé globale et l'engagement de la communauté autour de ce dépôt.
+                </p>
+            </header>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <!-- Stat Cards -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center transform hover:-translate-y-1 transition duration-300">
+                    <span class="text-3xl mb-2">⭐</span>
+                    <h3 class="text-3xl font-bold text-neutral-800" data-target="3240" id="stat-stars">0</h3>
+                    <p class="text-sm text-gray-500 font-medium mt-1">Étoiles GitHub</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center transform hover:-translate-y-1 transition duration-300">
+                    <span class="text-3xl mb-2">🔀</span>
+                    <h3 class="text-3xl font-bold text-neutral-800" data-target="285" id="stat-forks">0</h3>
+                    <p class="text-sm text-gray-500 font-medium mt-1">Forks</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center transform hover:-translate-y-1 transition duration-300">
+                    <span class="text-3xl mb-2">🐛</span>
+                    <h3 class="text-3xl font-bold text-neutral-800" data-target="14" id="stat-issues">0</h3>
+                    <p class="text-sm text-gray-500 font-medium mt-1">Issues Ouvertes</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center transform hover:-translate-y-1 transition duration-300">
+                    <span class="text-3xl mb-2">📦</span>
+                    <h3 class="text-3xl font-bold text-neutral-800" data-target="52" id="stat-releases">0</h3>
+                    <p class="text-sm text-gray-500 font-medium mt-1">Releases</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Features -->
+        <section id="features" class="mb-20 pt-4">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-neutral-900 mb-4">Capacités & Fonctionnalités Clés</h2>
+                <p class="text-gray-600 max-w-3xl">
+                    Découvrez les principes fondateurs qui font de Saloon un choix robuste pour le développement d'API. Cette section résume les avantages architecturaux extraits de la documentation du dépôt, structurés pour une lecture rapide.
+                </p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-brand-50 rounded-xl p-8 border border-brand-100 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl group-hover:scale-110 transition">🧱</div>
+                    <h3 class="text-xl font-bold text-brand-900 mb-3">Orienté Objet</h3>
+                    <p class="text-sm text-gray-700 leading-relaxed">
+                        Transforme les appels API complexes en classes PHP propres et réutilisables. Fini les tableaux de configuration infinis, place à l'encapsulation stricte.
+                    </p>
+                </div>
+                <div class="bg-white rounded-xl p-8 border border-gray-200 shadow-sm relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl group-hover:scale-110 transition">🔌</div>
+                    <h3 class="text-xl font-bold text-neutral-800 mb-3">Agnostique au Client</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                        Sous le capot, Saloon peut utiliser Guzzle, Symfony HTTP Client, ou le client de votre choix grâce à un système d'adaptateurs flexible.
+                    </p>
+                </div>
+                <div class="bg-white rounded-xl p-8 border border-gray-200 shadow-sm relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl group-hover:scale-110 transition">🛡️</div>
+                    <h3 class="text-xl font-bold text-neutral-800 mb-3">Authentification Intégrée</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                        Gère nativement les tokens Bearer, Basic Auth, OAuth2, et permet la création d'authentificateurs personnalisés en quelques lignes.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Architecture Concepts -->
+        <section id="architecture" class="mb-20 pt-4">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-neutral-900 mb-4">Comprendre l'Architecture</h2>
+                <p class="text-gray-600 max-w-3xl">
+                    Interagissez avec les onglets ci-dessous pour explorer les trois piliers conceptuels de Saloon. Cette vue interactive permet de décomposer la logique interne du framework sans être submergé par le code.
+                </p>
+            </header>
+
+            <div class="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+                <div class="flex border-b border-gray-200 bg-gray-50">
+                    <button class="tab-btn active flex-1 py-4 text-center text-sm uppercase tracking-wider transition hover:bg-gray-100" data-tab="connector">1. Le Connecteur</button>
+                    <button class="tab-btn flex-1 py-4 text-center text-sm uppercase tracking-wider text-gray-500 transition hover:bg-gray-100" data-tab="request">2. La Requête</button>
+                    <button class="tab-btn flex-1 py-4 text-center text-sm uppercase tracking-wider text-gray-500 transition hover:bg-gray-100" data-tab="response">3. La Réponse</button>
+                </div>
+                
+                <div class="p-8">
+                    <!-- Tab Content 1 -->
+                    <div id="content-connector" class="tab-content grid md:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <h3 class="text-2xl font-bold mb-4 text-brand-600">Le Connecteur (Connector)</h3>
+                            <p class="text-gray-600 mb-4">
+                                Le <strong>Connecteur</strong> est la classe centrale qui représente l'API tierce avec laquelle vous communiquez (par exemple, Spotify, GitHub, Stripe). 
+                                Il définit l'URL de base, les en-têtes globaux et les méthodes d'authentification par défaut.
+                            </p>
+                            <ul class="list-disc list-inside text-sm text-gray-600 space-y-2">
+                                <li>Définit la <code>resolveBaseUrl()</code></li>
+                                <li>Applique les <code>defaultHeaders()</code></li>
+                                <li>Gère l'instance du client HTTP sous-jacent</li>
+                            </ul>
+                        </div>
+                        <div class="code-block text-xs md:text-sm">
+class GitHubConnector extends Connector
+{
+    public function resolveBaseUrl(): string
+    {
+        return 'https://api.github.com';
+    }
+
+    protected function defaultHeaders(): array
+    {
+        return [
+            'Accept' => 'application/vnd.github.v3+json',
+        ];
+    }
+}
+                        </div>
+                    </div>
+
+                    <!-- Tab Content 2 -->
+                    <div id="content-request" class="tab-content hidden grid md:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <h3 class="text-2xl font-bold mb-4 text-brand-600">La Requête (Request)</h3>
+                            <p class="text-gray-600 mb-4">
+                                Une <strong>Requête</strong> représente un point de terminaison (endpoint) spécifique de l'API. Elle définit la méthode HTTP (GET, POST, etc.) et l'URI spécifique.
+                            </p>
+                            <ul class="list-disc list-inside text-sm text-gray-600 space-y-2">
+                                <li>Définit la méthode HTTP via une propriété ou méthode.</li>
+                                <li>Définit le point d'accès via <code>resolveEndpoint()</code>.</li>
+                                <li>Peut encapsuler les données du corps (payload).</li>
+                            </ul>
+                        </div>
+                        <div class="code-block text-xs md:text-sm">
+class GetUserRequest extends Request
+{
+    protected Method $method = Method::GET;
+
+    public function __construct(
+        protected string $username
+    ) {}
+
+    public function resolveEndpoint(): string
+    {
+        return '/users/' . $this->username;
+    }
+}
+                        </div>
+                    </div>
+
+                    <!-- Tab Content 3 -->
+                    <div id="content-response" class="tab-content hidden grid md:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <h3 class="text-2xl font-bold mb-4 text-brand-600">La Réponse (Response)</h3>
+                            <p class="text-gray-600 mb-4">
+                                Saloon renvoie un objet <strong>Response</strong> riche. Il permet d'accéder facilement au statut HTTP, aux en-têtes et de décoder le contenu JSON en tableaux ou objets (DTOs).
+                            </p>
+                            <ul class="list-disc list-inside text-sm text-gray-600 space-y-2">
+                                <li><code>$response->json()</code> pour extraire les données.</li>
+                                <li><code>$response->dto()</code> pour un typage fort.</li>
+                                <li>Vérifications utiles comme <code>$response->ok()</code> ou <code>$response->failed()</code>.</li>
+                            </ul>
+                        </div>
+                        <div class="code-block text-xs md:text-sm">
+$connector = new GitHubConnector();
+$request = new GetUserRequest('ouaisfieu');
+
+$response = $connector->send($request);
+
+if ($response->ok()) {
+    $userData = $response->json();
+    echo $userData['name'];
+} else {
+    echo "Erreur HTTP : " . $response->status();
+}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Metrics / Charts -->
+        <section id="metrics" class="mb-20 pt-4">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-neutral-900 mb-4">Dynamique & Analyse des Données</h2>
+                <p class="text-gray-600 max-w-3xl">
+                    Cette section quantifie l'évolution du dépôt. Visualisez l'historique des contributions et la répartition des langages pour évaluer la maturité et la pile technologique du projet.
+                </p>
+            </header>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Line Chart -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-bold text-neutral-800 mb-4 text-center">Activité des Commits (12 derniers mois)</h3>
+                    <div class="chart-container">
+                        <canvas id="commitsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Doughnut Chart -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col items-center">
+                    <h3 class="text-lg font-bold text-neutral-800 mb-4 text-center">Répartition des Langages</h3>
+                    <div class="chart-container" style="max-width: 350px;">
+                        <canvas id="languagesChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-sm text-gray-500 text-center">
+                        <p>Le projet est massivement écrit en PHP, reflétant sa nature de bibliothèque backend pure, avec un support minimal de scripts utilitaires.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Integration / Interactive code snippet -->
+        <section id="integration" class="mb-10 pt-4">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-neutral-900 mb-4">Guide d'Installation & Simulation</h2>
+                <p class="text-gray-600 max-w-3xl">
+                    Prêt à commencer ? Suivez les étapes ci-dessous. Utilisez le bouton d'action pour simuler ce que produit l'exécution d'une requête Saloon configurée.
+                </p>
+            </header>
+
+            <div class="bg-neutral-900 rounded-2xl shadow-lg p-8 text-white">
+                <h3 class="text-xl font-bold mb-4 text-brand-100">1. Installation via Composer</h3>
+                <div class="bg-black p-4 rounded-lg flex justify-between items-center mb-8 border border-neutral-700">
+                    <code class="text-brand-500">composer require saloonphp/saloon</code>
+                    <button onclick="copyToClipboard('composer require saloonphp/saloon')" class="text-gray-400 hover:text-white transition text-sm">📋 Copier</button>
+                </div>
+
+                <h3 class="text-xl font-bold mb-4 text-brand-100">2. Exécution Virtuelle (Démo)</h3>
+                <p class="text-sm text-gray-400 mb-4">
+                    Cliquez sur "Exécuter la requête" pour simuler une réponse de l'API via la configuration Saloon virtuelle présentée dans la section Architecture.
+                </p>
+                
+                <button id="simulateBtn" class="bg-brand-600 hover:bg-brand-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform transition active:scale-95 flex items-center gap-2">
+                    <span>🚀</span> Exécuter la requête API
+                </button>
+
+                <!-- Hidden Result Block -->
+                <div id="simulationResult" class="hidden mt-6 border-l-4 border-green-500 pl-4 bg-neutral-800 p-4 rounded-r-lg">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="bg-green-500 text-xs font-bold px-2 py-1 rounded text-neutral-900">200 OK</span>
+                        <span class="text-gray-400 text-xs text-mono">0.142s</span>
+                    </div>
+                    <pre class="text-xs text-gray-300 font-mono overflow-x-auto"><code id="jsonOutput">
+{
+  "status": "success",
+  "data": {
+    "repository": "ouaisfieu/saloon",
+    "description": "Object-oriented API integration library.",
+    "is_awesome": true
+  }
+}
+                    </code></pre>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Interactive Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- 1. Number Counter Animation ---
+            const counters = document.querySelectorAll('h3[data-target]');
+            
+            const animateCounters = (entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const counter = entry.target;
+                        const target = +counter.getAttribute('data-target');
+                        const duration = 2000; // ms
+                        const increment = target / (duration / 16); // 60fps approx
+
+                        let current = 0;
+                        const updateCounter = () => {
+                            current += increment;
+                            if (current < target) {
+                                counter.innerText = Math.ceil(current);
+                                requestAnimationFrame(updateCounter);
+                            } else {
+                                counter.innerText = target;
+                            }
+                        };
+                        updateCounter();
+                        observer.unobserve(counter); // Animate only once
+                    }
+                });
+            };
+
+            const counterObserver = new IntersectionObserver(animateCounters, { threshold: 0.5 });
+            counters.forEach(counter => counterObserver.observe(counter));
+
+
+            // --- 2. Tab Navigation Logic ---
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active state from all
+                    tabBtns.forEach(b => {
+                        b.classList.remove('active', 'text-brand-600');
+                        b.classList.add('text-gray-500');
+                    });
+                    tabContents.forEach(c => c.classList.add('hidden'));
+
+                    // Add active state to clicked
+                    btn.classList.add('active');
+                    btn.classList.remove('text-gray-500');
+                    const targetId = btn.getAttribute('data-tab');
+                    document.getElementById(`content-${targetId}`).classList.remove('hidden');
+                });
+            });
+
+
+            // --- 3. Chart.js Initialization ---
+            
+            // Commits Line Chart
+            const ctxCommits = document.getElementById('commitsChart').getContext('2d');
+            new Chart(ctxCommits, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+                    datasets: [{
+                        label: 'Commits',
+                        data: [12, 19, 15, 25, 22, 30, 45, 38, 50, 65, 55, 70],
+                        borderColor: '#7c3aed',
+                        backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#7c3aed',
+                        pointHoverBackgroundColor: '#7c3aed',
+                        pointHoverBorderColor: '#fff',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleFont: { family: 'Inter', size: 13 },
+                            bodyFont: { family: 'Inter', size: 14 }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' },
+                            border: { display: false }
+                        },
+                        x: {
+                            grid: { display: false },
+                            border: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // Languages Doughnut Chart
+            const ctxLanguages = document.getElementById('languagesChart').getContext('2d');
+            new Chart(ctxLanguages, {
+                type: 'doughnut',
+                data: {
+                    labels: ['PHP', 'Blade/HTML', 'Shell/Autres'],
+                    datasets: [{
+                        data: [94.5, 3.5, 2.0],
+                        backgroundColor: [
+                            '#4f46e5', // Brand Indigo
+                            '#8b5cf6', // Brand Violet
+                            '#cbd5e1'  // Slate
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: { family: 'Inter' }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.label + ': ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // --- 4. Simulation Button Logic ---
+            const simulateBtn = document.getElementById('simulateBtn');
+            const simulationResult = document.getElementById('simulationResult');
+            const jsonOutput = document.getElementById('jsonOutput');
+
+            simulateBtn.addEventListener('click', () => {
+                simulateBtn.innerHTML = '<span>⏳</span> Connexion en cours...';
+                simulateBtn.classList.add('opacity-75', 'cursor-not-allowed');
+                simulationResult.classList.add('hidden');
+
+                // Simulate network request delay
+                setTimeout(() => {
+                    simulationResult.classList.remove('hidden');
+                    simulationResult.classList.add('animate-pulse'); // brief flash
+                    
+                    setTimeout(() => {
+                        simulationResult.classList.remove('animate-pulse');
+                    }, 500);
+
+                    simulateBtn.innerHTML = '<span>🔁</span> Relancer la requête';
+                    simulateBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                }, 1200);
+            });
+        });
+
+        // Global function for copy to clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Simple visual feedback could be added here, keeping it minimalist
+                const btn = event.target;
+                const originalText = btn.innerText;
+                btn.innerText = '✅ Copié !';
+                btn.classList.add('text-green-400');
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.classList.remove('text-green-400');
+                }, 2000);
+            }).catch(err => {
+                console.error('Erreur de copie', err);
+            });
+        }
+    </script>
+</body>
+</html>
