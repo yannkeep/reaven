@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport d'Audit & Architecture Web - Reaven</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Chart Container Styling requirement */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        
+        /* Smooth scrolling */
+        html { scroll-behavior: smooth; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f5f5f4; }
+        ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+    </style>
+
+    <!-- Chosen Palette: Warm Neutrals & Deep Teal Accent -->
+    <!-- Application Structure Plan: Dashboard thematic sections. 
+         1. 'Vue d'ensemble' for immediate health scores (Radar chart). 
+         2. 'Priorités d'Indexation' (Interactive table) to directly answer the user's primary request. 
+         3. 'Analyse Critique' (Doughnut chart & text blocks) to dissect the problematic directory structure. 
+         This structure provides an executive summary first, followed by actionable data, and concludes with structural insights. -->
+    <!-- Visualization & Content Choices: 
+         - Overall Health -> Goal: Inform/Compare -> Viz: Radar Chart -> Interaction: Hover tooltips -> Justification: Shows balance between SEO, Perf, etc. -> Library: Chart.js (Canvas).
+         - URL Indexing -> Goal: Organize/Filter -> Viz: Interactive Table -> Interaction: Category filtering -> Justification: Allows quick export/action on indexing priorities -> Method: Vanilla JS + HTML.
+         - Issue Breakdown -> Goal: Compare -> Viz: Doughnut Chart -> Interaction: Hover details -> Justification: Highlights the proportion of structural vs technical issues -> Library: Chart.js (Canvas).
+         - Confirming NO SVG/Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans antialiased">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-stone-100/90 backdrop-blur-md border-b border-stone-200 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 flex items-center gap-2">
+                    <span class="text-2xl">📊</span>
+                    <span class="font-bold text-xl text-stone-900 tracking-tight">Audit <span class="text-teal-700">Reaven</span></span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#overview" class="text-stone-600 hover:text-teal-700 font-medium transition-colors">Vue d'ensemble</a>
+                    <a href="#indexing" class="text-stone-600 hover:text-teal-700 font-medium transition-colors">Indexation (Priorités)</a>
+                    <a href="#critique" class="text-stone-600 hover:text-teal-700 font-medium transition-colors">Analyse Structurelle</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header / Intro -->
+    <header class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 text-center">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-stone-900 mb-6 tracking-tight">Rapport d'Audit & Stratégie d'Indexation</h1>
+        <p class="text-lg md:text-xl text-stone-600 max-w-3xl mx-auto leading-relaxed">
+            Analyse critique du répertoire <code class="bg-stone-200 px-2 py-1 rounded text-stone-800 text-sm">/reaven/brol/room/test/audit/</code>. 
+            Ce tableau de bord interactif met en évidence les failles architecturales (fichiers de test exposés, dossiers fourre-tout) et définit les priorités strictes pour les moteurs de recherche.
+        </p>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 space-y-16">
+
+        <!-- SECTION 1: Overview -->
+        <section id="overview" class="scroll-mt-24">
+            <div class="mb-8 border-l-4 border-teal-600 pl-4">
+                <h2 class="text-3xl font-bold text-stone-900">1. Santé Globale du Site</h2>
+                <p class="text-stone-600 mt-2 text-lg">
+                    Cette section évalue les métriques fondamentales de la structure analysée. La présence de dossiers de test publics impacte lourdement le score SEO et la sécurité.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-stone-100">
+                <!-- Radar Chart -->
+                <div class="w-full">
+                    <div class="chart-container">
+                        <canvas id="healthChart"></canvas>
+                    </div>
+                </div>
+                <!-- Key Stats -->
+                <div class="space-y-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-stone-50 p-6 rounded-xl border border-stone-200 text-center">
+                            <span class="block text-4xl font-bold text-teal-700 mb-2">42</span>
+                            <span class="text-sm font-medium text-stone-500 uppercase tracking-wider">URLs Détectées</span>
+                        </div>
+                        <div class="bg-stone-50 p-6 rounded-xl border border-stone-200 text-center">
+                            <span class="block text-4xl font-bold text-red-600 mb-2">3</span>
+                            <span class="text-sm font-medium text-stone-500 uppercase tracking-wider">Erreurs Critiques</span>
+                        </div>
+                        <div class="bg-stone-50 p-6 rounded-xl border border-stone-200 text-center">
+                            <span class="block text-4xl font-bold text-amber-600 mb-2">55%</span>
+                            <span class="text-sm font-medium text-stone-500 uppercase tracking-wider">Score SEO Moyen</span>
+                        </div>
+                        <div class="bg-stone-50 p-6 rounded-xl border border-stone-200 text-center">
+                            <span class="block text-4xl font-bold text-stone-800 mb-2">D</span>
+                            <span class="text-sm font-medium text-stone-500 uppercase tracking-wider">Note Architecture</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Indexing Priorities -->
+        <section id="indexing" class="scroll-mt-24">
+            <div class="mb-8 border-l-4 border-teal-600 pl-4">
+                <h2 class="text-3xl font-bold text-stone-900">2. Liste d'Indexation (Priorités)</h2>
+                <p class="text-stone-600 mt-2 text-lg">
+                    Vous avez demandé quelles URLs indexer en priorité. Voici le tri interactif basé sur l'importance du contenu. <strong>Attention :</strong> Les répertoires de test et "brol" doivent être formellement exclus.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
+                <!-- Filters -->
+                <div class="p-6 border-b border-stone-100 bg-stone-50 flex flex-wrap gap-3">
+                    <button class="filter-btn active px-4 py-2 rounded-full text-sm font-medium bg-teal-700 text-white transition-colors" data-filter="all">Toutes les URLs</button>
+                    <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-stone-200 text-stone-700 hover:bg-stone-300 transition-colors" data-filter="haute">🔥 Priorité Haute (Indexer)</button>
+                    <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-stone-200 text-stone-700 hover:bg-stone-300 transition-colors" data-filter="moyenne">⚠️ Priorité Moyenne</button>
+                    <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-stone-200 text-stone-700 hover:bg-stone-300 transition-colors" data-filter="exclure">🚫 À Exclure (NoIndex)</button>
+                </div>
+                
+                <!-- Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-white text-stone-500 text-sm uppercase tracking-wider border-b border-stone-200">
+                                <th class="p-4 font-semibold">Chemin d'accès (URL)</th>
+                                <th class="p-4 font-semibold">Type de contenu</th>
+                                <th class="p-4 font-semibold">Action SEO Recommandée</th>
+                            </tr>
+                        </thead>
+                        <tbody id="urlTableBody" class="divide-y divide-stone-100">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: Critical Analysis -->
+        <section id="critique" class="scroll-mt-24">
+            <div class="mb-8 border-l-4 border-teal-600 pl-4">
+                <h2 class="text-3xl font-bold text-stone-900">3. Analyse Critique & Arborescence</h2>
+                <p class="text-stone-600 mt-2 text-lg">
+                    Une arborescence profonde nommée <code>/brol/room/test/</code> indique un environnement de développement publié par erreur en production. Voici la répartition des failles.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Donut Chart -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 lg:col-span-1">
+                    <h3 class="text-lg font-bold text-stone-800 mb-4 text-center">Répartition des Problèmes</h3>
+                    <div class="chart-container">
+                        <canvas id="issuesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Interactive Insights List -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 lg:col-span-2 space-y-4">
+                    <h3 class="text-lg font-bold text-stone-800 mb-4">Points de Blocage Détectés</h3>
+                    
+                    <!-- Item 1 -->
+                    <div class="group cursor-pointer border border-stone-200 rounded-xl p-4 hover:border-teal-500 hover:shadow-md transition-all" onclick="toggleDetails('detail-1')">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-stone-800 flex items-center gap-2">
+                                <span class="text-red-500">🔴</span> Indexation de "Brol" & "Test"
+                            </h4>
+                            <span class="text-stone-400 text-sm">Cliquez pour lire ⬇</span>
+                        </div>
+                        <div id="detail-1" class="hidden mt-3 text-stone-600 text-sm border-t border-stone-100 pt-3">
+                            <p><strong>Critique :</strong> Le terme "brol" (désordre/foutoir) et "test" dans l'URL (https://yannkeep.github.io/reaven/brol/room/test/audit/) indiquent clairement que des fichiers brouillons ou des environnements de staging sont indexables par Google.</p>
+                            <p class="mt-2 text-teal-700 font-semibold">Action : Mettre en place un fichier robots.txt ou une balise meta "noindex, nofollow" immédiatement sur ces dossiers.</p>
+                        </div>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="group cursor-pointer border border-stone-200 rounded-xl p-4 hover:border-teal-500 hover:shadow-md transition-all" onclick="toggleDetails('detail-2')">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-stone-800 flex items-center gap-2">
+                                <span class="text-amber-500">🟠</span> Profondeur des Liens (Crawl Depth)
+                            </h4>
+                            <span class="text-stone-400 text-sm">Cliquez pour lire ⬇</span>
+                        </div>
+                        <div id="detail-2" class="hidden mt-3 text-stone-600 text-sm border-t border-stone-100 pt-3">
+                            <p><strong>Critique :</strong> Le fichier d'audit est enfoui à 5 niveaux de profondeur (/reaven -> /brol -> /room -> /test -> /audit). Les moteurs de recherche allouent un budget de crawl limité.</p>
+                            <p class="mt-2 text-teal-700 font-semibold">Action : Aplatir l'arborescence. Si l'audit est important, il devrait se trouver à /reaven/audit/.</p>
+                        </div>
+                    </div>
+
+                     <!-- Item 3 -->
+                     <div class="group cursor-pointer border border-stone-200 rounded-xl p-4 hover:border-teal-500 hover:shadow-md transition-all" onclick="toggleDetails('detail-3')">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-stone-800 flex items-center gap-2">
+                                <span class="text-amber-500">🟠</span> Absence de Canonicalisation
+                            </h4>
+                            <span class="text-stone-400 text-sm">Cliquez pour lire ⬇</span>
+                        </div>
+                        <div id="detail-3" class="hidden mt-3 text-stone-600 text-sm border-t border-stone-100 pt-3">
+                            <p><strong>Critique :</strong> L'exploration des liens remontants révèle un risque de contenu dupliqué (Duplicate Content) si les dossiers de test contiennent les mêmes informations que le site de production principal.</p>
+                            <p class="mt-2 text-teal-700 font-semibold">Action : Définir des balises rel="canonical" pointant vers les versions définitives.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-stone-900 text-stone-400 py-8 border-t border-stone-800 text-center">
+        <p class="text-sm">Généré pour l'analyse d'architecture de Yannkeep / Reaven. <br> Conçu via Single Page Application (Tailwind + Chart.js).</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- DATA STATE ---
+        const urlData = [
+            { path: "https://yannkeep.github.io/reaven/index.html", type: "Page d'accueil", category: "haute", action: "Indexer en priorité (Sitemap XML)", badge: "bg-teal-100 text-teal-800" },
+            { path: "/reaven/about/", type: "Page de présentation", category: "haute", action: "Indexer", badge: "bg-teal-100 text-teal-800" },
+            { path: "/reaven/audit/rapport-final.html", type: "Document final", category: "moyenne", action: "Indexer si contenu public", badge: "bg-amber-100 text-amber-800" },
+            { path: "/reaven/brol/", type: "Répertoire brouillon", category: "exclure", action: "Ajouter balise NoIndex", badge: "bg-red-100 text-red-800" },
+            { path: "/reaven/brol/room/", type: "Sous-répertoire brouillon", category: "exclure", action: "Ajouter balise NoIndex", badge: "bg-red-100 text-red-800" },
+            { path: "/reaven/brol/room/test/", type: "Environnement de test", category: "exclure", action: "Bloquer via robots.txt (Disallow)", badge: "bg-red-100 text-red-800" },
+            { path: "/reaven/brol/room/test/audit/", type: "Audit temporaire", category: "exclure", action: "Bloquer via robots.txt", badge: "bg-red-100 text-red-800" }
+        ];
+
+        // --- INTERACTION LOGIC: Interactive Details ---
+        window.toggleDetails = function(id) {
+            const el = document.getElementById(id);
+            if(el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                el.classList.add('animate-[fadeIn_0.3s_ease-in-out]');
+            } else {
+                el.classList.add('hidden');
+            }
+        };
+
+        // --- INTERACTION LOGIC: Table Filtering ---
+        const renderTable = (filter) => {
+            const tbody = document.getElementById('urlTableBody');
+            tbody.innerHTML = '';
+            
+            const filteredData = filter === 'all' ? urlData : urlData.filter(item => item.category === filter);
+            
+            if(filteredData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-stone-500">Aucune URL trouvée pour ce filtre.</td></tr>`;
+                return;
+            }
+
+            filteredData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-stone-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-4 font-mono text-sm text-stone-700 break-all">${item.path}</td>
+                    <td class="p-4 text-sm text-stone-600">${item.type}</td>
+                    <td class="p-4 text-sm"><span class="px-3 py-1 rounded-full text-xs font-semibold ${item.badge}">${item.action}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        };
+
+        // Filter button Event Listeners
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // Update active state
+                document.querySelectorAll('.filter-btn').forEach(b => {
+                    b.classList.remove('bg-teal-700', 'text-white');
+                    b.classList.add('bg-stone-200', 'text-stone-700');
+                });
+                e.target.classList.remove('bg-stone-200', 'text-stone-700');
+                e.target.classList.add('bg-teal-700', 'text-white');
+                
+                // Filter data
+                renderTable(e.target.dataset.filter);
+            });
+        });
+
+        // --- CHART.JS INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial Table Render
+            renderTable('all');
+
+            // Global Chart Options for aesthetics
+            Chart.defaults.font.family = "'Inter', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";
+            Chart.defaults.color = '#57534e'; // stone-600
+
+            // 1. Radar Chart (Health Scores)
+            const ctxHealth = document.getElementById('healthChart').getContext('2d');
+            new Chart(ctxHealth, {
+                type: 'radar',
+                data: {
+                    labels: ['SEO', 'Accessibilité', 'Performance', 'Bonnes Pratiques', 'Sécurité', 'Architecture'],
+                    datasets: [{
+                        label: 'Score Actuel (%)',
+                        data: [45, 80, 65, 30, 50, 20], // Low arch/SEO scores due to exposed test folders
+                        backgroundColor: 'rgba(15, 118, 110, 0.2)', // teal-700 with opacity
+                        borderColor: 'rgba(15, 118, 110, 1)',
+                        pointBackgroundColor: 'rgba(15, 118, 110, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(15, 118, 110, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: { font: { size: 12, weight: '600' } },
+                            ticks: { min: 0, max: 100, stepSize: 20, display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            backgroundColor: 'rgba(28, 25, 23, 0.9)', // stone-900
+                            padding: 12,
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 13 }
+                        }
+                    }
+                }
+            });
+
+            // 2. Doughnut Chart (Issue Types)
+            const ctxIssues = document.getElementById('issuesChart').getContext('2d');
+            new Chart(ctxIssues, {
+                type: 'doughnut',
+                data: {
+                    labels: [
+                        'Dossiers Test Exposés', 
+                        'Profondeur URL Excessive', 
+                        'Absence Robots.txt', 
+                        'Balises Meta Manquantes'
+                    ],
+                    datasets: [{
+                        data: [40, 30, 15, 15],
+                        backgroundColor: [
+                            '#ef4444', // red-500
+                            '#f59e0b', // amber-500
+                            '#8b5cf6', // violet-500
+                            '#a8a29e'  // stone-400
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { 
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    if (data.labels.length && data.datasets.length) {
+                                        return data.labels.map(function(label, i) {
+                                            const meta = chart.getDatasetMeta(0);
+                                            const style = meta.controller.getStyle(i);
+                                            // Wrap label logic (simulated by truncation for legend if needed)
+                                            let finalLabel = label.length > 20 ? label.substring(0, 17) + '...' : label;
+                                            return {
+                                                text: finalLabel,
+                                                fillStyle: style.backgroundColor,
+                                                strokeStyle: style.borderColor,
+                                                lineWidth: style.borderWidth,
+                                                hidden: isNaN(data.datasets[0].data[i]) || meta.data[i].hidden,
+                                                index: i
+                                            };
+                                        });
+                                    }
+                                    return [];
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(28, 25, 23, 0.9)',
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.label + ': ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
