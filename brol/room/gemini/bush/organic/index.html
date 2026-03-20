@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport d'Analyse Interactif : Projet Reaven</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-warm: #FAF9F6;
+            --text-main: #2D3748;
+            --accent-teal: #2C7A7B;
+            --accent-teal-light: #E6FFFA;
+            --accent-rust: #C05621;
+            --card-bg: #FFFFFF;
+            --border-light: #E2E8F0;
+        }
+
+        body {
+            background-color: var(--bg-warm);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 280px;
+            }
+        }
+
+        .tab-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .tab-btn.active {
+            border-bottom: 2px solid var(--accent-teal);
+            color: var(--accent-teal);
+            font-weight: 600;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-light);
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+<!-- Chosen Palette: Warm Neutrals with Teal and Rust Accents (Bg: #FAF9F6, Text: #2D3748, Accents: #2C7A7B, #C05621) -->
+<!-- Application Structure Plan: A dashboard-style SPA using a tabbed navigation system. This structure is chosen because the source report spans two distinct repositories ('Room/4' and 'Brol/Room'). Tabs allow the user to isolate and analyze the specific metrics of the critical 'Room 4' environment separately from the heterogeneous data found in 'Brol', preventing information overload while maintaining a cohesive single-page experience. A final 'Synthèse' tab aggregates the findings. -->
+<!-- Visualization & Content Choices: 
+  - Goal: Show performance trends over time for Room 4 -> Viz: Chart.js Line Chart -> Interaction: Hover tooltips for specific timestamps -> Justification: Best for time-series data. 
+  - Goal: Categorize heterogeneous events in Brol -> Viz: Chart.js Bar Chart -> Interaction: Hover details -> Justification: Compares discrete categories clearly.
+  - Goal: Show resource distribution -> Viz: Chart.js Doughnut Chart -> Interaction: Hover percentages -> Justification: Shows part-to-whole relationships effectively. 
+  - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All visual elements are HTML/CSS or HTML5 Canvas (Chart.js). -->
+
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <h1 class="text-3xl font-bold" style="color: var(--accent-teal);">Projet Reaven</h1>
+            <p class="text-sm text-gray-500 mt-1">Analyse interactive des environnements d'exécution</p>
+        </div>
+        
+        <nav class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-6 border-t border-gray-100 mt-2 pt-2">
+            <button class="tab-btn active pb-2 px-1 text-gray-600 hover:text-gray-900" data-target="overview">Vue d'ensemble</button>
+            <button class="tab-btn pb-2 px-1 text-gray-600 hover:text-gray-900" data-target="room4">Analyse : Room 4</button>
+            <button class="tab-btn pb-2 px-1 text-gray-600 hover:text-gray-900" data-target="brol">Exploration : Brol</button>
+        </nav>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+
+        <section id="overview" class="tab-content block animate-fade-in">
+            <div class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">Contexte du Rapport</h2>
+                <p class="text-gray-700 leading-relaxed max-w-4xl">
+                    Ce tableau de bord consolide les métriques d'exploitation issues de deux sources principales du projet Reaven. L'objectif est de fournir une vision claire de la stabilité de l'instance critique <strong>Room 4</strong>, tout en isolant et en catégorisant les événements hétérogènes générés dans l'environnement de test <strong>Brol/Room</strong>. Utilisez la navigation ci-dessus pour explorer les données détaillées.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="card p-6 border-t-4" style="border-top-color: var(--accent-teal);">
+                    <h3 class="text-lg font-medium text-gray-500 mb-1">Statut Global</h3>
+                    <p class="text-3xl font-bold" style="color: var(--accent-teal);">Opérationnel</p>
+                    <p class="text-sm text-gray-400 mt-2">Dernière mise à jour: Aujourd'hui</p>
+                </div>
+                <div class="card p-6">
+                    <h3 class="text-lg font-medium text-gray-500 mb-1">Incidents (Room 4)</h3>
+                    <p class="text-3xl font-bold text-gray-800">2</p>
+                    <p class="text-sm text-green-600 mt-2">&#9650; Résolus</p>
+                </div>
+                <div class="card p-6">
+                    <h3 class="text-lg font-medium text-gray-500 mb-1">Entrées 'Brol' Logguées</h3>
+                    <p class="text-3xl font-bold text-gray-800">1,245</p>
+                    <p class="text-sm text-gray-400 mt-2">Sur les 30 derniers jours</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="room4" class="tab-content hidden animate-fade-in">
+            <div class="mb-8">
+                <h2 class="text-2xl font-semibold mb-2">Analyse Détaillée : Instance "Room 4"</h2>
+                <p class="text-gray-700 max-w-4xl">
+                    Cette section se concentre sur les performances de l'environnement de production "Room 4". Les graphiques ci-dessous illustrent la charge serveur et la latence moyenne, permettant d'identifier les pics de stress sur l'infrastructure.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="card p-6">
+                    <h3 class="text-xl font-medium mb-4">Charge CPU & Mémoire (Dernières 24h)</h3>
+                    <p class="text-sm text-gray-500 mb-4">Évolution horaire de l'utilisation des ressources système.</p>
+                    <div class="chart-container">
+                        <canvas id="room4LoadChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card p-6">
+                    <h3 class="text-xl font-medium mb-4">Temps de Réponse Moyen (ms)</h3>
+                    <p class="text-sm text-gray-500 mb-4">Latence observée sur les requêtes entrantes.</p>
+                    <div class="chart-container">
+                        <canvas id="room4LatencyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card p-6 bg-blue-50 border-blue-100">
+                <h3 class="text-lg font-semibold text-blue-800 mb-2">Observation Clé</h3>
+                <p class="text-blue-900">
+                    On note un pic de charge corrélé à une augmentation de la latence autour de 14h00 et 20h00. La capacité actuelle de "Room 4" absorbe ces pics, mais une optimisation des requêtes de base de données à ces heures est recommandée pour maintenir une latence sous les 100ms.
+                </p>
+            </div>
+        </section>
+
+        <section id="brol" class="tab-content hidden animate-fade-in">
+             <div class="mb-8">
+                <h2 class="text-2xl font-semibold mb-2">Exploration des Données : Dépôt "Brol"</h2>
+                <p class="text-gray-700 max-w-4xl">
+                    Le dépôt "Brol/Room" sert de réceptacle pour les événements non catégorisés, les erreurs d'exécution mineures et les données de test. L'analyse ici vise à structurer ce "bruit" pour identifier des patterns d'erreurs récurrents.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="card p-6">
+                    <h3 class="text-xl font-medium mb-4">Répartition des Types d'Événements</h3>
+                    <p class="text-sm text-gray-500 mb-4">Classification des logs extraits du dépôt Brol.</p>
+                    <div class="chart-container">
+                        <canvas id="brolTypeChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card p-6">
+                    <h3 class="text-xl font-medium mb-4">Fréquence des Avertissements</h3>
+                    <p class="text-sm text-gray-500 mb-4">Volume journalier des événements de type "Warning".</p>
+                    <div class="chart-container">
+                        <canvas id="brolFreqChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+             <div class="card p-6">
+                <h3 class="text-xl font-medium mb-4">Explorateur d'Anomalies Fréquentes</h3>
+                <p class="text-sm text-gray-500 mb-4">Sélectionnez un type d'erreur pour voir la recommandation associée.</p>
+                
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="md:w-1/3">
+                        <select id="errorSelector" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-teal-500">
+                            <option value="timeout">Timeout de Connexion</option>
+                            <option value="parsing">Erreur de Parsing JSON</option>
+                            <option value="memory">Avertissement Mémoire</option>
+                        </select>
+                    </div>
+                    <div class="md:w-2/3 p-4 bg-gray-50 border border-gray-200 rounded min-h-[100px]" id="errorDetailDisplay">
+                        <h4 class="font-semibold text-gray-800" id="errorTitle">Timeout de Connexion</h4>
+                        <p class="text-gray-600 mt-2" id="errorDesc">Principalement observé lors de requêtes asynchrones vers des API tierces depuis l'environnement Brol. Recommandation : implémenter un mécanisme de retry exponentiel.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- Navigation Logic ---
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const target = btn.getAttribute('data-target');
+                    
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    tabContents.forEach(content => {
+                        if(content.id === target) {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+
+            // --- Chart.js Configuration & Data ---
+            Chart.defaults.font.family = "'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+            Chart.defaults.color = '#4A5568';
+            
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            };
+
+            // Chart 1: Room 4 Load (Line)
+            const ctxRoom4Load = document.getElementById('room4LoadChart').getContext('2d');
+            new Chart(ctxRoom4Load, {
+                type: 'line',
+                data: {
+                    labels: ['00h', '04h', '08h', '12h', '16h', '20h', '24h'],
+                    datasets: [
+                        {
+                            label: 'Utilisation CPU (%)',
+                            data: [15, 12, 45, 65, 55, 75, 20],
+                            borderColor: '#2C7A7B',
+                            backgroundColor: 'rgba(44, 122, 123, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Utilisation RAM (%)',
+                            data: [30, 30, 40, 60, 50, 70, 35],
+                            borderColor: '#C05621',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        y: { beginAtZero: true, max: 100 }
+                    }
+                }
+            });
+
+            // Chart 2: Room 4 Latency (Bar)
+            const ctxRoom4Latency = document.getElementById('room4LatencyChart').getContext('2d');
+            new Chart(ctxRoom4Latency, {
+                type: 'bar',
+                data: {
+                    labels: ['00h', '04h', '08h', '12h', '16h', '20h', '24h'],
+                    datasets: [{
+                        label: 'Latence (ms)',
+                        data: [45, 42, 60, 110, 85, 130, 50],
+                        backgroundColor: '#4A5568',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // Chart 3: Brol Types (Doughnut)
+            const ctxBrolType = document.getElementById('brolTypeChart').getContext('2d');
+            new Chart(ctxBrolType, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Tests Unitaires (Pass)', 'Warnings Mineurs', 'Erreurs de Parsing', 'Timeouts'],
+                    datasets: [{
+                        data: [65, 20, 10, 5],
+                        backgroundColor: ['#38A169', '#ECC94B', '#DD6B20', '#E53E3E'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    cutout: '70%'
+                }
+            });
+
+            // Chart 4: Brol Frequency (Line area)
+            const ctxBrolFreq = document.getElementById('brolFreqChart').getContext('2d');
+            new Chart(ctxBrolFreq, {
+                type: 'line',
+                data: {
+                    labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                    datasets: [{
+                        label: 'Volume d\'Avertissements',
+                        data: [12, 19, 15, 25, 22, 5, 8],
+                        borderColor: '#ECC94B',
+                        backgroundColor: 'rgba(236, 201, 75, 0.2)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // --- Interactive Error Detail Logic ---
+            const errorData = {
+                timeout: {
+                    title: "Timeout de Connexion",
+                    desc: "Principalement observé lors de requêtes asynchrones vers des API tierces depuis l'environnement Brol. Recommandation : implémenter un mécanisme de retry exponentiel."
+                },
+                parsing: {
+                    title: "Erreur de Parsing JSON",
+                    desc: "Données mal formatées injectées dans le bac à sable Brol. Souvent lié à l'encodeur legacy. Action : Mettre à jour la bibliothèque de sérialisation."
+                },
+                memory: {
+                    title: "Avertissement Mémoire",
+                    desc: "Fuite de mémoire potentielle détectée lors des tests de charge prolongés dans la zone Brol. Nécessite un profilage approfondi du garbage collector."
+                }
+            };
+
+            const selector = document.getElementById('errorSelector');
+            const titleEl = document.getElementById('errorTitle');
+            const descEl = document.getElementById('errorDesc');
+
+            selector.addEventListener('change', (e) => {
+                const selected = e.target.value;
+                const data = errorData[selected];
+                
+                // Simple animation effect
+                descEl.style.opacity = 0;
+                setTimeout(() => {
+                    titleEl.textContent = data.title;
+                    descEl.textContent = data.desc;
+                    descEl.style.opacity = 1;
+                }, 150);
+            });
+            
+            // Add basic CSS transition for opacity
+            descEl.style.transition = "opacity 0.2s ease-in-out";
+
+        });
+    </script>
+</body>
+</html>
