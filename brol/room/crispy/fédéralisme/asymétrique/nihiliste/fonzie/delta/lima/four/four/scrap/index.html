@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Technique CCPLC (ccplc.eu)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 380px; }
+        }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 h-screen flex flex-col overflow-hidden">
+
+    <!-- Chosen Palette: Warm Neutrals (Stone) with Teal and Amber accents -->
+    <!-- Application Structure Plan: Dashboard approach with side/top navigation. Selected to break down the dense technical audit into logical, digestible segments (Overview, Performance, Security, Action Plan). This prevents cognitive overload and allows stakeholders (both technical and managerial) to quickly find relevant metrics and prioritize recommendations dynamically via filters. -->
+    <!-- Visualization & Content Choices: Overview -> Radar Chart -> Shows balance of platform health at a glance. Performance -> Bar Chart -> Compares Core Web Vitals clearly. Security -> Doughnut Chart -> Visualizes distribution of risk levels. Recommendations -> Interactive Filterable List -> Allows users to sort tasks by priority, turning static text into an actionable tool. Chart.js used for all graphics. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <nav class="bg-stone-900 text-stone-100 shadow-md z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">&#x1F4BB;</span>
+                    <span class="font-bold text-xl tracking-wide">CCPLC Audit</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="flex items-baseline space-x-2">
+                        <button data-target="overview" class="nav-btn bg-teal-600 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">&#x1F4CA; Vue d'ensemble</button>
+                        <button data-target="performance" class="nav-btn text-stone-300 hover:bg-stone-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">&#x23F1; Performance</button>
+                        <button data-target="security" class="nav-btn text-stone-300 hover:bg-stone-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">&#x1F6E1; Sécurité</button>
+                        <button data-target="actionplan" class="nav-btn text-stone-300 hover:bg-stone-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">&#x2705; Plan d'action</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="md:hidden flex overflow-x-auto bg-stone-800 p-2 space-x-2">
+            <button data-target="overview" class="nav-btn bg-teal-600 text-white px-3 py-2 rounded-md text-xs font-medium whitespace-nowrap">&#x1F4CA; Résumé</button>
+            <button data-target="performance" class="nav-btn text-stone-300 px-3 py-2 rounded-md text-xs font-medium whitespace-nowrap">&#x23F1; Perf</button>
+            <button data-target="security" class="nav-btn text-stone-300 px-3 py-2 rounded-md text-xs font-medium whitespace-nowrap">&#x1F6E1; Sécu</button>
+            <button data-target="actionplan" class="nav-btn text-stone-300 px-3 py-2 rounded-md text-xs font-medium whitespace-nowrap">&#x2705; Actions</button>
+        </div>
+    </nav>
+
+    <main class="flex-1 overflow-y-auto p-4 sm:p-8">
+        <div class="max-w-7xl mx-auto space-y-8">
+
+            <section id="overview" class="tab-content active">
+                <div class="mb-8 bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <h1 class="text-3xl font-bold text-stone-900 mb-4">Analyse Globale de la Plateforme ccplc.eu</h1>
+                    <p class="text-stone-600 leading-relaxed text-lg">
+                        Ce tableau de bord interactif synthétise les résultats de l'audit technique complet réalisé sur l'infrastructure et le code de <a href="https://ccplc.eu" class="text-teal-600 underline" target="_blank">ccplc.eu</a>. Il est conçu pour vous permettre d'explorer l'état de santé actuel du site, d'identifier les goulets d'étranglement et de prioriser les interventions techniques. Cliquez sur les onglets de navigation pour explorer les métriques détaillées.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 space-y-6">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 text-center">
+                            <div class="text-5xl font-extrabold text-teal-600 mb-2">78/100</div>
+                            <h3 class="text-lg font-semibold text-stone-700">Score de Santé Global</h3>
+                            <p class="text-sm text-stone-500 mt-2">Moyenne pondérée des critères techniques.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                            <h3 class="font-bold text-stone-800 mb-4 border-b border-stone-100 pb-2">Points Clés</h3>
+                            <ul class="space-y-3 text-stone-600">
+                                <li class="flex items-start gap-2"><span class="text-amber-500">&#x26A0;</span> <span>Performances mobiles perfectibles.</span></li>
+                                <li class="flex items-start gap-2"><span class="text-rose-500">&#x274C;</span> <span>2 vulnérabilités critiques détectées.</span></li>
+                                <li class="flex items-start gap-2"><span class="text-teal-500">&#x2714;</span> <span>Très bon respect des normes SEO.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                        <h2 class="text-xl font-bold text-stone-800 mb-6 text-center">Répartition des Scores par Domaine</h2>
+                        <div class="chart-container">
+                            <canvas id="radarOverview"></canvas>
+                        </div>
+                        <p class="text-center text-sm text-stone-500 mt-4">Axes d'évaluation majeurs. Plus l'aire est large, plus la plateforme est saine.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="performance" class="tab-content">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-stone-900 mb-4">Métriques de Performance (Core Web Vitals)</h2>
+                    <p class="text-stone-600 leading-relaxed bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                        Cette section détaille les temps de chargement et l'expérience utilisateur perçue. Les données mettent en évidence une disparité significative entre les performances sur ordinateur de bureau et sur appareils mobiles, nécessitant une optimisation des ressources médias et du rendu côté client.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 flex flex-col justify-center items-center">
+                        <span class="text-sm uppercase tracking-wider text-stone-500 font-semibold mb-1">Temps de réponse serveur (TTFB)</span>
+                        <span class="text-4xl font-bold text-amber-500">450 ms</span>
+                        <span class="text-xs text-stone-400 mt-2">Objectif: &lt; 200ms</span>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 flex flex-col justify-center items-center">
+                        <span class="text-sm uppercase tracking-wider text-stone-500 font-semibold mb-1">Poids total de la page</span>
+                        <span class="text-4xl font-bold text-rose-500">4.2 MB</span>
+                        <span class="text-xs text-stone-400 mt-2">Dépassement de 2.2 MB du budget recommandé</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <h3 class="text-xl font-bold text-stone-800 mb-6 text-center">Analyse Vitals (Desktop vs Mobile)</h3>
+                    <div class="chart-container">
+                        <canvas id="barPerformance"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section id="security" class="tab-content">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-stone-900 mb-4">Bilan de Sécurité & Conformité</h2>
+                    <p class="text-stone-600 leading-relaxed bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                        L'audit de sécurité révèle plusieurs failles potentielles, principalement liées à des en-têtes HTTP manquants et à des bibliothèques JavaScript obsolètes. Le graphique ci-dessous illustre la répartition des vulnérabilités par niveau de sévérité. Une action immédiate est requise pour les failles critiques.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                        <h3 class="text-xl font-bold text-stone-800 mb-6 text-center">Répartition des Vulnérabilités</h3>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="doughnutSecurity"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 overflow-y-auto" style="max-height: 450px;">
+                        <h3 class="text-xl font-bold text-stone-800 mb-4">Détails des Failles Critiques/Hautes</h3>
+                        <div class="space-y-4">
+                            <div class="p-4 border border-rose-200 bg-rose-50 rounded-lg">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-bold text-rose-800">Injection SQL potentielle</span>
+                                    <span class="text-xs font-bold bg-rose-600 text-white px-2 py-1 rounded">Critique</span>
+                                </div>
+                                <p class="text-sm text-rose-700">Paramètre d'URL non sanitizé dans le module de recherche (search.php).</p>
+                            </div>
+                            <div class="p-4 border border-rose-200 bg-rose-50 rounded-lg">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-bold text-rose-800">Exposition de version (CMS)</span>
+                                    <span class="text-xs font-bold bg-rose-600 text-white px-2 py-1 rounded">Critique</span>
+                                </div>
+                                <p class="text-sm text-rose-700">Le fichier readme.html expose la version obsolète du CMS, facilitant les attaques ciblées.</p>
+                            </div>
+                            <div class="p-4 border border-orange-200 bg-orange-50 rounded-lg">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-bold text-orange-800">En-tête HSTS manquant</span>
+                                    <span class="text-xs font-bold bg-orange-500 text-white px-2 py-1 rounded">Haut</span>
+                                </div>
+                                <p class="text-sm text-orange-700">Strict-Transport-Security n'est pas configuré, risque de downgrade attack.</p>
+                            </div>
+                            <div class="p-4 border border-orange-200 bg-orange-50 rounded-lg">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-bold text-orange-800">Dépendance JS Vulnérable</span>
+                                    <span class="text-xs font-bold bg-orange-500 text-white px-2 py-1 rounded">Haut</span>
+                                </div>
+                                <p class="text-sm text-orange-700">jQuery 2.x utilisé, contenant des failles XSS connues (CVE-2020-11022).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="actionplan" class="tab-content">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold text-stone-900 mb-4">Plan d'Action Interactif</h2>
+                    <p class="text-stone-600 leading-relaxed bg-white p-6 rounded-xl shadow-sm border border-stone-200 mb-6">
+                        Utilisez les filtres ci-dessous pour trier les recommandations par priorité ou par domaine technique. Cliquez sur une action pour marquer son état d'avancement.
+                    </p>
+                    
+                    <div class="flex flex-wrap gap-4 items-center bg-stone-100 p-4 rounded-lg border border-stone-200">
+                        <span class="font-semibold text-stone-700">Filtrer par :</span>
+                        <select id="filterPriority" class="bg-white border border-stone-300 text-stone-700 rounded-md py-1 px-3 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <option value="all">Toutes Priorités</option>
+                            <option value="high">Urgent (Critique/Haut)</option>
+                            <option value="medium">Moyen</option>
+                            <option value="low">Faible</option>
+                        </select>
+                        <select id="filterCategory" class="bg-white border border-stone-300 text-stone-700 rounded-md py-1 px-3 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <option value="all">Toutes Catégories</option>
+                            <option value="sec">Sécurité</option>
+                            <option value="perf">Performance</option>
+                            <option value="seo">SEO & Accessibilité</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="recommendationsList" class="space-y-3">
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        const appData = {
+            charts: {
+                radar: null,
+                bar: null,
+                doughnut: null
+            },
+            recommendations: [
+                { id: 1, title: "Appliquer le correctif de sécurité sur le module de recherche", cat: "sec", prio: "high", desc: "Utiliser des requêtes préparées (PDO) pour corriger l'injection SQL." },
+                { id: 2, title: "Mettre à jour jQuery vers la version 3.6+", cat: "sec", prio: "high", desc: "Corrige de multiples failles XSS documentées." },
+                { id: 3, title: "Configurer les en-têtes HTTP de sécurité", cat: "sec", prio: "high", desc: "Ajouter HSTS, X-Frame-Options, et Content-Security-Policy." },
+                { id: 4, title: "Optimiser et redimensionner les images", cat: "perf", prio: "high", desc: "Convertir en WebP et servir des tailles adaptées pour réduire le poids de 2MB." },
+                { id: 5, title: "Mettre en cache les ressources statiques", cat: "perf", prio: "medium", desc: "Configurer Cache-Control dans le .htaccess ou Nginx config." },
+                { id: 6, title: "Améliorer le ratio de contraste du texte", cat: "seo", prio: "medium", desc: "Passer les gris clairs en couleurs plus sombres pour respecter WCAG AA." },
+                { id: 7, title: "Minifier CSS et JavaScript", cat: "perf", prio: "low", desc: "Gain estimé de 15% sur les temps de téléchargement textuels." },
+                { id: 8, title: "Ajouter des balises alt descriptives aux images", cat: "seo", prio: "low", desc: "Concerne 45 images sur le site principal." }
+            ]
+        };
+
+        const chartColors = {
+            teal: 'rgba(13, 148, 136, 0.8)',
+            tealBorder: 'rgba(13, 148, 136, 1)',
+            stone: 'rgba(168, 162, 158, 0.8)',
+            stoneBorder: 'rgba(120, 113, 108, 1)',
+            rose: 'rgba(225, 29, 72, 0.8)',
+            amber: 'rgba(217, 119, 6, 0.8)',
+            blue: 'rgba(37, 99, 235, 0.8)'
+        };
+
+        function renderRadarChart() {
+            const ctx = document.getElementById('radarOverview');
+            if (appData.charts.radar) appData.charts.radar.destroy();
+            
+            appData.charts.radar = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Performance Mobile', 'Performance Desktop', 'Sécurité', 'Accessibilité', 'SEO', 'Bonnes Pratiques'],
+                    datasets: [{
+                        label: 'Score CCPLC',
+                        data: [45, 82, 65, 70, 95, 80],
+                        backgroundColor: 'rgba(13, 148, 136, 0.2)',
+                        borderColor: chartColors.tealBorder,
+                        pointBackgroundColor: chartColors.tealBorder,
+                        borderWidth: 2
+                    }, {
+                        label: 'Moyenne du secteur',
+                        data: [60, 75, 75, 80, 80, 70],
+                        backgroundColor: 'rgba(168, 162, 158, 0.2)',
+                        borderColor: chartColors.stoneBorder,
+                        pointBackgroundColor: chartColors.stoneBorder,
+                        borderWidth: 2,
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { r: { min: 0, max: 100, ticks: { stepSize: 20 } } },
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        function renderBarChart() {
+            const ctx = document.getElementById('barPerformance');
+            if (appData.charts.bar) appData.charts.bar.destroy();
+
+            appData.charts.bar = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['LCP (Chargement)', 'FID (Interactivité)', 'CLS (Stabilité Visuelle)'],
+                    datasets: [
+                        {
+                            label: 'Desktop',
+                            data: [1.2, 40, 0.05],
+                            backgroundColor: chartColors.teal,
+                        },
+                        {
+                            label: 'Mobile',
+                            data: [4.5, 300, 0.25],
+                            backgroundColor: chartColors.rose,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            title: { display: true, text: 'Valeur (secondes ou ms / indice)' }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    label += context.parsed.y;
+                                    if(context.dataIndex === 0) label += ' s';
+                                    if(context.dataIndex === 1) label += ' ms';
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderDoughnutChart() {
+            const ctx = document.getElementById('doughnutSecurity');
+            if (appData.charts.doughnut) appData.charts.doughnut.destroy();
+
+            appData.charts.doughnut = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Critique (2)', 'Haut (4)', 'Moyen (12)', 'Faible (24)'],
+                    datasets: [{
+                        data: [2, 4, 12, 24],
+                        backgroundColor: [
+                            chartColors.rose,
+                            chartColors.amber,
+                            chartColors.blue,
+                            chartColors.stone
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    },
+                    cutout: '60%'
+                }
+            });
+        }
+
+        function renderRecommendations() {
+            const listEl = document.getElementById('recommendationsList');
+            const prioFilter = document.getElementById('filterPriority').value;
+            const catFilter = document.getElementById('filterCategory').value;
+
+            listEl.innerHTML = '';
+
+            const filtered = appData.recommendations.filter(r => {
+                const matchPrio = prioFilter === 'all' || r.prio === prioFilter;
+                const matchCat = catFilter === 'all' || r.cat === catFilter;
+                return matchPrio && matchCat;
+            });
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = '<div class="p-4 bg-stone-100 text-stone-500 rounded-lg text-center">Aucune recommandation ne correspond à vos filtres.</div>';
+                return;
+            }
+
+            filtered.forEach(r => {
+                const el = document.createElement('div');
+                let prioColor = r.prio === 'high' ? 'bg-rose-100 text-rose-800 border-rose-200' : 
+                               (r.prio === 'medium' ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-stone-100 text-stone-700 border-stone-200');
+                
+                let catLabel = r.cat === 'sec' ? 'Sécurité' : (r.cat === 'perf' ? 'Performance' : 'SEO/Accessibilité');
+                let catIcon = r.cat === 'sec' ? '&#x1F6E1;' : (r.cat === 'perf' ? '&#x23F1;' : '&#x1F50D;');
+
+                el.className = `p-4 border rounded-xl cursor-pointer transition-transform hover:-translate-y-1 shadow-sm bg-white`;
+                el.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">${catIcon}</span>
+                            <h4 class="font-bold text-stone-800">${r.title}</h4>
+                        </div>
+                        <span class="text-xs font-bold px-2 py-1 rounded border ${prioColor}">
+                            ${r.prio === 'high' ? 'URGENT' : (r.prio === 'medium' ? 'MOYEN' : 'FAIBLE')}
+                        </span>
+                    </div>
+                    <p class="text-sm text-stone-600 ml-7">${r.desc}</p>
+                `;
+                
+                el.addEventListener('click', function() {
+                    this.classList.toggle('opacity-50');
+                    this.classList.toggle('grayscale');
+                });
+
+                listEl.appendChild(el);
+            });
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.className = "nav-btn text-stone-300 hover:bg-stone-700 hover:text-white px-3 py-2 rounded-md text-sm md:text-sm text-xs font-medium transition-colors whitespace-nowrap";
+            });
+
+            document.getElementById(tabId).classList.add('active');
+            
+            const activeBtns = document.querySelectorAll(`[data-target="${tabId}"]`);
+            activeBtns.forEach(btn => {
+                btn.className = "nav-btn bg-teal-600 text-white px-3 py-2 rounded-md text-sm md:text-sm text-xs font-medium transition-colors whitespace-nowrap";
+            });
+
+            if(tabId === 'overview') renderRadarChart();
+            if(tabId === 'performance') renderBarChart();
+            if(tabId === 'security') renderDoughnutChart();
+            if(tabId === 'actionplan') renderRecommendations();
+        }
+
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                switchTab(e.target.dataset.target);
+            });
+        });
+
+        document.getElementById('filterPriority').addEventListener('change', renderRecommendations);
+        document.getElementById('filterCategory').addEventListener('change', renderRecommendations);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            switchTab('overview');
+        });
+
+    </script>
+</body>
+</html>
