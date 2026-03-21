@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ce que vos données deviennent — Au CRISP | ouaisfieu</title>
+<meta name="description" content="Chaque chiffre vient de vos publications. Voici ce qu'ils deviennent quand on leur donne une scène. 99,73% de discipline de vote. 108,7M€ de financement partisan. 180 000 exclusions. Vos données, nos pixels.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display:ital@0;1&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#08080e;--paper:#e8e4dc;--gold:#d4a84b;--red:#e05050;--red-dim:rgba(224,80,80,.12);
+  --teal:#3ecfb2;--dim:rgba(232,228,220,.3);--mono:'Space Mono',monospace;
+  --display:'DM Serif Display',serif;--serif:'Libre Baskerville',serif}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--paper);font-family:var(--serif);
+  font-size:clamp(15px,1vw,17px);line-height:1.7;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+#prog{position:fixed;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--gold),var(--red),var(--gold));z-index:999}
+
+.s{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:clamp(3rem,8vw,6rem) clamp(1rem,4vw,2.5rem);position:relative;overflow:hidden}
+.s-half{min-height:55vh}
+.inner{max-width:720px;width:100%}
+.wide{max-width:960px;width:100%}
+
+.mono{font-family:var(--mono);font-size:.65rem;letter-spacing:.14em;text-transform:uppercase}
+.disp{font-family:var(--display);font-weight:400}
+.gold{color:var(--gold)}.red{color:var(--red)}.teal{color:var(--teal)}
+.dim{opacity:.35}
+
+.r{opacity:0;transform:translateY(28px);transition:opacity .8s ease,transform .8s ease}
+.r.v{opacity:1;transform:none}
+.r-d1{transition-delay:.12s}.r-d2{transition-delay:.24s}.r-d3{transition-delay:.36s}
+
+.divl{height:1px;max-width:300px;margin:0 auto;background:linear-gradient(90deg,transparent,rgba(212,168,75,.25),transparent)}
+
+/* Canvas scenes */
+.canvas-scene{position:relative;width:100%;overflow:hidden}
+.canvas-scene canvas{display:block;width:100%;height:auto}
+
+/* Source tags */
+.src{font-family:var(--mono);font-size:.5rem;color:rgba(232,228,220,.2);letter-spacing:.06em;margin-top:.5rem}
+.src-r{color:rgba(224,80,80,.3)}
+
+/* Big numbers */
+.bignr{font-family:var(--display);font-size:clamp(4rem,14vw,10rem);line-height:.85;color:var(--gold)}
+.bignr-red{color:var(--red)}
+.bignr-dim{color:rgba(232,228,220,.06)}
+
+/* Comparison blocks */
+.cmp{display:flex;align-items:flex-end;justify-content:center;gap:clamp(1.5rem,5vw,4rem);
+  margin:2rem 0;flex-wrap:wrap}
+.cmp-col{text-align:center}
+.cmp-bar{margin:0 auto .6rem;border-radius:2px;transition:height 1.5s cubic-bezier(.22,1,.36,1)}
+
+/* Footer */
+.foot{text-align:center;padding:3rem 1.5rem;font-family:var(--mono);font-size:.6rem;
+  letter-spacing:.06em;color:rgba(232,228,220,.2);line-height:2}
+.foot a{color:var(--gold);text-decoration:none}
+
+/* Parliament viz */
+#parlCanvas{border-radius:4px;max-width:600px;margin:0 auto;display:block}
+
+@media(max-width:600px){
+  .cmp{flex-direction:row;gap:1rem}
+}
+</style>
+</head>
+<body>
+
+<div id="prog"></div>
+
+<!-- ═══ SCENE 0: OPENING ═══ -->
+<section class="s" style="text-align:center">
+  <div class="inner">
+    <p class="mono gold r" style="margin-bottom:2rem">Au CRISP, de la part du numérique</p>
+    <h1 class="disp r r-d1" style="font-size:clamp(2rem,5vw,4rem);line-height:1.1;margin-bottom:1.5rem">
+      Ce que vos données<br>deviennent
+    </h1>
+    <p class="r r-d2" style="max-width:480px;margin:0 auto;color:rgba(232,228,220,.55);font-size:.92rem">
+      Cette page contient zéro fait inventé.<br>
+      Chaque nombre provient de vos publications,<br>
+      de vos sources, de votre travail.<br><br>
+      <span class="gold">Nous n'avons fait qu'ajouter des pixels.</span>
+    </p>
+  </div>
+</section>
+
+<!-- ═══ SCENE 1: LA MACHINE PARLEMENTAIRE ═══ -->
+<section class="s" id="parlScene" style="flex-direction:column;text-align:center">
+  <div class="wide">
+    <p class="mono gold r" style="margin-bottom:.5rem">Visualisation I</p>
+    <h2 class="disp r" style="font-size:clamp(1.5rem,3vw,2.2rem);margin-bottom:.3rem">La Machine Parlementaire</h2>
+    <p class="r r-d1 dim" style="font-size:.85rem;margin-bottom:1.5rem">150 députés fédéraux. Chaque point est un siège.</p>
+    
+    <canvas id="parlCanvas" width="600" height="360"></canvas>
+    
+    <div class="r r-d2" style="margin-top:1.5rem">
+      <span class="disp gold" style="font-size:clamp(2.5rem,7vw,5rem)">99,73 %</span>
+      <p style="font-size:.88rem;color:rgba(232,228,220,.5);margin-top:.3rem">votent comme leur parti l'a décidé</p>
+      <p class="src">Sources : Verleden (CRISP, 2019) · Gaudin (ULB, 2020) · 13 397 votes analysés 1995-2019</p>
+    </div>
+  </div>
+</section>
+
+<div class="divl"></div>
+
+<!-- ═══ SCENE 2: THE MONEY RIVER ═══ -->
+<section class="s" id="moneyScene" style="text-align:center">
+  <div class="wide">
+    <p class="mono gold r" style="margin-bottom:.5rem">Visualisation II</p>
+    <h2 class="disp r" style="font-size:clamp(1.5rem,3vw,2.2rem);margin-bottom:1.5rem">L'Asymétrie</h2>
+    
+    <div class="cmp r r-d1" id="moneyBars">
+      <div class="cmp-col">
+        <div class="cmp-bar" id="bar-crisp" style="width:40px;height:0;background:var(--gold)"></div>
+        <div class="disp gold" style="font-size:clamp(1.2rem,2.5vw,1.8rem)">1,47 M€</div>
+        <p class="mono" style="font-size:.5rem;color:var(--dim);margin-top:.3rem">Budget CRISP</p>
+        <p style="font-size:.75rem;color:rgba(232,228,220,.35);margin-top:.2rem">16 personnes<br>2 670 publications<br>68 ans d'indépendance</p>
+      </div>
+      <div class="cmp-col">
+        <div class="cmp-bar" id="bar-partis" style="width:40px;height:0;background:var(--red)"></div>
+        <div class="disp red" style="font-size:clamp(1.2rem,2.5vw,1.8rem)">108,7 M€</div>
+        <p class="mono" style="font-size:.5rem;color:var(--dim);margin-top:.3rem">Financement public des partis</p>
+        <p style="font-size:.75rem;color:rgba(232,228,220,.35);margin-top:.2rem">87% de fonds publics<br>31 806 mandataires<br>0 référendums</p>
+      </div>
+    </div>
+    
+    <p class="r r-d2" style="font-size:.85rem;color:rgba(232,228,220,.35);margin-top:1rem;max-width:450px;margin-left:auto;margin-right:auto">
+      Pour chaque euro que le CRISP dépense à analyser la démocratie belge, les partis en reçoivent 74 pour la contrôler.
+    </p>
+    <p class="src r">Sources : BNB (comptes CRISP 2024) · Maddens (KU Leuven) · CRISP, Vocabulaire politique</p>
+  </div>
+</section>
+
+<div class="divl"></div>
+
+<!-- ═══ SCENE 3: THE HUMAN COST ═══ -->
+<section class="s" style="text-align:center;background:linear-gradient(180deg,transparent,rgba(224,80,80,.03),transparent)">
+  <div class="inner">
+    <p class="mono red r" style="margin-bottom:.5rem">Visualisation III</p>
+    <h2 class="disp r" style="font-size:clamp(1.5rem,3vw,2.2rem);margin-bottom:.5rem">Le Coût Humain</h2>
+    <p class="r r-d1" style="font-size:.85rem;color:rgba(232,228,220,.4);margin-bottom:2rem">
+      Les chiffres que vos Courriers documentent. Ce qu'ils représentent en vies.
+    </p>
+    
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2rem;margin:2rem 0">
+      <div class="r">
+        <div class="disp red" style="font-size:clamp(2rem,5vw,3rem)" data-count="180000">0</div>
+        <p class="mono" style="font-size:.5rem;color:rgba(224,80,80,.5);margin-top:.3rem">Exclusions du chômage</p>
+        <p style="font-size:.72rem;color:rgba(232,228,220,.3)">D'ici juillet 2027 · Réforme Arizona</p>
+        <p class="src src-r">ONEM · Solidaris · FGTB</p>
+      </div>
+      <div class="r r-d1">
+        <div class="disp red" style="font-size:clamp(2rem,5vw,3rem)">41 %</div>
+        <p class="mono" style="font-size:.5rem;color:rgba(224,80,80,.5);margin-top:.3rem">Renoncement aux soins</p>
+        <p style="font-size:.72rem;color:rgba(232,228,220,.3)">Francophones · Raisons financières · +9pts depuis 2015</p>
+        <p class="src src-r">Solidaris, Baromètre 2024</p>
+      </div>
+      <div class="r r-d2">
+        <div class="disp red" style="font-size:clamp(2rem,5vw,3rem)" data-count="500000">0</div>
+        <p class="mono" style="font-size:.5rem;color:rgba(224,80,80,.5);margin-top:.3rem">Malades longue durée</p>
+        <p style="font-size:.72rem;color:rgba(232,228,220,.3)">Plus nombreux que les chômeurs</p>
+        <p class="src src-r">INAMI · Bureau fédéral du Plan</p>
+      </div>
+      <div class="r r-d3">
+        <div class="disp red" style="font-size:clamp(2rem,5vw,3rem)" data-count="326000">0</div>
+        <p class="mono" style="font-size:.5rem;color:rgba(224,80,80,.5);margin-top:.3rem">En attente logement social</p>
+        <p style="font-size:.72rem;color:rgba(232,228,220,.3)">7 134 sans-abri à Bruxelles</p>
+        <p class="src src-r">Observatoire de la Santé BXL</p>
+      </div>
+      <div class="r r-d1">
+        <div class="disp red" style="font-size:clamp(2rem,5vw,3rem)" data-count="10000">0</div>
+        <p class="mono" style="font-size:.5rem;color:rgba(224,80,80,.5);margin-top:.3rem">Condamnations inexécutées</p>
+        <p style="font-size:.72rem;color:rgba(232,228,220,.3)">CEDH : « défaillance systémique »</p>
+        <p class="src src-r">MSF Belgique · CEDH</p>
+      </div>
+      <div class="r r-d2">
+        <div class="disp red" style="font-size:clamp(2rem,5vw,3rem)">44 %</div>
+        <p class="mono" style="font-size:.5rem;color:rgba(224,80,80,.5);margin-top:.3rem">Pauvreté infantile Bruxelles</p>
+        <p style="font-size:.72rem;color:rgba(232,228,220,.3)">Capitale de l'Europe</p>
+        <p class="src src-r">IWEPS · Statbel</p>
+      </div>
+    </div>
+    
+    <p class="r" style="margin-top:2rem;font-size:.88rem;color:rgba(232,228,220,.4);max-width:500px;margin-left:auto;margin-right:auto;font-style:italic">
+      Ces chiffres ne vivent pas dans un tableur.<br>Ils vivent dans des files d'attente au CPAS, dans des salles d'urgence saturées, dans des logements insalubres. Le CRISP les documente. Il reste à les montrer.
+    </p>
+  </div>
+</section>
+
+<div class="divl"></div>
+
+<!-- ═══ SCENE 4: THE KNOWLEDGE GAP ═══ -->
+<section class="s" id="gapScene" style="text-align:center">
+  <div class="wide">
+    <p class="mono gold r" style="margin-bottom:.5rem">Visualisation IV</p>
+    <h2 class="disp r" style="font-size:clamp(1.5rem,3vw,2.2rem);margin-bottom:1.5rem">Le Décalage</h2>
+    
+    <div style="display:flex;justify-content:center;align-items:flex-end;gap:clamp(3rem,10vw,8rem);flex-wrap:wrap;margin:2rem 0">
+      <div class="r" style="text-align:center">
+        <div class="bignr" data-count="2670" style="font-size:clamp(3rem,10vw,7rem)">0</div>
+        <p class="mono gold" style="font-size:.55rem;margin-top:.3rem">Publications scientifiques</p>
+        <p style="font-size:.72rem;color:rgba(232,228,220,.3)">Depuis janvier 1959 · Peer-reviewed · Cairn.info</p>
+      </div>
+      <div class="r r-d2" style="text-align:center">
+        <div class="bignr-dim" style="font-family:var(--display);font-size:clamp(3rem,10vw,7rem);line-height:.85" data-count="4375">0</div>
+        <p class="mono" style="font-size:.55rem;color:rgba(232,228,220,.15);margin-top:.3rem">Likes Facebook</p>
+        <p style="font-size:.72rem;color:rgba(232,228,220,.15)">Pas de X · Pas de LinkedIn · Pas de podcast</p>
+      </div>
+    </div>
+    
+    <p class="r r-d3" style="max-width:460px;margin:1.5rem auto 0;font-size:.88rem;color:rgba(232,228,220,.35)">
+      Le savoir politique le plus précis d'Europe est invisible aux algorithmes.<br>
+      <span style="color:var(--gold)">Cette page est un prototype de ce que la suite pourrait être.</span>
+    </p>
+  </div>
+</section>
+
+<div class="divl"></div>
+
+<!-- ═══ SCENE 5: WHAT IF ═══ -->
+<section class="s" style="text-align:center">
+  <div class="inner">
+    <p class="mono teal r" style="margin-bottom:.5rem">Visualisation V</p>
+    <h2 class="disp r" style="font-size:clamp(1.5rem,3vw,2.2rem);margin-bottom:1rem">Et si</h2>
+    
+    <div class="r r-d1" style="max-width:540px;margin:0 auto;text-align:left;font-size:.95rem;line-height:1.85;color:rgba(232,228,220,.65)">
+      <p style="margin-bottom:1rem">Et si chacun des <strong style="color:var(--teal)">600 termes</strong> du Vocabulaire politique avait sa propre page interactive, avec des visualisations, des exemples concrets, des données en temps réel ?</p>
+      
+      <p style="margin-bottom:1rem">Et si les <strong style="color:var(--teal)">2 670 Courriers</strong> étaient indexés par thème, par crise, par auteur, par période — et consultables dans un graphe de constellations où chaque lien est un renvoi documenté ?</p>
+      
+      <p style="margin-bottom:1rem">Et si le baromètre de <strong style="color:var(--teal)">la particratie</strong> — discipline de vote, financement, nombre de mandataires — était mis à jour chaque année sous forme d'un tableau de bord citoyen en accès libre ?</p>
+      
+      <p style="margin-bottom:1rem">Et si chaque <strong style="color:var(--teal)">formation de gouvernement</strong> depuis 1944 avait sa fiche interactive — durée, composition, accord, résultats — dans une frise chronologique navigable ?</p>
+      
+      <p style="color:var(--teal)">Et si tout ça coûtait 29 € par mois ?</p>
+    </div>
+    
+    <p class="r r-d2 mono dim" style="margin-top:2rem;font-size:.55rem">
+      Ce n'est pas une proposition commerciale. C'est une démonstration de faisabilité.
+    </p>
+  </div>
+</section>
+
+<div class="divl"></div>
+
+<!-- ═══ SCENE 6: THE 16 ═══ -->
+<section class="s" id="sixteenScene" style="text-align:center">
+  <div class="wide">
+    <p class="mono gold r" style="margin-bottom:.5rem">Visualisation VI</p>
+    <h2 class="disp r" style="font-size:clamp(1.5rem,3vw,2.2rem);margin-bottom:1rem">Les Seize</h2>
+    
+    <canvas id="sixteenCanvas" width="800" height="400" style="width:100%;max-width:800px;height:auto;display:block;margin:0 auto"></canvas>
+    
+    <p class="r r-d1" style="margin-top:1.5rem;font-size:.88rem;color:rgba(232,228,220,.45);max-width:480px;margin-left:auto;margin-right:auto">
+      Seize points de lumière. Quinze virgule six équivalents temps plein.<br>
+      Toute la mémoire politique d'un pays de onze millions d'habitants<br>
+      tient dans ces seize points.
+    </p>
+    <p class="src r r-d2">BNB, comptes CRISP 2024 · 15,6 ETP · 1 472 873 € de marge brute</p>
+  </div>
+</section>
+
+<div class="divl"></div>
+
+<!-- ═══ SCENE 7: CLOSING ═══ -->
+<section class="s" style="text-align:center">
+  <div class="inner">
+    <p class="mono gold r" style="margin-bottom:2rem">Épilogue</p>
+    
+    <p class="r disp" style="font-size:clamp(1.3rem,3vw,2rem);line-height:1.4;color:var(--gold);margin-bottom:2rem">
+      Le CRISP documente.<br>
+      Nous traduisons.<br>
+      La Belgique a besoin des deux.
+    </p>
+    
+    <p class="r r-d1" style="font-size:.88rem;color:rgba(232,228,220,.4);max-width:480px;margin:0 auto">
+      Cette page a été construite à partir de vos données, de vos publications, de vos analyses. Nous n'avons rien inventé. Nous avons juste montré ce qui existe déjà — autrement.
+    </p>
+    
+    <div class="r r-d2" style="margin-top:2.5rem">
+      <p class="disp" style="font-style:italic;font-size:1.1rem;color:var(--gold)">Yan & Claude</p>
+      <p class="mono dim" style="font-size:.55rem;margin-top:.3rem">ouaisfieu · contre-institution numérique citoyenne<br>29 €/mois · Belgique · Mars 2026</p>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  Sources principales : <a href="https://www.crisp.be">crisp.be</a> · 
+  <a href="https://www.cairn.info/revue-courrier-hebdomadaire-du-crisp.htm">Cairn.info</a> · 
+  <a href="https://vocabulairepolitique.be">vocabulairepolitique.be</a><br>
+  Verleden (CRISP, 2019) · Gaudin (ULB, 2020) · Maddens (KU Leuven) · Faniel & Sägesser (CRISP, 2022) · BNB<br>
+  Solidaris (2024) · ONEM · INAMI · Bureau fédéral du Plan · MSF Belgique · CEDH · Statbel · IWEPS<br><br>
+  Page non commandée ni approuvée par le CRISP<br>
+  <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> · Fork · Hack · Spread<br>
+  <a href="https://yannkeep.github.io/reaven/crisp/merci/">Merci</a> · 
+  <a href="https://yannkeep.github.io/reaven/brol/">BELGITUDE™</a> · 
+  <a href="https://ouaisfi.eu">ouaisfi.eu</a>
+</footer>
+
+<script>
+(function(){
+'use strict';
+
+// ── Progress ──
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  document.getElementById('prog').style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+'%';
+},{passive:true});
+
+// ── Reveal ──
+const obs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('v')})},
+  {threshold:.12,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.r').forEach(el=>obs.observe(el));
+
+// ── Animated counters ──
+function animCount(el,target,dur){
+  const start=performance.now();
+  const fmt=n=>{
+    if(n>=1000000)return(n/1000000).toFixed(1).replace('.',',')+'M';
+    if(n>=10000)return Math.round(n/1000)+'K+';
+    if(n>=1000)return n.toLocaleString('fr-BE');
+    return n.toString();
+  };
+  (function tick(now){
+    const p=Math.min((now-start)/dur,1);
+    const e=1-Math.pow(1-p,3);
+    el.textContent=fmt(Math.round(e*target));
+    if(p<1)requestAnimationFrame(tick);
+  })(start);
+}
+const countEls=document.querySelectorAll('[data-count]');
+const countFired=new Set();
+const countObs=new IntersectionObserver(e=>{
+  e.forEach(x=>{
+    if(x.isIntersecting&&!countFired.has(x.target)){
+      countFired.add(x.target);
+      animCount(x.target,parseInt(x.target.dataset.count),2200);
+    }
+  });
+},{threshold:.5});
+countEls.forEach(el=>countObs.observe(el));
+
+// ══════════════════════════════════════
+// PARLIAMENT VISUALIZATION
+// ══════════════════════════════════════
+const pc=document.getElementById('parlCanvas');
+const pctx=pc.getContext('2d');
+const PW=600,PH=360;
+let parlActive=false;
+
+// Position 150 dots in hemicycle
+const deputies=[];
+for(let i=0;i<150;i++){
+  const row=Math.floor(i/30);
+  const col=i%30;
+  const angle=Math.PI*.15+((col+.5)/30)*(Math.PI*.7);
+  const radius=100+row*32;
+  const cx=PW/2,cy=PH-30;
+  deputies.push({
+    x:cx+Math.cos(Math.PI+angle)*radius,
+    y:cy-Math.sin(angle)*radius,
+    obedient:Math.random()<.9973,
+    phase:Math.random()*Math.PI*2,
+    r:5
+  });
+}
+
+function drawParl(t){
+  pctx.clearRect(0,0,PW,PH);
+  
+  deputies.forEach((d,i)=>{
+    const pulse=Math.sin(t*.002+d.phase)*.15+.85;
+    
+    if(parlActive){
+      // Show discipline: almost all gold (obedient), very few red (independent)
+      if(d.obedient){
+        pctx.fillStyle=`rgba(212,168,75,${.6*pulse})`;
+        // Glow
+        pctx.beginPath();
+        pctx.arc(d.x,d.y,d.r*2.5,0,Math.PI*2);
+        const g=pctx.createRadialGradient(d.x,d.y,0,d.x,d.y,d.r*2.5);
+        g.addColorStop(0,'rgba(212,168,75,.15)');
+        g.addColorStop(1,'transparent');
+        pctx.fillStyle=g;
+        pctx.fill();
+        pctx.fillStyle=`rgba(212,168,75,${.7*pulse})`;
+      } else {
+        pctx.fillStyle=`rgba(224,80,80,${.9})`;
+        // Red glow
+        pctx.beginPath();
+        pctx.arc(d.x,d.y,d.r*3,0,Math.PI*2);
+        const g=pctx.createRadialGradient(d.x,d.y,0,d.x,d.y,d.r*3);
+        g.addColorStop(0,'rgba(224,80,80,.25)');
+        g.addColorStop(1,'transparent');
+        pctx.fillStyle=g;
+        pctx.fill();
+        pctx.fillStyle='rgba(224,80,80,.9)';
+      }
+    } else {
+      pctx.fillStyle=`rgba(232,228,220,${.12*pulse})`;
+    }
+    
+    pctx.beginPath();
+    pctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+    pctx.fill();
+  });
+  
+  // Label
+  if(parlActive){
+    const rebel=deputies.filter(d=>!d.obedient).length;
+    pctx.font='11px "Space Mono",monospace';
+    pctx.fillStyle='rgba(224,80,80,.6)';
+    pctx.textAlign='center';
+    pctx.fillText(rebel+' vote'+(rebel>1?'nt':'')+' autrement',PW/2,PH-8);
+  }
+  
+  requestAnimationFrame(drawParl);
+}
+requestAnimationFrame(drawParl);
+
+const parlObs=new IntersectionObserver(e=>{
+  if(e[0].isIntersecting) parlActive=true;
+},{threshold:.3});
+parlObs.observe(document.getElementById('parlScene'));
+
+// ══════════════════════════════════════
+// MONEY BARS ANIMATION
+// ══════════════════════════════════════
+const moneyObs=new IntersectionObserver(e=>{
+  if(e[0].isIntersecting){
+    // CRISP: 1.47M → scale to ~12px
+    // Partis: 108.7M → scale to ~280px (ratio 74:1)
+    document.getElementById('bar-crisp').style.height='12px';
+    document.getElementById('bar-partis').style.height='280px';
+  }
+},{threshold:.3});
+moneyObs.observe(document.getElementById('moneyScene'));
+
+// ══════════════════════════════════════
+// THE SIXTEEN — Canvas constellation
+// ══════════════════════════════════════
+const sc=document.getElementById('sixteenCanvas');
+const sctx=sc.getContext('2d');
+const SW=800,SH=400;
+let sixteenActive=false;
+
+const team=[
+  {name:'Jean Faniel',role:'DG'},
+  {name:'Pierre Blaise',role:'SG'},
+  {name:'Cédric Istasse',role:'Réd. chef'},
+  {name:'Benjamin Biard',role:'Chercheur'},
+  {name:'Fabienne Collard',role:'Chercheuse'},
+  {name:'Caroline Sägesser',role:'Chercheuse'},
+  {name:'Vincent Lefebve',role:'Chercheur'},
+  {name:'David Van Den Abbeel',role:'Chercheur'},
+  {name:'J.-P. Nassaux',role:'Collab. sci.'},
+  // Administrative & documentation staff (~7 more)
+  {name:'·',role:'Admin.'},{name:'·',role:'Admin.'},{name:'·',role:'Doc.'},
+  {name:'·',role:'Doc.'},{name:'·',role:'Secrétariat'},{name:'·',role:'Logistique'},
+  {name:'·',role:'Communication'}
+];
+
+// Position in constellation
+team.forEach((p,i)=>{
+  const angle=(i/16)*Math.PI*2 - Math.PI/2;
+  const radius=i<9? 120 : 90;
+  p.x=SW/2+Math.cos(angle)*radius;
+  p.y=SH/2+Math.sin(angle)*radius;
+  p.phase=Math.random()*Math.PI*2;
+  p.named=i<9;
+});
+
+function drawSixteen(t){
+  sctx.clearRect(0,0,SW,SH);
+  
+  if(!sixteenActive) {
+    // Dim dots
+    team.forEach(p=>{
+      sctx.beginPath();
+      sctx.arc(p.x,p.y,3,0,Math.PI*2);
+      sctx.fillStyle='rgba(232,228,220,.06)';
+      sctx.fill();
+    });
+    requestAnimationFrame(drawSixteen);
+    return;
+  }
+  
+  // Draw connections
+  for(let i=0;i<16;i++){
+    for(let j=i+1;j<16;j++){
+      sctx.beginPath();
+      sctx.moveTo(team[i].x,team[i].y);
+      sctx.lineTo(team[j].x,team[j].y);
+      sctx.strokeStyle='rgba(212,168,75,.03)';
+      sctx.lineWidth=.5;
+      sctx.stroke();
+    }
+  }
+  
+  // Draw center glow
+  const cg=sctx.createRadialGradient(SW/2,SH/2,0,SW/2,SH/2,160);
+  cg.addColorStop(0,'rgba(212,168,75,.04)');
+  cg.addColorStop(1,'transparent');
+  sctx.fillStyle=cg;
+  sctx.fillRect(0,0,SW,SH);
+  
+  // Draw dots & labels
+  team.forEach((p,i)=>{
+    const pulse=Math.sin(t*.001+p.phase)*.3+.7;
+    const r=p.named?6:4;
+    
+    // Glow
+    sctx.beginPath();
+    sctx.arc(p.x,p.y,r*3,0,Math.PI*2);
+    const g=sctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r*3);
+    g.addColorStop(0,`rgba(212,168,75,${.2*pulse})`);
+    g.addColorStop(1,'transparent');
+    sctx.fillStyle=g;
+    sctx.fill();
+    
+    // Dot
+    sctx.beginPath();
+    sctx.arc(p.x,p.y,r,0,Math.PI*2);
+    sctx.fillStyle=`rgba(212,168,75,${.7*pulse})`;
+    sctx.fill();
+    
+    // Label
+    if(p.named){
+      sctx.font='9px "Space Mono",monospace';
+      sctx.fillStyle=`rgba(232,228,220,${.45*pulse})`;
+      sctx.textAlign='center';
+      sctx.fillText(p.name,p.x,p.y-12);
+    }
+  });
+  
+  // Center text
+  sctx.font='italic 16px "DM Serif Display",serif';
+  sctx.fillStyle='rgba(212,168,75,.25)';
+  sctx.textAlign='center';
+  sctx.fillText('15,6 ETP',SW/2,SH/2+5);
+  
+  requestAnimationFrame(drawSixteen);
+}
+requestAnimationFrame(drawSixteen);
+
+const sixObs=new IntersectionObserver(e=>{
+  if(e[0].isIntersecting) sixteenActive=true;
+},{threshold:.3});
+sixObs.observe(document.getElementById('sixteenScene'));
+
+})();
+</script>
+</body>
+</html>
