@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>L'Œuvre du CRISP — Constellation interactive | ouaisfieu</title>
+<meta name="description" content="Cartographie interactive de l'œuvre du CRISP : 2 670 Courriers, 9 figures clés, 8 thématiques, 68 ans de liens documentés. Chaque nœud est un fait vérifié.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0c0c14;--bg2:#111119;
+  --gold:#d4a84b;--gold-dim:rgba(212,168,75,.12);
+  --teal:#3ecfb2;--teal-dim:rgba(62,207,178,.1);
+  --violet:#9b7adb;--violet-dim:rgba(155,122,219,.1);
+  --rose:#e06080;--rose-dim:rgba(224,96,128,.1);
+  --sky:#5ba8e0;--sky-dim:rgba(91,168,224,.1);
+  --lime:#8cc63f;--lime-dim:rgba(140,198,63,.1);
+  --white:#e8e4dc;--dim:rgba(232,228,220,.35);
+  --mono:'Space Mono',monospace;--display:'DM Serif Display',serif;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--white);font-family:var(--mono)}
+canvas{display:block;position:absolute;inset:0;z-index:0;cursor:grab}
+canvas:active{cursor:grabbing}
+
+/* ── UI OVERLAY ── */
+.ui{position:absolute;z-index:10;pointer-events:none}
+.ui>*{pointer-events:auto}
+
+/* ── HEADER ── */
+.hdr{top:0;left:0;right:0;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(180deg,rgba(12,12,20,.95) 60%,transparent);gap:8px;flex-wrap:wrap}
+.hdr-title{font-family:var(--display);font-size:clamp(1rem,2.5vw,1.4rem);color:var(--gold);white-space:nowrap}
+.hdr-sub{font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+
+/* ── SEARCH ── */
+.search-wrap{position:relative}
+.search-wrap input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+  border-radius:4px;padding:6px 10px 6px 28px;color:var(--white);font-family:var(--mono);font-size:.68rem;
+  width:clamp(160px,30vw,260px);outline:none;transition:border-color .2s}
+.search-wrap input:focus{border-color:var(--gold)}
+.search-wrap input::placeholder{color:rgba(255,255,255,.25)}
+.search-wrap::before{content:'⌕';position:absolute;left:9px;top:50%;transform:translateY(-50%);
+  font-size:.75rem;color:rgba(255,255,255,.3)}
+
+/* ── LEGEND ── */
+.legend{bottom:16px;left:16px;display:flex;flex-wrap:wrap;gap:6px 12px;
+  background:rgba(12,12,20,.85);backdrop-filter:blur(8px);padding:10px 14px;border-radius:4px;
+  border:1px solid rgba(255,255,255,.05);max-width:calc(100vw - 32px)}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:.55rem;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--dim);cursor:pointer;transition:opacity .2s;user-select:none}
+.leg-item:hover{opacity:1}
+.leg-item.muted{opacity:.25}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* ── TOOLTIP ── */
+.tooltip{position:absolute;pointer-events:none;background:rgba(12,12,20,.94);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:10px 14px;max-width:320px;
+  opacity:0;transition:opacity .15s;z-index:20}
+.tooltip.show{opacity:1}
+.tt-type{font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px}
+.tt-name{font-family:var(--display);font-size:1rem;margin-bottom:4px}
+.tt-desc{font-size:.68rem;line-height:1.5;color:rgba(232,228,220,.7)}
+.tt-links{font-size:.55rem;color:var(--gold);margin-top:6px;letter-spacing:.05em}
+
+/* ── INFO PANEL ── */
+.info{bottom:16px;right:16px;font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--dim);text-align:right;line-height:1.8;
+  background:rgba(12,12,20,.7);padding:8px 12px;border-radius:4px}
+.info a{color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(212,168,75,.3)}
+.info a:hover{border-bottom-color:var(--gold)}
+
+/* ── CONTROLS ── */
+.controls{top:auto;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:6px}
+.ctrl-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:4px;
+  color:var(--white);font-family:var(--mono);font-size:.65rem;padding:5px 10px;cursor:pointer;
+  transition:background .2s,border-color .2s}
+.ctrl-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.15)}
+
+@media(max-width:600px){
+  .hdr{padding:8px 10px}
+  .legend{bottom:auto;top:auto;left:8px;right:8px;bottom:8px}
+  .info{display:none}
+  .controls{bottom:60px}
+}
+</style>
+</head>
+<body>
+
+<canvas id="graph"></canvas>
+
+<!-- UI Layer -->
+<div class="ui hdr">
+  <div>
+    <div class="hdr-title">L'Œuvre du CRISP</div>
+    <div class="hdr-sub">Constellation interactive · Chaque nœud est un fait vérifié</div>
+  </div>
+  <div class="search-wrap">
+    <input type="text" id="search" placeholder="Chercher un nœud…" autocomplete="off">
+  </div>
+</div>
+
+<div class="ui legend" id="legend"></div>
+
+<div class="ui info">
+  Données extraites des archives CRISP<br>
+  Sources : crisp.be · Cairn.info · BNB<br>
+  <a href="https://yannkeep.github.io/reaven/crisp/merci/">← Merci</a> · 
+  <a href="https://ouaisfi.eu">ouaisfieu</a><br>
+  CC BY-SA 4.0 · Yan & Claude
+</div>
+
+<div class="tooltip" id="tooltip">
+  <div class="tt-type" id="ttType"></div>
+  <div class="tt-name" id="ttName"></div>
+  <div class="tt-desc" id="ttDesc"></div>
+  <div class="tt-links" id="ttLinks"></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+// ══════════════════════════════════════════════
+// DATA — Every node and edge from verified sources
+// ══════════════════════════════════════════════
+
+const TYPES = {
+  person:      {color:'#d4a84b', glow:'rgba(212,168,75,.3)', label:'Personnes', r:7},
+  publication: {color:'#3ecfb2', glow:'rgba(62,207,178,.25)', label:'Publications', r:5},
+  theme:       {color:'#9b7adb', glow:'rgba(155,122,219,.3)', label:'Thématiques', r:8},
+  institution: {color:'#5ba8e0', glow:'rgba(91,168,224,.25)', label:'Institutions', r:6},
+  crisis:      {color:'#e06080', glow:'rgba(224,96,128,.3)', label:'Crises & événements', r:6},
+  tool:        {color:'#8cc63f', glow:'rgba(140,198,63,.25)', label:'Outils & ressources', r:5},
+  book:        {color:'#e8a050', glow:'rgba(232,160,80,.25)', label:'Livres', r:5}
+};
+
+const nodes = [
+  // ── PERSONS ──
+  {id:'gl',type:'person',name:'Jules Gérard-Libois',desc:'1923-2005 · Fondateur · Docteur en droit ULiège · Rédacteur en chef Témoignage chrétien (1948-1958) · Président CA jusqu\'à 1996 · Expert Commission Lumumba (2001)'},
+  {id:'xm',type:'person',name:'Xavier Mabille',desc:'1933-2012 · Autodidacte · Employé Société Générale → DG du CRISP · Commentateur RTBF 25 ans · Professeur honoraire ULB sans y avoir étudié · Prix Mabille (ABSP)'},
+  {id:'vdc',type:'person',name:'Vincent de Coorebyter',desc:'Né 1960 · Philosophe sartrien (thèse 696 p.) · DG 1999-2013 · Président depuis 2013 · Académie royale · CH n°2000 · Prof. émérite ULB 2025'},
+  {id:'jf',type:'person',name:'Jean Faniel',desc:'Né 1977 Liège · DG depuis 2013 (27 candidatures) · RTBF-Radio · Expert Institut Montaigne · Co-auteur CH n°2500 · GRACOS'},
+  {id:'cs',type:'person',name:'Caroline Sägesser',desc:'Née 1969 Bruxelles · Ancienne bouquiniste · Repérée par Mabille · Docteure Histoire ULB 2013 · Cultes-laïcité · CH n°2637-2638 (Arizona, 69 p.)'},
+  {id:'jvl',type:'person',name:'Jean Van Lierde',desc:'1926-2006 · 1er employé CRISP · 1er objecteur de conscience belge (1949) · 15 mois prison · Bois du Cazier · Secrétaire général 25 ans · Discours Lumumba 30/06/1960'},
+  {id:'fp',type:'person',name:'François Perin',desc:'1921-2013 · Cofondateur · Droit constitutionnel ULiège · Ministre Réformes institutionnelles 1974-76 · Père de la Région wallonne · Démission Sénat 1980'},
+  {id:'sg',type:'person',name:'Serge Govaert',desc:'Né 1950 Etterbeek · Néerlandophone/philologie germanique ULB · Interface flamande · Administrateur depuis 1977 · ~30 CH · 541 jours (85 p.) · BHV'},
+  {id:'jn',type:'person',name:'Jean Neuville / Hubert Dewez',desc:'1914-1998 · CSC sous pseudonyme · Cofondateur · Cofondateur CARHOP · La condition ouvrière au XIXe · Dictionnaire biographique Mouvement ouvrier'},
+  {id:'bv',type:'person',name:'Benoît Verhaegen',desc:'1929-2009 · Droit+économie · Volontaire Corée · Secteur africain CRISP · Rébellions au Congo (568+830 p.) · Concept d\'« histoire immédiate »'},
+  {id:'bb',type:'person',name:'Benjamin Biard',desc:'Chercheur · Extrême droite · Élections · CH n°2420-2421, 2522-2523 · Co-dir. L\'extrême droite en Belgique (2025, 250 p.)'},
+  {id:'ci',type:'person',name:'Cédric Istasse',desc:'Rédacteur en chef CH · Chercheur · Représentation germanophone (85 p.) · Co-auteur CH n°2500'},
+  {id:'pb',type:'person',name:'Pierre Blaise',desc:'Secrétaire général · Chercheur · Élections provinciales · Co-auteur Introduction à la Belgique fédérale'},
+  {id:'fc',type:'person',name:'Fabienne Collard',desc:'Chercheuse · Économie · Énergie'},
+  {id:'vl',type:'person',name:'Vincent Lefebve',desc:'Chercheur · @nalyse « Face à Donald Trump » (janvier 2026)'},
+  {id:'jp',type:'person',name:'John Pitseys',desc:'Né 1979 · Chercheur CRISP 2013-2019 · Démocratie participative · Ecolo · UCLouvain'},
+  {id:'jg',type:'person',name:'José Gotovitch',desc:'Historien · Co-auteur L\'An 40 (1971, 25 000 ex.) avec Gérard-Libois'},
+  {id:'fv',type:'person',name:'Frederik Verleden',desc:'Auteur Aux sources de la particratie (2019) · 1918-1970 · Traduit du néerlandais'},
+
+  // ── KEY PUBLICATIONS (CH) ──
+  {id:'ch1',type:'publication',name:'CH n°1 (1959)',desc:'Structures de la presse quotidienne en Belgique · 22 pages · Premier numéro'},
+  {id:'ch5',type:'publication',name:'CH n°5 (1959)',desc:'La déclaration gouvernementale sur l\'avenir du Congo'},
+  {id:'ch113',type:'publication',name:'CH n°113 (1961)',desc:'La grève générale en Belgique (Déc. 1960 - Jan. 1961) · 20 pages'},
+  {id:'ch140',type:'publication',name:'CH n°140-142 (1962)',desc:'Nouvelles formes et tendances d\'extrême droite en Belgique · Premier CH sur l\'extrême droite'},
+  {id:'ch500',type:'publication',name:'CH n°500 (1970)',desc:'Jean Ladrière · 33 pages'},
+  {id:'ch519',type:'publication',name:'CH n°518-519 (1970)',desc:'La révision de la Constitution · Grootaers · 1ère réforme de l\'État'},
+  {id:'ch646',type:'publication',name:'CH n°646 (1974)',desc:'Dossier Question Royale · 32 pages'},
+  {id:'ch859',type:'publication',name:'CH n°859 (1979)',desc:'Le problème des Fourons de 1962 à nos jours · 36 pages'},
+  {id:'ch1000',type:'publication',name:'CH n°1000 (1983)',desc:'Gérard-Libois & Mabille · 16 pages'},
+  {id:'ch1362',type:'publication',name:'CH n°1362 (1992)',desc:'L\'essor d\'Agalev et du Vlaams Blok · Swyngedouw · Dimanche noir'},
+  {id:'ch1500',type:'publication',name:'CH n°1500 (1995)',desc:'Lentzen & Mabille · 54 pages'},
+  {id:'ch1591',type:'publication',name:'CH n°1590-1591 (1998)',desc:'Disparitions d\'enfants et justice · Rihoux & Walgrave · Marche blanche'},
+  {id:'ch1974',type:'publication',name:'CH n°1974 (2007)',desc:'BHV · Govaert · 40 pages'},
+  {id:'ch2000',type:'publication',name:'CH n°2000 (2008)',desc:'Clivages et partis en Belgique · De Coorebyter · 95 pages · Lipset-Rokkan'},
+  {id:'ch2044',type:'publication',name:'CH n°2044 (2009)',desc:'Les partis politiques : une domination à tous les niveaux · De Coorebyter'},
+  {id:'ch2145',type:'publication',name:'CH n°2144-2145 (2012)',desc:'541 jours · Govaert · 85 pages · 8 phases de négociation'},
+  {id:'ch2220',type:'publication',name:'CH n°2219-2220',desc:'Réformes du Sénat · Sägesser & Istasse · 6e réforme de l\'État'},
+  {id:'ch2283',type:'publication',name:'CH n°2279-2283 (2015)',desc:'Trilogie Blero sur BHV · 177 pages cumulées'},
+  {id:'ch2421',type:'publication',name:'CH n°2420-2421 (2019)',desc:'L\'extrême droite en Europe occidentale 2004-2019 · Biard'},
+  {id:'ch2500',type:'publication',name:'CH n°2500 (2021)',desc:'La Belgique, un État fédéral singulier · 270 pages · Le plus long CH · 29 systèmes fédéraux · Faniel, Istasse, Lefebve, Sägesser'},
+  {id:'ch2523',type:'publication',name:'CH n°2522-2523 (2021)',desc:'La lutte contre l\'extrême droite en Belgique · Biard'},
+  {id:'ch2561',type:'publication',name:'CH n°2560-2561 (2022)',desc:'Au cœur du pouvoir : le kern · Faniel & Sägesser'},
+  {id:'ch2621',type:'publication',name:'CH n°2621 (2024)',desc:'L\'année politique 2023 · Sägesser'},
+  {id:'ch2638',type:'publication',name:'CH n°2637-2638 (2025)',desc:'Formation du gouvernement Arizona · Sägesser · 69 pages · Étude de référence'},
+  {id:'ch2657',type:'publication',name:'CH n°2654-2657 (2025)',desc:'Élections du 9 juin 2024 · ~400 pages · 2 volumes · Cartes communes par communes'},
+  {id:'pilar19',type:'publication',name:'Piliers et dépilarisation (2019)',desc:'Bruyère, Crosetti, Faniel & Sägesser · Clivage philosophique en Belgique'},
+
+  // ── BOOKS ──
+  {id:'katanga',type:'book',name:'Sécession au Katanga (1963)',desc:'Gérard-Libois · 363 p. · Trad. anglaise U. Wisconsin Press 1966 · Encore cité en 2014'},
+  {id:'an40',type:'book',name:'L\'An 40 (1971)',desc:'Gérard-Libois & Gotovitch · La Belgique occupée · 25 000 exemplaires · Best-seller'},
+  {id:'congo59',type:'book',name:'Série Congo 1959-1967',desc:'7 volumes annuels · CRISP/INEP · 319 à 589 pages · Interrompue par le parti-État de Mobutu'},
+  {id:'rebellions',type:'book',name:'Rébellions au Congo (1966-69)',desc:'Verhaegen · Tome I 568 p. + Tome II 830 p. · Maniema'},
+  {id:'hpb',type:'book',name:'Histoire politique de la Belgique (1986)',desc:'Xavier Mabille · 4 rééditions · Ouvrage de référence pendant 30 ans'},
+  {id:'nhpb',type:'book',name:'Nouvelle histoire politique (2011)',desc:'Mabille · 450 pages · Depuis l\'Ancien Régime'},
+  {id:'particratie',type:'book',name:'Aux sources de la particratie (2019)',desc:'Frederik Verleden · CH n°2501-2504 · Relations partis-parlement 1918-1970 · Traduit du NL'},
+  {id:'ibf',type:'book',name:'Introduction Belgique fédérale (2022)',desc:'Blaise, Faniel, Sägesser · 106 pages · Guide pédagogique'},
+  {id:'edbe25',type:'book',name:'L\'extrême droite en Belgique (2025)',desc:'Biard & Gustin · 250 pages · Novembre 2025'},
+  {id:'sartre',type:'book',name:'Sartre face à la phénoménologie',desc:'De Coorebyter · Ousia/Vrin 2000 · 696 pages · Thèse de doctorat'},
+  {id:'lumumba',type:'book',name:'La pensée politique de Lumumba',desc:'Éd. Van Lierde · Préface Jean-Paul Sartre · Présence Africaine'},
+  {id:'dpm65',type:'book',name:'La décision politique en Belgique (1965)',desc:'Meynaud, Ladrière, Perin · Rupture épistémologique · Sciences politiques modernes en Belgique'},
+  {id:'crisp50',type:'book',name:'Le CRISP : 50 ans d\'histoire (2009)',desc:'Xavier Mabille'},
+  {id:'cultes',type:'book',name:'Cultes et laïcité en Belgique (2000)',desc:'De Coorebyter & Sägesser'},
+
+  // ── THEMES ──
+  {id:'th_part',type:'theme',name:'Particratie',desc:'Axe identitaire · 99,73% discipline de vote · 87% financement public · 31 806 mandataires'},
+  {id:'th_pilar',type:'theme',name:'Pilarisation',desc:'Objet d\'étude et héritage fondateur · Catholicisme, socialisme, libéralisme'},
+  {id:'th_elect',type:'theme',name:'Analyse électorale',desc:'~400 pages pour 2024 · Commune par commune · Chaque cycle depuis 1959'},
+  {id:'th_synd',type:'theme',name:'Syndicalisme & conflits sociaux',desc:'GRACOS · 132 pages pour 2024 · CSC, FGTB, CGSLB'},
+  {id:'th_congo',type:'theme',name:'Congo & décolonisation',desc:'1958-1971 · Secteur africain → CEDAF · Katanga · Lumumba'},
+  {id:'th_reform',type:'theme',name:'Réformes de l\'État',desc:'6 réformes documentées · Fédéralisme · Sénat · Régions · Communautés'},
+  {id:'th_ed',type:'theme',name:'Extrême droite',desc:'Fil rouge depuis CH n°140 (1962) · Vlaams Blok/Belang · PTB · Dimanche noir 1991'},
+  {id:'th_tirage',type:'theme',name:'Tirage au sort citoyen',desc:'Série en 3 parties 2025 · Gustin, Grandjean, Aerts · Institutionnalisation'},
+  {id:'th_bxl',type:'theme',name:'Bruxelles',desc:'Crises institutionnelles · Fusion zones de police · Govaert, Nassaux'},
+  {id:'th_laicite',type:'theme',name:'Cultes & laïcité',desc:'Sägesser & De Coorebyter · Financement cultes · Relations Églises-État'},
+
+  // ── INSTITUTIONS ──
+  {id:'ulb',type:'institution',name:'ULB',desc:'Pôle laïque · De Coorebyter (philosophie) · Sägesser (histoire) · Govaert (philologie)'},
+  {id:'vub',type:'institution',name:'VUB',desc:'Pôle néerlandophone · Els Witte (rectrice 1994-2000) · Guy Vanthemsche'},
+  {id:'ucl',type:'institution',name:'UCLouvain',desc:'Pôle catholique · Pascale Vielle · Michel Molitor · Mabille y enseignait'},
+  {id:'usl',type:'institution',name:'USaint-Louis',desc:'Hugues Dumont (vice-président CA, droit constitutionnel)'},
+  {id:'uliege',type:'institution',name:'ULiège',desc:'Gérard-Libois (droit) · Eric Geerkens · Rémy Leboutte · Perin (droit constitutionnel)'},
+  {id:'unamur',type:'institution',name:'UNamur',desc:'Anne Roekens au CA'},
+  {id:'fwb',type:'institution',name:'Fédération Wallonie-Bruxelles',desc:'Principal bailleur · Éducation permanente + recherche · Moratoire 2025-2028'},
+  {id:'rw',type:'institution',name:'Région wallonne',desc:'Finance le Répertoire de l\'actionnariat wallon'},
+  {id:'cairn',type:'institution',name:'Cairn.info',desc:'Diffusion numérique · Collection complète depuis 1959 · Barrière mobile 1 an seulement'},
+  {id:'rtbf',type:'institution',name:'RTBF',desc:'Commentaire élections · Gérard-Libois → Mabille → De Coorebyter → Faniel'},
+  {id:'fnrs',type:'institution',name:'FRS-FNRS',desc:'Fonds de la Recherche Scientifique · Bailleur · Reconnaissance revue scientifique'},
+  {id:'cedaf',type:'institution',name:'CEDAF',desc:'Centre d\'Études et Documentation Africaines · Né du secteur africain CRISP (1971) · Gérard-Libois & Van Bilsen'},
+  {id:'carhop',type:'institution',name:'CARHOP',desc:'Cofondé par Neuville/Dewez · Fonds Neuville conservé'},
+  {id:'absp',type:'institution',name:'ABSP',desc:'Association belge francophone de science politique · Prix Xavier Mabille'},
+  {id:'esprit',type:'institution',name:'Groupes Esprit',desc:'Mouvement pluraliste d\'Emmanuel Mounier · Matrice du CRISP · Bruxelles, Louvain, Liège, Charleroi, La Louvière, Mons'},
+
+  // ── CRISES / EVENTS ──
+  {id:'ev_leo',type:'crisis',name:'Émeutes de Léopoldville (1959)',desc:'4 janvier 1959 · CH n°2 · Deuxième numéro jamais publié'},
+  {id:'ev_indep',type:'crisis',name:'Indépendance du Congo (1960)',desc:'30 juin 1960 · Discours Lumumba · Mabille entre au CRISP le 1er juillet'},
+  {id:'ev_greve',type:'crisis',name:'Grève générale 1960-61',desc:'CH n°113 · Plus grande grève de l\'histoire belge'},
+  {id:'ev_royale',type:'crisis',name:'Question royale',desc:'CH n°646 (1974) · L\'An 40 de Gérard-Libois & Gotovitch'},
+  {id:'ev_fourons',type:'crisis',name:'Crise des Fourons',desc:'CH n°859 (1979) · 36 pages · 17 ans de crise sur 7 km²'},
+  {id:'ev_dn91',type:'crisis',name:'Dimanche noir (1991)',desc:'Percée Vlaams Blok · CH n°1362 Swyngedouw'},
+  {id:'ev_dutroux',type:'crisis',name:'Marche blanche (1998)',desc:'CH n°1590-1591 · Rihoux & Walgrave · 300 000 personnes'},
+  {id:'ev_bhv',type:'crisis',name:'BHV',desc:'CH n°1974 (2007) + trilogie Blero (2015) · 177+40 pages'},
+  {id:'ev_541',type:'crisis',name:'541 jours (2010-11)',desc:'CH n°2144-2145 · Govaert · 85 pages · Record mondial · 8 phases'},
+  {id:'ev_arizona',type:'crisis',name:'Coalition Arizona (2025)',desc:'CH n°2637-2638 · Sägesser · 239 jours de formation · « Le plus à droite de ce siècle » (Faniel)'},
+  {id:'ev_elect24',type:'crisis',name:'Élections 9 juin 2024',desc:'~400 pages d\'analyse · CH n°2654-2657 · Cartes communales'},
+
+  // ── TOOLS / RESOURCES ──
+  {id:'vocpol',type:'tool',name:'Vocabulaire politique',desc:'vocabulairepolitique.be · ~600 entrées · Accès libre · WordPress · 15-20 capsules audio'},
+  {id:'analysen',type:'tool',name:'@nalyses en ligne',desc:'Depuis 2011 · ~20/an · Gratuit · Éducation permanente · 24 en 2024'},
+  {id:'dossiers',type:'tool',name:'Dossiers du CRISP',desc:'Depuis 1969 · ~90 titres · Format pédagogique · Résumés marginaux & glossaires'},
+  {id:'docpol',type:'tool',name:'Documents politiques',desc:'Compositions gouvernements belges depuis 1944 · Fédéral + régionaux + communautaires'},
+  {id:'actw',type:'tool',name:'Actionnariat wallon',desc:'actionnariatwallon.be · 100 000+ entreprises · Financé par Région wallonne'},
+  {id:'gracos',type:'tool',name:'GRACOS',desc:'Collectif · Conflictualité sociale annuelle · 132 pages pour 2024'}
+];
+
+// ── EDGES (every documented relationship) ──
+const edges = [
+  // Founders → themes & institutions
+  {s:'gl',t:'esprit'},{s:'gl',t:'th_congo'},{s:'gl',t:'katanga'},{s:'gl',t:'an40'},{s:'gl',t:'congo59'},
+  {s:'gl',t:'ch1000'},{s:'gl',t:'uliege'},{s:'gl',t:'rtbf'},{s:'gl',t:'cedaf'},{s:'gl',t:'dpm65'},
+  {s:'gl',t:'ev_indep'},{s:'gl',t:'ev_leo'},{s:'gl',t:'jg'},{s:'gl',t:'bv'},
+  {s:'xm',t:'esprit'},{s:'xm',t:'ch1000'},{s:'xm',t:'ch1500'},{s:'xm',t:'hpb'},{s:'xm',t:'nhpb'},
+  {s:'xm',t:'crisp50'},{s:'xm',t:'rtbf'},{s:'xm',t:'ulb'},{s:'xm',t:'ucl'},{s:'xm',t:'absp'},
+  {s:'xm',t:'cs'},{s:'xm',t:'ev_indep'},
+  {s:'vdc',t:'ch2000'},{s:'vdc',t:'ch2044'},{s:'vdc',t:'sartre'},{s:'vdc',t:'cultes'},
+  {s:'vdc',t:'ulb'},{s:'vdc',t:'th_part'},{s:'vdc',t:'th_laicite'},{s:'vdc',t:'rtbf'},
+  {s:'jf',t:'ch2500'},{s:'jf',t:'ch2561'},{s:'jf',t:'ch2657'},{s:'jf',t:'pilar19'},
+  {s:'jf',t:'rtbf'},{s:'jf',t:'th_synd'},{s:'jf',t:'th_elect'},{s:'jf',t:'gracos'},
+  {s:'jf',t:'ibf'},{s:'jf',t:'ev_arizona'},
+  {s:'cs',t:'ch2638'},{s:'cs',t:'ch2220'},{s:'cs',t:'ch2500'},{s:'cs',t:'ch2621'},
+  {s:'cs',t:'cultes'},{s:'cs',t:'pilar19'},{s:'cs',t:'ibf'},{s:'cs',t:'ulb'},
+  {s:'cs',t:'th_laicite'},{s:'cs',t:'th_reform'},{s:'cs',t:'ev_arizona'},
+  {s:'jvl',t:'esprit'},{s:'jvl',t:'th_congo'},{s:'jvl',t:'ev_indep'},{s:'jvl',t:'lumumba'},{s:'jvl',t:'bv'},
+  {s:'fp',t:'esprit'},{s:'fp',t:'dpm65'},{s:'fp',t:'uliege'},{s:'fp',t:'th_reform'},{s:'fp',t:'ev_fourons'},
+  {s:'sg',t:'ch1974'},{s:'sg',t:'ch2145'},{s:'sg',t:'ulb'},{s:'sg',t:'vub'},
+  {s:'sg',t:'ev_bhv'},{s:'sg',t:'ev_541'},{s:'sg',t:'th_bxl'},
+  {s:'jn',t:'esprit'},{s:'jn',t:'carhop'},{s:'jn',t:'th_synd'},
+  {s:'bv',t:'rebellions'},{s:'bv',t:'congo59'},{s:'bv',t:'cedaf'},{s:'bv',t:'th_congo'},
+  {s:'bb',t:'ch2421'},{s:'bb',t:'ch2523'},{s:'bb',t:'edbe25'},{s:'bb',t:'th_ed'},{s:'bb',t:'vocpol'},
+  {s:'ci',t:'ch2500'},{s:'ci',t:'ch2220'},{s:'ci',t:'vocpol'},
+  {s:'pb',t:'ibf'},{s:'pb',t:'th_elect'},
+  {s:'vl',t:'analysen'},
+  {s:'jp',t:'th_tirage'},
+  {s:'jg',t:'an40'},{s:'jg',t:'ev_royale'},
+  {s:'fv',t:'particratie'},{s:'fv',t:'th_part'},
+
+  // Publications → themes & crises
+  {s:'ch1',t:'th_part'},{s:'ch5',t:'th_congo'},{s:'ch5',t:'ev_leo'},
+  {s:'ch113',t:'ev_greve'},{s:'ch113',t:'th_synd'},
+  {s:'ch140',t:'th_ed'},
+  {s:'ch519',t:'th_reform'},
+  {s:'ch646',t:'ev_royale'},{s:'ch646',t:'an40'},
+  {s:'ch859',t:'ev_fourons'},{s:'ch859',t:'th_reform'},
+  {s:'ch1362',t:'ev_dn91'},{s:'ch1362',t:'th_ed'},
+  {s:'ch1591',t:'ev_dutroux'},
+  {s:'ch1974',t:'ev_bhv'},{s:'ch1974',t:'sg'},
+  {s:'ch2000',t:'th_part'},{s:'ch2000',t:'th_pilar'},
+  {s:'ch2044',t:'th_part'},
+  {s:'ch2145',t:'ev_541'},{s:'ch2145',t:'sg'},
+  {s:'ch2283',t:'ev_bhv'},{s:'ch2283',t:'th_reform'},
+  {s:'ch2421',t:'th_ed'},
+  {s:'ch2500',t:'th_reform'},{s:'ch2500',t:'cairn'},
+  {s:'ch2523',t:'th_ed'},
+  {s:'ch2561',t:'th_part'},
+  {s:'ch2621',t:'th_elect'},
+  {s:'ch2638',t:'ev_arizona'},
+  {s:'ch2657',t:'ev_elect24'},{s:'ch2657',t:'th_elect'},
+  {s:'pilar19',t:'th_pilar'},
+
+  // Books → themes
+  {s:'katanga',t:'th_congo'},{s:'katanga',t:'cedaf'},
+  {s:'an40',t:'ev_royale'},
+  {s:'congo59',t:'th_congo'},{s:'congo59',t:'ev_leo'},
+  {s:'rebellions',t:'th_congo'},
+  {s:'hpb',t:'th_part'},{s:'hpb',t:'th_pilar'},
+  {s:'particratie',t:'th_part'},
+  {s:'edbe25',t:'th_ed'},
+  {s:'dpm65',t:'th_part'},
+  {s:'cultes',t:'th_laicite'},
+
+  // Institutions → institutions & tools
+  {s:'fwb',t:'vocpol'},{s:'fwb',t:'analysen'},{s:'fwb',t:'dossiers'},
+  {s:'rw',t:'actw'},
+  {s:'cairn',t:'ch2500'},{s:'cairn',t:'dossiers'},
+  {s:'fnrs',t:'cairn'},
+  {s:'cedaf',t:'th_congo'},{s:'cedaf',t:'bv'},
+  {s:'esprit',t:'gl'},{s:'esprit',t:'xm'},{s:'esprit',t:'jvl'},{s:'esprit',t:'fp'},{s:'esprit',t:'jn'},
+
+  // Tools → themes
+  {s:'vocpol',t:'th_part'},{s:'vocpol',t:'th_pilar'},{s:'vocpol',t:'th_elect'},
+  {s:'analysen',t:'ev_arizona'},{s:'analysen',t:'fwb'},
+  {s:'docpol',t:'th_reform'},{s:'docpol',t:'th_elect'},
+  {s:'gracos',t:'th_synd'},{s:'gracos',t:'jf'},
+
+  // Cross-links
+  {s:'ibf',t:'th_reform'},{s:'lumumba',t:'ev_indep'},{s:'lumumba',t:'th_congo'},
+  {s:'ch2220',t:'th_reform'},{s:'crisp50',t:'esprit'},
+  {s:'ev_arizona',t:'th_part'},{s:'ev_arizona',t:'th_elect'},
+  {s:'ev_elect24',t:'th_elect'},{s:'ev_541',t:'th_bxl'},{s:'ev_bhv',t:'th_reform'},
+  {s:'ev_bhv',t:'th_bxl'},{s:'ev_dn91',t:'th_ed'}
+];
+
+// ══════════════════════════════════════════════
+// BUILD INDEX
+// ══════════════════════════════════════════════
+
+const nodeMap = {};
+nodes.forEach(n => { nodeMap[n.id] = n; n.edges = []; });
+edges.forEach(e => {
+  if(nodeMap[e.s] && nodeMap[e.t]){
+    nodeMap[e.s].edges.push(e.t);
+    nodeMap[e.t].edges.push(e.s);
+  }
+});
+
+// ══════════════════════════════════════════════
+// CANVAS & PHYSICS
+// ══════════════════════════════════════════════
+
+const canvas = document.getElementById('graph');
+const ctx = canvas.getContext('2d');
+let W, H, dpr;
+let cam = {x:0, y:0, zoom:1};
+let dragging = false, dragStart = null, camStart = null;
+let hovered = null, focused = null;
+let activeTypes = new Set(Object.keys(TYPES));
+
+function resize(){
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W+'px'; canvas.style.height = H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Initialize positions in a circle
+const N = nodes.length;
+nodes.forEach((n,i) => {
+  const angle = (i/N)*Math.PI*2;
+  const spread = Math.min(W,H)*.35;
+  const typeIdx = Object.keys(TYPES).indexOf(n.type);
+  const ring = spread * (.5 + typeIdx*.08);
+  n.x = Math.cos(angle)*ring + (Math.random()-.5)*80;
+  n.y = Math.sin(angle)*ring + (Math.random()-.5)*80;
+  n.vx = 0; n.vy = 0;
+  n.targetR = TYPES[n.type].r;
+  n.r = n.targetR;
+});
+
+// Force simulation
+function simulate(){
+  const alpha = .15;
+  
+  // Repulsion between all nodes
+  for(let i=0;i<N;i++){
+    for(let j=i+1;j<N;j++){
+      let dx = nodes[j].x - nodes[i].x;
+      let dy = nodes[j].y - nodes[i].y;
+      let d = Math.sqrt(dx*dx+dy*dy) || 1;
+      let force = -800/(d*d);
+      let fx = (dx/d)*force;
+      let fy = (dy/d)*force;
+      nodes[i].vx += fx; nodes[i].vy += fy;
+      nodes[j].vx -= fx; nodes[j].vy -= fy;
+    }
+  }
+  
+  // Attraction along edges
+  edges.forEach(e => {
+    const a = nodeMap[e.s], b = nodeMap[e.t];
+    if(!a||!b) return;
+    let dx = b.x - a.x;
+    let dy = b.y - a.y;
+    let d = Math.sqrt(dx*dx+dy*dy) || 1;
+    const idealDist = 100;
+    let force = (d - idealDist)*.003;
+    let fx = (dx/d)*force;
+    let fy = (dy/d)*force;
+    a.vx += fx; a.vy += fy;
+    b.vx -= fx; b.vy -= fy;
+  });
+  
+  // Center gravity
+  nodes.forEach(n => {
+    n.vx -= n.x * .0004;
+    n.vy -= n.y * .0004;
+  });
+  
+  // Apply velocity with damping
+  nodes.forEach(n => {
+    n.vx *= .85;
+    n.vy *= .85;
+    n.x += n.vx * alpha;
+    n.y += n.vy * alpha;
+  });
+}
+
+// ══════════════════════════════════════════════
+// RENDERING
+// ══════════════════════════════════════════════
+
+function worldToScreen(wx,wy){
+  return {
+    x: (wx - cam.x)*cam.zoom + W/2,
+    y: (wy - cam.y)*cam.zoom + H/2
+  };
+}
+function screenToWorld(sx,sy){
+  return {
+    x: (sx - W/2)/cam.zoom + cam.x,
+    y: (sy - H/2)/cam.zoom + cam.y
+  };
+}
+
+function draw(){
+  simulate();
+  
+  ctx.clearRect(0,0,W,H);
+  
+  // Background gradient
+  const grad = ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.6);
+  grad.addColorStop(0,'#10101c');
+  grad.addColorStop(1,'#0a0a10');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,W,H);
+  
+  const focusedEdges = new Set();
+  const focusedNodes = new Set();
+  if(focused){
+    focusedNodes.add(focused.id);
+    focused.edges.forEach(id => focusedNodes.add(id));
+  }
+
+  // Draw edges
+  edges.forEach(e => {
+    const a = nodeMap[e.s], b = nodeMap[e.t];
+    if(!a||!b) return;
+    if(!activeTypes.has(a.type) || !activeTypes.has(b.type)) return;
+    
+    const sa = worldToScreen(a.x, a.y);
+    const sb = worldToScreen(b.x, b.y);
+    
+    let alpha = .06;
+    let width = .5;
+    
+    if(focused){
+      if(focusedNodes.has(a.id) && focusedNodes.has(b.id)){
+        alpha = .35;
+        width = 1.2;
+      } else {
+        alpha = .015;
+      }
+    }
+    if(hovered && !focused){
+      if(hovered.edges.includes(a.id) || hovered.edges.includes(b.id)){
+        if(a.id===hovered.id || b.id===hovered.id){
+          alpha = .3;
+          width = 1;
+        }
+      }
+    }
+    
+    ctx.beginPath();
+    ctx.moveTo(sa.x, sa.y);
+    ctx.lineTo(sb.x, sb.y);
+    ctx.strokeStyle = `rgba(232,228,220,${alpha})`;
+    ctx.lineWidth = width * cam.zoom;
+    ctx.stroke();
+  });
+  
+  // Draw nodes
+  nodes.forEach(n => {
+    if(!activeTypes.has(n.type)) return;
+    const s = worldToScreen(n.x, n.y);
+    const t = TYPES[n.type];
+    let r = n.r * cam.zoom;
+    let alpha = 1;
+    
+    if(focused){
+      if(focusedNodes.has(n.id)){
+        alpha = 1;
+        r *= 1.15;
+      } else {
+        alpha = .1;
+      }
+    }
+    
+    if(hovered === n){
+      r *= 1.4;
+    }
+    
+    // Glow
+    if(alpha > .3 && r > 2){
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, r*2.5, 0, Math.PI*2);
+      const g = ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,r*2.5);
+      g.addColorStop(0, t.glow);
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.globalAlpha = alpha * .6;
+      ctx.fill();
+    }
+    
+    // Node
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, r, 0, Math.PI*2);
+    ctx.fillStyle = t.color;
+    ctx.globalAlpha = alpha;
+    ctx.fill();
+    
+    // Label (only if zoomed enough or hovered/focused)
+    if((cam.zoom > .8 && r > 3) || hovered===n || (focused && focusedNodes.has(n.id))){
+      ctx.globalAlpha = alpha * (hovered===n || (focused && focusedNodes.has(n.id)) ? .9 : .45);
+      ctx.font = `${Math.max(8,9*cam.zoom)}px 'Space Mono',monospace`;
+      ctx.fillStyle = '#e8e4dc';
+      ctx.textAlign = 'center';
+      ctx.fillText(n.name, s.x, s.y - r - 5*cam.zoom);
+    }
+    
+    ctx.globalAlpha = 1;
+  });
+  
+  requestAnimationFrame(draw);
+}
+
+draw();
+
+// ══════════════════════════════════════════════
+// INTERACTION
+// ══════════════════════════════════════════════
+
+function getNodeAt(sx,sy){
+  const w = screenToWorld(sx,sy);
+  let best = null, bestD = Infinity;
+  nodes.forEach(n => {
+    if(!activeTypes.has(n.type)) return;
+    const dx = n.x - w.x, dy = n.y - w.y;
+    const d = Math.sqrt(dx*dx+dy*dy);
+    const hitR = (n.r + 5) / cam.zoom;
+    if(d < hitR && d < bestD){ best = n; bestD = d; }
+  });
+  return best;
+}
+
+// Tooltip
+const tooltip = document.getElementById('tooltip');
+const ttType = document.getElementById('ttType');
+const ttName = document.getElementById('ttName');
+const ttDesc = document.getElementById('ttDesc');
+const ttLinks = document.getElementById('ttLinks');
+
+function showTooltip(n, sx, sy){
+  const t = TYPES[n.type];
+  ttType.textContent = t.label;
+  ttType.style.color = t.color;
+  ttName.textContent = n.name;
+  ttName.style.color = t.color;
+  ttDesc.textContent = n.desc;
+  ttLinks.textContent = n.edges.length + ' connexion' + (n.edges.length>1?'s':'');
+  
+  let tx = sx + 16, ty = sy - 10;
+  if(tx + 320 > W) tx = sx - 330;
+  if(ty + 150 > H) ty = H - 160;
+  if(ty < 60) ty = 60;
+  
+  tooltip.style.left = tx+'px';
+  tooltip.style.top = ty+'px';
+  tooltip.classList.add('show');
+}
+function hideTooltip(){ tooltip.classList.remove('show'); }
+
+canvas.addEventListener('mousemove', e => {
+  if(dragging) return;
+  const n = getNodeAt(e.clientX, e.clientY);
+  if(n !== hovered){
+    hovered = n;
+    if(n) showTooltip(n, e.clientX, e.clientY);
+    else hideTooltip();
+    canvas.style.cursor = n ? 'pointer' : 'grab';
+  } else if(n){
+    showTooltip(n, e.clientX, e.clientY);
+  }
+});
+
+canvas.addEventListener('click', e => {
+  const n = getNodeAt(e.clientX, e.clientY);
+  if(n){
+    if(focused === n) focused = null;
+    else focused = n;
+  } else {
+    focused = null;
+  }
+});
+
+// Pan
+canvas.addEventListener('mousedown', e => {
+  const n = getNodeAt(e.clientX, e.clientY);
+  if(!n){
+    dragging = true;
+    dragStart = {x:e.clientX, y:e.clientY};
+    camStart = {x:cam.x, y:cam.y};
+    hideTooltip();
+  }
+});
+window.addEventListener('mousemove', e => {
+  if(!dragging) return;
+  const dx = (e.clientX - dragStart.x)/cam.zoom;
+  const dy = (e.clientY - dragStart.y)/cam.zoom;
+  cam.x = camStart.x - dx;
+  cam.y = camStart.y - dy;
+});
+window.addEventListener('mouseup', () => { dragging = false; });
+
+// Zoom
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const factor = e.deltaY > 0 ? .9 : 1.1;
+  cam.zoom = Math.max(.15, Math.min(5, cam.zoom * factor));
+}, {passive:false});
+
+// Touch support
+let touches = [], lastPinchDist = 0;
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  touches = [...e.touches];
+  if(touches.length === 1){
+    const n = getNodeAt(touches[0].clientX, touches[0].clientY);
+    if(n){
+      if(focused === n) focused = null; else focused = n;
+      showTooltip(n, touches[0].clientX, touches[0].clientY);
+    } else {
+      focused = null; hideTooltip();
+      dragging = true;
+      dragStart = {x:touches[0].clientX, y:touches[0].clientY};
+      camStart = {x:cam.x, y:cam.y};
+    }
+  }
+  if(touches.length === 2){
+    dragging = false;
+    const dx = touches[1].clientX - touches[0].clientX;
+    const dy = touches[1].clientY - touches[0].clientY;
+    lastPinchDist = Math.sqrt(dx*dx+dy*dy);
+  }
+}, {passive:false});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  touches = [...e.touches];
+  if(touches.length === 1 && dragging){
+    const dx = (touches[0].clientX - dragStart.x)/cam.zoom;
+    const dy = (touches[0].clientY - dragStart.y)/cam.zoom;
+    cam.x = camStart.x - dx;
+    cam.y = camStart.y - dy;
+  }
+  if(touches.length === 2){
+    const dx = touches[1].clientX - touches[0].clientX;
+    const dy = touches[1].clientY - touches[0].clientY;
+    const dist = Math.sqrt(dx*dx+dy*dy);
+    if(lastPinchDist){
+      const factor = dist/lastPinchDist;
+      cam.zoom = Math.max(.15, Math.min(5, cam.zoom * factor));
+    }
+    lastPinchDist = dist;
+  }
+}, {passive:false});
+canvas.addEventListener('touchend', e => {
+  dragging = false; lastPinchDist = 0;
+  if(e.touches.length === 0) touches = [];
+});
+
+// ══════════════════════════════════════════════
+// LEGEND
+// ══════════════════════════════════════════════
+
+const legendEl = document.getElementById('legend');
+Object.entries(TYPES).forEach(([key, t]) => {
+  const count = nodes.filter(n=>n.type===key).length;
+  const item = document.createElement('div');
+  item.className = 'leg-item';
+  item.innerHTML = `<div class="leg-dot" style="background:${t.color}"></div>${t.label} (${count})`;
+  item.addEventListener('click', () => {
+    if(activeTypes.has(key)){
+      activeTypes.delete(key);
+      item.classList.add('muted');
+    } else {
+      activeTypes.add(key);
+      item.classList.remove('muted');
+    }
+  });
+  legendEl.appendChild(item);
+});
+
+// ══════════════════════════════════════════════
+// SEARCH
+// ══════════════════════════════════════════════
+
+const searchInput = document.getElementById('search');
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.toLowerCase().trim();
+  if(!q){ focused = null; return; }
+  const match = nodes.find(n => n.name.toLowerCase().includes(q));
+  if(match){
+    focused = match;
+    cam.x = match.x; cam.y = match.y;
+    cam.zoom = 1.5;
+  }
+});
+
+// Prevent canvas interaction when typing
+searchInput.addEventListener('keydown', e => e.stopPropagation());
+
+})();
+</script>
+</body>
+</html>
