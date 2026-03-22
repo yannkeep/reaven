@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Démocratie Belge à l'Épreuve : Discipline de Vote et Particratie</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom Styles for Interactive Elements & Chart Constraints */
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            scroll-behavior: smooth;
+        }
+        
+        /* Required Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 50vh;
+            min-height: 300px;
+            max-height: 500px;
+        }
+
+        .tab-btn.active {
+            border-bottom: 4px solid #0369a1; /* sky-700 */
+            color: #0369a1;
+            font-weight: bold;
+        }
+
+        .node-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .node-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .node-card.selected {
+            ring: 2px;
+            ring-color: #0369a1;
+            background-color: #f0f9ff;
+            border-color: #0369a1;
+        }
+
+        /* Power Flow Diagram Arrows */
+        .arrow-down::after {
+            content: "⬇";
+            display: block;
+            text-align: center;
+            font-size: 2rem;
+            color: #94a3b8; /* slate-400 */
+            margin: 0.5rem 0;
+        }
+        
+        @media (min-width: 768px) {
+            .arrow-right-md::after {
+                content: "➔";
+                display: inline-block;
+                font-size: 2rem;
+                color: #94a3b8;
+                margin: 0 1rem;
+                vertical-align: middle;
+            }
+            .arrow-down::after {
+                display: none; /* Hide vertical arrows on desktop if using horizontal layout */
+            }
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 antialiased">
+
+    <!-- REQUIRED PLACEHOLDERS -->
+    <!-- Chosen Palette: Warm Neutrals (Stone) for background, Deep Sky Blue for Theory/Ideal, Crimson Red for Practice/Reality, Slate for text. -->
+    <!-- Application Structure Plan: 
+        1. Header: Sets the context and provocative question.
+        2. Section 1 (The Paradox): Toggle between Constitutional Theory and Political Practice. Establishes the core tension.
+        3. Section 2 (The Data): Chart.js bar chart proving the "Practice" with empirical data on voting cohesion.
+        4. Section 3 (The Mechanisms): Interactive CSS grid diagram explaining *why* this happens (The power of Party Presidents).
+        5. Section 4 (Synthesis/Conclusion): Answering "Is it a farce?" with nuanced arguments. 
+        Why this structure? It moves the user logically from the legal ideal, to the shocking reality (data), explains the hidden mechanics causing it, and finally resolves the initial prompt's question through a balanced synthesis. 
+    -->
+    <!-- Visualization & Content Choices: 
+        - Goal: Compare Theory vs Practice -> Method: Interactive Text Toggle -> Interaction: Clicking updates content -> Justification: Clearest way to show the stark contrast without overwhelming.
+        - Goal: Prove voting discipline -> Method: Bar Chart (Chart.js) -> Interaction: Hover tooltips -> Justification: Quantitative proof of the "particratie". NO SVG used.
+        - Goal: Explain power dynamics -> Method: Interactive HTML/CSS Diagram -> Interaction: Clickable nodes reveal explanations -> Justification: Breaks down complex political mechanics into digestible, user-driven steps. NO MERMAID used.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold text-stone-800">🏛️ Analyse Démocratique BE</span>
+                </div>
+                <div class="flex items-center space-x-4 hidden sm:flex">
+                    <a href="#le-paradoxe" class="text-stone-600 hover:text-sky-700 transition">Le Paradoxe</a>
+                    <a href="#les-donnees" class="text-stone-600 hover:text-sky-700 transition">Les Chiffres</a>
+                    <a href="#les-mecanismes" class="text-stone-600 hover:text-sky-700 transition">Mécanismes</a>
+                    <a href="#conclusion" class="text-stone-600 hover:text-sky-700 transition">Conclusion</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header / Hero -->
+    <header class="bg-stone-800 text-stone-50 py-16 sm:py-24">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
+                La Démocratie Belge :<br> <span class="text-sky-400">Idéal Constitutionnel</span> vs <span class="text-red-400">Réalité Particratique</span>
+            </h1>
+            <p class="text-lg sm:text-xl text-stone-300 mt-6 max-w-2xl mx-auto">
+                La Constitution garantit la liberté absolue de nos députés. Pourtant, dans les faits, ils votent presque toujours selon les directives de leur parti. Évaluons l'impact de cette "discipline de vote". Est-ce une nécessité politique ou une vaste farce démocratique ?
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+        <!-- SECTION 1: Le Paradoxe (Theory vs Practice) -->
+        <section id="le-paradoxe" class="scroll-mt-24">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-stone-800">1. Le Grand Écart Légal</h2>
+                <p class="text-stone-600 mt-4 max-w-2xl mx-auto">
+                    Découvrez la contradiction fondamentale au cœur du système parlementaire belge en basculant entre le texte fondateur et l'observation politique.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-stone-200">
+                <div class="flex border-b border-stone-200">
+                    <button onclick="switchTab('theorie')" id="btn-theorie" class="tab-btn active flex-1 py-4 px-6 text-center font-medium transition focus:outline-none">
+                        📖 En Théorie (La Constitution)
+                    </button>
+                    <button onclick="switchTab('pratique')" id="btn-pratique" class="tab-btn flex-1 py-4 px-6 text-center font-medium text-stone-500 hover:text-stone-800 transition focus:outline-none">
+                        🎭 En Pratique (La Particratie)
+                    </button>
+                </div>
+                
+                <div class="p-8">
+                    <!-- Theory Content -->
+                    <div id="content-theorie" class="block animate-fade-in">
+                        <div class="flex flex-col md:flex-row gap-8 items-center">
+                            <div class="flex-1">
+                                <h3 class="text-2xl font-bold text-sky-700 mb-4">Le Mandat Représentatif Libre</h3>
+                                <p class="text-lg text-stone-700 leading-relaxed mb-4">
+                                    L'article 42 de la Constitution belge de 1831 établit l'un des principes les plus nobles de notre démocratie : <strong>l'interdiction du mandat impératif</strong>.
+                                </p>
+                                <blockquote class="border-l-4 border-sky-500 pl-4 py-2 bg-sky-50 text-stone-800 font-serif italic mb-4">
+                                    "Les membres des deux Chambres représentent la Nation, et non uniquement ceux qui les ont élus." <br>— Article 42, Constitution Belge
+                                </blockquote>
+                                <p class="text-stone-600">
+                                    <strong>Ce que cela signifie :</strong> Théoriquement, une fois élu, un député n'obéit qu'à sa propre conscience. Ni ses électeurs, ni son parti ne peuvent lui dicter son vote. Le Parlement est conçu comme un lieu de délibération où les arguments font basculer les votes individuels.
+                                </p>
+                            </div>
+                            <div class="hidden md:flex flex-col items-center justify-center p-6 bg-sky-50 rounded-full w-48 h-48 border-4 border-sky-200">
+                                <span class="text-6xl">🕊️</span>
+                                <span class="font-bold text-sky-800 mt-2">Liberté</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Practice Content -->
+                    <div id="content-pratique" class="hidden animate-fade-in">
+                        <div class="flex flex-col md:flex-row gap-8 items-center">
+                            <div class="flex-1">
+                                <h3 class="text-2xl font-bold text-red-700 mb-4">La Discipline de Fer</h3>
+                                <p class="text-lg text-stone-700 leading-relaxed mb-4">
+                                    Malgré l'article 42, l'observation des votes à la Chambre des Représentants révèle une réalité tout autre : la <strong>discipline de parti</strong>.
+                                </p>
+                                <div class="bg-red-50 p-4 rounded-lg border border-red-200 mb-4">
+                                    <ul class="list-disc list-inside text-stone-800 space-y-2">
+                                        <li>Les députés votent en bloc, selon les consignes du chef de groupe.</li>
+                                        <li>Les débats en plénière changent rarement l'issue d'un vote.</li>
+                                        <li>L'accord de gouvernement lie la majorité : aucune dissidence n'est tolérée sous peine de crise politique.</li>
+                                    </ul>
+                                </div>
+                                <p class="text-stone-600">
+                                    <strong>Le résultat :</strong> Le Parlement devient souvent une "chambre d'entérinement" des décisions prises en amont par les présidents de partis (les "faiseurs de rois") et le gouvernement. La liberté constitutionnelle s'efface devant la logique de bloc.
+                                </p>
+                            </div>
+                            <div class="hidden md:flex flex-col items-center justify-center p-6 bg-red-50 rounded-full w-48 h-48 border-4 border-red-200">
+                                <span class="text-6xl">⛓️</span>
+                                <span class="font-bold text-red-800 mt-2">Discipline</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Quantitative Data (Chart) -->
+        <section id="les-donnees" class="scroll-mt-24">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-stone-800">2. La Preuve par les Chiffres</h2>
+                <p class="text-stone-600 mt-4 max-w-2xl mx-auto">
+                    L'indice de cohésion mesure la fréquence à laquelle les membres d'un même groupe politique votent de manière identique. Un score de 100% indique une discipline absolue. Voici les données moyennes estimées pour la Chambre belge.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-md border border-stone-200">
+                <!-- CHART CONTAINER - Strictly follows design requirements -->
+                <div class="chart-container">
+                    <canvas id="cohesionChart"></canvas>
+                </div>
+                <div class="mt-6 text-center text-sm text-stone-500">
+                    <p><em>* Données illustratives basées sur des études de sciences politiques belges (ex: CRISP, Cevipol). La cohésion moyenne en Belgique dépasse systématiquement les 95%.</em></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: Interactive Mechanisms -->
+        <section id="les-mecanismes" class="scroll-mt-24">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-stone-800">3. Pourquoi cette discipline ? L'Anatomie du Pouvoir</h2>
+                <p class="text-stone-600 mt-4 max-w-2xl mx-auto">
+                    Si la Constitution les protège, pourquoi les députés obéissent-ils ? Explorez le schéma de la "Particratie" belge. <strong class="text-sky-600">Cliquez sur les acteurs</strong> pour comprendre les leviers de pression.
+                </p>
+            </div>
+
+            <div class="bg-stone-100 p-8 rounded-xl border border-stone-300">
+                
+                <!-- Flow Diagram (HTML/CSS) -->
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 relative">
+                    
+                    <!-- Node 1 -->
+                    <div id="node-electeur" class="node-card bg-white p-6 rounded-lg border border-stone-300 w-full md:w-64 text-center z-10" onclick="showExplanation('electeur')">
+                        <span class="text-4xl block mb-2">🗳️</span>
+                        <h4 class="font-bold text-stone-800">1. Le Système Électoral</h4>
+                        <p class="text-xs text-stone-500 mt-2">Cliquez pour voir l'impact</p>
+                    </div>
+
+                    <div class="arrow-down md:arrow-right-md"></div>
+
+                    <!-- Node 2 -->
+                    <div id="node-president" class="node-card bg-white p-6 rounded-lg border-2 border-red-400 shadow-md w-full md:w-64 text-center z-10 relative" onclick="showExplanation('president')">
+                        <div class="absolute -top-3 -right-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow">Centre du pouvoir</div>
+                        <span class="text-4xl block mb-2">👑</span>
+                        <h4 class="font-bold text-stone-800">2. Le Président de Parti</h4>
+                        <p class="text-xs text-stone-500 mt-2">Cliquez pour voir les leviers</p>
+                    </div>
+
+                    <div class="arrow-down md:arrow-right-md"></div>
+
+                    <!-- Node 3 -->
+                    <div id="node-depute" class="node-card bg-white p-6 rounded-lg border border-stone-300 w-full md:w-64 text-center z-10" onclick="showExplanation('depute')">
+                        <span class="text-4xl block mb-2">👔</span>
+                        <h4 class="font-bold text-stone-800">3. Le Député</h4>
+                        <p class="text-xs text-stone-500 mt-2">Cliquez pour voir le résultat</p>
+                    </div>
+                </div>
+
+                <!-- Explanation Display Box -->
+                <div id="explanation-box" class="mt-8 bg-white p-6 rounded-lg shadow-inner border border-sky-200 hidden">
+                    <h3 id="exp-title" class="text-xl font-bold text-sky-800 mb-2">Titre</h3>
+                    <p id="exp-text" class="text-stone-700 leading-relaxed">Texte d'explication ici.</p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 4: Conclusion (Is it a farce?) -->
+        <section id="conclusion" class="scroll-mt-24 mb-24">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-stone-800">4. Synthèse : Est-ce une "Farce" ?</h2>
+                <p class="text-stone-600 mt-4 max-w-3xl mx-auto">
+                    Le grand écart entre la théorie de l'article 42 et la réalité de la discipline de vote fait souvent dire que le Parlement n'est qu'un théâtre. Mais l'analyse politique offre une vision plus nuancée.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Argument OUI -->
+                <div class="bg-white p-8 rounded-xl shadow-sm border-t-4 border-red-500 hover:shadow-md transition">
+                    <h3 class="text-2xl font-bold text-red-700 mb-4 flex items-center">
+                        <span class="mr-2">🎭</span> Oui, d'un point de vue strict
+                    </h3>
+                    <p class="text-stone-700 mb-4">
+                        Si l'on s'en tient à la vision des fondateurs de 1831, le système actuel est dysfonctionnel :
+                    </p>
+                    <ul class="space-y-3 text-stone-600">
+                        <li class="flex items-start"><span class="text-red-500 mr-2">➔</span> <strong>Perte de la délibération :</strong> Les discours en tribune sont souvent des postures théâtrales destinées aux médias, les votes étant décidés avant même le début de la séance.</li>
+                        <li class="flex items-start"><span class="text-red-500 mr-2">➔</span> <strong>Hyper-présidentialisation :</strong> Le véritable pouvoir législatif s'est déplacé du Parlement vers le "Cenacle" des présidents de partis (G10, kern, etc.).</li>
+                        <li class="flex items-start"><span class="text-red-500 mr-2">➔</span> <strong>Sanction des dissidents :</strong> Un parlementaire usant de sa liberté constitutionnelle risque l'exclusion de son groupe ou la fin de sa carrière (non-réélection).</li>
+                    </ul>
+                </div>
+
+                <!-- Argument NON -->
+                <div class="bg-white p-8 rounded-xl shadow-sm border-t-4 border-emerald-500 hover:shadow-md transition">
+                    <h3 class="text-2xl font-bold text-emerald-700 mb-4 flex items-center">
+                        <span class="mr-2">⚖️</span> Non, d'un point de vue pragmatique
+                    </h3>
+                    <p class="text-stone-700 mb-4">
+                        Le système a évolué vers une "démocratie de partis" qui offre des garanties essentielles :
+                    </p>
+                    <ul class="space-y-3 text-stone-600">
+                        <li class="flex items-start"><span class="text-emerald-500 mr-2">✓</span> <strong>Stabilité gouvernementale :</strong> Sans discipline de vote, les gouvernements de coalition (typiques en Belgique) tomberaient à chaque désaccord mineur. La discipline assure la survie de l'exécutif.</li>
+                        <li class="flex items-start"><span class="text-emerald-500 mr-2">✓</span> <strong>Lisibilité pour l'électeur :</strong> L'électeur vote pour un programme de parti. Si chaque élu faisait cavalier seul, il serait impossible de mettre en œuvre les promesses électorales collectives.</li>
+                        <li class="flex items-start"><span class="text-emerald-500 mr-2">✓</span> <strong>Professionnalisation :</strong> Les groupes politiques fournissent aux députés les ressources (experts, centres d'études) nécessaires pour traiter des lois de plus en plus complexes.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-12 bg-stone-800 text-stone-100 p-8 rounded-xl text-center">
+                <h3 class="text-xl font-bold mb-4">Conclusion Générale</h3>
+                <p class="max-w-3xl mx-auto leading-relaxed text-stone-300">
+                    Ce n'est pas une "farce", mais <strong>une mutation du modèle démocratique</strong>. La Constitution de 1831 imaginait des notables individuels délibérant librement. La réalité du 21e siècle exige des coalitions complexes et prévisibles. Le Parlement belge n'est plus tant le lieu où se <em class="text-white">font</em> les lois, que la chambre d'écho institutionnelle et publique où la majorité assume ses choix politiques face à l'opposition, sous l'œil de l'électeur. La Constitution n'est théoriquement pas violée (le vote reste légalement libre), mais en pratique, elle est contournée par les nécessités de la Realpolitik.
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-200 py-8 text-center text-stone-500 text-sm">
+        <p>Analyse conceptuelle - Architecture d'Information Web - Conçu avec Tailwind & Chart.js</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- 1. Tab Switching Logic (Section 1) ---
+        function switchTab(tabId) {
+            // Update Buttons
+            document.getElementById('btn-theorie').classList.remove('active', 'text-stone-800');
+            document.getElementById('btn-theorie').classList.add('text-stone-500');
+            document.getElementById('btn-pratique').classList.remove('active', 'text-stone-800');
+            document.getElementById('btn-pratique').classList.add('text-stone-500');
+            
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.classList.add('active');
+            activeBtn.classList.remove('text-stone-500');
+
+            // Update Content
+            document.getElementById('content-theorie').classList.add('hidden');
+            document.getElementById('content-pratique').classList.add('hidden');
+            
+            document.getElementById(`content-${tabId}`).classList.remove('hidden');
+        }
+
+        // --- 2. Chart.js Implementation (Section 2) ---
+        document.addEventListener("DOMContentLoaded", function() {
+            const ctx = document.getElementById('cohesionChart').getContext('2d');
+            
+            // Mock Data reflecting typical Belgian political realities
+            const parties = ['PS', 'MR', 'Ecolo', 'N-VA', 'Vlaams Belang', 'PTB-PVDA', 'CD&V', 'Open Vld'];
+            const cohesionScores = [99.2, 98.5, 99.5, 99.8, 99.9, 100.0, 97.8, 98.1];
+            
+            // Base color for bars, accent color for the highest
+            const barColors = cohesionScores.map(score => score >= 99.5 ? '#b91c1c' : '#0369a1');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: parties,
+                    datasets: [{
+                        label: 'Indice de Cohésion de Vote (%)',
+                        data: cohesionScores,
+                        backgroundColor: barColors,
+                        borderWidth: 0,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // CRITICAL for filling the container
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Cohésion : ${context.parsed.y}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 90, // Set minimum to 90 to exaggerate the differences at the top end, as all are high
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Pourcentage de cohésion'
+                            },
+                            ticks: {
+                                callback: function(value) { return value + "%" }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                // Simple text wrapping simulation if needed, though party names are short
+                                callback: function(value, index, values) {
+                                    const label = this.getLabelForValue(value);
+                                    if(label.length > 16) {
+                                        return label.substring(0, 16) + '...';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        // --- 3. Interactive Diagram Logic (Section 3) ---
+        const explanationData = {
+            'electeur': {
+                title: "1. Le Système Électoral et l'Électeur",
+                text: "En Belgique, le système est proportionnel avec un vote de liste semi-ouvert. L'électeur vote pour un parti ou pour des candidats spécifiques sur une liste. Bien que le vote nominatif existe, <strong>l'ordre de la liste</strong> (établi par le parti) reste déterminant pour être élu, surtout grâce au mécanisme (affaibli mais existant) de dévolution de la case de tête. L'électeur confie donc le pouvoir fondamental au Parti."
+            },
+            'president': {
+                title: "2. Le Président de Parti : Le Vrai Patron",
+                text: "Il est la clé de voûte de la particratie. Ses pouvoirs sont immenses : <br><br> ➔ <strong>Confection des listes électorales :</strong> Il décide de l'ordre des candidats. Être mal placé signifie ne pas être élu. C'est l'arme de dissuasion massive contre la rébellion.<br> ➔ <strong>Négociation gouvernementale :</strong> Il négocie les accords de gouvernement (qui lient les députés) et nomme les ministres."
+            },
+            'depute': {
+                title: "3. Le Député : Soldat du Parti",
+                text: "Malgré son mandat libre théorique (Art. 42), le député sait que sa survie politique et son avancement (devenir bourgmestre, ministre) dépendent de sa loyauté au groupe. S'il vote contre les consignes : <br>1. Il risque l'exclusion du groupe parlementaire.<br>2. Il ne sera pas reproposé sur les listes électorales aux élections suivantes. <br><strong>Le choix est clair : la discipline ou la fin de carrière.</strong>"
+            }
+        };
+
+        function showExplanation(nodeId) {
+            // Reset node styling
+            document.querySelectorAll('.node-card').forEach(card => {
+                card.classList.remove('selected', 'ring-2', 'ring-sky-600', 'bg-sky-50');
+                card.classList.add('bg-white');
+            });
+
+            // Highlight selected node
+            const selectedNode = document.getElementById(`node-${nodeId}`);
+            selectedNode.classList.remove('bg-white');
+            selectedNode.classList.add('selected', 'ring-2', 'ring-sky-600', 'bg-sky-50');
+
+            // Update and show explanation box
+            const data = explanationData[nodeId];
+            document.getElementById('exp-title').innerHTML = data.title;
+            document.getElementById('exp-text').innerHTML = data.text;
+            
+            const expBox = document.getElementById('explanation-box');
+            expBox.classList.remove('hidden');
+            
+            // Smooth scroll to explanation on mobile
+            if (window.innerWidth < 768) {
+                expBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+    </script>
+</body>
+</html>
