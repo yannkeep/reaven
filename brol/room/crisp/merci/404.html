@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse Interactive : Démocratie et Particratie en Belgique</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .flip-card {
+            perspective: 1000px;
+        }
+        .flip-card-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased flex flex-col md:flex-row h-screen overflow-hidden">
+
+    <!-- Chosen Palette: Slate & Crimson (A neutral, institutional base of Slate blues/grays contrasted with Crimson/Rose accents to highlight the "crisis" and usurpation of power). -->
+    <!-- Application Structure Plan: A dashboard-style layout with a fixed sidebar (on desktop) for non-linear navigation. The content is structured sequentially: 1. Introduction (The Context), 2. Le Pouvoir (The Mechanics of Particracy), 3. Le Grand Écart (Theory vs Reality), 4. Les Clivages & Symptômes (Societal impact), 5. Solutions (Resilience). This transforms a static reading experience into an investigative tool where the user uncovers the layers of the "institutional lasagna". -->
+    <!-- Visualization & Content Choices: 
+         1. Radar Chart (Chart.js) -> Compare "Parlement" vs "Présidents de parti" across 4 power levers -> Interaction: Hover for values -> Justification: Visually quantifies the "hollowing out" of parliament.
+         2. Flip Cards (HTML/CSS) -> Compare 1831 Constitution vs Current Reality -> Interaction: Click to flip -> Justification: Active engagement makes the "Grand Écart" more memorable than a static table.
+         3. Scatter Plot (Chart.js) -> Visualize the new societal cleavages (Productivism vs Identity) -> Interaction: Hover tooltips -> Justification: Maps the abstract concept of "dépilarisation" onto a visual grid.
+         4. Interactive Timeline (HTML/JS) -> Explain the 16-year-old vote saga -> Interaction: Step-by-step reveal -> Justification: Untangles the complex legal chronology into manageable chunks.
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. Relying purely on HTML/CSS styling, Unicode icons, and Canvas-based Chart.js. -->
+
+    <nav class="md:w-64 bg-slate-900 text-slate-300 flex-shrink-0 flex flex-col h-auto md:h-full z-20 shadow-xl transition-all duration-300">
+        <div class="p-6 bg-slate-950 border-b border-slate-800">
+            <h1 class="text-xl font-bold text-white tracking-tight leading-tight">Diagnostic<br><span class="text-rose-500">Particratie BE</span></h1>
+        </div>
+        <div class="flex flex-row md:flex-col overflow-x-auto hide-scrollbar md:overflow-y-auto py-4 px-2 space-x-2 md:space-x-0 md:space-y-2 flex-grow">
+            <button onclick="navTo('intro')" class="nav-btn w-full text-left px-4 py-3 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors flex items-center whitespace-nowrap active-nav bg-slate-800 text-white" data-target="intro">
+                <span class="mr-3 text-lg">🏛️</span> L'État des Lieux
+            </button>
+            <button onclick="navTo('pouvoir')" class="nav-btn w-full text-left px-4 py-3 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors flex items-center whitespace-nowrap" data-target="pouvoir">
+                <span class="mr-3 text-lg">⚙️</span> Le Pouvoir de l'Ombre
+            </button>
+            <button onclick="navTo('constitution')" class="nav-btn w-full text-left px-4 py-3 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors flex items-center whitespace-nowrap" data-target="constitution">
+                <span class="mr-3 text-lg">⚖️</span> Le Grand Écart
+            </button>
+            <button onclick="navTo('symptomes')" class="nav-btn w-full text-left px-4 py-3 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors flex items-center whitespace-nowrap" data-target="symptomes">
+                <span class="mr-3 text-lg">⚠️</span> Radicalisation
+            </button>
+            <button onclick="navTo('solutions')" class="nav-btn w-full text-left px-4 py-3 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors flex items-center whitespace-nowrap text-emerald-400 hover:text-emerald-300" data-target="solutions">
+                <span class="mr-3 text-lg">💡</span> Contre-Pouvoirs
+            </button>
+        </div>
+        <div class="p-4 text-xs text-slate-500 hidden md:block border-t border-slate-800">
+            Basé sur l'analyse du CRISP et l'héritage institutionnel.
+        </div>
+    </nav>
+
+    <main class="flex-1 overflow-y-auto bg-slate-100 p-4 md:p-8 scroll-smooth" id="main-scroll">
+        
+        <section id="intro" class="content-section min-h-[90vh] flex flex-col justify-center max-w-5xl mx-auto py-10 opacity-100 transition-opacity duration-500">
+            <div class="mb-2">
+                <span class="inline-block py-1 px-3 rounded-full bg-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider mb-4">Note de Synthèse</span>
+            </div>
+            <h2 class="text-4xl md:text-6xl font-extrabold text-slate-900 mb-6 leading-tight">
+                L’Efficacité des Institutions face à la <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-rose-400">Particratie</span>
+            </h2>
+            <p class="text-xl md:text-2xl text-slate-600 font-light mb-10 max-w-3xl leading-relaxed">
+                Comment la Belgique est passée d'un idéal de démocratie parlementaire à une structure "pratico-inerte" dominée par les états-majors des partis.
+            </p>
+            
+            <div class="grid md:grid-cols-2 gap-6 mt-8">
+                <div class="glass-panel p-6 rounded-2xl shadow-sm border-l-4 border-l-slate-800">
+                    <h3 class="text-lg font-bold text-slate-900 mb-3 flex items-center"><span class="mr-2">📜</span> L'Héritage (1831 - 1959)</h3>
+                    <p class="text-slate-700 text-sm leading-relaxed">
+                        De l'État unitaire de 1831 à la fondation du CRISP en 1959, la Belgique s'est muée en une structure fédérale complexe. Ce système de <strong>« démocratie consociative »</strong> recherchait le compromis au sommet pour pacifier une société fragmentée.
+                    </p>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl shadow-sm border-l-4 border-l-rose-600 bg-rose-50/30">
+                    <h3 class="text-lg font-bold text-slate-900 mb-3 flex items-center"><span class="mr-2">🚨</span> Le Constat Actuel</h3>
+                    <p class="text-slate-700 text-sm leading-relaxed">
+                        La « lasagne institutionnelle » est aujourd'hui grippée. La <strong>particratie</strong> n'est plus un dysfonctionnement, c'est le pivot réel. Les assemblées délibérantes sont devenues de simples chambres d'enregistrement des décisions prises en amont.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="mt-12 text-center md:text-left">
+                <button onclick="navTo('pouvoir')" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-slate-900 hover:bg-slate-800 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900">
+                    Découvrir les mécanismes du pouvoir <span class="ml-2">→</span>
+                </button>
+            </div>
+        </section>
+
+        <section id="pouvoir" class="content-section min-h-screen hidden flex-col justify-center max-w-6xl mx-auto py-10 opacity-0 transition-opacity duration-500">
+            <div class="mb-10 text-center">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Le Pouvoir de l’Ombre</h2>
+                <p class="text-slate-600 max-w-2xl mx-auto">
+                    Dans le logiciel politique belge, la recherche de stabilité a déplacé le curseur du pouvoir. Les présidents de parti court-circuitent la délibération parlementaire au profit d'une concertation restreinte. Ce graphique illustre la concentration du pouvoir.
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-10 items-center">
+                <div class="glass-panel p-6 rounded-2xl shadow-lg">
+                    <div class="chart-container">
+                        <canvas id="powerRadarChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="p-5 bg-white rounded-xl shadow-sm border border-slate-200 hover:border-rose-300 transition-colors">
+                        <h4 class="font-bold text-slate-900 flex justify-between items-center mb-2">
+                            <span>1. Monopole des Investitures</span>
+                            <span class="bg-rose-100 text-rose-800 text-xs px-2 py-1 rounded font-bold">Léviathan</span>
+                        </h4>
+                        <p class="text-sm text-slate-600">Contrôle total sur l'accès aux mandats ministériels et la composition des listes électorales, garantissant la soumission absolue des élus.</p>
+                    </div>
+                    
+                    <div class="p-5 bg-white rounded-xl shadow-sm border border-slate-200 hover:border-rose-300 transition-colors">
+                        <h4 class="font-bold text-slate-900 flex justify-between items-center mb-2">
+                            <span>2. L'Accord de Gouvernement</span>
+                            <span class="bg-slate-100 text-slate-800 text-xs px-2 py-1 rounded font-bold">Loi d'airain</span>
+                        </h4>
+                        <p class="text-sm text-slate-600">Transformation d'un simple contrat de coalition en une règle absolue qui prévaut sur toute initiative parlementaire ou proposition de loi.</p>
+                    </div>
+
+                    <div class="p-5 bg-white rounded-xl shadow-sm border border-slate-200 hover:border-rose-300 transition-colors">
+                        <h4 class="font-bold text-slate-900 flex justify-between items-center mb-2">
+                            <span>3. Arbitrage des Crises</span>
+                            <span class="bg-slate-100 text-slate-800 text-xs px-2 py-1 rounded font-bold">Opacité</span>
+                        </h4>
+                        <p class="text-sm text-slate-600">Les conflits de majorité ne se règlent plus dans l'hémicycle (transparence) mais lors de « sommets » discrets entre présidents.</p>
+                    </div>
+
+                    <div class="p-5 bg-white rounded-xl shadow-sm border border-slate-200 hover:border-rose-300 transition-colors">
+                        <h4 class="font-bold text-slate-900 flex justify-between items-center mb-2">
+                            <span>4. Discipline de Vote</span>
+                            <span class="bg-slate-100 text-slate-800 text-xs px-2 py-1 rounded font-bold">Mandat impératif</span>
+                        </h4>
+                        <p class="text-sm text-slate-600">Le représentant de la Nation est transformé en un agent discipliné chargé d’exécuter mécaniquement les consignes de l’état-major.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="constitution" class="content-section min-h-screen hidden flex-col justify-center max-w-5xl mx-auto py-10 opacity-0 transition-opacity duration-500">
+            <div class="mb-10 text-center">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Un Grand Écart Constitutionnel</h2>
+                <p class="text-slate-600 max-w-2xl mx-auto">
+                    Le socle de 1831 reposait sur la fiction de la souveraineté nationale. Aujourd'hui, un décalage majeur existe entre la théorie juridique et la pratique politique, transformant le Parlement en « coquille inerte ». <br><strong class="text-slate-800 mt-2 block">Cliquez sur les cartes pour révéler la réalité.</strong>
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6" id="card-grid">
+                
+                <div class="flip-card h-48 cursor-pointer" onclick="this.classList.toggle('flipped')">
+                    <div class="flip-card-inner w-full h-full relative text-left">
+                        <div class="flip-card-front absolute w-full h-full bg-white rounded-2xl shadow-md border-t-4 border-slate-800 p-6 flex flex-col justify-center">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Concept de 1831</span>
+                            <h3 class="text-xl font-bold text-slate-900 mb-2">Souveraineté Nationale</h3>
+                            <p class="text-slate-600 text-sm">Le pouvoir appartient à la Nation, exercé par ses représentants élus.</p>
+                            <div class="absolute bottom-4 right-4 text-slate-300 text-xl">↻</div>
+                        </div>
+                        <div class="flip-card-back absolute w-full h-full bg-slate-900 rounded-2xl shadow-lg border-t-4 border-rose-500 p-6 flex flex-col justify-center text-white">
+                            <span class="text-xs font-bold text-rose-400 uppercase tracking-widest mb-1">Réalité Contemporaine</span>
+                            <h3 class="text-xl font-bold mb-2">Souveraineté des Appareils</h3>
+                            <p class="text-slate-300 text-sm">Déplacement du pouvoir vers des structures non élues par le peuple (les états-majors des partis).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card h-48 cursor-pointer" onclick="this.classList.toggle('flipped')">
+                    <div class="flip-card-inner w-full h-full relative text-left">
+                        <div class="flip-card-front absolute w-full h-full bg-white rounded-2xl shadow-md border-t-4 border-slate-800 p-6 flex flex-col justify-center">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Concept de 1831</span>
+                            <h3 class="text-xl font-bold text-slate-900 mb-2">Mandat Représentatif Libre</h3>
+                            <p class="text-slate-600 text-sm">Le député vote selon sa conscience, sans être lié par des promesses ou des ordres extérieurs.</p>
+                            <div class="absolute bottom-4 right-4 text-slate-300 text-xl">↻</div>
+                        </div>
+                        <div class="flip-card-back absolute w-full h-full bg-slate-900 rounded-2xl shadow-lg border-t-4 border-rose-500 p-6 flex flex-col justify-center text-white">
+                            <span class="text-xs font-bold text-rose-400 uppercase tracking-widest mb-1">Réalité Contemporaine</span>
+                            <h3 class="text-xl font-bold mb-2">Discipline de Vote</h3>
+                            <p class="text-slate-300 text-sm">Un « mandat impératif » occulte évide la fonction délibérative. L'élu devient un simple exécutant.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card h-48 cursor-pointer" onclick="this.classList.toggle('flipped')">
+                    <div class="flip-card-inner w-full h-full relative text-left">
+                        <div class="flip-card-front absolute w-full h-full bg-white rounded-2xl shadow-md border-t-4 border-slate-800 p-6 flex flex-col justify-center">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Concept de 1831</span>
+                            <h3 class="text-xl font-bold text-slate-900 mb-2">Indépendance de l'Élu</h3>
+                            <p class="text-slate-600 text-sm">Garantie d'une vision à long terme pour l'intérêt général de l'État.</p>
+                            <div class="absolute bottom-4 right-4 text-slate-300 text-xl">↻</div>
+                        </div>
+                        <div class="flip-card-back absolute w-full h-full bg-slate-900 rounded-2xl shadow-lg border-t-4 border-rose-500 p-6 flex flex-col justify-center text-white">
+                            <span class="text-xs font-bold text-rose-400 uppercase tracking-widest mb-1">Réalité Contemporaine</span>
+                            <h3 class="text-xl font-bold mb-2">Allégeance et Sondages</h3>
+                            <p class="text-slate-300 text-sm">L'élu dépend du président pour sa survie politique, menant à une procrastination (ex: climat) dictée par l'immédiateté des sondages.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card h-48 cursor-pointer" onclick="this.classList.toggle('flipped')">
+                    <div class="flip-card-inner w-full h-full relative text-left">
+                        <div class="flip-card-front absolute w-full h-full bg-white rounded-2xl shadow-md border-t-4 border-slate-800 p-6 flex flex-col justify-center">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Concept de 1831</span>
+                            <h3 class="text-xl font-bold text-slate-900 mb-2">Débat Parlementaire</h3>
+                            <p class="text-slate-600 text-sm">Le lieu d'élaboration de la loi, par la discussion publique et l'opposition constructive.</p>
+                            <div class="absolute bottom-4 right-4 text-slate-300 text-xl">↻</div>
+                        </div>
+                        <div class="flip-card-back absolute w-full h-full bg-slate-900 rounded-2xl shadow-lg border-t-4 border-rose-500 p-6 flex flex-col justify-center text-white">
+                            <span class="text-xs font-bold text-rose-400 uppercase tracking-widest mb-1">Réalité Contemporaine</span>
+                            <h3 class="text-xl font-bold mb-2">Chambre d'Enregistrement</h3>
+                            <p class="text-slate-300 text-sm">Validation formelle d'accords négociés en coulisses. Perte de transparence face à une technocratie transnationale.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 text-center">
+                <button onclick="document.querySelectorAll('.flip-card').forEach(c => c.classList.toggle('flipped'))" class="text-sm text-slate-500 hover:text-slate-800 underline">Basculer toutes les cartes</button>
+            </div>
+        </section>
+
+        <section id="symptomes" class="content-section min-h-screen hidden flex-col justify-center max-w-6xl mx-auto py-10 opacity-0 transition-opacity duration-500">
+            <div class="mb-10 text-center">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Radicalisation & Dépilarisation</h2>
+                <p class="text-slate-600 max-w-3xl mx-auto">
+                    La perte de légitimité systémique nourrit la contestation. La société se « dépilarise » (fin des piliers traditionnels) et voit émerger de nouveaux clivages imparfaits, créant confusion et pathologies démocratiques.
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8 mb-8">
+                <div class="glass-panel p-6 rounded-2xl shadow-sm">
+                    <h3 class="text-xl font-bold text-slate-900 mb-4 border-b pb-2">Nouveaux Clivages</h3>
+                    <div class="chart-container">
+                        <canvas id="cleavageChart"></canvas>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2 text-center">Analyse conceptuelle de l'horizontalisation des décisions et de l'incomplétude des nouveaux pôles.</p>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="font-bold text-lg text-rose-700 mb-2">Pathologies Actuelles</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <span class="text-rose-500 mr-2 mt-1">▪</span>
+                                <div><strong class="text-slate-800">Court-termisme :</strong> Incapacité à traiter les enjeux globaux face à la dictature de l'immédiateté électorale.</div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-rose-500 mr-2 mt-1">▪</span>
+                                <div><strong class="text-slate-800">Périphérie-Périphérie :</strong> Sensation d'impuissance, le niveau fédéral n'étant plus qu'une périphérie entre les Régions et l'Europe.</div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-rose-500 mr-2 mt-1">▪</span>
+                                <div><strong class="text-slate-800">Risque illibéral :</strong> Montée de forces hostiles au « Triangle d'or », exploitant le rejet du Cordon sanitaire perçu comme un déni de vote.</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-slate-800 p-6 rounded-2xl shadow-sm text-white">
+                        <h3 class="font-bold text-lg text-white mb-4">Étude de Cas : Le Chaos du Vote à 16 ans</h3>
+                        <div class="space-y-4">
+                            <div class="border-l-2 border-slate-600 pl-4 py-1 cursor-pointer hover:border-amber-400 transition-colors" onclick="toggleTimeline('tl1')">
+                                <h4 class="font-bold text-amber-400">2022 : La Loi Initiale</h4>
+                                <p id="tl1" class="text-sm text-slate-300 mt-1 hidden">Vote autorisé aux européennes moyennant une inscription préalable volontaire.</p>
+                            </div>
+                            <div class="border-l-2 border-slate-600 pl-4 py-1 cursor-pointer hover:border-amber-400 transition-colors" onclick="toggleTimeline('tl2')">
+                                <h4 class="font-bold text-amber-400">Juillet 2023 : Annulation</h4>
+                                <p id="tl2" class="text-sm text-slate-300 mt-1 hidden">La Cour constitutionnelle annule le système d'inscription, jugé discriminatoire par rapport aux adultes inscrits d'office.</p>
+                            </div>
+                            <div class="border-l-2 border-slate-600 pl-4 py-1 cursor-pointer hover:border-amber-400 transition-colors" onclick="toggleTimeline('tl3')">
+                                <h4 class="font-bold text-amber-400">2023 - 2024 : Tentative et Échec</h4>
+                                <p id="tl3" class="text-sm text-slate-300 mt-1 hidden">Tentative de rendre le vote facultatif sans inscription, suspendue puis annulée par la Cour en 2024.</p>
+                            </div>
+                            <div class="border-l-2 border-rose-500 pl-4 py-1">
+                                <h4 class="font-bold text-rose-400">Résultat : Le Flou Juridique</h4>
+                                <p class="text-sm text-slate-300 mt-1">Le vote devient obligatoire dès 16 ans, mais un ministre annonce la "non-sanction", créant une confusion totale entre droit et impunité politique.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="solutions" class="content-section min-h-screen hidden flex-col justify-center max-w-5xl mx-auto py-10 opacity-0 transition-opacity duration-500">
+            <div class="mb-12 text-center">
+                <span class="inline-block py-1 px-3 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider mb-4">Perspectives</span>
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Vers une Citoyenneté Résiliente</h2>
+                <p class="text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                    La résilience du modèle belge dépend de sa capacité à réactiver le « Triangle d'or » (Souveraineté, État de droit, Droits humains). La survie de l'État passe par la formation de citoyens <strong>CRACS</strong> (Responsables, Actifs, Critiques, Solidaires).
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                
+                <div class="bg-white p-8 rounded-2xl shadow-md border-t-4 border-emerald-500 hover:shadow-lg transition-shadow relative overflow-hidden group">
+                    <div class="absolute -right-6 -top-6 text-8xl opacity-5 group-hover:scale-110 transition-transform text-emerald-500">🧭</div>
+                    <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-2xl mb-6">1</div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">La Boussole Institutionnelle</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Comprendre le fédéralisme et les mécanismes de décision réels. Il est vital de déchiffrer la « lasagne » pour pouvoir agir efficacement sur les véritables leviers de pouvoir.
+                    </p>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl shadow-md border-t-4 border-emerald-500 hover:shadow-lg transition-shadow relative overflow-hidden group">
+                    <div class="absolute -right-6 -top-6 text-8xl opacity-5 group-hover:scale-110 transition-transform text-emerald-500">🤝</div>
+                    <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-2xl mb-6">2</div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">Réseaux de Contre-Pouvoir</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Investir la société civile organisée. S'engager dans les syndicats, associations et l'éducation permanente pour contester le système « pratico-inerte » et créer une dynamique positive.
+                    </p>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl shadow-md border-t-4 border-emerald-500 hover:shadow-lg transition-shadow relative overflow-hidden group">
+                    <div class="absolute -right-6 -top-6 text-8xl opacity-5 group-hover:scale-110 transition-transform text-emerald-500">🧠</div>
+                    <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-2xl mb-6">3</div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">Capacité d'Analyse Critique</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Distinguer l'information de la propagande. L'éducation (via le cours de philosophie et de citoyenneté - CPC) est cruciale pour déconstruire les discours face aux algorithmes.
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="mt-12 bg-slate-900 text-slate-300 p-6 rounded-xl text-center shadow-inner">
+                <p class="text-sm font-medium">
+                    « La légitimité ne peut plus se contenter d'être procédurale ; elle doit être substantielle. [...] Forcer les partis à sortir de leur court-termisme pour redevenir les vecteurs de la volonté populaire. »
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        
+        const state = {
+            currentSection: 'intro',
+            chartsInitialized: false
+        };
+
+        function navTo(sectionId) {
+            
+            document.querySelectorAll('.content-section').forEach(sec => {
+                sec.classList.add('hidden');
+                sec.classList.remove('flex');
+                setTimeout(() => sec.classList.remove('opacity-100'), 10);
+                sec.classList.add('opacity-0');
+            });
+
+            const target = document.getElementById(sectionId);
+            target.classList.remove('hidden');
+            target.classList.add('flex');
+            setTimeout(() => {
+                target.classList.remove('opacity-0');
+                target.classList.add('opacity-100');
+            }, 50);
+
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-slate-800', 'text-white');
+                if(btn.dataset.target === sectionId) {
+                    btn.classList.add('bg-slate-800', 'text-white');
+                }
+            });
+
+            
+            document.getElementById('main-scroll').scrollTo(0,0);
+            state.currentSection = sectionId;
+
+            
+            if (!state.chartsInitialized && (sectionId === 'pouvoir' || sectionId === 'symptomes')) {
+                initCharts();
+                state.chartsInitialized = true;
+            }
+        }
+
+        function toggleTimeline(id) {
+            const el = document.getElementById(id);
+            if(el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        }
+
+        function initCharts() {
+            
+            Chart.defaults.color = '#64748b';
+            Chart.defaults.font.family = "system-ui, -apple-system, sans-serif";
+
+            
+            const ctxRadar = document.getElementById('powerRadarChart').getContext('2d');
+            new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Investitures & Listes', 'Agenda Législatif', 'Résolution des Crises', 'Discipline de Vote'],
+                    datasets: [{
+                        label: 'Théorie Parlementaire (1831)',
+                        data: [80, 90, 80, 90],
+                        fill: true,
+                        backgroundColor: 'rgba(148, 163, 184, 0.2)',
+                        borderColor: '#94a3b8',
+                        pointBackgroundColor: '#94a3b8',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#94a3b8'
+                    }, {
+                        label: 'Réalité Particratique',
+                        data: [95, 95, 100, 90],
+                        fill: true,
+                        backgroundColor: 'rgba(225, 29, 72, 0.3)',
+                        borderColor: '#e11d48',
+                        pointBackgroundColor: '#e11d48',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#e11d48'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: { font: { size: 12, weight: 'bold' }, color: '#334155' },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': Niveau de contrôle';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            
+            const ctxScatter = document.getElementById('cleavageChart').getContext('2d');
+            new Chart(ctxScatter, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Piliers Traditionnels',
+                            data: [{x: 0.2, y: 0.5}], 
+                            backgroundColor: '#94a3b8',
+                            pointRadius: 15,
+                            pointHoverRadius: 20
+                        },
+                        {
+                            label: 'Mouvance Écologiste',
+                            data: [{x: -0.8, y: 0.6}], 
+                            backgroundColor: '#10b981',
+                            pointRadius: 12,
+                            pointHoverRadius: 15
+                        },
+                        {
+                            label: 'Pôle Identitaire (Incomplet)',
+                            data: [{x: -0.5, y: -0.8}], 
+                            backgroundColor: '#f59e0b',
+                            pointRadius: 10,
+                            pointHoverRadius: 12
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            min: -1, max: 1,
+                            title: { display: true, text: 'Productivisme (Gauche) ↔ Antiproductivisme (Droite)', font: {weight: 'bold'} },
+                            ticks: { display: false }
+                        },
+                        y: {
+                            min: -1, max: 1,
+                            title: { display: true, text: 'Identité (Bas) ↔ Cosmopolitisme (Haut)', font: {weight: 'bold'} },
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const labels = {
+                                        'Piliers Traditionnels': 'En perte de vitesse (Dépilarisation)',
+                                        'Mouvance Écologiste': 'Clivage structurel assumé',
+                                        'Pôle Identitaire (Incomplet)': 'Manque de base associative structurée'
+                                    };
+                                    return context.dataset.label + ' : ' + labels[context.dataset.label];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            
+        });
+    </script>
+</body>
+</html>
