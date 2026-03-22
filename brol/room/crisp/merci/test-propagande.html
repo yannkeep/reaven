@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse Interactive : La Démogarchie</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Warm Neutrals with Indigo and Coral Accents -->
+    <!-- Application Structure Plan: 
+         The SPA uses a modern, vertical scrolling dashboard structure with a sticky sidebar navigation (on desktop) and a top nav (on mobile). 
+         This structure was chosen to guide the user logically from definition (answering the specific "is it a hoax?" question), 
+         through the theoretical mechanisms, into quantitative conceptual data, and finally to potential solutions. 
+         This linear narrative approach is best for explaining complex socio-political concepts while allowing free exploration via the menu. -->
+    <!-- Visualization & Content Choices: 
+         1. Intro/Definition: Text block to directly answer the user's query ("Not a hoax").
+         2. Mechanisms (Goal: Organize/Explain): Interactive list with details shown on click using JS to manage cognitive load.
+         3. Influence Chart (Goal: Compare): Chart.js Bar chart comparing policy adoption rates based on elite vs. citizen support (inspired by Gilens & Page).
+         4. Media Concentration (Goal: Inform/Proportions): Chart.js Doughnut chart showing hypothetical media ownership to illustrate oligarchic control.
+         Libraries: Vanilla JS for interactions, Chart.js for data. NO SVG, NO Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        neutral: {
+                            50: '#fafafa',
+                            100: '#f5f5f5',
+                            800: '#262626',
+                            900: '#171717',
+                        },
+                        accent: {
+                            primary: '#4f46e5', // Indigo
+                            secondary: '#f43f5e', // Rose/Coral
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Merriweather:ital,wght@0,300;0,700;1,300&display=swap');
+        
+        body {
+            background-color: #fafafa;
+            color: #262626;
+        }
+        
+        /* STRICT CHART CONTAINER STYLING AS REQUESTED */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 40vh;
+            max-height: 400px;
+            min-height: 250px;
+        }
+
+        /* Custom Scrollbar for a polished look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        .nav-link.active {
+            color: #4f46e5;
+            font-weight: 700;
+            border-left: 4px solid #4f46e5;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row min-h-screen font-sans antialiased selection:bg-accent-primary selection:text-white">
+
+    <!-- Mobile Header -->
+    <header class="md:hidden bg-white shadow-sm p-4 sticky top-0 z-50 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-neutral-900">🏛️ Démogarchie</h1>
+        <button id="mobile-menu-btn" class="text-2xl focus:outline-none">&#9776;</button>
+    </header>
+
+    <!-- Navigation / Sidebar -->
+    <nav id="sidebar" class="hidden md:flex flex-col w-full md:w-64 lg:w-72 bg-white shadow-lg md:h-screen sticky top-0 z-40 transition-all duration-300">
+        <div class="p-6 hidden md:block border-b border-gray-100">
+            <h1 class="text-2xl font-bold text-neutral-900 tracking-tight">🏛️ Projet <br><span class="text-accent-primary">Démogarchie</span></h1>
+            <p class="text-sm text-gray-500 mt-2">Analyse conceptuelle & interactive</p>
+        </div>
+        <ul class="flex flex-col py-4 gap-1">
+            <li><a href="#definition" class="nav-link block px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-accent-primary transition-colors active">📖 Définition & Origine</a></li>
+            <li><a href="#mecanismes" class="nav-link block px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-accent-primary transition-colors">⚙️ Mécanismes Systémiques</a></li>
+            <li><a href="#donnees" class="nav-link block px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-accent-primary transition-colors">📊 Analyse des Données</a></li>
+            <li><a href="#perspectives" class="nav-link block px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-accent-primary transition-colors">💡 Perspectives & Solutions</a></li>
+        </ul>
+        <div class="mt-auto p-6 text-xs text-gray-400">
+            &#9432; Rapport interactif généré pour clarifier un concept sociopolitique.
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 w-full max-w-5xl mx-auto p-4 md:p-8 lg:p-12 overflow-x-hidden">
+
+        <!-- Section 1: Definition -->
+        <section id="definition" class="mb-20 pt-8 scroll-mt-20">
+            <div class="mb-8">
+                <span class="text-accent-primary font-semibold tracking-wider uppercase text-sm">Introduction</span>
+                <h2 class="text-3xl md:text-5xl font-serif font-bold text-neutral-900 mt-2 mb-6">Qu'est-ce que la Démogarchie ?</h2>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 mb-8">
+                <h3 class="text-xl font-bold mb-4 text-accent-secondary flex items-center gap-2">
+                    <span>❓</span> Un canular ? Absolument pas.
+                </h3>
+                <p class="text-lg text-gray-700 leading-relaxed mb-6">
+                    La <strong>démogarchie</strong> n'est pas un canular ni une théorie du complot. C'est un concept critique utilisé en sociologie politique et en philosophie. C'est un mot-valise formé par la fusion de <em>« démocratie »</em> (le pouvoir au peuple) et <em>« oligarchie »</em> (le pouvoir à quelques-uns).
+                </p>
+                <p class="text-lg text-gray-700 leading-relaxed">
+                    Ce terme décrit un système politique qui <strong>conserve les apparences et les institutions d'une démocratie</strong> (élections régulières, parlement, liberté d'expression théorique), mais dont <strong>le fonctionnement réel est capté par une minorité</strong> (élites économiques, technocrates, lobbies) qui oriente les décisions publiques dans son propre intérêt.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-indigo-50 rounded-xl p-6 border border-indigo-100">
+                    <div class="text-3xl mb-4">&#127917;</div>
+                    <h4 class="font-bold text-neutral-900 mb-2">L'Illusion Démocratique</h4>
+                    <p class="text-sm text-gray-600">Le citoyen est appelé aux urnes, mais l'offre politique est formatée et restreinte. Le vote valide un système plus qu'il ne décide des politiques réelles.</p>
+                </div>
+                <div class="bg-rose-50 rounded-xl p-6 border border-rose-100">
+                    <div class="text-3xl mb-4">&#128176;</div>
+                    <h4 class="font-bold text-neutral-900 mb-2">La Réalité Oligarchique</h4>
+                    <p class="text-sm text-gray-600">Le financement des campagnes, la concentration des médias et la porosité entre haute fonction publique et sphère privée assurent la domination d'une élite.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Mechanisms -->
+        <section id="mecanismes" class="mb-20 pt-8 scroll-mt-20">
+            <div class="mb-8">
+                <span class="text-accent-primary font-semibold tracking-wider uppercase text-sm">Analyse Structurelle</span>
+                <h2 class="text-3xl md:text-4xl font-serif font-bold text-neutral-900 mt-2">Les Mécanismes du Système</h2>
+                <p class="text-gray-600 mt-4 text-lg">Comment une démocratie glisse-t-elle vers la démogarchie ? Explorez les trois piliers principaux qui maintiennent cette structure de pouvoir.</p>
+            </div>
+
+            <!-- Interactive Accordion/Tabs for Mechanisms -->
+            <div class="flex flex-col md:flex-row gap-8">
+                <!-- Mechanism Selectors -->
+                <div class="md:w-1/3 flex flex-col gap-3">
+                    <button class="mech-btn w-full text-left p-4 rounded-lg bg-white border-2 border-accent-primary shadow-md font-bold text-accent-primary transition-all" data-target="mech-media">
+                        &#128240; 1. Le Contrôle Médiatique
+                    </button>
+                    <button class="mech-btn w-full text-left p-4 rounded-lg bg-white border-2 border-transparent hover:border-gray-200 text-gray-600 transition-all" data-target="mech-lobby">
+                        &#129309; 2. Le Lobbying Structurel
+                    </button>
+                    <button class="mech-btn w-full text-left p-4 rounded-lg bg-white border-2 border-transparent hover:border-gray-200 text-gray-600 transition-all" data-target="mech-abstention">
+                        &#128683; 3. L'Abstentionnisme Stratégique
+                    </button>
+                </div>
+
+                <!-- Mechanism Content Display -->
+                <div class="md:w-2/3 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 min-h-[300px] flex flex-col justify-center">
+                    
+                    <div id="mech-media" class="mech-content active">
+                        <div class="inline-block px-3 py-1 bg-indigo-100 text-accent-primary rounded-full text-xs font-bold mb-4 uppercase tracking-wide">Fabrique du consentement</div>
+                        <h3 class="text-2xl font-bold mb-4">La concentration des médias</h3>
+                        <p class="text-gray-700 mb-4">Dans une démogarchie, la pluralité de la presse est une façade. Une poignée de milliardaires ou de grands groupes industriels possède la majorité des médias d'information (télévision, presse écrite, radio).</p>
+                        <p class="text-gray-700"><strong>Impact :</strong> Cela permet de définir l'agenda politique, de marginaliser les idées remettant en cause l'ordre économique, et de promouvoir des candidats favorables aux élites sous couvert d'objectivité journalistique.</p>
+                    </div>
+
+                    <div id="mech-lobby" class="mech-content hidden">
+                        <div class="inline-block px-3 py-1 bg-rose-100 text-accent-secondary rounded-full text-xs font-bold mb-4 uppercase tracking-wide">Capture de l'État</div>
+                        <h3 class="text-2xl font-bold mb-4">L'influence de l'Argent</h3>
+                        <p class="text-gray-700 mb-4">Le pouvoir législatif et exécutif est soumis à une pression constante de lobbies surfinancés. Le système des "portes tournantes" (pantouflage) voit les hauts fonctionnaires passer dans le privé et vice versa.</p>
+                        <p class="text-gray-700"><strong>Impact :</strong> Les lois votées correspondent statistiquement davantage aux préférences des 10% les plus riches ou des grandes entreprises qu'aux souhaits de la majorité de la population.</p>
+                    </div>
+
+                    <div id="mech-abstention" class="mech-content hidden">
+                        <div class="inline-block px-3 py-1 bg-gray-200 text-gray-800 rounded-full text-xs font-bold mb-4 uppercase tracking-wide">Crise de la représentation</div>
+                        <h3 class="text-2xl font-bold mb-4">Désillusion et Abstention</h3>
+                        <p class="text-gray-700 mb-4">Constatant que leur vote ne change pas les politiques macro-économiques, les classes populaires et moyennes se détournent des urnes. L'offre politique tend à se recentrer sur un consensus élitiste ("le cercle de la raison").</p>
+                        <p class="text-gray-700"><strong>Impact :</strong> L'abstention de masse légitime paradoxalement le système en permettant aux minorités mobilisées (souvent plus aisées) de remporter les élections, renforçant le cycle oligarchique.</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Data & Visualization -->
+        <section id="donnees" class="mb-20 pt-8 scroll-mt-20">
+            <div class="mb-8">
+                <span class="text-accent-primary font-semibold tracking-wider uppercase text-sm">Visualisation des données</span>
+                <h2 class="text-3xl md:text-4xl font-serif font-bold text-neutral-900 mt-2">Indicateurs d'une Démogarchie</h2>
+                <p class="text-gray-600 mt-4 text-lg">Ces graphiques (basés sur des modèles conceptuels de sciences politiques comme les travaux de Gilens et Page) illustrent le décalage entre la théorie démocratique et la réalité politique.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Chart 1: Influence -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+                    <h3 class="font-bold text-xl mb-2 text-center">Probabilité d'adoption d'une loi</h3>
+                    <p class="text-xs text-gray-500 text-center mb-6">Comparaison selon le soutien populaire vs. le soutien des élites économiques.</p>
+                    
+                    <!-- CRITICAL: Responsive Chart Container -->
+                    <div class="chart-container flex-grow">
+                        <canvas id="influenceChart"></canvas>
+                    </div>
+                    
+                    <div class="mt-4 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                        <strong>Lecture :</strong> Que l'opinion publique soit à 0% ou 100% pour une loi, ses chances de passer restent autour de 30%. À l'inverse, si les élites s'y opposent, la loi ne passe pas (0%) ; si elles la soutiennent, elle passe (60%+). Le peuple n'a statistiquement pas d'impact.
+                    </div>
+                </div>
+
+                <!-- Chart 2: Media -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+                    <h3 class="font-bold text-xl mb-2 text-center">Concentration de la presse écrite/TV</h3>
+                    <p class="text-xs text-gray-500 text-center mb-6">Répartition hypothétique (mais représentative de nombreuses démocraties occidentales).</p>
+                    
+                    <!-- CRITICAL: Responsive Chart Container -->
+                    <div class="chart-container flex-grow">
+                        <canvas id="mediaChart"></canvas>
+                    </div>
+                    
+                    <div class="mt-4 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                        <strong>Lecture :</strong> Une très large majorité de l'audience est captée par des médias possédés par une fraction infime de milliardaires (oligarchie), limitant drastiquement la pluralité réelle des débats de fond.
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Section 4: Perspectives -->
+        <section id="perspectives" class="mb-20 pt-8 scroll-mt-20">
+            <div class="mb-8">
+                <span class="text-accent-secondary font-semibold tracking-wider uppercase text-sm">Solutions</span>
+                <h2 class="text-3xl md:text-4xl font-serif font-bold text-neutral-900 mt-2">Comment restaurer la Démocratie ?</h2>
+                <p class="text-gray-600 mt-4 text-lg">Sortir de la démogarchie nécessite des réformes institutionnelles profondes pour briser le monopole du pouvoir et de l'argent.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Sol 1 -->
+                <div class="bg-white rounded-xl shadow-sm border-t-4 border-accent-primary p-6 hover:-translate-y-1 transition-transform">
+                    <div class="text-2xl mb-3">&#128451;</div>
+                    <h4 class="font-bold text-lg mb-2">Tirage au sort & Assemblées citoyennes</h4>
+                    <p class="text-gray-600 text-sm">Réintroduire le tirage au sort (comme dans la démocratie athénienne) pour une chambre du parlement. Cela annule l'avantage de l'argent et garantit une représentation sociologique parfaite.</p>
+                </div>
+                
+                <!-- Sol 2 -->
+                <div class="bg-white rounded-xl shadow-sm border-t-4 border-accent-secondary p-6 hover:-translate-y-1 transition-transform">
+                    <div class="text-2xl mb-3">&#128178;</div>
+                    <h4 class="font-bold text-lg mb-2">Séparation des Médias et de l'État/Industrie</h4>
+                    <p class="text-gray-600 text-sm">Lois anti-concentration drastiques. Interdiction pour une entreprise vivant de commandes de l'État de posséder un média. Financement citoyen exclusif de la presse.</p>
+                </div>
+
+                <!-- Sol 3 -->
+                <div class="bg-white rounded-xl shadow-sm border-t-4 border-teal-500 p-6 hover:-translate-y-1 transition-transform">
+                    <div class="text-2xl mb-3">&#9878;</div>
+                    <h4 class="font-bold text-lg mb-2">Mandats impératifs & RIC</h4>
+                    <p class="text-gray-600 text-sm">Instaurer le Référendum d'Initiative Citoyenne (RIC) en toutes matières. Rendre les élus révocables en cours de mandat s'ils trahissent leurs engagements électoraux.</p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="border-t border-gray-200 pt-8 pb-12 text-center">
+            <p class="text-gray-500 text-sm">
+                Document interactif généré pour clarifier le concept de "Démogarchie". <br>
+                Les données visualisées sont des représentations conceptuelles issues de théories de sciences politiques.
+            </p>
+        </footer>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- 1. Mobile Menu Toggle ---
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const sidebar = document.getElementById('sidebar');
+            
+            mobileMenuBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('hidden');
+                sidebar.classList.toggle('absolute');
+                sidebar.classList.toggle('w-full');
+            });
+
+            // --- 2. Active State Navigation (Scroll Spy) ---
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.clientHeight;
+                    if (pageYOffset >= (sectionTop - 150)) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active', 'border-l-4', 'border-accent-primary', 'bg-gray-50', 'font-bold', 'text-accent-primary');
+                    if (link.getAttribute('href').includes(current)) {
+                        link.classList.add('active', 'border-l-4', 'border-accent-primary', 'bg-gray-50', 'font-bold', 'text-accent-primary');
+                    }
+                });
+            });
+
+            // Close mobile menu on click
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if(window.innerWidth < 768) {
+                        sidebar.classList.add('hidden');
+                    }
+                });
+            });
+
+            // --- 3. Interactive Mechanisms Logic ---
+            const mechBtns = document.querySelectorAll('.mech-btn');
+            const mechContents = document.querySelectorAll('.mech-content');
+
+            mechBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Reset all buttons
+                    mechBtns.forEach(b => {
+                        b.classList.remove('border-accent-primary', 'shadow-md', 'font-bold', 'text-accent-primary');
+                        b.classList.add('border-transparent', 'text-gray-600');
+                    });
+                    
+                    // Set active button
+                    btn.classList.add('border-accent-primary', 'shadow-md', 'font-bold', 'text-accent-primary');
+                    btn.classList.remove('border-transparent', 'text-gray-600');
+
+                    // Hide all content
+                    mechContents.forEach(content => {
+                        content.classList.add('hidden');
+                        content.classList.remove('active');
+                    });
+
+                    // Show target content
+                    const targetId = btn.getAttribute('data-target');
+                    document.getElementById(targetId).classList.remove('hidden');
+                    // Small timeout for fade-in effect if CSS transition is added
+                    setTimeout(() => {
+                        document.getElementById(targetId).classList.add('active');
+                    }, 10);
+                });
+            });
+
+            // --- 4. Chart.js Implementations ---
+            
+            // Common Chart Options for Responsiveness
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false, // CRITICAL: allows chart to fill the container defined in CSS
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { font: { family: 'Inter' } }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(23, 23, 23, 0.9)',
+                        titleFont: { family: 'Inter', size: 14 },
+                        bodyFont: { family: 'Inter', size: 13 },
+                        padding: 12,
+                        cornerRadius: 8
+                    }
+                }
+            };
+
+            // Chart 1: Influence (Line Chart mimicking Gilens/Page study concept)
+            const ctxInfluence = document.getElementById('influenceChart').getContext('2d');
+            new Chart(ctxInfluence, {
+                type: 'line',
+                data: {
+                    labels: ['0%', '20%', '40%', '60%', '80%', '100%'],
+                    datasets: [
+                        {
+                            label: 'Soutien Citoyen (Moyen)',
+                            data: [30, 30, 30, 30, 30, 30],
+                            borderColor: '#94a3b8',
+                            backgroundColor: 'rgba(148, 163, 184, 0.2)',
+                            borderWidth: 3,
+                            borderDash: [5, 5],
+                            tension: 0.1,
+                            fill: false
+                        },
+                        {
+                            label: 'Soutien des Élites Économiques',
+                            data: [0, 15, 30, 45, 60, 75],
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Niveau de soutien pour une réforme' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Probabilité que la loi passe' },
+                            min: 0,
+                            max: 100,
+                            ticks: { callback: function(value) { return value + "%" } }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Media Concentration (Doughnut Chart)
+            const ctxMedia = document.getElementById('mediaChart').getContext('2d');
+            new Chart(ctxMedia, {
+                type: 'doughnut',
+                data: {
+                    labels: [
+                        'Milliardaires / Gds Groupes',
+                        'Médias Publics (État)',
+                        'Indépendants / Citoyens'
+                    ],
+                    datasets: [{
+                        data: [75, 20, 5],
+                        backgroundColor: [
+                            '#f43f5e', // Rose/Coral for Oligarchy
+                            '#64748b', // Slate for State
+                            '#10b981'  // Emerald for Independent
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    cutout: '65%',
+                    plugins: {
+                        ...commonOptions.plugins,
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + '% de l\'audience';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
