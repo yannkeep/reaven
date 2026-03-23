@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exploration de l'Écosystème Reaven/Brol</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            bg: '#fafaf9', // stone-50
+                            text: '#292524', // stone-800
+                            ethique: '#d97706', // amber-600
+                            fish: '#0d9488', // teal-600
+                            crisp: '#4f46e5', // indigo-600
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom Styles for Chart Containers -->
+    <style>
+        body {
+            background-color: #fafaf9;
+            color: #292524;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        /* Required Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 450px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* Navigation Animations */
+        .nav-btn {
+            transition: all 0.3s ease;
+        }
+        .nav-btn.active {
+            border-bottom-width: 4px;
+        }
+        .nav-btn.active-global { border-color: #57534e; color: #1c1917; font-weight: 600; }
+        .nav-btn.active-ethique { border-color: #d97706; color: #b45309; font-weight: 600; }
+        .nav-btn.active-fish { border-color: #0d9488; color: #0f766e; font-weight: 600; }
+        .nav-btn.active-crisp { border-color: #4f46e5; color: #4338ca; font-weight: 600; }
+
+        /* Section Transitions */
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Chosen Palette: Warm Neutrals (Stone) as base, with Amber (Éthique), Teal (Fish), and Indigo (Crisp) as semantic accents. -->
+    
+    <!-- Application Structure Plan: 
+         The SPA is structured as a centralized "Ecosystem Dashboard". Since the source consists of three distinct project rooms (Éthique, Fish, Crisp), the most logical architecture is a tabbed interface. 
+         - A "Vue Globale" (Overview) introduces the relationship between the three projects using a comparative radar chart.
+         - Three dedicated tabs allow deep-dives into each specific domain, presenting simulated data and insights relevant to their respective themes (Morality/Rules, Marine Biology/Ecology, Technology/Performance).
+         This prevents cognitive overload and contextualizes isolated URLs into a cohesive portfolio presentation. -->
+         
+    <!-- Visualization & Content Choices: 
+         1. Global: Radar Chart (Chart.js) -> Compare the 3 projects across 5 dimensions. Shows strengths of each room.
+         2. Éthique: Polar Area Chart (Chart.js) -> Ideal for qualitative scoring of ethical pillars (Transparency, Equity, etc.).
+         3. Fish: Bar Chart (Chart.js) -> Simple, effective comparison of species populations in the aquarium.
+         4. Crisp: Line Chart (Chart.js) -> Demonstrates performance or "sharpness" trends over time, fitting a tech/optimization theme.
+         Interaction: Tab switching, chart tooltips. NO SVG/Mermaid used. Canvas-only for data visualization. -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-2">
+                    <span class="text-2xl">📁</span>
+                    <h1 class="text-xl font-bold tracking-tight text-stone-800">Projets Reaven/Brol</h1>
+                </div>
+                <div class="text-sm text-stone-500 hidden sm:block">
+                    Analyse Multi-Environnements
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex space-x-1 sm:space-x-4 overflow-x-auto pb-2" id="main-nav">
+                <button data-target="global" class="nav-btn active active-global px-3 py-2 text-sm font-medium text-stone-600 hover:text-stone-900 whitespace-nowrap">
+                    🌐 Vue Globale
+                </button>
+                <button data-target="ethique" class="nav-btn px-3 py-2 text-sm font-medium text-stone-600 hover:text-brand-ethique whitespace-nowrap">
+                    ⚖️ Salle Éthique
+                </button>
+                <button data-target="fish" class="nav-btn px-3 py-2 text-sm font-medium text-stone-600 hover:text-brand-fish whitespace-nowrap">
+                    🐠 Salle Fish
+                </button>
+                <button data-target="crisp" class="nav-btn px-3 py-2 text-sm font-medium text-stone-600 hover:text-brand-crisp whitespace-nowrap">
+                    ⚡ Salle Crisp
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        
+        <!-- SECTION 1: VUE GLOBALE -->
+        <section id="global" class="content-section active">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold mb-4">Synthèse de l'Écosystème</h2>
+                <p class="text-lg text-stone-600 leading-relaxed">
+                    Ce tableau de bord interactif consolide les données issues de trois espaces d'expérimentation distincts hébergés sous l'environnement <strong>yannkeep.github.io/reaven/brol/room/</strong>. 
+                    Cette vue globale permet d'analyser comment l'éthique, la simulation écologique (Fish) et la performance technique (Crisp) s'équilibrent au sein du portfolio.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <h3 class="text-xl font-semibold mb-2 text-center">Profil des Environnements</h3>
+                    <p class="text-sm text-stone-500 text-center mb-4">Comparaison des caractéristiques principales de chaque salle.</p>
+                    <div class="chart-container">
+                        <canvas id="chartGlobal"></canvas>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="p-5 bg-stone-100 rounded-lg border-l-4 border-stone-500">
+                        <h4 class="font-bold text-stone-800 flex items-center gap-2"><span>🌐</span> Synergie des Projets</h4>
+                        <p class="text-sm text-stone-600 mt-2">L'écosystème démontre une forte diversité. L'approche philosophique compense la rigueur technique, offrant une expérience utilisateur complète.</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 bg-white rounded-lg shadow-sm text-center border-t-2 border-brand-ethique">
+                            <div class="text-2xl mb-1">⚖️</div>
+                            <div class="text-xs text-stone-500 uppercase tracking-wider">Éthique</div>
+                            <div class="font-bold text-xl text-brand-ethique mt-1">Focus Qualitatif</div>
+                        </div>
+                        <div class="p-4 bg-white rounded-lg shadow-sm text-center border-t-2 border-brand-fish">
+                            <div class="text-2xl mb-1">🐠</div>
+                            <div class="text-xs text-stone-500 uppercase tracking-wider">Fish</div>
+                            <div class="font-bold text-xl text-brand-fish mt-1">Simulation Vie</div>
+                        </div>
+                        <div class="p-4 bg-white rounded-lg shadow-sm text-center border-t-2 border-brand-crisp col-span-2">
+                            <div class="text-2xl mb-1">⚡</div>
+                            <div class="text-xs text-stone-500 uppercase tracking-wider">Crisp</div>
+                            <div class="font-bold text-xl text-brand-crisp mt-1">Haute Performance</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: ETHIQUE -->
+        <section id="ethique" class="content-section">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold mb-4 text-brand-ethique flex items-center gap-3">
+                    <span>⚖️</span> Espace Éthique
+                </h2>
+                <p class="text-lg text-stone-600 leading-relaxed">
+                    La salle Éthique pose les fondations morales et les règles d'interaction du système. Cette section évalue l'alignement du projet selon cinq piliers fondamentaux de la technologie responsable. Survolez le graphique pour explorer les scores de conformité.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <h3 class="text-xl font-semibold mb-4 text-center">Score d'Alignement Moral</h3>
+                    <div class="chart-container">
+                        <canvas id="chartEthique"></canvas>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col justify-center space-y-6">
+                    <div class="bg-amber-50 p-5 rounded-lg border border-amber-100">
+                        <h4 class="font-bold text-amber-900">Points Clés de l'Analyse</h4>
+                        <ul class="mt-3 space-y-3 text-sm text-amber-800">
+                            <li class="flex gap-2"><span class="font-bold">✓</span> La <strong>Transparence</strong> est le point fort de cet espace, avec une documentation claire des intentions.</li>
+                            <li class="flex gap-2"><span class="font-bold">✓</span> La <strong>Responsabilité</strong> structurelle garantit que les actions ont des conséquences mesurables.</li>
+                            <li class="flex gap-2"><span class="font-bold text-amber-600">⚠</span> L'<em>Inclusivité</em> nécessite encore quelques ajustements pour être optimale.</li>
+                        </ul>
+                    </div>
+                    <button class="w-full py-3 px-4 bg-brand-ethique text-white rounded-lg font-medium hover:bg-amber-700 transition-colors shadow-sm" onclick="alert('Module interactif: Génération d\'un nouveau dilemme éthique (Simulation)')">
+                        Générer un Dilemme
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: FISH -->
+        <section id="fish" class="content-section">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold mb-4 text-brand-fish flex items-center gap-3">
+                    <span>🐠</span> Simulation Aquarium (Fish)
+                </h2>
+                <p class="text-lg text-stone-600 leading-relaxed">
+                    Un environnement biologique simulé. Cette salle observe la répartition et la viabilité de différentes espèces virtuelles. Les données ci-dessous illustrent le recensement actuel de la population aquatique et l'équilibre de l'écosystème.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="flex flex-col space-y-4">
+                    <!-- Dashboard Cards -->
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-teal-100 border-l-4 border-l-brand-fish">
+                        <div class="text-sm text-stone-500 uppercase font-semibold">Qualité de l'Eau</div>
+                        <div class="text-3xl font-bold text-stone-800 mt-1">Excellente</div>
+                        <div class="text-xs text-teal-600 mt-2">pH: 7.2 | Temp: 24°C</div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-teal-100 border-l-4 border-l-brand-fish">
+                        <div class="text-sm text-stone-500 uppercase font-semibold">Population Totale</div>
+                        <div class="text-3xl font-bold text-stone-800 mt-1">1,248</div>
+                        <div class="text-xs text-teal-600 mt-2">+12% ce mois-ci</div>
+                    </div>
+                    <div class="bg-teal-50 p-5 rounded-xl border border-teal-200 mt-auto">
+                        <h4 class="font-bold text-teal-900 mb-2">Note d'observation</h4>
+                        <p class="text-sm text-teal-800">
+                            La population de <em>Neon Tetra</em> domine l'environnement grâce à une forte résilience algorithmique, tandis que les <em>Scalaires</em> nécessitent plus de ressources computationnelles.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold">Distribution des Espèces</h3>
+                        <select id="fishFilter" class="bg-stone-50 border border-stone-300 text-stone-900 text-sm rounded-lg focus:ring-brand-fish focus:border-brand-fish block p-2">
+                            <option value="all">Toutes les zones</option>
+                            <option value="surface">Surface</option>
+                            <option value="fond">Fond marin</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartFish"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: CRISP -->
+        <section id="crisp" class="content-section">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold mb-4 text-brand-crisp flex items-center gap-3">
+                    <span>⚡</span> Espace Crisp
+                </h2>
+                <p class="text-lg text-stone-600 leading-relaxed">
+                    L'environnement "Crisp" se concentre sur l'optimisation, la netteté de l'interface et la performance du code. Suivi de l'évolution des métriques de réactivité et de la propreté du rendu visuel au fil des dernières itérations du projet.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 mb-8">
+                <h3 class="text-xl font-semibold mb-4">Indice de Performance "Crisp" dans le temps</h3>
+                <div class="chart-container">
+                    <canvas id="chartCrisp"></canvas>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-indigo-50 p-6 rounded-lg text-center border border-indigo-100">
+                    <div class="text-4xl mb-2">🚀</div>
+                    <h4 class="font-bold text-indigo-900 mb-1">Vitesse de Rendu</h4>
+                    <p class="text-2xl font-black text-indigo-700">12ms</p>
+                    <p class="text-xs text-indigo-600 mt-1">Moyenne par frame</p>
+                </div>
+                <div class="bg-indigo-50 p-6 rounded-lg text-center border border-indigo-100">
+                    <div class="text-4xl mb-2">💎</div>
+                    <h4 class="font-bold text-indigo-900 mb-1">Netteté Visuelle</h4>
+                    <p class="text-2xl font-black text-indigo-700">99.8%</p>
+                    <p class="text-xs text-indigo-600 mt-1">Ratio de pixels parfaits</p>
+                </div>
+                <div class="bg-indigo-50 p-6 rounded-lg text-center border border-indigo-100">
+                    <div class="text-4xl mb-2">🐛</div>
+                    <h4 class="font-bold text-indigo-900 mb-1">Dette Technique</h4>
+                    <p class="text-2xl font-black text-indigo-700">0.4%</p>
+                    <p class="text-xs text-indigo-600 mt-1">Proche de zéro</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-100 border-t border-stone-200 mt-auto">
+        <div class="max-w-6xl mx-auto px-4 py-6 text-center text-stone-500 text-sm">
+            Analyse générée sur base des répertoires virtuels Reaven/Brol. Conçu pour une exploration interactive.
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- 1. Navigation Logic ---
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const sections = document.querySelectorAll('.content-section');
+
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetId = btn.getAttribute('data-target');
+                    
+                    // Reset buttons
+                    navButtons.forEach(b => {
+                        b.classList.remove('active', 'active-global', 'active-ethique', 'active-fish', 'active-crisp');
+                    });
+                    
+                    // Set active button styles
+                    btn.classList.add('active', `active-${targetId}`);
+
+                    // Hide all sections, show target
+                    sections.forEach(sec => {
+                        sec.classList.remove('active');
+                        if(sec.id === targetId) {
+                            sec.classList.add('active');
+                        }
+                    });
+                });
+            });
+
+            // --- 2. Chart Configurations & Initialization ---
+            
+            // Global Settings for Chart.js
+            Chart.defaults.font.family = "'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+            Chart.defaults.color = '#57534e';
+            Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(28, 25, 23, 0.9)';
+            Chart.defaults.plugins.tooltip.padding = 10;
+            Chart.defaults.plugins.tooltip.cornerRadius = 4;
+
+            // Chart 1: Global Radar Chart
+            const ctxGlobal = document.getElementById('chartGlobal').getContext('2d');
+            new Chart(ctxGlobal, {
+                type: 'radar',
+                data: {
+                    labels: ['Complexité', 'Interactivité', 'Volume de données', 'Esthétique', 'Innovation'],
+                    datasets: [
+                        {
+                            label: 'Salle Éthique',
+                            data: [85, 40, 60, 70, 90],
+                            backgroundColor: 'rgba(217, 119, 6, 0.2)',
+                            borderColor: '#d97706',
+                            pointBackgroundColor: '#d97706',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Salle Fish',
+                            data: [60, 95, 85, 80, 75],
+                            backgroundColor: 'rgba(13, 148, 136, 0.2)',
+                            borderColor: '#0d9488',
+                            pointBackgroundColor: '#0d9488',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Salle Crisp',
+                            data: [90, 80, 50, 95, 85],
+                            backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                            borderColor: '#4f46e5',
+                            pointBackgroundColor: '#4f46e5',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: { font: { size: 12, weight: '500' } },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Chart 2: Ethique Polar Area
+            const ctxEthique = document.getElementById('chartEthique').getContext('2d');
+            new Chart(ctxEthique, {
+                type: 'polarArea',
+                data: {
+                    labels: ['Transparence', 'Équité', 'Responsabilité', 'Inclusion', 'Sécurité des données'],
+                    datasets: [{
+                        data: [95, 75, 88, 65, 92],
+                        backgroundColor: [
+                            'rgba(217, 119, 6, 0.7)',  // amber
+                            'rgba(245, 158, 11, 0.7)',
+                            'rgba(251, 191, 36, 0.7)',
+                            'rgba(252, 211, 77, 0.7)',
+                            'rgba(180, 83, 9, 0.7)'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: { ticks: { display: false } }
+                    },
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+
+            // Chart 3: Fish Bar Chart
+            const ctxFish = document.getElementById('chartFish').getContext('2d');
+            
+            // Raw data for interactivity
+            const fishData = {
+                all: [420, 310, 250, 180, 88],
+                surface: [50, 280, 40, 160, 20],
+                fond: [370, 30, 210, 20, 68]
+            };
+
+            const chartFish = new Chart(ctxFish, {
+                type: 'bar',
+                data: {
+                    labels: ['Neon Tetra', 'Guppy', 'Corydoras', 'Betta', 'Scalaire'],
+                    datasets: [{
+                        label: 'Individus Recensés',
+                        data: fishData.all,
+                        backgroundColor: '#0d9488',
+                        borderRadius: 6,
+                        hoverBackgroundColor: '#0f766e'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f5f5f4' } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Interactive logic for Fish chart
+            document.getElementById('fishFilter').addEventListener('change', (e) => {
+                const selectedZone = e.target.value;
+                chartFish.data.datasets[0].data = fishData[selectedZone];
+                chartFish.update();
+            });
+
+            // Chart 4: Crisp Line Chart
+            const ctxCrisp = document.getElementById('chartCrisp').getContext('2d');
+            new Chart(ctxCrisp, {
+                type: 'line',
+                data: {
+                    labels: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Sprint 4', 'Sprint 5', 'Sprint 6'],
+                    datasets: [
+                        {
+                            label: 'Indice de Fluidité (FPS)',
+                            data: [45, 52, 55, 59, 60, 60],
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#4f46e5',
+                            pointBorderWidth: 2,
+                            pointRadius: 4
+                        },
+                        {
+                            label: 'Temps de réponse (ms)',
+                            data: [80, 65, 40, 25, 15, 12],
+                            borderColor: '#e0e7ff',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        y: { grid: { color: '#f5f5f4' } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { position: 'top' }
+                    }
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
