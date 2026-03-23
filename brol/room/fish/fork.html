@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exploration Brol : Enjeux et Conséquences Numériques</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* CSS personnalisé strictement limité aux conteneurs de graphiques et éléments structurels spécifiques */
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fafaf9; /* Warm neutral background */
+            color: #292524;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 50vh;
+            max-height: 450px;
+            min-height: 300px;
+        }
+        .nav-btn.active {
+            background-color: #ea580c; /* Orange-600 */
+            color: white;
+            border-color: #ea580c;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+
+    <!-- REQUIRED PLACEHOLDER COMMENTS -->
+    <!-- Chosen Palette: Warm Neutrals & Alert Orange (Background: Stone-50, Text: Stone-800, Accents: Orange-600 & Teal-700) -->
+    <!-- Application Structure Plan: Dashboard thématique interactif. Les URLs fournies (Google, cookies, propagande, anarchie) suggèrent un récit sur la dystopie numérique. L'application est structurée en 3 "Piliers" exploratoires (Captation, Distorsion, Résistance) navigables via un menu supérieur. Cela permet à l'utilisateur de comprendre la progression logique des conséquences : l'extraction de données mène à la manipulation, qui provoque finalement une fracture/rébellion. -->
+    <!-- Visualization & Content Choices: 
+         1. Captation (Cookies/Google) -> But: Montrer l'ampleur de la collecte -> Graphique Doughnut (Chart.js) -> Interactif au survol -> Montre la disproportion entre données techniques et données de profilage.
+         2. Distorsion (Propagande/Gork) -> But: Illustrer l'accélération de la désinformation -> Graphique en ligne (Chart.js) -> Montre l'évolution temporelle théorique de la polarisation.
+         3. Résistance (Anarchie/Veille) -> But: Classifier les actions de réponse -> Graphique en barres (Chart.js) -> Compare les méthodes de défense citoyenne.
+         Aucun SVG ou Mermaid utilisé. Canvas exclusif pour les graphiques, HTML/CSS pour la structure. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Header -->
+    <header class="bg-stone-900 text-stone-50 py-8 px-4 shadow-md z-10">
+        <div class="max-w-6xl mx-auto">
+            <h1 class="text-3xl md:text-5xl font-bold mb-3 tracking-tight">Le Projet "Brol" : Autopsie d'une Dystopie Numérique</h1>
+            <p class="text-stone-400 text-lg max-w-3xl">
+                Une extrapolation analytique basée sur l'arborescence des répertoires <code>/fish/</code> et <code>/crisp/</code>. 
+                De la captation des données (<em>cookies, google</em>) à la distorsion cognitive (<em>propagande, gork</em>), jusqu'à l'émergence d'une cyber-résistance (<em>stic-anarchie, veilleuxses</em>).
+            </p>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-stone-200 sticky top-0 z-20 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 flex flex-wrap justify-center md:justify-start gap-2 py-4">
+            <button onclick="loadSection('captation')" id="btn-captation" class="nav-btn active px-6 py-2 rounded-full border border-stone-300 font-medium transition-colors hover:bg-stone-100 focus:outline-none">
+                &#128373; 1. L'Ère de la Captation
+            </button>
+            <button onclick="loadSection('distorsion')" id="btn-distorsion" class="nav-btn px-6 py-2 rounded-full border border-stone-300 font-medium transition-colors hover:bg-stone-100 focus:outline-none">
+                &#128421; 2. La Distorsion (Propagande)
+            </button>
+            <button onclick="loadSection('resistance')" id="btn-resistance" class="nav-btn px-6 py-2 rounded-full border border-stone-300 font-medium transition-colors hover:bg-stone-100 focus:outline-none">
+                &#9888; 3. La Fracture (Anarchie)
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-6xl mx-auto w-full px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Text & Insights Panel (Left) -->
+        <div class="lg:col-span-1 space-y-6 fade-in" id="text-panel">
+            <!-- Content injected by JS -->
+        </div>
+
+        <!-- Visualization Panel (Right) -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-stone-200 p-6 fade-in flex flex-col justify-center">
+            <div id="chart-header" class="mb-4">
+                <h3 class="text-xl font-bold text-stone-800" id="chart-title">Visualisation des Données</h3>
+                <p class="text-sm text-stone-500" id="chart-subtitle">Extrapolation basée sur l'empreinte des mots-clés.</p>
+            </div>
+            <!-- MANDATORY CHART CONTAINER -->
+            <div class="chart-container">
+                <canvas id="mainChart"></canvas>
+            </div>
+            
+            <div id="interactive-insight" class="mt-6 p-4 bg-orange-50 border-l-4 border-orange-600 rounded-r text-stone-700 hidden">
+                <!-- Dynamic insight text based on chart interaction -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Synthesis Section -->
+    <section class="bg-stone-800 text-stone-100 py-12 mt-auto">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-2xl font-bold mb-6 border-b border-stone-600 pb-2">&#128269; Synthèse Générale : Enjeux et Conséquences</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-stone-700 p-6 rounded-lg">
+                    <h4 class="font-bold text-orange-400 mb-2">L'Enjeu Démocratique</h4>
+                    <p class="text-sm">La présence simultanée de "google", "cookies" et "propagande" souligne la monétisation de l'attention. La conséquence directe est la création de bulles de filtres qui fragmentent le consensus social.</p>
+                </div>
+                <div class="bg-stone-700 p-6 rounded-lg">
+                    <h4 class="font-bold text-teal-400 mb-2">L'Enjeu Cognitif</h4>
+                    <p class="text-sm">L'apparition de l'entité "gork" (référence probable à l'IA générative "Grok" ou à un système automatisé) couplée à la propagande implique une industrialisation du mensonge, saturant l'esprit critique humain.</p>
+                </div>
+                <div class="bg-stone-700 p-6 rounded-lg">
+                    <h4 class="font-bold text-rose-400 mb-2">L'Enjeu Sécuritaire</h4>
+                    <p class="text-sm">"stic-anarchie" et "veilleuxses" démontrent que la technologie n'est pas qu'un outil de contrôle, mais aussi un champ de bataille. La conséquence est une balkanisation du web entre méga-corpos et hacktivistes.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Logic & Interactivity -->
+    <script>
+        // --- DATA STATE ---
+        // Extrapolated data based on the URLs provided
+        const appData = {
+            captation: {
+                title: "L'Hégémonie & L'Extraction",
+                intro: "L'analyse des répertoires révèle une préoccupation majeure pour l'infrastructure de surveillance commerciale. Les fichiers <code>google.html</code> et <code>cookies.html</code> agissent comme les piliers de cette première phase : la transformation du comportement humain en matière première.",
+                details: [
+                    "<strong>L'Enjeu :</strong> La perte de l'anonymat par défaut. Chaque interaction est tracée, stockée et analysée.",
+                    "<strong>La Conséquence :</strong> Un capitalisme de surveillance où l'utilisateur n'est plus le client, mais le produit. Le fichier <code>404.html</code> récurrent symbolise peut-être les impasses ou les données effacées hors de notre contrôle."
+                ],
+                chartConfig: {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Profilage Ciblé', 'Suivi Inter-sites (Trackers)', 'Fonctionnement Requis', 'Analytique de base'],
+                        datasets: [{
+                            data: [45, 35, 5, 15],
+                            backgroundColor: ['#ea580c', '#f97316', '#e5e5e5', '#fb923c'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.label + ': ' + context.parsed + '% de l\'empreinte cookie';
+                                    }
+                                }
+                            }
+                        },
+                        onClick: (e, elements) => {
+                            if (elements.length > 0) {
+                                showInsight("L'hyper-concentration des données dans le 'Profilage' et les 'Trackers' permet une modélisation prédictive des comportements individuels.");
+                            }
+                        }
+                    },
+                    chartTitle: "Distribution Théorique des Traceurs ('Cookies')",
+                    chartSub: "Cliquez sur les segments pour analyser les conséquences."
+                }
+            },
+            distorsion: {
+                title: "L'Usine à Réalités",
+                intro: "Une fois les données captées, elles servent à alimenter des systèmes d'influence. La juxtaposition de <code>test-propagande.html</code> et de <code>gork.html</code> suggère l'utilisation d'intelligences artificielles ou d'algorithmes pour générer et distribuer du contenu manipulant.",
+                details: [
+                    "<strong>L'Enjeu :</strong> L'intégrité de l'écosystème informationnel. Comment distinguer le vrai du synthétique ?",
+                    "<strong>La Conséquence :</strong> L'ingénierie sociale à grande échelle. L'automatisation (Gork) permet de saturer les réseaux de micro-récits polarisants (Propagande), rendant le dialogue démocratique presque impossible."
+                ],
+                chartConfig: {
+                    type: 'line',
+                    data: {
+                        labels: ['Semaine 1', 'Semaine 2', 'Semaine 3', 'Semaine 4', 'Semaine 5', 'Semaine 6'],
+                        datasets: [
+                            {
+                                label: 'Volume de contenu organique',
+                                data: [100, 105, 102, 110, 108, 115],
+                                borderColor: '#a8a29e',
+                                backgroundColor: 'transparent',
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Volume de propagande automatisée (Gork)',
+                                data: [10, 25, 60, 150, 320, 600],
+                                borderColor: '#ea580c',
+                                backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } },
+                        scales: {
+                            y: { beginAtZero: true, title: { display: true, text: 'Volume d\'interactions' } }
+                        },
+                        onClick: () => {
+                            showInsight("La courbe exponentielle orange illustre la 'Loi de Brandolini' : l'automatisation permet de générer de fausses informations à un coût énergétique et cognitif infiniment moindre que celui requis pour les débunker.");
+                        }
+                    },
+                    chartTitle: "Taux de Pénétration de la Propagande vs Contenu Réel",
+                    chartSub: "Projection de la capacité d'une entité automatisée ('Gork'). Cliquez sur le graphique."
+                }
+            },
+            resistance: {
+                title: "Fracture et Vigilance",
+                intro: "Le système provoque inévitablement sa propre réaction. L'apparition de <code>stic-anarchie.html</code>, <code>veille-1160.html</code> et <code>veilleuxses.html</code> marque l'émergence d'une contre-culture numérique : surveillance citoyenne (veille) et perturbation active (anarchie).",
+                details: [
+                    "<strong>L'Enjeu :</strong> La réappropriation de l'espace numérique par les utilisateurs via la vigilance (veilleuxses).",
+                    "<strong>La Conséquence :</strong> Une guerre asymétrique de l'information. Des collectifs décentralisés tentent de briser les algorithmes, menant potentiellement à un web 'splintered' (fragmenté) où le chaos (anarchie) devient une tactique de défense de la vie privée."
+                ],
+                chartConfig: {
+                    type: 'bar',
+                    data: {
+                        labels: ['Chiffrement', 'Contre-Veille', 'Désinformation tactique', 'Sabotage algorithmique', 'Création de réseaux mesh'],
+                        datasets: [{
+                            label: 'Intensité des actions "Anarchiques"',
+                            data: [85, 70, 45, 60, 30],
+                            backgroundColor: '#0f766e', /* Teal-700 */
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y', // Horizontal bar chart
+                        plugins: { legend: { display: false } },
+                        scales: { x: { max: 100 } },
+                        onClick: () => {
+                            showInsight("L'anarchie numérique ('stic-anarchie') ne se manifeste pas que par la destruction, mais surtout par la 'Contre-Veille' ('veilleuxses') : observer ceux qui nous observent pour neutraliser leur avantage asymétrique.");
+                        }
+                    },
+                    chartTitle: "Typologie des Contre-Mesures (Veille & Anarchie)",
+                    chartSub: "Évaluation des tactiques de résistance citoyenne. Cliquez sur les barres."
+                }
+            }
+        };
+
+        let currentChartInstance = null;
+
+        // --- CORE FUNCTIONS ---
+
+        function initApp() {
+            // Load the default section
+            loadSection('captation');
+        }
+
+        function loadSection(sectionKey) {
+            const data = appData[sectionKey];
+            if (!data) return;
+
+            // Update Navigation UI
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${sectionKey}`).classList.add('active');
+
+            // Update Text Panel
+            const textPanel = document.getElementById('text-panel');
+            // Remove animation class to re-trigger it
+            textPanel.classList.remove('fade-in');
+            void textPanel.offsetWidth; // Trigger reflow
+            textPanel.classList.add('fade-in');
+
+            let detailsHtml = data.details.map(d => `<li class="mb-3 text-stone-700 bg-white p-4 rounded shadow-sm border border-stone-100">${d}</li>`).join('');
+            
+            textPanel.innerHTML = `
+                <div class="inline-block px-3 py-1 bg-stone-200 text-stone-700 rounded-full text-xs font-bold uppercase tracking-wider mb-2">Thème Actif</div>
+                <h2 class="text-3xl font-extrabold text-stone-800 mb-4">${data.title}</h2>
+                <p class="text-lg text-stone-600 mb-6 leading-relaxed">${data.intro}</p>
+                <ul class="list-none p-0 m-0">
+                    ${detailsHtml}
+                </ul>
+            `;
+
+            // Update Chart Headers
+            document.getElementById('chart-title').innerText = data.chartConfig.chartTitle;
+            document.getElementById('chart-subtitle').innerText = data.chartConfig.chartSub;
+            hideInsight();
+
+            // Render Chart
+            renderChart(data.chartConfig);
+        }
+
+        function renderChart(config) {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            
+            // Crucial: Destroy old chart to prevent memory leaks and hover glitches
+            if (currentChartInstance) {
+                currentChartInstance.destroy();
+            }
+
+            // Set default font family for Chart.js to match the app
+            Chart.defaults.font.family = "'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+            Chart.defaults.color = '#57534e'; // stone-500
+
+            currentChartInstance = new Chart(ctx, config);
+        }
+
+        function showInsight(text) {
+            const insightDiv = document.getElementById('interactive-insight');
+            insightDiv.innerHTML = `<strong>Analyse de l'Interaction :</strong> ${text}`;
+            insightDiv.classList.remove('hidden');
+            insightDiv.classList.add('fade-in');
+        }
+
+        function hideInsight() {
+            const insightDiv = document.getElementById('interactive-insight');
+            insightDiv.classList.add('hidden');
+            insightDiv.innerHTML = '';
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
