@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>LE BURGER CITOYEN — Compose ton courrier aux élus | BELGITUDE™</title>
+<meta name="description" content="12 thèmes, 26 cibles, des questions fermées sourcées. Compose ton courrier citoyen comme un burger. Chaque chiffre est vérifiable. Chaque question attend un OUI ou un NON.">
+<meta property="og:title" content="LE BURGER CITOYEN — Interpelle tes élus">
+<meta property="og:description" content="12 thèmes. 26 cibles. Des questions fermées. Compose ton courrier, copie, envoie.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://yannkeep.github.io/reaven/brol/crisp/burger.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<!-- Schema.org -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Le Burger Citoyen — Générateur de courrier aux élus belges",
+  "description": "Outil citoyen permettant de générer des courriers sourcés aux élus belges sur 12 thématiques couvrant les niveaux micro, méso et macro de la politique sociale.",
+  "url": "https://yannkeep.github.io/reaven/brol/crisp/burger.html",
+  "applicationCategory": "Civic Technology",
+  "author": {"@type": "Organization", "name": "ouaisfieu — Yan & Claude (Anthropic)"},
+  "license": "https://creativecommons.org/licenses/by-sa/4.0/deed.fr",
+  "inLanguage": "fr"
+}
+</script>
+
+<style>
+:root {
+  --bun-top: #F4A83D;
+  --bun-bottom: #D4892E;
+  --meat: #8B2500;
+  --lettuce: #48bb78;
+  --tomato: #E53E3E;
+  --cheese: #F6E05E;
+  --sauce: #ED8936;
+  --mayo: #FEFCBF;
+  --bg: #1a1a2e;
+  --card: #16213e;
+  --text: #f0f0f0;
+  --text-dim: #a0aec0;
+  --accent: #48bb78;
+  --danger: #fc8181;
+  --purple: #9f7aea;
+  --blue: #63b3ed;
+  --radius: 16px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Fredoka', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ═══════ NOISE GRAIN ═══════ */
+body::before {
+  content: '';
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9999;
+}
+
+/* ═══════ HEADER ═══════ */
+.hero {
+  text-align: center;
+  padding: 3rem 1.5rem 2rem;
+  position: relative;
+}
+.hero-badge {
+  display: inline-block;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 4px 16px;
+  border-radius: 999px;
+  margin-bottom: 1.5rem;
+}
+.hero h1 {
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 0.5rem;
+}
+.hero h1 .emoji { font-size: 0.85em; }
+.hero .subtitle {
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
+  color: var(--text-dim);
+  max-width: 600px;
+  margin: 0 auto 1.5rem;
+  font-weight: 400;
+}
+.hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+.hero-stat {
+  text-align: center;
+}
+.hero-stat .num {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--cheese);
+  font-family: 'Space Mono', monospace;
+}
+.hero-stat .label {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ═══════ FALC BANNER ═══════ */
+.falc-banner {
+  background: linear-gradient(135deg, var(--accent), #2f855a);
+  margin: 0 1.5rem 2rem;
+  padding: 1.2rem 1.5rem;
+  border-radius: var(--radius);
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+.falc-banner h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+.falc-banner p {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+/* ═══════ COMPOSER AREA ═══════ */
+.composer {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.step {
+  margin-bottom: 2rem;
+}
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.step-num {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.step-num.bun { background: var(--bun-top); color: #1a1a2e; }
+.step-num.meat { background: var(--meat); color: white; }
+.step-num.lettuce { background: var(--lettuce); color: #1a1a2e; }
+.step-num.cheese { background: var(--cheese); color: #1a1a2e; }
+.step-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+/* ═══════ THEME GRID ═══════ */
+.level-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 1.5rem 0 0.75rem;
+  padding-left: 4px;
+}
+.level-label.micro { color: var(--accent); }
+.level-label.meso { color: var(--cheese); }
+.level-label.macro { color: var(--danger); }
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.theme-card {
+  background: var(--card);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.theme-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+.theme-card.selected {
+  border-color: var(--cheese);
+  background: rgba(246,224,94,0.1);
+}
+.theme-card .icon { font-size: 1.8rem; margin-bottom: 0.4rem; }
+.theme-card .name { font-size: 0.85rem; font-weight: 600; line-height: 1.3; }
+.theme-card .stat {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--sauce);
+  margin-top: 0.3rem;
+}
+
+/* ═══════ TARGET SELECTOR ═══════ */
+.target-groups {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.target-tab {
+  background: var(--card);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-dim);
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+.target-tab:hover { border-color: var(--accent); color: var(--text); }
+.target-tab.active { background: var(--accent); color: #1a1a2e; border-color: var(--accent); font-weight: 600; }
+
+.target-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.5rem;
+}
+.target-item {
+  background: var(--card);
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.target-item:hover { border-color: var(--blue); }
+.target-item.selected { border-color: var(--cheese); background: rgba(246,224,94,0.08); }
+.target-item .party-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.target-item .t-name { font-size: 0.85rem; font-weight: 600; }
+.target-item .t-role { font-size: 0.7rem; color: var(--text-dim); }
+
+/* ═══════ PREVIEW ═══════ */
+.preview-box {
+  background: #0f0f23;
+  border: 2px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius);
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+.preview-toolbar {
+  background: rgba(255,255,255,0.05);
+  padding: 0.75rem 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.preview-to {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+.preview-to strong { color: var(--accent); }
+.preview-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.btn {
+  font-family: 'Fredoka', sans-serif;
+  padding: 0.5rem 1.2rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.btn-primary { background: var(--accent); color: #1a1a2e; }
+.btn-primary:hover { background: #68d391; transform: scale(1.03); }
+.btn-secondary { background: rgba(255,255,255,0.1); color: var(--text); }
+.btn-secondary:hover { background: rgba(255,255,255,0.2); }
+.btn-mail { background: var(--blue); color: #1a1a2e; }
+.btn-mail:hover { background: #90cdf4; }
+
+.preview-content {
+  padding: 1.5rem;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  min-height: 200px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.preview-content .q-block {
+  background: rgba(72,187,120,0.08);
+  border-left: 3px solid var(--accent);
+  padding: 0.5rem 1rem;
+  margin: 0.8rem 0;
+  border-radius: 0 8px 8px 0;
+}
+.preview-content .src {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  margin-top: 0.2rem;
+}
+
+.preview-placeholder {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--text-dim);
+}
+.preview-placeholder .big-emoji { font-size: 4rem; margin-bottom: 1rem; }
+.preview-placeholder p { max-width: 400px; margin: 0 auto; line-height: 1.5; }
+
+/* ═══════ STATS RIBBON ═══════ */
+.stats-ribbon {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin: 2rem 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  text-align: center;
+}
+.stats-ribbon .sr-val {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--danger);
+}
+.stats-ribbon .sr-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  line-height: 1.3;
+  margin-top: 0.2rem;
+}
+
+/* ═══════ DATA DRAWER (expandable sources) ═══════ */
+.data-drawer {
+  background: var(--card);
+  border-radius: var(--radius);
+  margin-top: 2rem;
+  overflow: hidden;
+}
+.data-drawer summary {
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.data-drawer summary::before { content: '📊'; }
+.data-drawer summary::after {
+  content: '▾';
+  margin-left: auto;
+  transition: transform 0.2s;
+}
+.data-drawer[open] summary::after { transform: rotate(180deg); }
+.data-drawer .drawer-body {
+  padding: 0 1.5rem 1.5rem;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+.data-drawer .drawer-body a {
+  color: var(--blue);
+  text-decoration: none;
+}
+
+/* ═══════ SHARE BAR ═══════ */
+.share-bar {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 2rem 0;
+}
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-family: 'Fredoka', sans-serif;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+.share-btn:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+
+/* ═══════ COUNTER ═══════ */
+.counter-strip {
+  text-align: center;
+  padding: 1rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+.counter-strip .count {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--cheese);
+}
+
+/* ═══════ FOOTER ═══════ */
+footer {
+  text-align: center;
+  padding: 2rem 1.5rem 3rem;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+  max-width: 700px;
+  margin: 0 auto;
+}
+footer a { color: var(--accent); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+/* ═══════ TOAST ═══════ */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--accent);
+  color: #1a1a2e;
+  padding: 0.7rem 1.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  z-index: 999;
+  transition: transform 0.3s ease;
+  pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ═══════ BURGER ANIMATION ═══════ */
+.burger-anim {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin: 1.5rem auto;
+  width: 120px;
+}
+.burger-layer {
+  height: 16px;
+  border-radius: 8px;
+  transition: all 0.4s ease;
+  opacity: 0.2;
+}
+.burger-layer.active { opacity: 1; transform: scaleX(1.05); }
+.bl-bun-top { width: 100px; background: var(--bun-top); border-radius: 50px 50px 8px 8px; height: 24px; }
+.bl-lettuce { width: 110px; background: var(--lettuce); height: 10px; }
+.bl-cheese { width: 105px; background: var(--cheese); height: 8px; }
+.bl-meat { width: 100px; background: var(--meat); height: 20px; border-radius: 10px; }
+.bl-tomato { width: 95px; background: var(--tomato); height: 10px; }
+.bl-sauce { width: 90px; background: var(--sauce); height: 6px; }
+.bl-bun-bot { width: 100px; background: var(--bun-bottom); border-radius: 8px 8px 40px 40px; height: 20px; }
+
+/* ═══════ USER INPUT ═══════ */
+.user-input {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.user-input input {
+  flex: 1;
+  min-width: 200px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  color: var(--text);
+  font-family: 'Fredoka', sans-serif;
+  font-size: 0.9rem;
+}
+.user-input input::placeholder { color: var(--text-dim); }
+.user-input input:focus { outline: none; border-color: var(--accent); }
+
+/* ═══════ RESPONSIVE ═══════ */
+@media (max-width: 600px) {
+  .theme-grid { grid-template-columns: repeat(2, 1fr); }
+  .target-list { grid-template-columns: 1fr; }
+  .hero-stats { gap: 1rem; }
+  .preview-toolbar { flex-direction: column; align-items: stretch; }
+  .preview-actions { justify-content: center; }
+}
+
+/* ═══════ SCROLL ANIMATIONS ═══════ */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s, transform 0.5s;
+}
+.fade-in.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- HERO -->
+<!-- ═══════════════════════════════════════ -->
+<header class="hero">
+  <div class="hero-badge">BELGITUDE™ · Outil citoyen · Avril 2026</div>
+  <h1><span class="emoji">🍔</span> LE BURGER CITOYEN</h1>
+  <p class="subtitle">Compose ton courrier aux élus.<br>12 thèmes. 26 cibles. Des questions fermées.<br>Chaque chiffre est vérifiable. Chaque question attend un <strong>OUI</strong> ou un <strong>NON</strong>.</p>
+  
+  <div class="burger-anim" id="burgerAnim">
+    <div class="burger-layer bl-bun-top" data-step="0"></div>
+    <div class="burger-layer bl-lettuce" data-step="1"></div>
+    <div class="burger-layer bl-cheese" data-step="2"></div>
+    <div class="burger-layer bl-meat" data-step="3"></div>
+    <div class="burger-layer bl-tomato" data-step="3"></div>
+    <div class="burger-layer bl-sauce" data-step="4"></div>
+    <div class="burger-layer bl-bun-bot" data-step="4"></div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">12</div><div class="label">Thèmes</div></div>
+    <div class="hero-stat"><div class="num">26</div><div class="label">Cibles</div></div>
+    <div class="hero-stat"><div class="num">60+</div><div class="label">Questions</div></div>
+    <div class="hero-stat"><div class="num">0</div><div class="label">Tracking</div></div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- FALC EXPLANATION -->
+<!-- ═══════════════════════════════════════ -->
+<div class="falc-banner">
+  <h2>🟢 Comment ça marche ?</h2>
+  <p>1. Tu choisis un <strong>thème</strong> qui te touche.<br>
+     2. Tu choisis <strong>qui</strong> tu veux interpeller.<br>
+     3. Tu mets <strong>ton nom</strong> (ou pas).<br>
+     4. Tu <strong>copies</strong> le texte et tu l'<strong>envoies</strong>.<br>
+     C'est tout. Pas de compte. Pas de données. Pas de piège.</p>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- COMPOSER -->
+<!-- ═══════════════════════════════════════ -->
+<main class="composer">
+
+  <!-- STEP 1: THEME -->
+  <section class="step fade-in">
+    <div class="step-header">
+      <div class="step-num meat">1</div>
+      <div class="step-title">Choisis ton thème</div>
+    </div>
+
+    <div class="level-label micro">🏠 MICRO — Ta vie quotidienne</div>
+    <div class="theme-grid" id="themesMicro"></div>
+
+    <div class="level-label meso">🏘️ MÉSO — Ta région</div>
+    <div class="theme-grid" id="themesMeso"></div>
+
+    <div class="level-label macro">🏛️ MACRO — Le système</div>
+    <div class="theme-grid" id="themesMacro"></div>
+  </section>
+
+  <!-- STEP 2: TARGET -->
+  <section class="step fade-in">
+    <div class="step-header">
+      <div class="step-num bun">2</div>
+      <div class="step-title">Choisis ta cible</div>
+    </div>
+    <div class="target-groups" id="targetTabs"></div>
+    <div class="target-list" id="targetList"></div>
+  </section>
+
+  <!-- STEP 3: PERSONALIZE -->
+  <section class="step fade-in">
+    <div class="step-header">
+      <div class="step-num lettuce">3</div>
+      <div class="step-title">Ton identité (facultatif)</div>
+    </div>
+    <div class="user-input">
+      <input type="text" id="userName" placeholder="Ton prénom ou « Un·e citoyen·ne belge »">
+      <input type="text" id="userCity" placeholder="Ta commune (facultatif)">
+    </div>
+  </section>
+
+  <!-- STEP 4: RESULT -->
+  <section class="step fade-in">
+    <div class="step-header">
+      <div class="step-num cheese">4</div>
+      <div class="step-title">Ton courrier</div>
+    </div>
+    <div class="preview-box" id="previewBox">
+      <div class="preview-placeholder" id="placeholder">
+        <div class="big-emoji">🍔</div>
+        <p>Choisis un thème et une cible<br>pour composer ton burger citoyen.</p>
+      </div>
+      <div id="previewFull" style="display:none;">
+        <div class="preview-toolbar">
+          <div class="preview-to">À : <strong id="prevTo">—</strong><br><span id="prevEmail" style="font-size:0.7rem;color:var(--text-dim)"></span></div>
+          <div class="preview-actions">
+            <button class="btn btn-primary" onclick="copyMail()">📋 Copier</button>
+            <button class="btn btn-mail" onclick="openMail()">✉️ Ouvrir Mail</button>
+          </div>
+        </div>
+        <div class="preview-content" id="previewContent"></div>
+        <div style="padding:0 1.5rem 1rem;">
+          <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--text-dim);">Objet : <span id="prevSubject"></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS RIBBON -->
+  <div class="stats-ribbon fade-in">
+    <div><div class="sr-val">180 000</div><div class="sr-label">Exclusions chômage<br>prévues d'ici 2027</div></div>
+    <div><div class="sr-val">99,73%</div><div class="sr-label">Discipline de vote<br>des parlementaires</div></div>
+    <div><div class="sr-val">526 507</div><div class="sr-label">Malades longue durée<br>en incapacité</div></div>
+    <div><div class="sr-val">0</div><div class="sr-label">Référendums<br>depuis 1950</div></div>
+    <div><div class="sr-val">41%</div><div class="sr-label">Renoncent<br>aux soins</div></div>
+  </div>
+
+  <!-- SHARE -->
+  <div class="share-bar fade-in">
+    <a class="share-btn" href="https://bsky.app/intent/compose?text=🍔 J'ai composé un burger citoyen pour interpeller mes élus. 12 thèmes, 26 cibles, des questions OUI/NON. https://yannkeep.github.io/reaven/brol/crisp/burger.html" target="_blank" rel="noopener">🦋 Bluesky</a>
+    <a class="share-btn" href="https://wa.me/?text=🍔 Compose ton courrier citoyen aux élus belges : https://yannkeep.github.io/reaven/brol/crisp/burger.html" target="_blank" rel="noopener">💬 WhatsApp</a>
+    <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https://yannkeep.github.io/reaven/brol/crisp/burger.html" target="_blank" rel="noopener">💼 LinkedIn</a>
+    <button class="share-btn" onclick="navigator.clipboard.writeText('https://yannkeep.github.io/reaven/brol/crisp/burger.html');showToast('Lien copié !')">🔗 Copier lien</button>
+  </div>
+
+  <!-- DATA SOURCES -->
+  <details class="data-drawer fade-in">
+    <summary>Toutes les sources et données</summary>
+    <div class="drawer-body">
+      <p><strong>Particratie :</strong> Gaudin (ULB, CRISP n°2483-2484, 2020) · Verleden (KU Leuven, CRISP n°2501-2504) · Hindriks-Lamfalussy (UCLouvain, 2024) · Frydman (ULB) · De Winter (UCLouvain) · Dewachter (KU Leuven) · Deschouwer (VUB)</p>
+      <p><strong>Budget Arizona :</strong> Cour des comptes (2025) · Bureau fédéral du Plan · Banque nationale de Belgique · Salvatori (OCDE, Working Paper n°272, 2022)</p>
+      <p><strong>Exclusions chômage :</strong> ONEM · FGTB · CSC · CGSLB · Fédération des CPAS · UVCW · Brulocalis</p>
+      <p><strong>Santé :</strong> INAMI · Sciensano · Solidaris (Baromètre social 2025) · AIM · Stuckler et al. (2017) · Stokes et al. (Lancet, 2022)</p>
+      <p><strong>Pauvreté :</strong> Statbel · Eurostat (AROPE) · IWEPS · SPF Sécurité sociale · Banque alimentaire</p>
+      <p><strong>Juridique :</strong> Arrêts Cour constitutionnelle 8/2025, 115/2025 · Cour du travail de Liège 3 mars 2023 · IFDH avis 14/2025 · CEDS plaintes · Art. 23 Constitution</p>
+      <p><strong>Documentaire Deborsu :</strong> CDJ · CSA · RTL-TVI · 410 860 spectateurs · 100+ plaintes · Ratio 120:1</p>
+      <p><strong>Emails :</strong> belgium.be · DOC 56 0004/009 Chambre (6/02/2026) · Sites officiels partis · Sites ministériels</p>
+      <p style="margin-top:0.8rem;"><a href="https://ouaisfi.eu" target="_blank" rel="noopener">ouaisfi.eu</a> · Licence CC BY-SA 4.0 · Fork · Hack · Spread</p>
+    </div>
+  </details>
+
+</main>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- FOOTER -->
+<!-- ═══════════════════════════════════════ -->
+<footer>
+  Co-produit par <strong>Yan & Claude</strong> (Anthropic) · <a href="https://ouaisfi.eu">ouaisfieu</a> · intelligence citoyenne · avril 2026<br>
+  Licence <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" target="_blank" rel="noopener">CC BY-SA 4.0</a> · Fork · Hack · Spread<br>
+  26 emails vérifiés via belgium.be · DOC 56 0004/009 · Sites officiels des partis<br>
+  Aucun tracking · Aucun cookie · Zéro donnée collectée
+</footer>
+
+<div class="toast" id="toast">Copié !</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- DATA + ENGINE -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<script>
+// ═══════ TARGETS DATABASE ═══════
+const TARGETS = [
+  // VAGUE 1 — Ministres
+  {id:1, name:"Bart De Wever", role:"Premier ministre", party:"N-VA", email:"contact@premier.be", group:"ministres", color:"#FFB81C"},
+  {id:2, name:"Jan Jambon", role:"Vice-PM, Finances", party:"N-VA", email:"info@kcfin.be", group:"ministres", color:"#FFB81C"},
+  {id:3, name:"David Clarinval", role:"Vice-PM, Emploi", party:"MR", email:"info@clarinval.belgium.be", group:"ministres", color:"#0066CC"},
+  {id:4, name:"Maxime Prévot", role:"Vice-PM, Aff. étrangères", party:"Engagés", email:"info.prevot@diplobel.fed.be", group:"ministres", color:"#00B0B9"},
+  {id:5, name:"Frank Vandenbroucke", role:"Vice-PM, Santé", party:"Vooruit", email:"(formulaire)", group:"ministres", color:"#E30613", note:"vandenbroucke.belgium.be/nl/contact"},
+  {id:6, name:"Vincent Van Peteghem", role:"Vice-PM, Budget", party:"CD&V", email:"hallo@vincent.fed.be", group:"ministres", color:"#FF6600"},
+  {id:7, name:"Theo Francken", role:"Défense", party:"N-VA", email:"kabinet.francken@mil.be", group:"ministres", color:"#FFB81C"},
+  {id:8, name:"Anneleen Van Bossuyt", role:"Migration", party:"N-VA", email:"info@migratie-mi.be", group:"ministres", color:"#FFB81C"},
+  {id:9, name:"Bernard Quintin", role:"Intérieur", party:"MR", email:"Bernard.Quintin@quintin.belgium.be", group:"ministres", color:"#0066CC"},
+  {id:10, name:"Éléonore Simonet", role:"PME", party:"MR", email:"info@simonet.belgium.be", group:"ministres", color:"#0066CC"},
+  {id:11, name:"Mathieu Bihet", role:"Énergie", party:"MR", email:"info@bihet.belgium.be", group:"ministres", color:"#0066CC"},
+  {id:12, name:"Annelies Verlinden", role:"Justice", party:"CD&V", email:"info@verlinden.belgium.be", group:"ministres", color:"#FF6600"},
+  {id:13, name:"Jean-Luc Crucke", role:"Climat", party:"Engagés", email:"info@crucke.fed.be", group:"ministres", color:"#00B0B9"},
+  {id:14, name:"Vanessa Matz", role:"Modernisation", party:"Engagés", email:"info@matz.fed.be", group:"ministres", color:"#00B0B9"},
+  {id:15, name:"Rob Beenders", role:"Consommateurs", party:"Vooruit", email:"info@beenders.fed.be", group:"ministres", color:"#E30613"},
+  // VAGUE 2 — Présidents de parti
+  {id:16, name:"Georges-Louis Bouchez", role:"Président MR", party:"MR", email:"georges-louis.bouchez@lachambre.be", group:"presidents", color:"#0066CC"},
+  {id:17, name:"Conner Rousseau", role:"Président Vooruit", party:"Vooruit", email:"conner.rousseau@vooruit.org", group:"presidents", color:"#E30613"},
+  {id:18, name:"Sammy Mahdi", role:"Président CD&V", party:"CD&V", email:"sammy.mahdi@dekamer.be", group:"presidents", color:"#FF6600"},
+  {id:19, name:"Paul Magnette", role:"Président PS", party:"PS", email:"paul.magnette@ps.be", group:"presidents", color:"#FF0000"},
+  {id:20, name:"Raoul Hedebouw", role:"Porte-parole PTB", party:"PTB", email:"raoul.hedebouw@pvda.be", group:"presidents", color:"#C8102E"},
+  {id:21, name:"Tom Van Grieken", role:"Président VB", party:"VB", email:"tom.vangrieken@vlaamsbelang.org", group:"presidents", color:"#FFE500"},
+  {id:22, name:"Sophie Rohonyi", role:"Présidente DéFI", party:"DéFI", email:"srohonyi@defi.eu", group:"presidents", color:"#CE1F6A"},
+  // VAGUE 3 — Présidents d'assemblée
+  {id:25, name:"Peter De Roover", role:"Président Chambre", party:"N-VA", email:"peter.deroover@dekamer.be", group:"assemblees", color:"#FFB81C"},
+  {id:26, name:"Vincent Blondel", role:"Président Sénat", party:"Engagés", email:"vincent@blondel.be", group:"assemblees", color:"#00B0B9"},
+  // BONUS — partis (email générique)
+  {id:30, name:"PS (parti)", role:"Secrétariat", party:"PS", email:"info@ps.be", group:"partis", color:"#FF0000"},
+  {id:31, name:"PTB-PVDA (parti)", role:"Secrétariat", party:"PTB", email:"info@ptb.be", group:"partis", color:"#C8102E"},
+];
+
+const GROUPS = [
+  {id:"ministres", label:"🏛️ Ministres (15)"},
+  {id:"presidents", label:"🎯 Présidents parti (7)"},
+  {id:"assemblees", label:"🏠 Assemblées (2)"},
+  {id:"partis", label:"📬 Partis (2)"},
+];
+
+// ═══════ THEMES DATABASE ═══════
+const THEMES = [
+  // MICRO
+  {
+    id:"cpas", level:"micro", icon:"🏚️", name:"Mon CPAS explose", stat:"493–631 M€ surcoût",
+    subject:"Implosion des CPAS — Réponse OUI/NON attendue",
+    intro: "180 000 personnes seront exclues du chômage d'ici 2027 par la coalition Arizona. La quasi-totalité basculera vers les CPAS communaux. Sur les 140 communes les plus touchées, 139 sont wallonnes ou bruxelloises.",
+    questions: [
+      {q:"Avez-vous pris connaissance du coût estimé de 493 à 631 millions d'euros pour les communes sur la législature ?", src:"Fédération des CPAS / UVCW"},
+      {q:"Considérez-vous normal qu'un transfert de charge du fédéral vers les communes s'effectue sans budget provisionné ?", src:"Cour des comptes, 2025"},
+      {q:"Le RIS de 893,65 € pour un cohabitant est-il suffisant pour vivre dignement selon vous ?", src:"Bruxelles-J / SPF"},
+      {q:"80% des exclus n'ont même pas le diplôme du secondaire supérieur. Avez-vous un plan de formation chiffré ?", src:"ONEM / FGTB"},
+      {q:"Répondez par OUI ou NON : Êtes-vous favorable à un moratoire sur les exclusions le temps d'évaluer l'impact sur les CPAS ?", src:"UVCW / Brulocalis"}
+    ],
+    suggestedTargets: [1,3,6,16]
+  },
+  {
+    id:"sante", level:"micro", icon:"🏥", name:"Ma santé sacrifiée", stat:"41% renoncent aux soins",
+    subject:"Renoncement aux soins et austérité sanitaire — Questions OUI/NON",
+    intro: "41 % des Belges en situation de précarité renoncent à des soins pour raisons financières (Solidaris 2025). Un décès prématuré sur cinq est lié à la précarité sociale (Sciensano). Les mesures Arizona risquent d'aggraver cette spirale.",
+    questions: [
+      {q:"Connaissez-vous le chiffre : 41 % de renoncement aux soins parmi les publics précarisés ?", src:"Institut Solidaris, Baromètre 2025"},
+      {q:"La suspension de l'enveloppe bien-être de 2,8 milliards € pendant 5 ans constitue-t-elle selon vous une violation du standstill (Art. 23) ?", src:"Accord Arizona / Cour constitutionnelle"},
+      {q:"2,4 millions de BIM (21% de la population) : ce chiffre vous semble-t-il compatible avec une société en bonne santé ?", src:"INAMI / AIM, juin 2025"},
+      {q:"Chaque dollar investi en prévention économise 7 dollars à long terme. Augmentez-vous le budget prévention ?", src:"Dennis Ostwald / OMS"},
+      {q:"Répondez par OUI ou NON : Êtes-vous favorable au tiers-payant intégral pour tous les bénéficiaires du RIS ?", src:"Solidaris / Mutualités"}
+    ],
+    suggestedTargets: [5,6,1]
+  },
+  {
+    id:"alimentaire", level:"micro", icon:"🍞", name:"On a faim", stat:"900 000 en insécurité",
+    subject:"Insécurité alimentaire — Questions OUI/NON à votre attention",
+    intro: "900 000 personnes en Belgique sont en situation d'insécurité alimentaire. 58 % des étudiants déclarent des difficultés alimentaires. 44 % des enfants bruxellois vivent sous le seuil de pauvreté. La Belgique, sixième économie européenne par habitant, produit de la faim.",
+    questions: [
+      {q:"Saviez-vous que 900 000 personnes en Belgique dépendent de l'aide alimentaire ?", src:"Banque alimentaire / Statbel"},
+      {q:"44 % de pauvreté infantile à Bruxelles : ce chiffre est-il acceptable dans votre programme politique ?", src:"IBSA / Statbel"},
+      {q:"Le RIS de 893,65 € permet-il de nourrir correctement une famille selon vos calculs ?", src:"SPF Sécurité sociale"},
+      {q:"Répondez par OUI ou NON : Êtes-vous favorable à un chèque alimentaire universel pour les bénéficiaires du RIS ?", src:"Proposition citoyenne"},
+      {q:"La suppression de l'enveloppe bien-être affecte directement le pouvoir d'achat alimentaire. Avez-vous un plan compensatoire ?", src:"Accord Arizona / FGTB"}
+    ],
+    suggestedTargets: [1,3,15]
+  },
+  {
+    id:"logement", level:"micro", icon:"🏠", name:"Où dormir ?", stat:"10 000+ sans-abri BXL",
+    subject:"Crise du logement et précarité — Questions OUI/NON",
+    intro: "Plus de 10 000 personnes sont sans abri à Bruxelles. Les exclusions massives du chômage poussent des dizaines de milliers de ménages au bord de l'expulsion. Le RIS ne couvre pas un loyer moyen dans aucune des 19 communes bruxelloises.",
+    questions: [
+      {q:"Quel est le loyer moyen dans votre commune et est-il couvert par le RIS de 1 340,47 € pour un isolé ?", src:"SPF / Observatoire des loyers"},
+      {q:"Les 180 000 exclusions du chômage vont-elles augmenter le nombre de sans-abri selon vos estimations ?", src:"ONEM / FGTB"},
+      {q:"Répondez par OUI ou NON : Êtes-vous favorable à un gel des expulsions locatives pendant la période de transition Arizona ?", src:"Proposition citoyenne"},
+      {q:"Combien de logements sociaux supplémentaires sont prévus dans votre plan de législature ?", src:"Demande d'information"}
+    ],
+    suggestedTargets: [1,9,3]
+  },
+  // MÉSO
+  {
+    id:"commune", level:"meso", icon:"🏘️", name:"Ma commune coule", stat:"139/140 = Wallonie+BXL",
+    subject:"Finances communales en péril — Questions OUI/NON",
+    intro: "Sur les 140 communes les plus touchées par les exclusions du chômage, 139 sont wallonnes ou bruxelloises. Bart De Wever lui-même a qualifié sa réforme de « la plus communautaire que l'on puisse faire ». Votre commune va devoir absorber le choc sans budget.",
+    questions: [
+      {q:"Votre commune fait-elle partie des 140 communes les plus impactées par la limitation du chômage ?", src:"ONEM / FGTB"},
+      {q:"Le refinancement des communes via la vente d'actifs publics vous semble-t-il viable à long terme ?", src:"Cour des comptes / Accord Arizona"},
+      {q:"300 nouvelles demandes en 20 jours au CPAS de Namur : avez-vous des chiffres équivalents pour votre commune ?", src:"Presse belge / CPAS Namur"},
+      {q:"Répondez par OUI ou NON : Acceptez-vous que le fédéral transfère ses charges vers les communes sans compensation ?", src:"UVCW / Brulocalis"},
+      {q:"Le surcoût estimé à 80 M€ pour les 19 CPAS bruxellois est-il couvert dans votre budget ?", src:"Estimations sectorielles"}
+    ],
+    suggestedTargets: [1,6,9]
+  },
+  {
+    id:"emploi", level:"meso", icon:"💼", name:"Le chômage punit", stat:"117 000 exclus en 6 mois",
+    subject:"Limitation du chômage — la règle du tiers est un pari perdant. OUI/NON ?",
+    intro: "L'étude Salvatori (OCDE, 2022) portant spécifiquement sur la Belgique conclut : la réforme de 2012 n'a produit « aucune indication » d'augmentation du retour à l'emploi. La Cour des comptes estime le taux réaliste entre 10 et 20 %, pas 33 %. Pourtant, le budget Arizona repose sur cette hypothèse.",
+    questions: [
+      {q:"Avez-vous lu l'étude Salvatori (OCDE, Working Paper n°272, 2022) sur la Belgique ?", src:"OCDE / Andrea Salvatori"},
+      {q:"Le retour à l'emploi est estimé à 10-20% par la BNB, pas 33%. Sur quelle base maintenez-vous l'hypothèse du tiers ?", src:"Banque nationale / Cour des comptes"},
+      {q:"57 000 exclusions en Wallonie, 42 000 à Bruxelles, presque zéro en Flandre : est-ce une coïncidence ?", src:"ONEM / Cartographie FGTB"},
+      {q:"Répondez par OUI ou NON : Acceptez-vous un audit indépendant de l'impact réel des exclusions après 12 mois ?", src:"Proposition citoyenne"},
+      {q:"L'OCDE dit que limiter la durée n'augmente le taux de sortie que de 10%. Ce résultat modifie-t-il votre position ?", src:"PMC/Cochrane, 2021 — 1,15 M périodes étudiées"}
+    ],
+    suggestedTargets: [3,1,16,6]
+  },
+  {
+    id:"malades", level:"meso", icon:"🩺", name:"Malades = suspects", stat:"526 507 en incapacité",
+    subject:"Pression sur les malades de longue durée — Questions OUI/NON",
+    intro: "526 507 personnes en incapacité de travail depuis plus d'un an. Plus de malades longue durée que de chômeurs. Les sanctions ont quadruplé (de 2,5 % à 10 %). 218 000 dossiers à réexaminer d'ici 2029. L'enveloppe bien-être de 2,8 milliards est gelée 5 ans.",
+    questions: [
+      {q:"Les sanctions contre les malades ont quadruplé (2,5% → 10%). Sur quelle étude scientifique repose ce durcissement ?", src:"INAMI / Vague 3 Arizona"},
+      {q:"218 000 dossiers à réexaminer d'ici 2029 avec 17% de sorties prévues. Combien de médecins-conseils sont recrutés pour cela ?", src:"Conclave budgétaire 11/2025"},
+      {q:"Les BIM ont 68% de risque supplémentaire de passer en invalidité. Votre politique aggrave-t-elle ou réduit-elle ce risque ?", src:"AIM / INAMI"},
+      {q:"55% des invalides sont reconnus inaptes jusqu'à la pension. Les forcer au retour créera-t-il des emplois ou de la souffrance ?", src:"INAMI, 2023"},
+      {q:"Répondez par OUI ou NON : Êtes-vous favorable à ce que les périodes de maladie comptent pour la pension anticipée ?", src:"Accord Arizona / malus pension"}
+    ],
+    suggestedTargets: [5,1,6]
+  },
+  {
+    id:"deborsu", level:"meso", icon:"📺", name:"Propagande sociale", stat:"410 860 spectateurs",
+    subject:"Documentaire « Tous Fraudeurs » et instrumentalisation — Questions OUI/NON",
+    intro: "Le 7 novembre 2025, RTL-TVI diffuse un reportage regardé par 410 860 personnes. Plus de 100 plaintes au CSA. Ratio d'interview : 60 minutes filmées, 30 secondes gardées (120:1). 7 semaines après : la loi Arizona est votée. La fraude récupérée : 22 millions €. Le non-recours aux droits : 37 à 51 % des ayants-droit.",
+    questions: [
+      {q:"Avez-vous visionné le documentaire « Sans boulot : tous fraudeurs ? » avant de voter les mesures Arizona ?", src:"RTL-TVI / 7 novembre 2025"},
+      {q:"22 millions de fraude récupérée vs. 37-51% de non-recours au RIS. Quel problème est le plus grave ?", src:"ONEM / SIRS / SPF"},
+      {q:"Le CSA a sanctionné RTL Belgium. Cela modifie-t-il votre lecture du reportage ?", src:"CSA / CDJ"},
+      {q:"Répondez par OUI ou NON : Êtes-vous favorable à un contre-reportage financé sur fonds publics montrant la réalité du non-recours ?", src:"Proposition citoyenne"},
+      {q:"107 337 contrôles sur les allocataires, 0 sur les mandataires. Cette asymétrie est-elle justifiable ?", src:"ONEM (92 000) + SIRS (15 337)"}
+    ],
+    suggestedTargets: [1,16,3,19]
+  },
+  // MACRO
+  {
+    id:"serment", level:"macro", icon:"⚖️", name:"Le serment trahi", stat:"99,73% discipline",
+    subject:"Serment constitutionnel et discipline de vote — OUI ou NON ?",
+    intro: "Chaque mandataire belge jure « d'observer la Constitution » (décret du 20 juillet 1831). L'article 42 garantit un mandat libre. Or la discipline de vote atteint 99,73 % (Gaudin, ULB). Aucune sanction n'a jamais été prononcée pour violation du serment. 31 806 mandataires ont prêté ce serment.",
+    questions: [
+      {q:"Avez-vous voté au moins une fois contre la consigne de votre parti depuis le début de la législature ?", src:"Demande factuelle"},
+      {q:"L'article 42 de la Constitution interdit le mandat impératif. La discipline de vote à 99,73% est-elle compatible avec cet article ?", src:"Gaudin, ULB, CRISP n°2483-2484"},
+      {q:"Répondez par OUI ou NON : Accepteriez-vous que vos votes soient publiés individuellement et systématiquement ?", src:"Transparence parlementaire"},
+      {q:"0 sanctions pour violation du serment en 195 ans. Faut-il créer un mécanisme de contrôle ?", src:"Frydman, ULB"},
+      {q:"Le modèle Ostbelgien (Bürgerrat) oblige le Parlement à répondre aux citoyens. Le soutenez-vous pour les autres parlements ?", src:"Communauté germanophone, 2019"}
+    ],
+    suggestedTargets: [25,1,16,19,20]
+  },
+  {
+    id:"argent", level:"macro", icon:"💰", name:"L'argent des partis", stat:"108,7 M€/an public",
+    subject:"Financement public des partis — Questions OUI/NON",
+    intro: "87 % du budget des partis politiques belges provient de fonds publics : 108,7 millions € par an (KU Leuven, 2024). Le patrimoine cumulé des partis atteint 163 millions € bruts. 31 806 mandataires. Zéro mécanisme de sanction pour non-respect du programme électoral.",
+    questions: [
+      {q:"108,7 millions € de financement public annuel : pouvez-vous justifier ce montant par des résultats mesurables ?", src:"KU Leuven, 2024"},
+      {q:"163 millions € de patrimoine cumulé des partis. Pourquoi les partis ont-ils besoin d'un patrimoine ?", src:"KU Leuven / Hindriks-Lamfalussy"},
+      {q:"La loi du 4 juillet 1989 sanctionne les partis hostiles à la CEDH mais pas ceux qui violent l'art. 42. Pourquoi ?", src:"Analyse juridique ouaisfieu"},
+      {q:"Répondez par OUI ou NON : Êtes-vous favorable à conditionner le financement public à la transparence des votes individuels ?", src:"Proposition citoyenne"},
+      {q:"93% de l'effort Arizona pèse sur la sécu et les travailleurs, 7% sur les patrimoines. Ce ratio est-il juste ?", src:"Bureau du Plan / UCLouvain"}
+    ],
+    suggestedTargets: [6,1,16,19]
+  },
+  {
+    id:"budget", level:"macro", icon:"📉", name:"Le budget fantôme", stat:"7,9 Mrd€ irréalistes",
+    subject:"Crédibilité budgétaire de l'accord Arizona — OUI/NON",
+    intro: "La Cour des comptes qualifie les projections Arizona de « lacunaires ». Les effets retour de 7,9 milliards € sont jugés irréalistes par le Bureau du Plan. Le taux d'emploi projeté (80%) ne sera que de 74,7% selon les projections indépendantes. La charge d'intérêts de la dette passera de 10 à 40 milliards d'ici 2042.",
+    questions: [
+      {q:"La Cour des comptes a identifié des « lacunes structurelles béantes » dans le budget Arizona. Avez-vous corrigé ces lacunes ?", src:"Cour des comptes, 2025"},
+      {q:"Le taux d'emploi projeté est de 74,7% vs. l'objectif de 80%. Sur quelle base maintenez-vous cet objectif ?", src:"Bureau fédéral du Plan"},
+      {q:"Des mesures budgétisées sur 12 mois alors qu'elles ne débutent qu'en avril : est-ce de la comptabilité créative ?", src:"Cour des comptes"},
+      {q:"Répondez par OUI ou NON : Acceptez-vous un audit externe et public de chaque mesure Arizona après 12 mois ?", src:"Proposition citoyenne"},
+      {q:"La charge d'intérêts passera de 10 Mrd€ à 40 Mrd€ d'ici 2042. Ce budget est-il soutenable ?", src:"Agence de la dette / Projections"}
+    ],
+    suggestedTargets: [6,2,1]
+  },
+  {
+    id:"referendum", level:"macro", icon:"🗳️", name:"Le référendum interdit", stat:"0 depuis 1950",
+    subject:"Démocratie directe et participation citoyenne — OUI ou NON ?",
+    intro: "Vote obligatoire : tu dois voter. Référendum : tu ne peux pas décider. 0 référendums nationaux depuis 1950. La Belgique est l'un des rares pays européens sans aucun mécanisme de démocratie directe contraignante. Entre 75 et 80 % de défiance envers les partis (Eurobaromètre 2025).",
+    questions: [
+      {q:"0 référendums nationaux en 76 ans. Considérez-vous cela comme un signe de bonne santé démocratique ?", src:"SPF Intérieur / Constitution belge"},
+      {q:"75-80% de défiance envers les partis. Quel mécanisme proposez-vous pour restaurer la confiance ?", src:"Eurobaromètre 2025"},
+      {q:"Le modèle Ostbelgien fonctionne depuis 2019. Pourquoi n'est-il pas étendu aux autres parlements ?", src:"Communauté germanophone"},
+      {q:"Répondez par OUI ou NON : Soutenez-vous l'inscription d'un mécanisme référendaire dans la Constitution ?", src:"Demande politique"},
+      {q:"Le citoyen belge est obligé de voter mais interdit de décider. Comment justifiez-vous ce paradoxe ?", src:"Analyse constitutionnelle"}
+    ],
+    suggestedTargets: [25,26,1,19,20]
+  },
+];
+
+// ═══════ STATE ═══════
+let selectedTheme = null;
+let selectedTarget = null;
+let activeGroup = "ministres";
+
+// ═══════ RENDER THEMES ═══════
+function renderThemes() {
+  const containers = {micro: document.getElementById('themesMicro'), meso: document.getElementById('themesMeso'), macro: document.getElementById('themesMacro')};
+  THEMES.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'theme-card';
+    card.dataset.id = t.id;
+    card.innerHTML = `<div class="icon">${t.icon}</div><div class="name">${t.name}</div><div class="stat">${t.stat}</div>`;
+    card.onclick = () => selectTheme(t.id);
+    containers[t.level].appendChild(card);
+  });
+}
+
+function selectTheme(id) {
+  selectedTheme = THEMES.find(t => t.id === id);
+  document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
+  document.querySelector(`.theme-card[data-id="${id}"]`).classList.add('selected');
+  // auto-suggest target
+  if (selectedTheme.suggestedTargets && selectedTheme.suggestedTargets.length > 0) {
+    const sugId = selectedTheme.suggestedTargets[0];
+    const sug = TARGETS.find(t => t.id === sugId);
+    if (sug) {
+      activeGroup = sug.group;
+      renderTargetTabs();
+      renderTargetList();
+      selectTarget(sugId);
+    }
+  }
+  updateBurger();
+  generatePreview();
+}
+
+// ═══════ RENDER TARGETS ═══════
+function renderTargetTabs() {
+  const container = document.getElementById('targetTabs');
+  container.innerHTML = '';
+  GROUPS.forEach(g => {
+    const tab = document.createElement('button');
+    tab.className = 'target-tab' + (g.id === activeGroup ? ' active' : '');
+    tab.textContent = g.label;
+    tab.onclick = () => { activeGroup = g.id; renderTargetTabs(); renderTargetList(); };
+    container.appendChild(tab);
+  });
+}
+
+function renderTargetList() {
+  const container = document.getElementById('targetList');
+  container.innerHTML = '';
+  TARGETS.filter(t => t.group === activeGroup).forEach(t => {
+    const item = document.createElement('div');
+    item.className = 'target-item' + (selectedTarget && selectedTarget.id === t.id ? ' selected' : '');
+    item.dataset.id = t.id;
+    item.innerHTML = `<span class="party-dot" style="background:${t.color}"></span><div><div class="t-name">${t.name}</div><div class="t-role">${t.role} · ${t.party}</div></div>`;
+    item.onclick = () => selectTarget(t.id);
+    container.appendChild(item);
+  });
+}
+
+function selectTarget(id) {
+  selectedTarget = TARGETS.find(t => t.id === id);
+  document.querySelectorAll('.target-item').forEach(i => i.classList.remove('selected'));
+  const el = document.querySelector(`.target-item[data-id="${id}"]`);
+  if (el) el.classList.add('selected');
+  updateBurger();
+  generatePreview();
+}
+
+// ═══════ GENERATE PREVIEW ═══════
+function generatePreview() {
+  if (!selectedTheme || !selectedTarget) return;
+  
+  const placeholder = document.getElementById('placeholder');
+  const full = document.getElementById('previewFull');
+  placeholder.style.display = 'none';
+  full.style.display = 'block';
+
+  const name = document.getElementById('userName').value || 'Un·e citoyen·ne belge';
+  const city = document.getElementById('userCity').value;
+
+  document.getElementById('prevTo').textContent = selectedTarget.name;
+  document.getElementById('prevEmail').textContent = selectedTarget.email;
+  document.getElementById('prevSubject').textContent = selectedTheme.subject;
+
+  let body = `${selectedTarget.role.includes('Président') || selectedTarget.role.includes('Porte-parole') ? 'Cher·e' : 'Madame/Monsieur le/la'} ${selectedTarget.role},\n\n`;
+  body += selectedTheme.intro + '\n\n';
+  body += `En tant que citoyen·ne belge${city ? ' résidant à ' + city : ''}, je vous pose ces questions fermées.\nChacune attend un OUI ou un NON.\n\n`;
+  
+  selectedTheme.questions.forEach((q, i) => {
+    body += `━━━ Question ${i+1} ━━━\n`;
+    body += q.q + '\n';
+    body += `☐ OUI   ☐ NON\n`;
+    body += `[Source : ${q.src}]\n\n`;
+  });
+
+  body += `━━━━━━━━━━━━━━━━\n\n`;
+  body += `Je vous demande une réponse écrite à chacune de ces questions.\nL'absence de réponse sera interprétée comme un refus de rendre des comptes.\n\n`;
+  body += `Respectueusement,\n${name}${city ? '\n' + city : ''}\n\n`;
+  body += `—\nCourrier généré via le Burger Citoyen (ouaisfi.eu)\nToutes les données sont vérifiables. Sources complètes : belgitude.ouaisfi.eu\nCC BY-SA 4.0 · Yan & Claude (Anthropic)`;
+
+  document.getElementById('previewContent').textContent = body;
+}
+
+// ═══════ ACTIONS ═══════
+function getMailBody() {
+  return document.getElementById('previewContent').textContent;
+}
+
+function copyMail() {
+  const text = getMailBody();
+  navigator.clipboard.writeText(text).then(() => showToast('📋 Courrier copié !'));
+}
+
+function openMail() {
+  if (!selectedTarget || !selectedTheme) return;
+  const email = selectedTarget.email;
+  if (email === '(formulaire)') {
+    window.open(selectedTarget.note, '_blank');
+    return;
+  }
+  const subject = encodeURIComponent(selectedTheme.subject);
+  const body = encodeURIComponent(getMailBody());
+  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ═══════ BURGER ANIMATION ═══════
+function updateBurger() {
+  const layers = document.querySelectorAll('.burger-layer');
+  let step = 0;
+  if (selectedTheme) step = 2;
+  if (selectedTarget) step = 3;
+  if (selectedTheme && selectedTarget) step = 4;
+  layers.forEach(l => {
+    const s = parseInt(l.dataset.step);
+    l.classList.toggle('active', s <= step);
+  });
+}
+
+// ═══════ SCROLL ANIMATIONS ═══════
+function initScrollAnims() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, {threshold: 0.1});
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+}
+
+// ═══════ INPUT LISTENERS ═══════
+document.getElementById('userName').addEventListener('input', generatePreview);
+document.getElementById('userCity').addEventListener('input', generatePreview);
+
+// ═══════ INIT ═══════
+renderThemes();
+renderTargetTabs();
+renderTargetList();
+updateBurger();
+initScrollAnims();
+</script>
+
+</body>
+</html>
