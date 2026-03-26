@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Décryptage : Médias, Chômage et Démocratie</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* CSS personnalisé minimal pour les conteneurs de graphiques et les animations */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #faf9f6; /* Warm neutral background */
+            color: #334155;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container { height: 400px; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .interactive-card {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        
+        .interactive-card:hover, .interactive-card.active {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: #3b82f6; /* Blue accent */
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Chosen Palette: Warm Neutrals (#faf9f6) for background, Slate (#334155) for text, Rose (#ef4444) for highlighting problematic media framing, Blue (#3b82f6) for facts/data. -->
+    
+    <!-- Application Structure Plan: 
+    A linear narrative dashboard addressing the user's outrage. 
+    1. "L'Onde de Choc" (The Shockwave): Validates the user's reaction, defining the problem of sensationalist framing.
+    2. "Les Faits vs L'Écran" (Facts vs. Screen): Uses Chart.js to contrast perceived fraud (media focus) with actual financial data (tax evasion vs social fraud) to restore perspective.
+    3. "Dommages Collatéraux" (Collateral Damage): Interactive HTML grid exploring the psychological and democratic impact the user asked about.
+    4. "Que Faire ?" (What to do?): Directly answers the user's question, evaluating options like their "tous pourris" idea vs. other actions. 
+    This structure guides the user from emotional reaction to data-driven understanding and finally to actionable analysis. -->
+    
+    <!-- Visualization & Content Choices: 
+    - Section 1: Dynamic text updates (JS) to simulate the overwhelming nature of sensationalist headlines.
+    - Section 2: Chart.js Bar Chart. Goal: Compare financial scales. Interaction: Hover tooltips. Justification: Best way to show the disproportion between media focus on social fraud vs the reality of tax evasion.
+    - Section 3: Interactive HTML/Tailwind Cards (NO SVG). Goal: Detail psychological impacts. Interaction: Click to reveal deeper analysis. Justification: Forces engagement with complex textual concepts without overwhelming the screen.
+    - Section 4: Tabbed interface (HTML/JS). Goal: Evaluate action plans. Interaction: Click tabs. Justification: Allows structured comparison of different reactions (including the user's suggestion). -->
+    
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All visual elements are HTML/CSS/Tailwind or Canvas (Chart.js). -->
+
+    <!-- Navigation -->
+    <nav class="fixed w-full bg-white/90 backdrop-blur-sm border-b border-gray-200 z-50">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <span class="font-bold text-xl tracking-tight text-blue-900">Observatoire des Médias</span>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#contexte" class="text-sm font-medium hover:text-blue-600 transition">Le Phénomène</a>
+                    <a href="#donnees" class="text-sm font-medium hover:text-blue-600 transition">Réalité Chiffrée</a>
+                    <a href="#impact" class="text-sm font-medium hover:text-blue-600 transition">Impact Démocratique</a>
+                    <a href="#action" class="text-sm font-medium bg-blue-50 text-blue-700 px-3 py-1 rounded-full hover:bg-blue-100 transition">Comment Réagir ?</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-24 pb-16">
+        
+        <!-- Header Section -->
+        <header class="max-w-4xl mx-auto px-4 text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-6 text-gray-900">
+                Analyse de la Fabrique du <span class="text-red-500">Scandale</span>
+            </h1>
+            <p class="text-xl text-gray-600 leading-relaxed">
+                Réponse à l'indignation suscitée par les formats documentaires stigmatisants (type "tous fraudeurs"). Une analyse interactive de l'écart entre le traitement médiatique, la réalité économique et les conséquences sur la santé mentale et la démocratie.
+            </p>
+        </header>
+
+        <!-- Section 1: Contexte -->
+        <section id="contexte" class="max-w-6xl mx-auto px-4 mb-24">
+            <div class="bg-white rounded-2xl p-8 md:p-12 shadow-sm border border-gray-100">
+                <div class="md:flex items-start gap-12">
+                    <div class="md:w-1/2 mb-8 md:mb-0">
+                        <h2 class="text-2xl font-bold mb-4">La Mécanique de l'Outrance</h2>
+                        <p class="mb-4 text-gray-700">
+                            La réaction de révolte face à un titre comme "Tous fraudeurs ?" est légitime. Ce type de format utilise des biais cognitifs puissants : la généralisation abusive, le biais de négativité et la désignation d'un bouc émissaire.
+                        </p>
+                        <p class="text-gray-700">
+                            Ce n'est généralement pas un "scandale d'État" organisé, mais plutôt une logique commerciale médiatique (la course à l'audimat) qui s'aligne parfois sur des agendas politiques de réduction des dépenses sociales. L'effet "poisson d'avril macabre" vient de la déconnexion totale avec la réalité vécue par la majorité.
+                        </p>
+                    </div>
+                    <div class="md:w-1/2 bg-gray-50 rounded-xl p-6 border border-gray-200">
+                        <h3 class="text-sm font-semibold uppercase text-gray-500 mb-4 tracking-wider">Le cycle du traitement médiatique</h3>
+                        <div id="media-cycle-display" class="h-32 flex items-center justify-center text-center p-4 bg-white rounded shadow-inner text-lg font-medium text-red-600 italic">
+                            <!-- JS will inject content here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Données -->
+        <section id="donnees" class="max-w-6xl mx-auto px-4 mb-24">
+            <h2 class="text-3xl font-bold mb-2 text-center">Remettre les Chiffres en Perspective</h2>
+            <p class="text-center text-gray-600 mb-10 max-w-2xl mx-auto">
+                Pour déconstruire le discours "tous fraudeurs", il faut comparer l'impact financier de la fraude sociale aux autres réalités économiques (évasion fiscale, non-recours aux droits). *Données d'ordres de grandeur à titre illustratif.*
+            </p>
+            
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
+                <div class="chart-container">
+                    <canvas id="fraudComparisonChart"></canvas>
+                </div>
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                    <div class="p-4 bg-red-50 rounded-lg">
+                        <div class="text-xl font-bold text-red-700">Sur-médiatisé</div>
+                        <div class="text-sm text-gray-600 mt-1">La fraude sociale (particuliers) représente une fraction minime des pertes de l'État.</div>
+                    </div>
+                    <div class="p-4 bg-blue-50 rounded-lg">
+                        <div class="text-xl font-bold text-blue-700">Sous-médiatisé</div>
+                        <div class="text-sm text-gray-600 mt-1">La grande évasion fiscale pèse des dizaines de fois plus lourd sur les finances publiques.</div>
+                    </div>
+                    <div class="p-4 bg-green-50 rounded-lg">
+                        <div class="text-xl font-bold text-green-700">Le grand oublié</div>
+                        <div class="text-sm text-gray-600 mt-1">Le "non-recours" : des milliards d'aides non réclamées par des personnes y ayant droit.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Impact (Démocratie & Santé Mentale) -->
+        <section id="impact" class="max-w-6xl mx-auto px-4 mb-24">
+            <h2 class="text-3xl font-bold mb-2 text-center">Les Dégâts Réels du Discours</h2>
+            <p class="text-center text-gray-600 mb-10 max-w-2xl mx-auto">
+                Vous demandez si c'est dangereux. La réponse est oui. Cliquez sur les cartes pour comprendre l'impact systémique de la stigmatisation médiatique.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Interactive Cards -->
+                <div class="col-span-1 flex flex-col gap-4">
+                    <div class="interactive-card bg-white p-6 rounded-xl border border-gray-200 active" onclick="showImpact('sante')">
+                        <div class="text-2xl mb-2">🧠</div>
+                        <h3 class="font-bold text-lg">Santé Mentale</h3>
+                        <p class="text-sm text-gray-500 mt-2">L'impact sur l'individu.</p>
+                    </div>
+                    <div class="interactive-card bg-white p-6 rounded-xl border border-gray-200" onclick="showImpact('confiance')">
+                        <div class="text-2xl mb-2">📉</div>
+                        <h3 class="font-bold text-lg">Confiance Médiatique</h3>
+                        <p class="text-sm text-gray-500 mt-2">La fracture avec le public.</p>
+                    </div>
+                    <div class="interactive-card bg-white p-6 rounded-xl border border-gray-200" onclick="showImpact('democratie')">
+                        <div class="text-2xl mb-2">🏛️</div>
+                        <h3 class="font-bold text-lg">Démocratie & Cohésion</h3>
+                        <p class="text-sm text-gray-500 mt-2">Le poison de la division.</p>
+                    </div>
+                </div>
+                
+                <!-- Display Panel -->
+                <div class="col-span-1 md:col-span-2 bg-slate-800 text-white p-8 rounded-2xl shadow-lg flex flex-col justify-center min-h-[300px]" id="impact-display">
+                    <!-- Default content -->
+                    <h3 class="text-2xl font-bold mb-4 text-blue-300">Santé Mentale et Stigmatisation</h3>
+                    <p class="text-slate-300 leading-relaxed text-lg mb-4">
+                        Être sans emploi est déjà un facteur de stress majeur (perte de revenus, d'identité sociale). Entendre en boucle que l'on est présumé fraudeur ou paresseux ajoute une <span class="text-red-400 font-semibold">violence symbolique extrême</span>.
+                    </p>
+                    <ul class="list-disc pl-5 text-slate-300 space-y-2">
+                        <li>Augmentation de l'anxiété et de la dépression.</li>
+                        <li>Intériorisation du stigmate (perte d'estime de soi).</li>
+                        <li>Isolement social accru (honte).</li>
+                        <li>Création d'obstacles supplémentaires à la réinsertion.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Actions -->
+        <section id="action" class="max-w-4xl mx-auto px-4">
+            <div class="bg-blue-50 rounded-3xl p-8 md:p-12 border border-blue-100">
+                <h2 class="text-3xl font-bold mb-6 text-blue-900 text-center">Qu'est-ce qu'on peut faire ?</h2>
+                <p class="text-center text-blue-800 mb-8">
+                    Vous avez suggéré une campagne "Tous pourris ?". Analysons les différentes options de riposte citoyenne face à une couverture médiatique toxique.
+                </p>
+
+                <div class="flex flex-wrap gap-2 justify-center mb-8 border-b border-blue-200 pb-4">
+                    <button class="action-tab bg-blue-600 text-white px-6 py-2 rounded-full font-medium transition" onclick="switchAction('pourris', this)">L'idée "Tous pourris ?"</button>
+                    <button class="action-tab bg-white text-blue-700 hover:bg-blue-100 px-6 py-2 rounded-full font-medium border border-blue-200 transition" onclick="switchAction('csa', this)">Saisir l'Arcom / CSA</button>
+                    <button class="action-tab bg-white text-blue-700 hover:bg-blue-100 px-6 py-2 rounded-full font-medium border border-blue-200 transition" onclick="switchAction('contre', this)">Le Contre-Discours</button>
+                </div>
+
+                <div id="action-content" class="bg-white p-6 rounded-xl shadow-sm">
+                    <!-- Default Content for 'pourris' -->
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">La campagne miroir ("Tous pourris ?")</h3>
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded">Efficacité mitigée</span>
+                        <span class="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded">Risque élevé</span>
+                    </div>
+                    <p class="text-gray-700 mb-4">
+                        Lancer une campagne visant les politiques ou les journalistes en les traitant de "tous pourris" est une réaction émotionnelle compréhensible (renvoyer la balle). Cependant :
+                    </p>
+                    <ul class="list-disc pl-5 text-gray-700 space-y-2 mb-4">
+                        <li><strong>Le piège :</strong> Cela valide la logique de généralisation abusive que vous combattez.</li>
+                        <li><strong>Le résultat :</strong> Cela nourrit le cynisme ambiant, la méfiance généralisée, et in fine, l'extrême droite ou l'abstention.</li>
+                        <li><strong>Conclusion :</strong> C'est défoulatoire, mais politiquement et socialement contre-productif. Cela détruit la confiance au lieu de la réparer.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400 py-8 mt-12 text-center text-sm">
+        <p>Document interactif d'analyse médiatique. Les données utilisées sont des ordres de grandeur estimatifs à des fins de démonstration structurelle.</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- 1. Dynamic Text Cycle (Section 1) ---
+        const mediaPhrases = [
+            "Cas isolé présenté comme la norme",
+            "Musique angoissante au montage",
+            "Chiffres sortis de leur contexte",
+            "Témoignages anonymisés effrayants",
+            "Omission des causes systémiques"
+        ];
+        let phraseIndex = 0;
+        const displayElement = document.getElementById('media-cycle-display');
+
+        function updateMediaCycle() {
+            displayElement.classList.remove('fade-in');
+            void displayElement.offsetWidth; // trigger reflow
+            displayElement.textContent = `« ${mediaPhrases[phraseIndex]} »`;
+            displayElement.classList.add('fade-in');
+            phraseIndex = (phraseIndex + 1) % mediaPhrases.length;
+        }
+        
+        updateMediaCycle(); // Init
+        setInterval(updateMediaCycle, 3000);
+
+        // --- 2. Chart.js Implementation (Section 2) ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('fraudComparisonChart').getContext('2d');
+            
+            // Data based on general estimates (e.g., in France/Belgium context) to show orders of magnitude
+            const data = {
+                labels: ['Fraude Sociale (Allocataires)', 'Fraude aux Cotisations (Entreprises)', 'Non-recours aux droits', 'Évasion/Fraude Fiscale'],
+                datasets: [{
+                    label: 'Estimations financières (Milliards d\'€)',
+                    data: [1, 8, 10, 80], // Illustrative magnitudes
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)',   // Red for highly mediated
+                        'rgba(245, 158, 11, 0.8)',  // Orange
+                        'rgba(16, 185, 129, 0.8)',  // Green for missing
+                        'rgba(59, 130, 246, 0.8)'   // Blue for tax evasion
+                    ],
+                    borderColor: [
+                        'rgb(239, 68, 68)',
+                        'rgb(245, 158, 11)',
+                        'rgb(16, 185, 129)',
+                        'rgb(59, 130, 246)'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            };
+
+            const config = {
+                type: 'bar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Critical for container adherence
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y + ' Milliards € (Est.)';
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Comparaison des Ordres de Grandeur',
+                            font: { size: 16, family: 'Inter' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Milliards d\'Euros' }
+                        },
+                        x: {
+                            ticks: {
+                                // Wrap long labels logic
+                                callback: function(value, index, values) {
+                                    const label = data.labels[index];
+                                    if (label.length > 16) {
+                                        // Simple split logic for demonstration
+                                        const parts = label.split(' (');
+                                        if(parts.length > 1){
+                                            return [parts[0], '('+parts[1]];
+                                        }
+                                        return label.match(/.{1,16}/g) || [];
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            new Chart(ctx, config);
+        });
+
+        // --- 3. Interactive Impact Cards (Section 3) ---
+        const impactData = {
+            sante: {
+                title: "Santé Mentale et Stigmatisation",
+                color: "text-blue-300",
+                content: `Être sans emploi est déjà un facteur de stress majeur (perte de revenus, d'identité sociale). Entendre en boucle que l'on est présumé fraudeur ajoute une <span class="text-red-400 font-semibold">violence symbolique extrême</span>.
+                <ul class="list-disc pl-5 mt-4 space-y-2">
+                    <li>Augmentation de l'anxiété et de la dépression.</li>
+                    <li>Intériorisation du stigmate (honte de sa situation).</li>
+                    <li>Création d'obstacles psychologiques à la recherche d'emploi.</li>
+                </ul>`
+            },
+            confiance: {
+                title: "Destruction de la Confiance",
+                color: "text-yellow-300",
+                content: `Ces formats détruisent la confiance à deux niveaux :
+                <ul class="list-disc pl-5 mt-4 space-y-2">
+                    <li><strong class="text-white">Envers les médias :</strong> Ceux qui connaissent la réalité (concernés, travailleurs sociaux) voient la manipulation, alimentant le rejet du journalisme.</li>
+                    <li><strong class="text-white">Entre citoyens :</strong> Cela monte les travailleurs précaires contre les chômeurs, désignant un faux ennemi et empêchant la solidarité.</li>
+                </ul>`
+            },
+            democratie: {
+                title: "Danger Démocratique",
+                color: "text-red-300",
+                content: `Fabriquer l'indignation sur des faits marginaux a un but politique latent.
+                <p class="mt-4">
+                    Ce récit prépare l'opinion publique à accepter la <span class="text-red-400 font-semibold">réduction des filets de sécurité sociale</span> (baisse des indemnités, durcissement des contrôles). C'est une menace directe pour le modèle d'État-providence et la cohésion nationale.
+                </p>`
+            }
+        };
+
+        function showImpact(key) {
+            // Update active state on cards
+            document.querySelectorAll('.interactive-card').forEach(card => card.classList.remove('active', 'border-blue-500'));
+            event.currentTarget.classList.add('active', 'border-blue-500');
+
+            // Update content panel
+            const display = document.getElementById('impact-display');
+            const data = impactData[key];
+            
+            display.innerHTML = `
+                <h3 class="text-2xl font-bold mb-4 ${data.color} fade-in">${data.title}</h3>
+                <div class="text-slate-300 leading-relaxed text-lg fade-in" style="animation-delay: 0.1s">
+                    ${data.content}
+                </div>
+            `;
+        }
+
+        // --- 4. Tabbed Action Section (Section 4) ---
+        const actionData = {
+            pourris: {
+                title: "La campagne miroir (\"Tous pourris ?\")",
+                tags: `<span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded">Efficacité mitigée</span> <span class="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded">Risque élevé</span>`,
+                content: `Lancer une campagne visant les politiques ou les journalistes en les traitant de "tous pourris" est une réaction émotionnelle compréhensible. Cependant :
+                <ul class="list-disc pl-5 mt-4 space-y-2">
+                    <li><strong>Le piège :</strong> Cela valide la logique de généralisation abusive que vous combattez.</li>
+                    <li><strong>Le résultat :</strong> Cela nourrit le cynisme ambiant, la méfiance, et in fine, l'abstentionnisme.</li>
+                    <li><strong>Conclusion :</strong> Défoulatoire, mais politiquement contre-productif.</li>
+                </ul>`
+            },
+            csa: {
+                title: "Saisir les autorités de régulation (Arcom/CSA)",
+                tags: `<span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">Action légale</span> <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded">Recommandé</span>`,
+                content: `Si un documentaire manque d'objectivité, stigmatise un groupe ou présente des faits inexacts, il est possible de saisir le régulateur des médias de votre pays.
+                <p class="mt-4">
+                    <strong>Pourquoi c'est utile :</strong> Même si les sanctions sont rares, les signalements massifs et argumentés forcent les chaînes à justifier leur ligne éditoriale et créent une trace officielle du mécontentement citoyen.
+                </p>`
+            },
+            contre: {
+                title: "Soutenir le Contre-Discours et l'Éducation aux Médias",
+                tags: `<span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded">Impact long terme</span> <span class="bg-purple-100 text-purple-800 text-xs font-semibold px-2.5 py-0.5 rounded">Constructif</span>`,
+                content: `La meilleure arme contre la désinformation sensationnaliste est l'information sourcée.
+                <ul class="list-disc pl-5 mt-4 space-y-2">
+                    <li><strong>Partager les vrais chiffres :</strong> Diffuser les rapports d'associations (ATD Quart Monde, collectifs chômeurs) qui montrent la réalité du non-recours.</li>
+                    <li><strong>Soutenir le journalisme indépendant :</strong> Financer les médias qui prennent le temps de l'investigation sur la fraude fiscale plutôt que sur les précaires.</li>
+                    <li><strong>Témoigner :</strong> Les récits réels et complexes sont l'antidote aux caricatures de la télé-réalité documentaire.</li>
+                </ul>`
+            }
+        };
+
+        function switchAction(key, buttonElement) {
+            // Update button styles
+            document.querySelectorAll('.action-tab').forEach(btn => {
+                btn.className = "action-tab bg-white text-blue-700 hover:bg-blue-100 px-6 py-2 rounded-full font-medium border border-blue-200 transition";
+            });
+            buttonElement.className = "action-tab bg-blue-600 text-white px-6 py-2 rounded-full font-medium transition";
+
+            // Update content
+            const contentDiv = document.getElementById('action-content');
+            const data = actionData[key];
+            
+            contentDiv.innerHTML = `
+                <div class="fade-in">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">${data.title}</h3>
+                    <div class="flex items-center gap-2 mb-4">${data.tags}</div>
+                    <div class="text-gray-700">${data.content}</div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
