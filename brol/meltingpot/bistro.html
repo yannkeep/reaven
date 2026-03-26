@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Évaluation Interactive : Tableau de Bord Reaven</title>
+    
+    <!-- CSS Framework: Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- JS Library: Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Tailwind Config & Custom CSS -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            500: '#64748b',
+                            700: '#334155',
+                            900: '#0f172a',
+                            accent: '#0284c7' // Light blue for accents
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Typography import */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; }
+        
+        /* Chart Container Styling - MANDATORY */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 350px; }
+        }
+
+        /* Utility classes for JS interactions */
+        .hidden-section { display: none; }
+        .active-nav { background-color: #f1f5f9; color: #0284c7; border-right: 4px solid #0284c7; font-weight: 600; }
+        
+        /* Custom Scrollbar for clean look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+
+    <!-- Chosen Palette: Slate & Sky Blue (Warm/Neutral base with clear, professional accents) -->
+    <!-- Application Structure Plan: The application uses a dashboard-style layout (sidebar navigation + main content area) to present the analysis. This structure was chosen because evaluating a dashboard is best done *through* a dashboard interface. It separates concerns logically: Overview, Architecture (Files), UI Elements, and Scope/Alternatives. Users can non-linearly explore the technical breakdown without being overwhelmed by a massive wall of text. -->
+    <!-- Visualization & Content Choices: 
+        1. Architecture: Doughnut Chart (Chart.js) -> Goal: Show simulated file weight distribution (HTML/JS/CSS). Justification: Proportions are easily understood in circular formats. NO SVG used.
+        2. Performance: Line Chart (Chart.js) -> Goal: Show simulated load times vs data complexity. Justification: Line charts are best for showing trends/correlations. NO SVG used.
+        3. UI Elements: Interactive List -> Goal: Detail each component of the Reaven dashboard. Justification: Clickable items reveal text descriptions dynamically, keeping UI clean.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="h-screen flex overflow-hidden antialiased">
+
+    <!-- Sidebar Navigation -->
+    <nav class="w-64 bg-white border-r border-brand-100 flex flex-col justify-between shadow-sm z-10">
+        <div>
+            <div class="p-6 border-b border-brand-100">
+                <h1 class="text-xl font-bold text-brand-900 tracking-tight">Analyse Reaven</h1>
+                <p class="text-xs text-brand-500 mt-1 uppercase tracking-wider">Évaluation technique</p>
+            </div>
+            <ul class="py-4 space-y-1">
+                <li>
+                    <button onclick="navigate('overview')" id="nav-overview" class="w-full text-left px-6 py-3 text-sm text-brand-700 hover:bg-brand-50 transition-colors active-nav">
+                        <span class="mr-2">&#128269;</span> Vue d'ensemble
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigate('architecture')" id="nav-architecture" class="w-full text-left px-6 py-3 text-sm text-brand-700 hover:bg-brand-50 transition-colors">
+                        <span class="mr-2">&#128193;</span> Fichiers & Architecture
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigate('elements')" id="nav-elements" class="w-full text-left px-6 py-3 text-sm text-brand-700 hover:bg-brand-50 transition-colors">
+                        <span class="mr-2">&#128187;</span> Éléments & Liens
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigate('scope')" id="nav-scope" class="w-full text-left px-6 py-3 text-sm text-brand-700 hover:bg-brand-50 transition-colors">
+                        <span class="mr-2">&#127760;</span> Portée & Alternatives
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="p-6 bg-brand-50 text-xs text-brand-500 text-center border-t border-brand-100">
+            Rapport généré statiquement<br>Basé sur l'URL cible
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto bg-brand-50 p-8">
+        
+        <!-- HEADER -->
+        <header class="mb-10">
+            <h2 class="text-3xl font-bold text-brand-900 mb-2">Tableau de Bord : yannkeep.github.io/reaven/room/5/</h2>
+            <p class="text-brand-500 max-w-3xl">Explorez l'analyse approfondie de ce tableau de bord. Naviguez via le menu de gauche pour comprendre sa structure technique, ses composants interactifs et son positionnement stratégique.</p>
+        </header>
+
+        <!-- SECTION: VUE D'ENSEMBLE -->
+        <section id="section-overview" class="content-section space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-brand-100">
+                <h3 class="text-xl font-semibold mb-3">Résumé Exécutif</h3>
+                <p class="text-brand-700 leading-relaxed mb-4">
+                    Cette section présente l'objectif principal du tableau de bord analysé. Elle sert de point d'entrée pour comprendre ce que l'utilisateur final est censé accomplir sur la page <strong>/room/5/</strong>.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                    <div class="bg-brand-50 p-4 rounded-lg border border-brand-100">
+                        <div class="text-3xl mb-2">&#127919;</div>
+                        <h4 class="font-semibold text-brand-900">Objectif Identifié</h4>
+                        <p class="text-sm text-brand-500 mt-2">Centralisation de données ou de contrôles spécifiques à une entité ("Room 5"), typique des applications IoT, de gestion de serveurs ou de jeux en ligne.</p>
+                    </div>
+                    <div class="bg-brand-50 p-4 rounded-lg border border-brand-100">
+                        <div class="text-3xl mb-2">&#128295;</div>
+                        <h4 class="font-semibold text-brand-900">Technologie</h4>
+                        <p class="text-sm text-brand-500 mt-2">Hébergé sur GitHub Pages (statique). Implique l'utilisation d'une architecture Single Page Application (SPA) (ex: React, Vue) ou de Vanilla JS avec un routage côté client.</p>
+                    </div>
+                    <div class="bg-brand-50 p-4 rounded-lg border border-brand-100">
+                        <div class="text-3xl mb-2">&#128101;</div>
+                        <h4 class="font-semibold text-brand-900">Public Cible</h4>
+                        <p class="text-sm text-brand-500 mt-2">Utilisateurs nécessitant une vue en temps réel ou consolidée de métriques privées ou publiques liées à l'instance "5".</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-brand-100">
+                <h3 class="text-xl font-semibold mb-3">Dynamique de Navigation</h3>
+                <p class="text-brand-700 text-sm">Le format d'URL <code>/reaven/room/5/</code> indique une structure hiérarchique :</p>
+                <ul class="list-disc pl-5 mt-3 space-y-2 text-brand-700 text-sm">
+                    <li><strong>Projet Principal :</strong> Reaven (potentiellement le nom de l'application mère).</li>
+                    <li><strong>Catégorie :</strong> Room (suggère l'existence d'autres entités comme des "salles", "serveurs", ou "groupes").</li>
+                    <li><strong>Identifiant :</strong> 5 (ID dynamique ou statique pointant vers les données spécifiques de cette instance).</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- SECTION: ARCHITECTURE & FICHIERS -->
+        <section id="section-architecture" class="content-section hidden-section space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-brand-100">
+                <h3 class="text-xl font-semibold mb-3">Analyse des Fichiers et de l'Hébergement</h3>
+                <p class="text-brand-700 leading-relaxed mb-6">
+                    Cette section dissèque la structure technique attendue pour un tel site statique. Découvrez comment le code est réparti entre le squelette (HTML), le style (CSS) et la logique (JS), ce qui impacte directement les performances.
+                </p>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <!-- Chart Column -->
+                    <div>
+                        <h4 class="text-center font-medium text-brand-900 mb-4">Poids Estimé des Ressources Frontend</h4>
+                        <!-- MANDATORY CHART CONTAINER -->
+                        <div class="chart-container">
+                            <canvas id="architectureChart"></canvas>
+                        </div>
+                        <p class="text-center text-xs text-brand-500 mt-2">Répartition typique pour une SPA sur GitHub Pages.</p>
+                    </div>
+                    
+                    <!-- Text/Data Column -->
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-brand-accent pl-4">
+                            <h4 class="font-bold text-brand-900">index.html</h4>
+                            <p class="text-sm text-brand-500 mt-1">Le point d'entrée unique. Sur GitHub Pages avec un routage SPA, ce fichier capte toutes les requêtes (souvent via un script 404.html redirigé) pour charger l'application.</p>
+                        </div>
+                        <div class="border-l-4 border-yellow-500 pl-4">
+                            <h4 class="font-bold text-brand-900">bundle.js (ou équivalent)</h4>
+                            <p class="text-sm text-brand-500 mt-1">Contient toute la logique de l'application, les requêtes d'API (fetch vers des données JSON externes) et le rendu des composants du tableau de bord "Room 5".</p>
+                        </div>
+                        <div class="border-l-4 border-emerald-500 pl-4">
+                            <h4 class="font-bold text-brand-900">styles.css / Frameworks</h4>
+                            <p class="text-sm text-brand-500 mt-1">Gère la responsivité. Sur les tableaux de bord modernes, des bibliothèques comme Tailwind, Bootstrap ou du CSS modulaire sont généralement compilées ici.</p>
+                        </div>
+                        <div class="border-l-4 border-purple-500 pl-4">
+                            <h4 class="font-bold text-brand-900">Assets (JSON/Images)</h4>
+                            <p class="text-sm text-brand-500 mt-1">Les données de la "Room 5" sont probablement chargées de manière asynchrone via un fichier JSON statique hébergé sur le même repo, ou via une API externe si le tableau de bord est "live".</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: ELEMENTS & LIENS -->
+        <section id="section-elements" class="content-section hidden-section space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-brand-100">
+                <h3 class="text-xl font-semibold mb-3">Déconstruction des Composants (UI/UX)</h3>
+                <p class="text-brand-700 leading-relaxed mb-6">
+                    Cliquez sur les éléments typiques d'un tableau de bord ci-dessous pour comprendre leur rôle spécifique au sein de la page "Room 5", leur comportement et comment ils relient les données à l'utilisateur.
+                </p>
+
+                <div class="flex flex-col md:flex-row gap-6">
+                    <!-- Interactive Menu -->
+                    <div class="w-full md:w-1/3 bg-brand-50 p-2 rounded-lg border border-brand-100 h-fit">
+                        <button onclick="showElementDetail('widgets')" class="w-full text-left p-3 rounded hover:bg-white focus:bg-white focus:shadow-sm transition-all font-medium text-brand-900 border border-transparent focus:border-brand-100 mb-1">&#128202; Widgets de Données</button>
+                        <button onclick="showElementDetail('nav')" class="w-full text-left p-3 rounded hover:bg-white focus:bg-white focus:shadow-sm transition-all font-medium text-brand-900 border border-transparent focus:border-brand-100 mb-1">&#128150; Navigation Supérieure/Latérale</button>
+                        <button onclick="showElementDetail('controls')" class="w-full text-left p-3 rounded hover:bg-white focus:bg-white focus:shadow-sm transition-all font-medium text-brand-900 border border-transparent focus:border-brand-100 mb-1">&#9881;&#65039; Panneau de Contrôle</button>
+                        <button onclick="showElementDetail('links')" class="w-full text-left p-3 rounded hover:bg-white focus:bg-white focus:shadow-sm transition-all font-medium text-brand-900 border border-transparent focus:border-brand-100">&#128279; Liens Sortants / API</button>
+                    </div>
+
+                    <!-- Detail Display Area -->
+                    <div class="w-full md:w-2/3 bg-white p-6 rounded-lg border border-brand-100 shadow-inner min-h-[250px]" id="element-detail-display">
+                        <div class="text-center text-brand-500 mt-10">
+                            <span class="text-4xl mb-2 block">&#128072;</span>
+                            Sélectionnez un composant à gauche pour explorer son fonctionnement en profondeur.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: PORTEE & ALTERNATIVES -->
+        <section id="section-scope" class="content-section hidden-section space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-brand-100">
+                <h3 class="text-xl font-semibold mb-3">Portée du Projet et Écosystème</h3>
+                <p class="text-brand-700 leading-relaxed mb-6">
+                    À quoi sert réellement ce type de création ? Cette section évalue les limites d'un tableau de bord statique hébergé sur GitHub Pages et le compare aux géants de l'industrie pour vous donner une perspective globale.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="font-bold text-brand-900 border-b border-brand-100 pb-2 mb-4">Portée et Limites</h4>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <span class="text-emerald-500 mr-2">&#10004;</span>
+                                <div>
+                                    <strong class="text-sm">Déploiement Gratuit & Rapide</strong>
+                                    <p class="text-xs text-brand-500">Idéal pour les projets personnels, les portfolios ou les visualisations open-source.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-emerald-500 mr-2">&#10004;</span>
+                                <div>
+                                    <strong class="text-sm">Haute Disponibilité</strong>
+                                    <p class="text-xs text-brand-500">Bénéficie du CDN de GitHub, garantissant de bons temps de réponse mondiaux.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-red-500 mr-2">&#10060;</span>
+                                <div>
+                                    <strong class="text-sm">Pas de Backend Sécurisé</strong>
+                                    <p class="text-xs text-brand-500">Ne peut pas stocker de secrets (clés d'API) de manière sécurisée sans un service tiers.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-red-500 mr-2">&#10060;</span>
+                                <div>
+                                    <strong class="text-sm">Temps Réel Limité</strong>
+                                    <p class="text-xs text-brand-500">Les WebSockets ou flux continus nécessitent un serveur externe ; GitHub Pages sert uniquement du statique.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="font-bold text-brand-900 border-b border-brand-100 pb-2 mb-4">Alternatives sur le Marché</h4>
+                        <div class="space-y-4">
+                            <div class="bg-brand-50 p-3 rounded border border-brand-100">
+                                <strong class="text-sm text-brand-900 block">Grafana</strong>
+                                <p class="text-xs text-brand-500 mt-1">La norme industrielle pour l'observabilité. Si "Room 5" est un serveur ou un capteur, Grafana offre des plugins natifs et un backend robuste.</p>
+                            </div>
+                            <div class="bg-brand-50 p-3 rounded border border-brand-100">
+                                <strong class="text-sm text-brand-900 block">Home Assistant</strong>
+                                <p class="text-xs text-brand-500 mt-1">Si "Reaven" est un système domotique, Home Assistant est la plateforme open-source par excellence pour créer des tableaux de bord par "salle".</p>
+                            </div>
+                            <div class="bg-brand-50 p-3 rounded border border-brand-100">
+                                <strong class="text-sm text-brand-900 block">Vercel / Netlify</strong>
+                                <p class="text-xs text-brand-500 mt-1">Alternatives à GitHub Pages permettant l'ajout facile de fonctions "Serverless" (Backend-as-a-Service) pour rendre le tableau de bord dynamique et sécurisé.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Application Logic (JavaScript) -->
+    <script>
+        // --- 1. State Management ---
+        const state = {
+            currentSection: 'overview',
+            chartsInitialized: false
+        };
+
+        // --- 2. Data Storage for Interactive Elements ---
+        const elementData = {
+            'widgets': {
+                title: 'Widgets de Données (Cartes & Graphiques)',
+                icon: '&#128202;',
+                content: `
+                    <p class="text-sm text-brand-700 mb-3"><strong>Fonctionnement :</strong> Ce sont les blocs centraux du tableau de bord. Ils récupèrent les données spécifiques à l'ID "5" (ex: température, statut de serveur, score de joueur) et les traduisent visuellement.</p>
+                    <p class="text-sm text-brand-700 mb-3"><strong>Profondeur technique :</strong> Ils utilisent souvent des balises <code>&lt;canvas&gt;</code> (avec Chart.js/ECharts) ou des éléments HTML stylisés. Les données sont injectées via le DOM manipulation après une promesse JavaScript (<code>fetch()</code>).</p>
+                    <div class="bg-brand-100 p-2 text-xs rounded text-brand-900 font-mono mt-2">Exemple de flux : fetch('/api/room/5/stats') -> Parse JSON -> Update Chart()</div>
+                `
+            },
+            'nav': {
+                title: 'Navigation Supérieure / Latérale',
+                icon: '&#128150;',
+                content: `
+                    <p class="text-sm text-brand-700 mb-3"><strong>Fonctionnement :</strong> Permet de changer de contexte, par exemple passer de la "Room 5" à la "Room 6", ou retourner à l'accueil "Reaven".</p>
+                    <p class="text-sm text-brand-700 mb-3"><strong>Profondeur technique :</strong> Sur GitHub Pages, il s'agit généralement d'un "Client-Side Router" (comme React Router). L'URL change dans le navigateur (History API), mais la page ne se recharge pas physiquement, offrant une expérience fluide.</p>
+                    <ul class="list-disc pl-5 text-sm text-brand-700">
+                        <li>Lien typique : <code>&lt;a href="#/room/6"&gt;</code> ou interceptions d'événements de clic.</li>
+                    </ul>
+                `
+            },
+            'controls': {
+                title: 'Panneau de Contrôle (Boutons / Toggles)',
+                icon: '&#9881;&#65039;',
+                content: `
+                    <p class="text-sm text-brand-700 mb-3"><strong>Fonctionnement :</strong> Permet à l'utilisateur d'interagir avec la Room 5 (ex: allumer une lumière, redémarrer un processus, filtrer des dates).</p>
+                    <p class="text-sm text-brand-700 mb-3"><strong>Profondeur technique :</strong> Les clics déclenchent des fonctions JS (Event Listeners). Si le site est purement statique, ces contrôles filtrent uniquement la vue locale. Si une API externe est branchée, ils envoient des requêtes HTTP POST/PUT.</p>
+                `
+            },
+            'links': {
+                title: 'Liens Sortants & Appels Réseaux',
+                icon: '&#128279;',
+                content: `
+                    <p class="text-sm text-brand-700 mb-3"><strong>Fonctionnement :</strong> Connexions du frontend vers l'extérieur pour récupérer ou envoyer des données.</p>
+                    <p class="text-sm text-brand-700 mb-3"><strong>Profondeur technique :</strong> En inspectant le réseau (F12 > Network), on observerait typiquement des requêtes vers des fichiers locaux (<code>/data/room5.json</code>) ou des API externes (ex: Firebase, Supabase, ou API personnalisée). La structure de ces requêtes définit la "vraie" utilité du tableau de bord.</p>
+                `
+            }
+        };
+
+        // --- 3. Core Interaction Handling ---
+
+        // Navigation Function
+        function navigate(sectionId) {
+            // Update State
+            state.currentSection = sectionId;
+
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(el => {
+                el.classList.add('hidden-section');
+            });
+
+            // Show target section
+            document.getElementById('section-' + sectionId).classList.remove('hidden-section');
+
+            // Update Nav Styling
+            document.querySelectorAll('nav button').forEach(el => {
+                el.classList.remove('active-nav');
+            });
+            document.getElementById('nav-' + sectionId).classList.add('active-nav');
+
+            // Lazy Load Charts if architecture section is accessed
+            if (sectionId === 'architecture' && !state.chartsInitialized) {
+                initCharts();
+                state.chartsInitialized = true;
+            }
+        }
+
+        // Element Detail Display Function
+        function showElementDetail(elementKey) {
+            const displayArea = document.getElementById('element-detail-display');
+            const data = elementData[elementKey];
+            
+            if (data) {
+                // Fade effect via brief opacity transition (Vanilla JS approach)
+                displayArea.style.opacity = 0;
+                
+                setTimeout(() => {
+                    displayArea.innerHTML = `
+                        <h4 class="text-xl font-bold text-brand-900 mb-4 border-b border-brand-100 pb-2">
+                            <span class="mr-2">${data.icon}</span> ${data.title}
+                        </h4>
+                        ${data.content}
+                    `;
+                    displayArea.style.opacity = 1;
+                    displayArea.style.transition = 'opacity 0.3s ease-in-out';
+                }, 150);
+            }
+        }
+
+        // --- 4. Chart.js Initialization ---
+        function initCharts() {
+            const ctxArchitecture = document.getElementById('architectureChart').getContext('2d');
+            
+            // Architecture Doughnut Chart
+            new Chart(ctxArchitecture, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Logique (JavaScript)', 'Structure (HTML)', 'Design (CSS)', 'Assets (JSON/Imgs)'],
+                    datasets: [{
+                        data: [55, 10, 20, 15], // Simulated distribution percentages
+                        backgroundColor: [
+                            '#eab308', // Yellow for JS
+                            '#0284c7', // Brand accent for HTML
+                            '#10b981', // Emerald for CSS
+                            '#8b5cf6'  // Purple for Assets
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // MANDATORY for proper container fitting
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: { family: "'Inter', sans-serif", size: 12 },
+                                color: '#334155' // brand-700
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.label + ': ~' + context.parsed + '% du poids';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize default view on load
+        document.addEventListener('DOMContentLoaded', () => {
+            navigate('overview');
+        });
+
+    </script>
+</body>
+</html>
