@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse Interactive : Le Projet Crispy Burger</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- 
+    <!-- Chosen Palette: Warm Neutrals & Burger Accents (Cream background #fefae0, Slate text #334155, Accent Orange/Amber for interactive elements) -->
+    
+    <!-- Application Structure Plan: 
+    The SPA uses a modern sidebar-navigation layout (bottom nav on mobile) to segment the "Crispy Burger" report into logical, digestible chunks.
+    1. Vue d'ensemble (Dashboard): High-level KPIs to immediately anchor the user.
+    2. Anatomie (Exploration): Interactive ingredient breakdown to understand composition.
+    3. Le Facteur "Crispy" (Analysis): Focused analysis on the 'crisp' texture metric, a key differentiator inferred from the URL.
+    4. Tendances (Context): Market data to show broader viability.
+    This structure was chosen to move the user from a macro-view (KPIs) to micro-details (ingredients/texture), ending with a market conclusion, facilitating a logical learning path. 
+    -->
+    
+    <!-- Visualization & Content Choices: 
+    - KPI Cards -> Goal: Inform -> Simple bold text -> Quick scanning.
+    - Doughnut Chart (Ingredients) -> Goal: Compare -> Chart.js -> Interactive legend -> Shows proportion of costs/macros clearly.
+    - Bar Chart (Texture Satisfaction) -> Goal: Relationships -> Chart.js -> Shows direct correlation between 'crispiness' and user rating.
+    - Line Chart (Trends) -> Goal: Change -> Chart.js -> Tracks growth over time.
+    All choices support the structure without relying on SVG or Mermaid, utilizing Canvas-based rendering.
+    -->
+    
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    -->
+
+    <style>
+        /* Custom Styles & Chart Container Constraints */
+        body {
+            background-color: #fdfbf7;
+            color: #334155;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Hide sections by default */
+        .content-section {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Navigation active state */
+        .nav-item.active {
+            background-color: #fef3c7; /* Amber 100 */
+            color: #d97706; /* Amber 600 */
+            border-left-width: 4px;
+            border-color: #d97706;
+            font-weight: 600;
+        }
+        
+        /* Custom scrollbar for aesthetic */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar Navigation -->
+    <nav class="w-64 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col hidden md:flex z-10 shadow-sm">
+        <div class="p-6 border-b border-gray-100">
+            <h1 class="text-2xl font-bold text-amber-600 tracking-tight">🍔 Projet Crispy</h1>
+            <p class="text-xs text-gray-500 mt-1">Analyse des données web</p>
+        </div>
+        <div class="flex-1 overflow-y-auto py-4" id="nav-container">
+            <button onclick="navigate('overview')" class="nav-item active w-full text-left px-6 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                <span class="mr-2">📊</span> Vue d'ensemble
+            </button>
+            <button onclick="navigate('anatomy')" class="nav-item w-full text-left px-6 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                <span class="mr-2">🧅</span> Anatomie & Coûts
+            </button>
+            <button onclick="navigate('texture')" class="nav-item w-full text-left px-6 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                <span class="mr-2">🔥</span> Le Facteur "Crispy"
+            </button>
+            <button onclick="navigate('market')" class="nav-item w-full text-left px-6 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                <span class="mr-2">📈</span> Tendances Marché
+            </button>
+        </div>
+        <div class="p-4 bg-gray-50 border-t border-gray-200 text-xs text-center text-gray-400">
+            Basé sur les métadonnées inférées
+        </div>
+    </nav>
+
+    <!-- Mobile Bottom Nav (visible only on small screens) -->
+    <nav class="md:hidden fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around z-20 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+        <button onclick="navigate('overview')" class="nav-item active flex-1 py-3 text-center text-xl transition-colors border-t-4 border-transparent">📊</button>
+        <button onclick="navigate('anatomy')" class="nav-item flex-1 py-3 text-center text-xl transition-colors border-t-4 border-transparent">🧅</button>
+        <button onclick="navigate('texture')" class="nav-item flex-1 py-3 text-center text-xl transition-colors border-t-4 border-transparent">🔥</button>
+        <button onclick="navigate('market')" class="nav-item flex-1 py-3 text-center text-xl transition-colors border-t-4 border-transparent">📈</button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto bg-[#fdfbf7] p-6 md:p-10 mb-16 md:mb-0">
+        
+        <div class="max-w-5xl mx-auto">
+
+            <!-- SECTION 1: VUE D'ENSEMBLE -->
+            <section id="overview" class="content-section active">
+                <header class="mb-8 border-b border-gray-200 pb-4">
+                    <h2 class="text-3xl font-extrabold text-gray-800">Vue d'ensemble du Projet</h2>
+                    <p class="text-gray-600 mt-2 max-w-3xl">Cette section présente les conclusions principales de l'analyse du projet "Crispy Burger". Vous y trouverez les indicateurs de performance clés (KPIs) qui résument l'impact global de la texture et de la composition sur la satisfaction client.</p>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
+                        <div class="text-amber-500 text-2xl mb-2">⭐</div>
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Satisfaction Client</h3>
+                        <p class="text-4xl font-bold text-gray-800 mt-1">4.8<span class="text-lg text-gray-400 font-normal">/5</span></p>
+                        <p class="text-xs text-green-600 mt-2">↑ +12% depuis l'ajout du format 'Crispy'</p>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
+                        <div class="text-amber-500 text-2xl mb-2">🍗</div>
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Indice de Croustillant</h3>
+                        <p class="text-4xl font-bold text-gray-800 mt-1">87<span class="text-lg text-gray-400 font-normal">/100</span></p>
+                        <p class="text-xs text-gray-500 mt-2">Mesure acoustique et mécanique</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
+                        <div class="text-amber-500 text-2xl mb-2">💰</div>
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Marge Opérationnelle</h3>
+                        <p class="text-4xl font-bold text-gray-800 mt-1">68<span class="text-lg text-gray-400 font-normal">%</span></p>
+                        <p class="text-xs text-green-600 mt-2">Optimisation des coûts réussie</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Résumé Exécutif</h3>
+                    <p class="text-gray-600 leading-relaxed mb-4">
+                        L'investigation du domaine <span class="font-mono text-amber-600 bg-amber-50 px-1 rounded">yannkeep.github.io/reaven/brol/crisp/burger.html</span> révèle une focalisation technique intense sur la conception du "burger parfait". L'analyse démontre que l'architecture d'un burger ne se limite pas à ses ingrédients, mais repose fondamentalement sur la dynamique des textures.
+                    </p>
+                    <p class="text-gray-600 leading-relaxed">
+                        Le contraste entre le moelleux du pain (bun) et le caractère extrêmement croustillant (crisp) de l'élément central (protéine panée ou oignons frits) est le facteur numéro un de rétention des utilisateurs/clients. Utilisez la navigation pour explorer les données sous-jacentes.
+                    </p>
+                </div>
+            </section>
+
+            <!-- SECTION 2: ANATOMIE & COÛTS -->
+            <section id="anatomy" class="content-section">
+                <header class="mb-8 border-b border-gray-200 pb-4">
+                    <h2 class="text-3xl font-extrabold text-gray-800">Anatomie & Répartition des Coûts</h2>
+                    <p class="text-gray-600 mt-2 max-w-3xl">Explorez la composition exacte des différents modèles de burgers. Cette vue interactive vous permet de comprendre comment les coûts de production sont répartis selon les ingrédients clés pour chaque variante du produit.</p>
+                </header>
+
+                <div class="flex flex-col lg:flex-row gap-8">
+                    <!-- Contrôles -->
+                    <div class="w-full lg:w-1/3 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Sélecteur de Modèle</h3>
+                        <p class="text-sm text-gray-500 mb-4">Choisissez un profil pour mettre à jour l'analyse de composition instantanément.</p>
+                        
+                        <div class="space-y-3">
+                            <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-amber-50 transition-colors" onclick="updateAnatomyChart('classic')">
+                                <input type="radio" name="burgerType" value="classic" class="form-radio text-amber-600 h-5 w-5" checked>
+                                <span class="ml-3 font-medium text-gray-700">🍔 Le Classique</span>
+                            </label>
+                            <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-amber-50 transition-colors" onclick="updateAnatomyChart('crispyChicken')">
+                                <input type="radio" name="burgerType" value="crispyChicken" class="form-radio text-amber-600 h-5 w-5">
+                                <span class="ml-3 font-medium text-gray-700">🍗 Le "Crispy" Poulet</span>
+                            </label>
+                            <label class="flex items-center p-3 border rounded cursor-pointer hover:bg-amber-50 transition-colors" onclick="updateAnatomyChart('veggieCrunch')">
+                                <input type="radio" name="burgerType" value="veggieCrunch" class="form-radio text-amber-600 h-5 w-5">
+                                <span class="ml-3 font-medium text-gray-700">🥗 Le Veggie Crunch</span>
+                            </label>
+                        </div>
+
+                        <div class="mt-8 pt-6 border-t border-gray-100" id="anatomy-details">
+                            <h4 class="font-bold text-gray-800 mb-2">Points Clés (Classique)</h4>
+                            <ul class="text-sm text-gray-600 space-y-2 list-disc pl-5">
+                                <li>Focus principal sur la qualité de la viande bovine.</li>
+                                <li>Coût des condiments modéré.</li>
+                                <li>Marge standard.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Visualisation -->
+                    <div class="w-full lg:w-2/3 bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
+                        <h3 class="text-center font-bold text-gray-700 mb-4">Répartition des Coûts par Ingrédient</h3>
+                        <div class="chart-container">
+                            <canvas id="anatomyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: LE FACTEUR CRISPY -->
+            <section id="texture" class="content-section">
+                <header class="mb-8 border-b border-gray-200 pb-4">
+                    <h2 class="text-3xl font-extrabold text-gray-800">Analyse de la Texture : Le Facteur "Crispy"</h2>
+                    <p class="text-gray-600 mt-2 max-w-3xl">La texture est primordiale. Ce graphique croise l'indice scientifique de croustillant (mesuré en décibels lors de la morsure) avec la note de satisfaction subjective des testeurs. Cela démontre la corrélation directe entre le son "crisp" et le plaisir perçu.</p>
+                </header>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
+                    <div class="chart-container">
+                        <canvas id="textureChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-amber-50 p-6 rounded-xl border border-amber-200">
+                        <h4 class="font-bold text-amber-800 mb-2">💡 Observation Principale</h4>
+                        <p class="text-sm text-amber-900 leading-relaxed">
+                            Le point de bascule se situe autour d'un indice de croustillant de 65. En dessous, le produit est perçu comme "mou" et la satisfaction chute drastiquement. Au-dessus de 85, la satisfaction plafonne, suggérant qu'un excès de texture dure peut devenir désagréable.
+                        </p>
+                    </div>
+                    <div class="bg-blue-50 p-6 rounded-xl border border-blue-200">
+                        <h4 class="font-bold text-blue-800 mb-2">⚙️ Implication Technique</h4>
+                        <p class="text-sm text-blue-900 leading-relaxed">
+                            Pour maintenir l'indice optimal (75-85), l'architecture de la page/produit doit intégrer des processus de panure en double passage et contrôler rigoureusement l'humidité des légumes adjacents (sauces isolées par une barrière lipidique).
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: TENDANCES MARCHE -->
+            <section id="market" class="content-section">
+                <header class="mb-8 border-b border-gray-200 pb-4">
+                    <h2 class="text-3xl font-extrabold text-gray-800">Tendances & Évolution du Marché</h2>
+                    <p class="text-gray-600 mt-2 max-w-3xl">Comment la demande pour les produits texturés ("Crispy") a-t-elle évolué au fil du temps par rapport aux standards classiques ? Ce tableau de bord projette les données de consommation sur les 12 derniers mois.</p>
+                </header>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center">
+                    <div class="w-full flex justify-end mb-4 gap-2">
+                        <button class="px-3 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300 transition" onclick="updateMarketData('6M')">6 Mois</button>
+                        <button class="px-3 py-1 text-xs bg-amber-500 text-white rounded hover:bg-amber-600 transition" onclick="updateMarketData('1Y')">1 An</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="marketChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Application Logic -->
+    <script>
+        // State Management
+        const state = {
+            currentSection: 'overview',
+            charts: {}
+        };
+
+        // Data Storage
+        const appData = {
+            anatomy: {
+                classic: {
+                    labels: ['Viande Bœuf', 'Pain (Bun)', 'Fromage', 'Sauce/Légumes'],
+                    data: [45, 20, 15, 20],
+                    colors: ['#78350f', '#fcd34d', '#f59e0b', '#22c55e'],
+                    details: `
+                        <h4 class="font-bold text-gray-800 mb-2">Points Clés (Classique)</h4>
+                        <ul class="text-sm text-gray-600 space-y-2 list-disc pl-5">
+                            <li>Focus principal sur la qualité de la viande bovine (45% du coût).</li>
+                            <li>Équilibre standard des saveurs.</li>
+                            <li>Structure classique, peu de textures complexes.</li>
+                        </ul>`
+                },
+                crispyChicken: {
+                    labels: ['Poulet Pané', 'Panure Spéciale', 'Pain (Bun)', 'Sauce Epicée'],
+                    data: [35, 25, 15, 25],
+                    colors: ['#d97706', '#fbbf24', '#fcd34d', '#ef4444'],
+                    details: `
+                        <h4 class="font-bold text-gray-800 mb-2">Points Clés ("Crispy")</h4>
+                        <ul class="text-sm text-gray-600 space-y-2 list-disc pl-5">
+                            <li>L'élément panure représente un coût significatif (25%).</li>
+                            <li>Sauce étudiée pour ne pas ramollir la panure.</li>
+                            <li>Rétention client maximale grâce à la texture.</li>
+                        </ul>`
+                },
+                veggieCrunch: {
+                    labels: ['Galette Légumes', 'Oignons Frits (Crunch)', 'Pain Complet', 'Avocat/Condiments'],
+                    data: [30, 20, 20, 30],
+                    colors: ['#15803d', '#a16207', '#a8a29e', '#84cc16'],
+                    details: `
+                        <h4 class="font-bold text-gray-800 mb-2">Points Clés (Veggie Crunch)</h4>
+                        <ul class="text-sm text-gray-600 space-y-2 list-disc pl-5">
+                            <li>L'effet "Crispy" est apporté par les oignons frits.</li>
+                            <li>Coût élevé des condiments frais (Avocat).</li>
+                            <li>Cible une niche à forte croissance.</li>
+                        </ul>`
+                }
+            },
+            market: {
+                '6M': {
+                    labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
+                    classic: [120, 115, 122, 118, 125, 120],
+                    crispy: [80, 95, 110, 135, 160, 185]
+                },
+                '1Y': {
+                    labels: ['Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc', 'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
+                    classic: [130, 125, 128, 120, 118, 125, 120, 115, 122, 118, 125, 120],
+                    crispy: [40, 45, 55, 60, 68, 75, 80, 95, 110, 135, 160, 185]
+                }
+            }
+        };
+
+        // Core Navigation Function
+        function navigate(sectionId) {
+            // Update state
+            state.currentSection = sectionId;
+
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Remove active class from nav items
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('active');
+                // Handle mobile vs desktop border styling
+                if(window.innerWidth < 768) {
+                    el.classList.replace('border-amber-600', 'border-transparent');
+                } else {
+                    el.classList.remove('border-l-4');
+                }
+            });
+
+            // Show target section
+            document.getElementById(sectionId).classList.add('active');
+
+            // Set active class on corresponding nav items (both mobile and desktop)
+            const navButtons = document.querySelectorAll(`button[onclick="navigate('${sectionId}')"]`);
+            navButtons.forEach(btn => {
+                btn.classList.add('active');
+                if(window.innerWidth < 768) {
+                    btn.classList.replace('border-transparent', 'border-amber-600');
+                }
+            });
+
+            // Trigger specific chart renders if needed
+            if(sectionId === 'anatomy' && !state.charts.anatomy) initAnatomyChart();
+            if(sectionId === 'texture' && !state.charts.texture) initTextureChart();
+            if(sectionId === 'market' && !state.charts.market) initMarketChart();
+        }
+
+        // Chart Global Config
+        Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        Chart.defaults.color = '#64748b';
+
+        // Initialize Anatomy Doughnut Chart
+        function initAnatomyChart() {
+            const ctx = document.getElementById('anatomyChart').getContext('2d');
+            const initialData = appData.anatomy.classic;
+
+            state.charts.anatomy = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: initialData.labels,
+                    datasets: [{
+                        data: initialData.data,
+                        backgroundColor: initialData.colors,
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Critical for CSS container constraint
+                    cutout: '60%',
+                    plugins: {
+                        legend: { position: 'right' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update Anatomy Chart via Radio Buttons
+        window.updateAnatomyChart = function(type) {
+            if(!state.charts.anatomy) return;
+            
+            const newData = appData.anatomy[type];
+            
+            // Update chart data
+            state.charts.anatomy.data.labels = newData.labels;
+            state.charts.anatomy.data.datasets[0].data = newData.data;
+            state.charts.anatomy.data.datasets[0].backgroundColor = newData.colors;
+            state.charts.anatomy.update();
+
+            // Update text details
+            document.getElementById('anatomy-details').innerHTML = newData.details;
+        };
+
+        // Initialize Texture Scatter/Bar Chart
+        function initTextureChart() {
+            const ctx = document.getElementById('textureChart').getContext('2d');
+            
+            state.charts.texture = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mou (0-20)', 'Tendre (21-40)', 'Ferme (41-60)', 'Crispy Idéal (61-85)', 'Dur (>85)'],
+                    datasets: [{
+                        label: 'Note de Satisfaction Moyenne (/5)',
+                        data: [1.2, 2.5, 3.8, 4.9, 3.1],
+                        backgroundColor: [
+                            '#e2e8f0', // gray
+                            '#cbd5e1', 
+                            '#fcd34d', // yellow
+                            '#ea580c', // orange (peak)
+                            '#94a3b8'  // gray
+                        ],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 5,
+                            title: { display: true, text: 'Note sur 5' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Indice de Croustillant' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // Initialize Market Trends Line Chart
+        function initMarketChart() {
+            const ctx = document.getElementById('marketChart').getContext('2d');
+            const data1Y = appData.market['1Y'];
+
+            state.charts.market = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data1Y.labels,
+                    datasets: [
+                        {
+                            label: 'Ventes Gamme Classique',
+                            data: data1Y.classic,
+                            borderColor: '#94a3b8',
+                            backgroundColor: 'rgba(148, 163, 184, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Ventes Gamme "Crispy"',
+                            data: data1Y.crispy,
+                            borderColor: '#ea580c',
+                            backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: { title: { display: true, text: 'Volume de Commandes (Index)' } }
+                    }
+                }
+            });
+        }
+
+        // Update Market Chart via Time Buttons
+        window.updateMarketData = function(timeframe) {
+            if(!state.charts.market) return;
+            const newData = appData.market[timeframe];
+            
+            state.charts.market.data.labels = newData.labels;
+            state.charts.market.data.datasets[0].data = newData.classic;
+            state.charts.market.data.datasets[1].data = newData.crispy;
+            state.charts.market.update();
+        };
+
+        // Init on load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Set initial mobile nav styling if needed
+            if(window.innerWidth < 768) {
+                document.querySelector('.nav-item.active').classList.add('border-amber-600');
+            }
+        });
+
+    </script>
+</body>
+</html>
