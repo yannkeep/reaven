@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse: Paradoxe Constitutionnel et Financement des Partis en Belgique</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Base styles and smooth scrolling */
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; }
+        
+        /* Required Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 40vh;
+            max-height: 450px;
+            min-height: 300px;
+        }
+
+        /* Interactive card styles */
+        .theory-card, .practice-card {
+            transition: all 0.3s ease;
+        }
+        .theory-card:hover, .practice-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="antialiased">
+
+<!-- Chosen Palette: Academic Slate & Crimson (Neutral slate background #f8fafc, deep slate text #1e293b, crimson accent #be123c for important legal highlights, gold/amber #d97706 for warnings/paradoxes) -->
+
+<!-- Application Structure Plan: 
+This SPA uses a linear, storytelling dashboard structure. It is designed to guide the user from the theoretical problem (The Constitution) to the practical reality (The Money), and finally to the legal resolution (The Arguments). 
+1. Navigation: Sticky top bar for easy access to sections.
+2. Introduction/Hero: Sets the academic context and states the core research question clearly.
+3. The Paradox (Interactive): Uses side-by-side comparison cards to visually contrast the text of Articles 33/42 with the reality of 'Particratie'. Hover effects encourage engagement.
+4. The Data (Visualization): A stacked bar chart provides concrete evidence of the scale of the issue (public funding amounts), making the abstract legal argument tangible.
+5. Legal Analysis (Accordion): Groups dense legal arguments into digestible, expandable sections to prevent cognitive overload while providing necessary depth.
+6. Conclusion: Summarizes the potential outcomes of a legal challenge.
+This structure is chosen because legal arguments build on precedents and facts; leading the user linearly ensures they understand the *why* before the *how*. 
+-->
+
+<!-- Visualization & Content Choices: 
+1. Report Info: Constitutional Articles vs Reality -> Goal: Compare/Contrast -> Viz: Interactive text cards -> Interaction: Hover to reveal practical implications -> Justification: Textual analysis needs clear juxtaposition without complex charts. Method: HTML/Tailwind CSS.
+2. Report Info: Scale of party funding -> Goal: Inform/Shock -> Viz: Stacked Bar Chart -> Interaction: Tooltips for exact figures -> Justification: Shows the overwhelming proportion of public vs private money, central to the legal argument of state capture. Method: Chart.js (NO SVG).
+3. Report Info: Complex legal arguments -> Goal: Organize -> Viz: Accordion list -> Interaction: Click to expand/collapse -> Justification: Manages reading density, allows users to explore specific legal angles at their own pace. Method: Vanilla JS + HTML.
+-->
+
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. Used HTML entities (e.g., &#8594; for arrows) and CSS styling for visual elements. -->
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white shadow-md border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="font-bold text-xl text-slate-800 tracking-tight">
+                    <span class="text-crimson-700" style="color: #be123c;">Juris</span>Étude
+                </div>
+                <div class="hidden md:flex space-x-6 text-sm font-medium text-slate-600">
+                    <a href="#contexte" class="hover:text-slate-900 transition">Contexte</a>
+                    <a href="#paradoxe" class="hover:text-slate-900 transition">Le Paradoxe</a>
+                    <a href="#chiffres" class="hover:text-slate-900 transition">Les Chiffres</a>
+                    <a href="#arguments" class="hover:text-slate-900 transition">Démarche Juridique</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-24">
+
+        <!-- Section 1: Introduction -->
+        <section id="contexte" class="pt-8">
+            <div class="text-center max-w-3xl mx-auto">
+                <p class="text-sm font-semibold tracking-wide text-amber-600 uppercase mb-3">Recherche Académique</p>
+                <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">
+                    Le Financement des Partis à l'Épreuve de la Constitution
+                </h1>
+                <p class="text-lg text-slate-600 leading-relaxed mb-8">
+                    Cette application synthétise les recherches portant sur une question fondamentale de la démocratie belge : une démarche juridique peut-elle aboutir à réformer ou annuler le système actuel de financement des partis politiques, en s'appuyant sur le paradoxe apparent créé par les <strong>articles 33 et 42 de la Constitution</strong> ?
+                </p>
+                <div class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-slate-800 hover:bg-slate-700 transition cursor-pointer" onclick="document.getElementById('paradoxe').scrollIntoView();">
+                    Explorer l'analyse &#8595;
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Le Paradoxe -->
+        <section id="paradoxe" class="scroll-mt-24">
+            <div class="mb-10">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Le Nœud du Problème : Le Paradoxe Constitutionnel</h2>
+                <p class="text-slate-600 max-w-3xl">
+                    Cette section met en évidence la contradiction fondamentale entre les textes fondateurs de l'État belge et la réalité du pouvoir politique actuel (la "particratie"). Interagissez avec les cartes ci-dessous pour comparer la théorie juridique à la pratique institutionnelle.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Art 33 -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 theory-card relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-2 h-full" style="background-color: #be123c;"></div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Article 33</h3>
+                    <blockquote class="text-lg italic text-slate-600 mb-6 border-l-4 border-slate-300 pl-4">
+                        "Tous les pouvoirs émanent de la Nation. Ils sont exercés de la manière établie par la Constitution."
+                    </blockquote>
+                    <div class="mt-4 p-4 bg-slate-50 rounded-lg">
+                        <h4 class="font-semibold text-sm text-slate-700 uppercase mb-1">La Réalité (La Faille)</h4>
+                        <p class="text-slate-600 text-sm">
+                            En pratique, les partis politiques, entités privées non prévues originellement par la Constitution, monopolisent l'exercice de ce pouvoir en contrôlant les listes électorales et la discipline de vote.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Art 42 -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 theory-card relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-2 h-full" style="background-color: #be123c;"></div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Article 42</h3>
+                    <blockquote class="text-lg italic text-slate-600 mb-6 border-l-4 border-slate-300 pl-4">
+                        "Les membres des deux Chambres représentent la Nation, et non uniquement ceux qui les ont élus."
+                    </blockquote>
+                    <div class="mt-4 p-4 bg-slate-50 rounded-lg">
+                        <h4 class="font-semibold text-sm text-slate-700 uppercase mb-1">La Réalité (La Faille)</h4>
+                        <p class="text-slate-600 text-sm">
+                            Le financement public massif, conditionné par la taille du groupe parlementaire, lie de facto le représentant à son parti sous peine de sanctions (perte de moyens), violant l'esprit d'indépendance de cet article.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Les Chiffres (Data Viz) -->
+        <section id="chiffres" class="scroll-mt-24 bg-slate-100 p-8 rounded-2xl">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">L'Étendue Financière : Pourquoi c'est juridiquement attaquable</h2>
+                <p class="text-slate-600 max-w-3xl">
+                    Pour qu'un juge considère le système comme inconstitutionnel, il faut démontrer une disproportion manifeste. Le graphique ci-dessous illustre l'évolution estimée du financement, montrant l'hyper-dépendance des partis aux dotations publiques par rapport aux cotisations de leurs membres, consolidant ainsi leur statut de "structures d'État" de facto.
+                </p>
+            </div>
+
+            <!-- Dashboard Controls -->
+            <div class="flex justify-end mb-4 space-x-2">
+                <button onclick="updateChart('total')" class="px-4 py-2 text-sm font-medium bg-white border border-slate-300 rounded-md hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500">Vue Totale</button>
+                <button onclick="updateChart('ratio')" class="px-4 py-2 text-sm font-medium bg-white border border-slate-300 rounded-md hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500">Ratio Public/Privé</button>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div class="chart-container">
+                    <canvas id="fundingChart"></canvas>
+                </div>
+                <p class="text-xs text-center text-slate-400 mt-4">*Données illustratives basées sur les tendances académiques pour démontrer la dépendance financière.</p>
+            </div>
+        </section>
+
+        <!-- Section 4: Analyse Juridique -->
+        <section id="arguments" class="scroll-mt-24">
+            <div class="mb-10">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">La Démarche Juridique : Arguments et Faisabilité</h2>
+                <p class="text-slate-600 max-w-3xl">
+                    Une action en justice (par exemple devant la Cour Constitutionnelle) nécessiterait de prouver que la loi sur le financement viole les principes fondamentaux. Explorez les axes d'attaque possibles issus de la recherche. Cliquez sur les éléments pour développer les arguments.
+                </p>
+            </div>
+
+            <div class="space-y-4" id="accordion-container">
+                <!-- Accordion Item 1 -->
+                <div class="border border-slate-200 rounded-lg bg-white overflow-hidden">
+                    <button class="w-full px-6 py-4 text-left font-semibold text-slate-800 bg-slate-50 hover:bg-slate-100 focus:outline-none flex justify-between items-center accordion-btn">
+                        <span>Axe 1 : La violation de l'Article 42 (Le mandat impératif déguisé)</span>
+                        <span class="text-slate-400 transform transition-transform duration-200 icon">&#9660;</span>
+                    </button>
+                    <div class="px-6 py-0 max-h-0 overflow-hidden transition-all duration-300 ease-in-out accordion-content bg-white">
+                        <div class="py-4 text-slate-600">
+                            <p class="mb-2"><strong>L'Argument :</strong> Le système lie le financement au maintien des élus dans le groupe parlementaire du parti. Si un élu quitte son parti (tout en gardant son siège), le parti perd une partie de sa dotation. </p>
+                            <p><strong>L'Impact juridique :</strong> Cela crée une pression financière colossale sur le parti pour maintenir la discipline de vote. L'élu ne représente plus la "Nation" en son âme et conscience, mais représente les intérêts financiers de la structure du parti. C'est un mandat impératif de fait, explicitement interdit par la Constitution.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion Item 2 -->
+                <div class="border border-slate-200 rounded-lg bg-white overflow-hidden">
+                    <button class="w-full px-6 py-4 text-left font-semibold text-slate-800 bg-slate-50 hover:bg-slate-100 focus:outline-none flex justify-between items-center accordion-btn">
+                        <span>Axe 2 : Atteinte au principe d'égalité (Monopole politique)</span>
+                        <span class="text-slate-400 transform transition-transform duration-200 icon">&#9660;</span>
+                    </button>
+                    <div class="px-6 py-0 max-h-0 overflow-hidden transition-all duration-300 ease-in-out accordion-content bg-white">
+                        <div class="py-4 text-slate-600">
+                            <p class="mb-2"><strong>L'Argument :</strong> Les lois de financement créent des barrières à l'entrée insurmontables pour les nouveaux mouvements politiques. Les partis établis s'auto-attribuent des montants massifs, figeant le paysage politique.</p>
+                            <p><strong>L'Impact juridique :</strong> Cela pourrait être attaqué sur base des articles 10 et 11 (Principe d'égalité et de non-discrimination) combinés aux droits démocratiques, arguant que le système actuel discrimine financièrement toute nouvelle initiative citoyenne, confisquant ainsi le pouvoir de la Nation (Art 33).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion Item 3 -->
+                <div class="border border-slate-200 rounded-lg bg-white overflow-hidden">
+                    <button class="w-full px-6 py-4 text-left font-semibold text-slate-800 bg-slate-50 hover:bg-slate-100 focus:outline-none flex justify-between items-center accordion-btn">
+                        <span>Axe 3 : Les Obstacles à la Démarche (La Défense de l'État)</span>
+                        <span class="text-slate-400 transform transition-transform duration-200 icon">&#9660;</span>
+                    </button>
+                    <div class="px-6 py-0 max-h-0 overflow-hidden transition-all duration-300 ease-in-out accordion-content bg-white">
+                        <div class="py-4 text-slate-600">
+                            <p class="mb-2"><strong>La difficulté :</strong> La Cour Constitutionnelle fait souvent preuve de "self-restraint" (retenue) sur les questions éminemment politiques. </p>
+                            <p><strong>L'Argument de la défense :</strong> L'État (et les partis) argumenteront que le financement public est essentiel pour éviter la corruption (financement occulte) et garantir le fonctionnement démocratique. Ils plaideront que l'article 42 est un principe abstrait qui n'interdit pas l'organisation de la vie politique autour de groupes idéologiques structurés.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conclusion -->
+        <section class="pb-20 border-t border-slate-200 pt-10 mt-10">
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-lg">
+                <h3 class="text-xl font-bold text-slate-800 mb-2">Conclusion de la Recherche</h3>
+                <p class="text-slate-700">
+                    Bien que le paradoxe constitutionnel entre les articles 33/42 et la réalité du financement soit flagrant, une démarche juridique pure fait face à des obstacles majeurs en raison de la nature juge et partie des législateurs. Toutefois, porter la question devant les cours (nationales ou européennes) obligerait les institutions à justifier publiquement ces montants, transformant un débat académique en une véritable pression politique pour la réforme de la "particratie".
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-8 text-center text-sm">
+        <p>Application de synthèse générée basée sur des concepts de recherche académique en droit constitutionnel belge.</p>
+    </footer>
+
+    <script>
+        // --- State Management ---
+        const state = {
+            currentView: 'total' // 'total' or 'ratio'
+        };
+
+        // --- Data Storage (Illustrative Data based on typical Belgian political funding trends) ---
+        const chartData = {
+            labels: ['2010', '2014', '2019', '2023'],
+            datasets: {
+                total: [
+                    {
+                        label: 'Dotations Publiques (Millions €)',
+                        data: [45, 55, 65, 75],
+                        backgroundColor: '#1e293b', // Deep slate
+                        stack: 'Stack 0',
+                    },
+                    {
+                        label: 'Cotisations Membres (Millions €)',
+                        data: [15, 12, 10, 8],
+                        backgroundColor: '#94a3b8', // Light slate
+                        stack: 'Stack 0',
+                    }
+                ],
+                ratio: [
+                    {
+                        label: '% Financement Public',
+                        data: [75, 82, 86, 90],
+                        backgroundColor: '#be123c', // Crimson alert
+                    },
+                    {
+                        label: '% Financement Privé/Propre',
+                        data: [25, 18, 14, 10],
+                        backgroundColor: '#e2e8f0', // Very light grey
+                    }
+                ]
+            }
+        };
+
+        // --- Chart Initialization ---
+        let fundingChartInstance = null;
+
+        function initChart() {
+            const ctx = document.getElementById('fundingChart').getContext('2d');
+            
+            // Default config for 'total' view
+            const config = {
+                type: 'bar',
+                data: {
+                    labels: chartData.labels,
+                    datasets: chartData.datasets.total
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        x: { stacked: true },
+                        y: { 
+                            stacked: true,
+                            beginAtZero: true,
+                            title: { display: true, text: 'Millions d\'Euros' }
+                        }
+                    }
+                }
+            };
+
+            fundingChartInstance = new Chart(ctx, config);
+        }
+
+        // --- Core Interaction Handling: Chart Updates ---
+        function updateChart(viewType) {
+            if (!fundingChartInstance) return;
+            state.currentView = viewType;
+
+            if (viewType === 'ratio') {
+                fundingChartInstance.data.datasets = chartData.datasets.ratio;
+                fundingChartInstance.options.scales.x.stacked = false;
+                fundingChartInstance.options.scales.y.stacked = false;
+                fundingChartInstance.options.scales.y.title.text = 'Pourcentage (%)';
+                fundingChartInstance.options.scales.y.max = 100;
+            } else {
+                fundingChartInstance.data.datasets = chartData.datasets.total;
+                fundingChartInstance.options.scales.x.stacked = true;
+                fundingChartInstance.options.scales.y.stacked = true;
+                fundingChartInstance.options.scales.y.title.text = 'Millions d\'Euros';
+                delete fundingChartInstance.options.scales.y.max; // remove max
+            }
+            fundingChartInstance.update();
+        }
+
+        // --- Core Interaction Handling: Accordion Logic ---
+        function initAccordion() {
+            const buttons = document.querySelectorAll('.accordion-btn');
+            
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    const icon = button.querySelector('.icon');
+                    
+                    // Close all others
+                    document.querySelectorAll('.accordion-content').forEach(otherContent => {
+                        if (otherContent !== content && otherContent.style.maxHeight) {
+                            otherContent.style.maxHeight = null;
+                            otherContent.previousElementSibling.querySelector('.icon').style.transform = 'rotate(0deg)';
+                            otherContent.classList.remove('pb-4');
+                        }
+                    });
+
+                    // Toggle current
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                        icon.style.transform = 'rotate(0deg)';
+                        content.classList.remove('pb-4'); // remove padding when closed
+                    } else {
+                        content.classList.add('pb-4'); // add padding when open
+                        content.style.maxHeight = content.scrollHeight + 20 + "px"; // add a little buffer
+                        icon.style.transform = 'rotate(180deg)';
+                    }
+                });
+            });
+        }
+
+        // --- Initialization on Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            initAccordion();
+        });
+
+    </script>
+</body>
+</html>
