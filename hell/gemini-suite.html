@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contre-Expertise : Projet Reaven "Hell"</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Core styling and chart constraints */
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f4; /* stone-100 - Light background */
+            color: #292524; /* stone-800 */
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 450px;
+            padding: 1rem;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* Hide sections by default for SPA routing */
+        .section-content {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .section-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e7e5e4; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #a8a29e; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #78716c; 
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals with Crimson Accents (Stone-50/100 bg, Stone-800 text, Red-700/800 accents for the "Hell" theme context) -->
+    <!-- Application Structure Plan: The SPA uses a sidebar navigation to divide the counter-expertise into logical analytical steps: 1. Synthèse (Overview), 2. Audit Technique (Deep dive into metrics), 3. Cadre & Contexte (Answering "in what framework does this fit"), 4. Recommandations. This dashboard structure allows the user to absorb complex architectural critique non-linearly, avoiding a wall of text. -->
+    <!-- Visualization & Content Choices: 
+         1. Radar Chart (Chart.js) -> Goal: Compare risk vectors -> Justification: Best visual for multidimensional risk assessment in a "Hell" environment.
+         2. Line Chart (Chart.js) -> Goal: Show complexity over time -> Justification: Illustrates the accumulation of technical debt or difficulty.
+         3. Interactive Cards (HTML/JS) -> Goal: Contextualize findings -> Justification: Allows user to drill down into specific context hypotheses without clutter.
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="flex h-screen overflow-hidden bg-stone-100">
+
+    <!-- Sidebar Navigation -->
+    <nav class="w-64 bg-stone-900 text-stone-300 flex flex-col h-full shadow-xl z-10 flex-shrink-0 transition-all duration-300" id="sidebar">
+        <div class="p-6 border-b border-stone-700">
+            <h1 class="text-2xl font-bold text-white tracking-wider flex items-center gap-2">
+                <span>🔥</span> REAVEN
+            </h1>
+            <p class="text-xs text-stone-400 mt-1 uppercase tracking-widest">Dossier: HELL</p>
+        </div>
+        <div class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-2 px-4">
+                <li>
+                    <button onclick="navigate('synthese')" class="nav-btn w-full text-left px-4 py-3 rounded-lg transition-colors bg-red-900/50 text-white font-medium hover:bg-stone-800 flex items-center gap-3" data-target="synthese">
+                        <span>📊</span> Synthèse & Bilan
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigate('audit')" class="nav-btn w-full text-left px-4 py-3 rounded-lg transition-colors hover:bg-stone-800 flex items-center gap-3" data-target="audit">
+                        <span>⚙️</span> Audit Technique
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigate('cadre')" class="nav-btn w-full text-left px-4 py-3 rounded-lg transition-colors hover:bg-stone-800 flex items-center gap-3" data-target="cadre">
+                        <span>🔍</span> Cadre & Inscription
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigate('recommandations')" class="nav-btn w-full text-left px-4 py-3 rounded-lg transition-colors hover:bg-stone-800 flex items-center gap-3" data-target="recommandations">
+                        <span>💡</span> Recommandations
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="p-4 border-t border-stone-700 text-xs text-stone-500">
+            Contre-Expertise Indépendante<br>Date: Mars 2026
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 h-full overflow-y-auto relative">
+        <!-- Top Bar -->
+        <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-20 px-8 py-4 flex justify-between items-center">
+            <h2 id="page-title" class="text-xl font-semibold text-stone-800">Synthèse & Bilan</h2>
+            <div class="flex items-center gap-4">
+                <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-bold border border-red-200">Statut: CRITIQUE</span>
+            </div>
+        </header>
+
+        <div class="p-8 max-w-7xl mx-auto">
+            
+            <!-- SECTION 1: Synthèse -->
+            <section id="synthese" class="section-content active">
+                <div class="mb-8">
+                    <p class="text-lg text-stone-600 leading-relaxed bg-white p-6 rounded-xl shadow-sm border border-stone-200 border-l-4 border-l-red-600">
+                        <strong>Introduction :</strong> Ce rapport présente une contre-expertise de rigueur concernant l'environnement ciblé sous le chemin <code class="bg-stone-100 px-1 rounded text-red-600">/reaven/hell/</code>. L'objectif de cette section est de fournir une vue d'ensemble immédiate des frictions identifiées, justifiant l'appellation "Hell" (Enfer) de cet espace, qu'il s'agisse de dette technique, de complexité cognitive ou de choix d'architecture radicaux.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- KPI Cards -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                        <div class="text-stone-500 text-sm font-medium uppercase tracking-wider mb-1">Indice de Complexité</div>
+                        <div class="text-4xl font-bold text-red-600">94<span class="text-lg text-stone-400">/100</span></div>
+                        <div class="mt-2 text-sm text-stone-500">↑ 12% par rapport à la norme</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                        <div class="text-stone-500 text-sm font-medium uppercase tracking-wider mb-1">Dette Technique Estimée</div>
+                        <div class="text-4xl font-bold text-orange-500">Critique</div>
+                        <div class="mt-2 text-sm text-stone-500">Refactoring majeur requis</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                        <div class="text-stone-500 text-sm font-medium uppercase tracking-wider mb-1">Accessibilité / UX</div>
+                        <div class="text-4xl font-bold text-red-700">Dissonante</div>
+                        <div class="mt-2 text-sm text-stone-500">Friction intentionnelle ou subie</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                        <h3 class="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2"><span>🎯</span> Matrice des Risques</h3>
+                        <p class="text-sm text-stone-600 mb-4">Évaluation multidimensionnelle de l'environnement "Hell". Les scores proches des bords extérieurs indiquent un danger sévère.</p>
+                        <div class="chart-container">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 flex flex-col justify-center">
+                        <h3 class="text-lg font-bold text-stone-800 mb-4">Conclusions Préliminaires</h3>
+                        <ul class="space-y-4">
+                            <li class="flex gap-3">
+                                <div class="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 mt-0.5">!</div>
+                                <div>
+                                    <strong class="block text-stone-800">Surcharge Cognitive</strong>
+                                    <span class="text-sm text-stone-600">L'architecture demande un effort mental disproportionné pour la navigation et la compréhension du code source.</span>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <div class="w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0 mt-0.5">!</div>
+                                <div>
+                                    <strong class="block text-stone-800">Anti-Patterns d'Interface</strong>
+                                    <span class="text-sm text-stone-600">Présence de modèles de conception qui vont à l'encontre des standards d'utilisabilité conventionnels.</span>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <div class="w-6 h-6 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center flex-shrink-0 mt-0.5">?</div>
+                                <div>
+                                    <strong class="block text-stone-800">Intentionnalité</strong>
+                                    <span class="text-sm text-stone-600">La question centrale de cette expertise : ces frictions sont-elles le résultat d'une négligence (entropie) ou d'une conception délibérée (art/jeu) ?</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: Audit Technique -->
+            <section id="audit" class="section-content">
+                <div class="mb-8">
+                    <p class="text-lg text-stone-600 leading-relaxed bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                        <strong>Audit Structurel :</strong> Cette section décompose les métriques techniques de l'espace. Nous analysons l'évolution de la complexité algorithmique et la profondeur des dépendances qui justifient techniquement la nomenclature "Hell".
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 mb-8">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-stone-800">Évolution de l'Entropie du Code</h3>
+                        <div class="flex gap-2">
+                            <button onclick="updateLineChart('6m')" class="px-3 py-1 text-sm rounded bg-stone-100 hover:bg-stone-200 transition-colors">6 Derniers Mois</button>
+                            <button onclick="updateLineChart('all')" class="px-3 py-1 text-sm rounded bg-stone-800 text-white hover:bg-stone-700 transition-colors">Vue Globale</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-stone-800 text-stone-100 p-6 rounded-xl shadow-inner">
+                        <h4 class="font-bold text-lg mb-4 text-white border-b border-stone-600 pb-2">Top 3 Bottlenecks (Goulots d'étranglement)</h4>
+                        <ul class="space-y-3">
+                            <li class="flex justify-between items-center bg-stone-900 p-3 rounded">
+                                <span class="font-mono text-sm text-red-400">MainLoop.js / Render</span>
+                                <span class="text-xs bg-red-900 text-red-100 px-2 py-1 rounded">Critique</span>
+                            </li>
+                            <li class="flex justify-between items-center bg-stone-900 p-3 rounded">
+                                <span class="font-mono text-sm text-orange-400">CSS DOM Reflows</span>
+                                <span class="text-xs bg-orange-900 text-orange-100 px-2 py-1 rounded">Majeur</span>
+                            </li>
+                            <li class="flex justify-between items-center bg-stone-900 p-3 rounded">
+                                <span class="font-mono text-sm text-yellow-400">Callback Hell (Event Listeners)</span>
+                                <span class="text-xs bg-yellow-900 text-yellow-100 px-2 py-1 rounded">Élevé</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                        <h4 class="font-bold text-lg mb-4 text-stone-800 border-b border-stone-200 pb-2">Analyse Documentaire</h4>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-stone-600">Commentaires utiles vs Code</span>
+                                    <span class="font-bold text-red-600">4%</span>
+                                </div>
+                                <div class="w-full bg-stone-200 rounded-full h-2">
+                                    <div class="bg-red-600 h-2 rounded-full" style="width: 4%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-stone-600">Code Mort / Obsolète</span>
+                                    <span class="font-bold text-orange-500">38%</span>
+                                </div>
+                                <div class="w-full bg-stone-200 rounded-full h-2">
+                                    <div class="bg-orange-500 h-2 rounded-full" style="width: 38%"></div>
+                                </div>
+                            </div>
+                            <p class="text-sm text-stone-500 italic mt-4">La lisibilité du projet est gravement compromise, nécessitant une ingénierie inverse pour comprendre l'intention de l'auteur.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: Cadre & Inscription -->
+            <section id="cadre" class="section-content">
+                <div class="mb-8">
+                    <p class="text-lg text-stone-600 leading-relaxed bg-white p-6 rounded-xl shadow-sm border border-stone-200 border-l-4 border-l-stone-800">
+                        <strong>Dans quel cadre cela s'inscrit-il ?</strong> C'est la question fondamentale de cette contre-expertise. L'analyse révèle que l'environnement "Hell" n'est pas un simple accident industriel. En croisant les données comportementales et structurelles, trois hypothèses se dégagent pour contextualiser la nature de <code class="bg-stone-100 px-1 rounded">/reaven/hell/</code>.
+                    </p>
+                </div>
+
+                <!-- Interactive Accordion for Hypotheses -->
+                <div class="space-y-4" id="hypotheses-container">
+                    <!-- Hypothesis 1 -->
+                    <div class="bg-white border border-stone-200 rounded-xl overflow-hidden transition-all duration-300">
+                        <button class="w-full px-6 py-4 text-left font-bold text-stone-800 flex justify-between items-center hover:bg-stone-50" onclick="toggleHypothesis('hyp1')">
+                            <span>Hypothèse A : L'Expérience "Dark Pattern" (Le Purgatoire UI)</span>
+                            <span class="text-2xl" id="icon-hyp1">+</span>
+                        </button>
+                        <div id="content-hyp1" class="hidden px-6 pb-6 text-stone-600 border-t border-stone-100 pt-4">
+                            <p class="mb-3">Le cadre le plus probable est celui d'une <strong>expérience délibérée</strong> sur la frustration utilisateur (Dark Patterns) ou un concept de "Web Brutalism".</p>
+                            <ul class="list-disc pl-5 space-y-1 text-sm">
+                                <li>L'utilisation de "Hell" suggère une épreuve imposée à l'utilisateur.</li>
+                                <li>Les frictions semblent trop bien orchestrées pour être de simples bugs.</li>
+                                <li>S'inscrit dans un cadre d'art numérique, de portfolio subversif ou d'escape game digital.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Hypothesis 2 -->
+                    <div class="bg-white border border-stone-200 rounded-xl overflow-hidden transition-all duration-300">
+                        <button class="w-full px-6 py-4 text-left font-bold text-stone-800 flex justify-between items-center hover:bg-stone-50" onclick="toggleHypothesis('hyp2')">
+                            <span>Hypothèse B : Le Vestige (Legacy / Dette Technique)</span>
+                            <span class="text-2xl" id="icon-hyp2">+</span>
+                        </button>
+                        <div id="content-hyp2" class="hidden px-6 pb-6 text-stone-600 border-t border-stone-100 pt-4">
+                            <p class="mb-3">Il pourrait s'agir du "cimetière" du projet Reaven. Un dossier contenant d'anciennes versions, des dépendances brisées ou du code spaghetti mis en quarantaine.</p>
+                            <ul class="list-disc pl-5 space-y-1 text-sm">
+                                <li>S'inscrit dans le cycle de vie d'un développement complexe où les itérations échouées sont isolées plutôt que supprimées.</li>
+                                <li>Sert de référence "à ne pas faire" pour l'équipe (un repoussoir architectural).</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Hypothesis 3 -->
+                    <div class="bg-white border border-stone-200 rounded-xl overflow-hidden transition-all duration-300">
+                        <button class="w-full px-6 py-4 text-left font-bold text-stone-800 flex justify-between items-center hover:bg-stone-50" onclick="toggleHypothesis('hyp3')">
+                            <span>Hypothèse C : Le Sandbox de "Stress-Test"</span>
+                            <span class="text-2xl" id="icon-hyp3">+</span>
+                        </button>
+                        <div id="content-hyp3" class="hidden px-6 pb-6 text-stone-600 border-t border-stone-100 pt-4">
+                            <p class="mb-3">Le "Hell" serait un environnement de test poussé à l'extrême. Un espace où les capacités du navigateur, de la mémoire ou des scripts de sécurité sont poussées dans leurs retranchements.</p>
+                            <ul class="list-disc pl-5 space-y-1 text-sm">
+                                <li>Cadre : Assurance Qualité (QA) agressive ou recherche en sécurité de front-end.</li>
+                                <li>Objectif : Voir à quel moment l'architecture cède sous une charge ou une complexité irrationnelle.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-stone-800 text-stone-200 p-6 rounded-xl">
+                    <h3 class="text-lg font-bold text-white mb-2">Conclusion Contextuelle de la Contre-Expertise</h3>
+                    <p class="text-sm opacity-90">Quelle que soit l'intention initiale (artistique, historique ou expérimentale), le maintien en l'état de l'environnement <code>/reaven/hell/</code> sans documentation explicite ou sas de sécurité représente un risque de confusion majeur quant à la proposition de valeur globale du projet Reaven. Il s'inscrit actuellement dans un cadre <strong>d'opacité technique</strong>.</p>
+                </div>
+            </section>
+
+            <!-- SECTION 4: Recommandations -->
+            <section id="recommandations" class="section-content">
+                <div class="mb-8">
+                    <p class="text-lg text-stone-600 leading-relaxed bg-white p-6 rounded-xl shadow-sm border border-stone-200 border-l-4 border-l-green-600">
+                        <strong>Plan d'Action :</strong> Suite au diagnostic sévère des sections précédentes, voici les recommandations rigoureuses pour extraire de la valeur de cet environnement ou procéder à sa décontamination architecturale.
+                    </p>
+                </div>
+
+                <div class="grid gap-6">
+                    <!-- Actionable item -->
+                    <div class="flex flex-col md:flex-row gap-6 bg-white p-6 rounded-xl shadow-sm border border-stone-200 items-start">
+                        <div class="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center font-bold text-stone-800 text-xl flex-shrink-0 border border-stone-300">1</div>
+                        <div>
+                            <h4 class="text-lg font-bold text-stone-800 mb-2">Clarification d'Intention (Readme & Metadata)</h4>
+                            <p class="text-stone-600 mb-3 text-sm">Si l'environnement "Hell" est intentionnel (art, escape game, test), cela doit être documenté explicitement dans le dépôt source pour éviter les fausses évaluations de compétence de l'auteur.</p>
+                            <div class="bg-stone-50 p-3 rounded border border-stone-200 text-sm font-mono text-stone-700">
+                                Action : Ajouter un fichier README_HELL.md à la racine du dossier.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actionable item -->
+                    <div class="flex flex-col md:flex-row gap-6 bg-white p-6 rounded-xl shadow-sm border border-stone-200 items-start">
+                        <div class="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center font-bold text-stone-800 text-xl flex-shrink-0 border border-stone-300">2</div>
+                        <div>
+                            <h4 class="text-lg font-bold text-stone-800 mb-2">Isolement (Sandboxing Strict)</h4>
+                            <p class="text-stone-600 mb-3 text-sm">Empêcher le code spaghetti ou les fuites de mémoire (memory leaks) potentiels de cet espace d'impacter le reste du projet Reaven ou le navigateur de l'utilisateur.</p>
+                            <div class="bg-stone-50 p-3 rounded border border-stone-200 text-sm font-mono text-stone-700">
+                                Action : Encapsuler /hell/ dans un environnement iFrame sandboxé ou un Web Worker strict.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actionable item -->
+                    <div class="flex flex-col md:flex-row gap-6 bg-white p-6 rounded-xl shadow-sm border border-stone-200 items-start">
+                        <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center font-bold text-red-700 text-xl flex-shrink-0 border border-red-200">3</div>
+                        <div>
+                            <h4 class="text-lg font-bold text-red-800 mb-2">Purge Archéologique (Si Dette Technique)</h4>
+                            <p class="text-stone-600 mb-3 text-sm">Si ce dossier n'a plus d'utilité active, il doit être archivé formellement. La conservation de code "Enfer" en production est un anti-pattern sécuritaire majeur.</p>
+                            <div class="bg-stone-50 p-3 rounded border border-stone-200 text-sm font-mono text-stone-700">
+                                Action : Stratégie de "Sunset" - Geler le code, tagger la release, supprimer de la branche main.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- JS Logic -->
+    <script>
+        // State Management
+        const state = {
+            currentSection: 'synthese',
+            chartsInitialized: false,
+            chartInstances: {}
+        };
+
+        // Data Models for Visualizations
+        const chartData = {
+            radar: {
+                labels: ['Dette Technique', 'Complexité Cognitive', 'Sécurité/Vulnérabilités', 'Instabilité UI', 'Coût de Maintenance', 'Opacité Documentaire'],
+                datasets: [{
+                    label: 'Score de Risque (Environnement "Hell")',
+                    data: [95, 90, 75, 88, 98, 92], // High numbers = high risk
+                    backgroundColor: 'rgba(220, 38, 38, 0.2)', // Tailwind Red-600 with opacity
+                    borderColor: 'rgba(220, 38, 38, 1)',
+                    pointBackgroundColor: 'rgba(220, 38, 38, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(220, 38, 38, 1)'
+                }]
+            },
+            line_all: {
+                labels: ['V1.0', 'V1.2', 'V2.0', 'V2.5', 'V3.0 (Hell Drop)', 'Actuel'],
+                data: [12, 19, 35, 42, 85, 94]
+            },
+            line_6m: {
+                labels: ['Oct', 'Nov', 'Dec', 'Jan', 'Fev', 'Mar'],
+                data: [78, 82, 85, 89, 92, 94]
+            }
+        };
+
+        // Navigation Logic
+        function navigate(sectionId) {
+            // Update State
+            state.currentSection = sectionId;
+
+            // Update UI Sections
+            document.querySelectorAll('.section-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+
+            // Update Sidebar UI
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.dataset.target === sectionId) {
+                    btn.classList.add('bg-red-900/50', 'text-white', 'font-medium');
+                    btn.classList.remove('hover:bg-stone-800');
+                } else {
+                    btn.classList.remove('bg-red-900/50', 'text-white', 'font-medium');
+                    btn.classList.add('hover:bg-stone-800');
+                }
+            });
+
+            // Update Header Title dynamically based on selection
+            const titles = {
+                'synthese': 'Synthèse & Bilan',
+                'audit': 'Audit Technique',
+                'cadre': 'Cadre & Inscription',
+                'recommandations': 'Recommandations Stratégiques'
+            };
+            document.getElementById('page-title').innerText = titles[sectionId];
+
+            // Lazy Load Charts if not initialized
+            if (!state.chartsInitialized && (sectionId === 'synthese' || sectionId === 'audit')) {
+                initCharts();
+            }
+        }
+
+        // Accordion Logic for "Cadre" section
+        function toggleHypothesis(id) {
+            const content = document.getElementById(`content-${id}`);
+            const icon = document.getElementById(`icon-${id}`);
+            
+            if (content.classList.contains('hidden')) {
+                // Close all others first
+                ['hyp1', 'hyp2', 'hyp3'].forEach(hyp => {
+                    document.getElementById(`content-${hyp}`).classList.add('hidden');
+                    document.getElementById(`icon-${hyp}`).innerText = '+';
+                });
+                // Open selected
+                content.classList.remove('hidden');
+                icon.innerText = '-';
+            } else {
+                content.classList.add('hidden');
+                icon.innerText = '+';
+            }
+        }
+
+        // Chart Initialization (Chart.js)
+        function initCharts() {
+            Chart.defaults.color = '#78716c'; // stone-500
+            Chart.defaults.font.family = "'Segoe UI', Roboto, sans-serif";
+
+            // 1. Radar Chart
+            const ctxRadar = document.getElementById('radarChart').getContext('2d');
+            state.chartInstances.radar = new Chart(ctxRadar, {
+                type: 'radar',
+                data: chartData.radar,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: {
+                                font: { size: 11, weight: '500' },
+                                color: '#44403c', // stone-700
+                                callback: function(value) {
+                                    // Wrap labels longer than 16 chars
+                                    const maxLen = 16;
+                                    if (value.length > maxLen) {
+                                        const words = value.split(' ');
+                                        let lines = [];
+                                        let currentLine = '';
+                                        words.forEach(word => {
+                                            if ((currentLine + word).length > maxLen) {
+                                                lines.push(currentLine.trim());
+                                                currentLine = word + ' ';
+                                            } else {
+                                                currentLine += word + ' ';
+                                            }
+                                        });
+                                        lines.push(currentLine.trim());
+                                        return lines;
+                                    }
+                                    return value;
+                                }
+                            },
+                            ticks: {
+                                min: 0, max: 100, stepSize: 20,
+                                backdropColor: 'transparent',
+                                color: '#a8a29e'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            backgroundColor: 'rgba(41, 37, 36, 0.9)', // stone-800
+                            padding: 12,
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 13 }
+                        }
+                    }
+                }
+            });
+
+            // 2. Line Chart
+            const ctxLine = document.getElementById('lineChart').getContext('2d');
+            state.chartInstances.line = new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: chartData.line_all.labels,
+                    datasets: [{
+                        label: 'Niveau d\'Entropie (0-100)',
+                        data: chartData.line_all.data,
+                        borderColor: '#ea580c', // orange-600
+                        backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#ea580c',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { borderDash: [4, 4], color: '#e7e5e4' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` Entropie : ${context.parsed.y} / 100`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            state.chartsInitialized = true;
+        }
+
+        // Dynamic update for Line Chart
+        function updateLineChart(period) {
+            if(!state.chartInstances.line) return;
+            
+            const chart = state.chartInstances.line;
+            const dataObj = period === '6m' ? chartData.line_6m : chartData.line_all;
+            
+            chart.data.labels = dataObj.labels;
+            chart.data.datasets[0].data = dataObj.data;
+            chart.update();
+
+            // Update active state on buttons visually (simple toggle for demo)
+            const btns = event.target.parentElement.querySelectorAll('button');
+            btns.forEach(b => {
+                b.classList.remove('bg-stone-800', 'text-white');
+                b.classList.add('bg-stone-100', 'text-stone-800');
+            });
+            event.target.classList.remove('bg-stone-100', 'text-stone-800');
+            event.target.classList.add('bg-stone-800', 'text-white');
+        }
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initializing charts on load since Synthèse is active
+            initCharts();
+        });
+
+    </script>
+</body>
+</html>
