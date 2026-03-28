@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Démocratique : Le Paradoxe de l'Article 42</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Merriweather:ital,wght@0,300;0,700;1,300&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Slate & Indigo (Civic Tech) -->
+    <!-- Application Structure Plan: The SPA is structured as a sequential "audit". It begins by establishing the core legal paradox (The Problem), then maps out the proposed legal strategy (The Action), analyzes its viability via data visualization (The Audit), and finally proposes expanded civic strategies (New Avenues). This narrative flow guides the user from understanding an abstract legal concept to exploring actionable democratic initiatives, using interactive reveals and charts to maintain engagement without overwhelming them with dense legal text. -->
+    <!-- Visualization & Content Choices: 1. Core Paradox: Interactive flip cards (HTML/CSS/JS) to compare legal texts directly. 2. Legal Strategy Flow: CSS-based process steps with clickable details (NO SVG/Mermaid) to show the path to the Constitutional Court. 3. Viability Analysis: Chart.js Radar Chart (Canvas) to evaluate the strengths/weaknesses of the legal action, providing a visual "audit" score. 4. New Avenues: Interactive Accordion (HTML/Tailwind/JS) for deep-diving into specific new strategies. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .serif { font-family: 'Merriweather', serif; }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 400px; }
+        }
+
+        .flip-card {
+            background-color: transparent;
+            perspective: 1000px;
+            height: 320px;
+        }
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flip-card.active .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .flip-card-front { background-color: white; }
+        .flip-card-back { background-color: #f8fafc; transform: rotateY(180deg); text-align: left; align-items: flex-start;}
+
+        .step-node { transition: all 0.3s ease; }
+        .step-node.active { background-color: #4f46e5; color: white; border-color: #4f46e5; transform: scale(1.05); }
+        .step-node:hover:not(.active) { border-color: #4f46e5; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-indigo-200 selection:text-indigo-900">
+
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl mr-2">⚖️</span>
+                    <span class="font-bold text-xl tracking-tight text-indigo-950">Audit<span class="text-indigo-600">Démocratique</span></span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#paradoxe" class="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Le Paradoxe</a>
+                    <a href="#strategie" class="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">La Stratégie</a>
+                    <a href="#analyse" class="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">L'Analyse</a>
+                    <a href="#pistes" class="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Nouvelles Pistes</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="pt-20 pb-16 text-center px-4 max-w-4xl mx-auto">
+        <div class="inline-block bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-6">Dossier d'Investigation Constitutionnelle</div>
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-tight mb-6">
+            La Faille de la <span class="text-indigo-600">Particratie</span> Belge
+        </h1>
+        <p class="text-lg md:text-xl text-slate-600 mb-8 leading-relaxed">
+            Une analyse interactive de l'inégalité de traitement dans le droit constitutionnel belge : quand la loi sanctionne les partis hostiles aux droits de l'homme, mais ignore la violation systématique du libre mandat par la discipline de parti.
+        </p>
+        <a href="#paradoxe" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md hover:shadow-lg">
+            Démarrer l'Audit <span>↓</span>
+        </a>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 space-y-32">
+
+        <section id="paradoxe" class="scroll-mt-24">
+            <div class="mb-12 md:w-2/3">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">1. Le Paradoxe Juridique</h2>
+                <p class="text-slate-600 text-lg">
+                    L'argument central repose sur une asymétrie de sanction créant une inégalité de traitement présumée (Articles 10 et 11 de la Constitution). Cliquez sur les cartes pour explorer les deux textes de loi qui s'entrechoquent dans la pratique démocratique belge.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="flip-card cursor-pointer group" onclick="this.classList.toggle('active')">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front border-t-4 border-amber-500">
+                            <span class="text-4xl mb-4">📜</span>
+                            <h3 class="text-xl font-bold text-slate-800 mb-2">Loi du 4 juillet 1989</h3>
+                            <p class="text-sm text-slate-500 uppercase font-semibold tracking-wide">(Article 15ter)</p>
+                            <div class="mt-6 text-indigo-600 font-medium group-hover:underline flex items-center gap-1">Cliquez pour lire <span class="text-lg">↺</span></div>
+                        </div>
+                        <div class="flip-card-back border-t-4 border-amber-500 overflow-y-auto">
+                            <h4 class="font-bold text-amber-600 mb-2 uppercase text-xs tracking-wider">Ce qu'elle dit</h4>
+                            <p class="text-slate-700 text-sm leading-relaxed mb-4">
+                                Cette loi prévoit des sanctions (comme la privation de dotation financière) pour les partis politiques qui se montrent manifestement hostiles aux droits et libertés garantis par la Convention européenne des droits de l'homme (CEDH).
+                            </p>
+                            <h4 class="font-bold text-slate-900 mb-1 uppercase text-xs tracking-wider">L'Observation</h4>
+                            <p class="text-slate-600 text-sm italic">Le législateur a prévu un mécanisme punitif strict pour protéger certains principes fondamentaux.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card cursor-pointer group" onclick="this.classList.toggle('active')">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front border-t-4 border-indigo-500">
+                            <span class="text-4xl mb-4">🏛️</span>
+                            <h3 class="text-xl font-bold text-slate-800 mb-2">Constitution Belge</h3>
+                            <p class="text-sm text-slate-500 uppercase font-semibold tracking-wide">(Article 42)</p>
+                            <div class="mt-6 text-indigo-600 font-medium group-hover:underline flex items-center gap-1">Cliquez pour lire <span class="text-lg">↺</span></div>
+                        </div>
+                        <div class="flip-card-back border-t-4 border-indigo-500 overflow-y-auto">
+                            <h4 class="font-bold text-indigo-600 mb-2 uppercase text-xs tracking-wider">Ce qu'elle dit</h4>
+                            <p class="text-slate-700 text-sm leading-relaxed mb-4">
+                                "Les membres des deux Chambres représentent la Nation, et non uniquement ceux qui les ont élus." Cela consacre le principe du <strong>mandat libre</strong> : un député ne peut recevoir d'ordre impératif.
+                            </p>
+                            <h4 class="font-bold text-slate-900 mb-1 uppercase text-xs tracking-wider">La Faille</h4>
+                            <p class="text-slate-600 text-sm italic">Aucune sanction légale n'existe pour la violation systématique de cet article par la "particratie" (discipline de vote imposée par les présidents de partis).</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex items-start gap-4">
+                    <span class="text-3xl">⚠️</span>
+                    <div>
+                        <h4 class="font-bold text-slate-900 text-lg mb-2">La Synthèse de l'Inégalité</h4>
+                        <p class="text-slate-700 leading-relaxed">
+                            Si la loi protège activement la CEDH via des sanctions financières contre les partis, son silence absolu face aux partis qui bafouent l'Article 42 (en imposant un mandat impératif de fait) crée potentiellement une <strong>discrimination injustifiée</strong> entre la protection de différents principes constitutionnels/fondamentaux.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="strategie" class="scroll-mt-24 bg-slate-100 rounded-3xl p-8 md:p-12 border border-slate-200">
+            <div class="mb-10 text-center max-w-2xl mx-auto">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">2. Le Cheminement Contentieux</h2>
+                <p class="text-slate-600">
+                    Comment porter ce débat théorique devant les juges ? L'action la plus réalisable ne nécessite pas de réforme, mais une stratégie de guérilla juridique via la <strong>question préjudicielle</strong>.
+                </p>
+            </div>
+
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-12 relative">
+                <div class="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-slate-300 -z-10 -translate-y-1/2 rounded"></div>
+
+                <div class="step-node active w-full md:w-1/3 bg-white border-2 border-slate-300 rounded-xl p-6 text-center cursor-pointer shadow-sm z-10" onclick="showStepDetail(1, this)">
+                    <div class="text-3xl mb-3">🧑‍⚖️</div>
+                    <h3 class="font-bold text-lg mb-1">1. Le Litige Concret</h3>
+                    <p class="text-xs opacity-80">Tribunal Ordinaire</p>
+                </div>
+                
+                <div class="md:hidden text-2xl text-slate-400">↓</div>
+
+                <div class="step-node w-full md:w-1/3 bg-white border-2 border-slate-300 rounded-xl p-6 text-center cursor-pointer shadow-sm z-10" onclick="showStepDetail(2, this)">
+                    <div class="text-3xl mb-3">❓</div>
+                    <h3 class="font-bold text-lg mb-1">2. La Question</h3>
+                    <p class="text-xs opacity-80">Préjudicielle</p>
+                </div>
+
+                <div class="md:hidden text-2xl text-slate-400">↓</div>
+
+                <div class="step-node w-full md:w-1/3 bg-white border-2 border-slate-300 rounded-xl p-6 text-center cursor-pointer shadow-sm z-10" onclick="showStepDetail(3, this)">
+                    <div class="text-3xl mb-3">🏛️</div>
+                    <h3 class="font-bold text-lg mb-1">3. Le Jugement</h3>
+                    <p class="text-xs opacity-80">Cour Constitutionnelle</p>
+                </div>
+            </div>
+
+            <div id="step-detail-container" class="bg-white p-8 rounded-xl shadow-inner border border-slate-200 min-h-[200px] flex items-center">
+                <div id="step-1-content" class="step-content">
+                    <h4 class="text-xl font-bold text-indigo-700 mb-3 flex items-center gap-2"><span class="bg-indigo-100 text-indigo-800 w-8 h-8 rounded-full flex items-center justify-center text-sm">1</span> Trouver l'étincelle</h4>
+                    <p class="text-slate-700 leading-relaxed">
+                        Tout commence par un procès civil ou administratif ordinaire. Un citoyen, une association, ou un parlementaire "dissident" (sanctionné par son parti pour avoir voté selon sa conscience) engage une action en justice. L'avocat doit être inventif pour lier le dommage subi à l'absence de sanction pour violation de l'Article 42.
+                    </p>
+                </div>
+                <div id="step-2-content" class="step-content hidden">
+                    <h4 class="text-xl font-bold text-indigo-700 mb-3 flex items-center gap-2"><span class="bg-indigo-100 text-indigo-800 w-8 h-8 rounded-full flex items-center justify-center text-sm">2</span> Convaincre le juge-relais</h4>
+                    <p class="text-slate-700 leading-relaxed">
+                        Lors de ce procès, l'avocat soulève l'inégalité de traitement (Loi 1989 vs Impunité Art.42). Il demande au juge ordinaire de suspendre le procès et de poser une "question préjudicielle" à la Cour constitutionnelle. Le juge ordinaire vérifie seulement si la question n'est pas manifestement infondée et si la réponse est nécessaire pour trancher le litige en cours.
+                    </p>
+                </div>
+                <div id="step-3-content" class="step-content hidden">
+                    <h4 class="text-xl font-bold text-indigo-700 mb-3 flex items-center gap-2"><span class="bg-indigo-100 text-indigo-800 w-8 h-8 rounded-full flex items-center justify-center text-sm">3</span> Forcer la jurisprudence</h4>
+                    <p class="text-slate-700 leading-relaxed">
+                        Si le juge transmet la question, la victoire médiatique et politique est déjà là. La Cour Constitutionnelle se retrouve <strong>obligée de se prononcer</strong>, pour la première fois de son histoire, sur la tension fondamentale entre la réalité de la particratie belge et le texte sacré du mandat libre. L'espace jurisprudentiel vierge est brisé.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="analyse" class="scroll-mt-24">
+            <div class="mb-12 md:w-2/3">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">3. Audit des Probabilités</h2>
+                <p class="text-slate-600 text-lg mb-6">
+                    Cette stratégie est un coup de poker. L'analyse juridique stricte montre de faibles chances de succès sur le fond, mais le retour sur investissement politique (ROI) d'une telle action est asymétrique.
+                </p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-12 items-center">
+                <div class="w-full lg:w-1/2">
+                    <!-- Chart Container as required -->
+                    <div class="chart-container">
+                        <canvas id="auditChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="w-full lg:w-1/2 space-y-6">
+                    <div class="bg-white p-5 rounded-lg border-l-4 border-red-500 shadow-sm">
+                        <h4 class="font-bold text-slate-800 mb-2 flex justify-between">
+                            <span>Le Grand Obstacle Juridique</span>
+                            <span class="text-red-500 text-xl">✗</span>
+                        </h4>
+                        <p class="text-sm text-slate-600">
+                            Pour que la Cour constate une discrimination au sens des articles 10-11, il faut comparer deux <strong>normes législatives</strong>. Or, l'absence de sanction pour l'Article 42 n'est pas écrite dans une loi, c'est une <em>lacune</em> liée à une <em>pratique politique</em> (la particratie). La Cour pourrait se déclarer incompétente à sanctionner une simple "pratique".
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-lg border-l-4 border-emerald-500 shadow-sm">
+                        <h4 class="font-bold text-slate-800 mb-2 flex justify-between">
+                            <span>La Victoire "Même en cas d'échec"</span>
+                            <span class="text-emerald-500 text-xl">✓</span>
+                        </h4>
+                        <p class="text-sm text-slate-600">
+                            Un rejet obligerait la Cour à motiver sa décision. Elle devrait produire des arguments juridiques sur l'Article 42. Ce jugement fournirait une matière inestimable pour les politologues, la presse, et de futures réformes. C'est le principe du contentieux stratégique : utiliser le procès comme outil de mise à l'agenda politique.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pistes" class="scroll-mt-24">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">4. Nouvelles Pistes à Exploiter</h2>
+                <p class="text-slate-600">
+                    L'audit révèle que s'attaquer frontalement à la particratie via la Cour Constitutionnelle est risqué. Voici de nouvelles failles ou stratégies dérivées pour un audit "grand public" et une action citoyenne.
+                </p>
+            </div>
+
+            <div class="max-w-4xl mx-auto space-y-4">
+                
+                <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                    <button class="w-full px-6 py-4 text-left font-bold text-lg text-slate-800 bg-slate-50 hover:bg-slate-100 flex justify-between items-center transition-colors accordion-btn" onclick="toggleAccordion('acc1', this)">
+                        <span class="flex items-center gap-3"><span class="text-2xl">💰</span> L'Angle Financier : Le Contrôle des Dotations</span>
+                        <span class="text-slate-400 text-2xl font-light transform transition-transform duration-300 icon">+</span>
+                    </button>
+                    <div id="acc1" class="hidden px-6 pb-6 pt-2 border-t border-slate-100">
+                        <p class="text-slate-700 mb-4 mt-2">
+                            Plutôt que d'attaquer la pratique parlementaire, attaquer la source du pouvoir des présidents de parti : l'argent public.
+                        </p>
+                        <ul class="list-none space-y-2 text-sm text-slate-600">
+                            <li class="flex items-start gap-2"><span class="text-indigo-500 font-bold">›</span> <strong>Idée :</strong> La Commission de contrôle des dépenses électorales pourrait être saisie (ou réformée sous pression citoyenne) pour lier les dotations au respect effectif de la démocratie interne du parti et au non-recours aux "consignes de vote" strictes documentées.</li>
+                            <li class="flex items-start gap-2"><span class="text-indigo-500 font-bold">›</span> <strong>Avantage :</strong> Déplace le débat du droit constitutionnel pur (difficile) vers le droit administratif et le contrôle des deniers publics (plus lisible pour le grand public).</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                    <button class="w-full px-6 py-4 text-left font-bold text-lg text-slate-800 bg-slate-50 hover:bg-slate-100 flex justify-between items-center transition-colors accordion-btn" onclick="toggleAccordion('acc2', this)">
+                        <span class="flex items-center gap-3"><span class="text-2xl">📢</span> L'Action Collective : Le "Harcelement" Préjudiciel</span>
+                        <span class="text-slate-400 text-2xl font-light transform transition-transform duration-300 icon">+</span>
+                    </button>
+                    <div id="acc2" class="hidden px-6 pb-6 pt-2 border-t border-slate-100">
+                        <p class="text-slate-700 mb-4 mt-2">
+                            Une seule question préjudicielle peut être rejetée comme anecdotique. Vingt questions soulevées simultanément dans divers tribunaux créent un fait politique.
+                        </p>
+                        <ul class="list-none space-y-2 text-sm text-slate-600">
+                            <li class="flex items-start gap-2"><span class="text-indigo-500 font-bold">›</span> <strong>Idée :</strong> Une ONG de défense de la démocratie coordonne une campagne. Des citoyens soulèvent l'inconstitutionnalité de lois votées "à l'arraché" par la majorité (où la pression du parti a été publiquement documentée), au motif que le vote n'était pas libre selon l'Art. 42.</li>
+                            <li class="flex items-start gap-2"><span class="text-indigo-500 font-bold">›</span> <strong>Avantage :</strong> Effet de masse. Rend la "faille" visible quotidiennement dans la presse juridique et généraliste.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                    <button class="w-full px-6 py-4 text-left font-bold text-lg text-slate-800 bg-slate-50 hover:bg-slate-100 flex justify-between items-center transition-colors accordion-btn" onclick="toggleAccordion('acc3', this)">
+                        <span class="flex items-center gap-3"><span class="text-2xl">🔍</span> L'Observatoire Citoyen : La "Datafication" de l'Art. 42</span>
+                        <span class="text-slate-400 text-2xl font-light transform transition-transform duration-300 icon">+</span>
+                    </button>
+                    <div id="acc3" class="hidden px-6 pb-6 pt-2 border-t border-slate-100">
+                        <p class="text-slate-700 mb-4 mt-2">
+                            Pour qu'un juge reconnaisse une pratique, il faut qu'elle soit indiscutable. Actuellement, la particratie est "connue de tous" mais peu documentée formellement pour les tribunaux.
+                        </p>
+                        <ul class="list-none space-y-2 text-sm text-slate-600">
+                            <li class="flex items-start gap-2"><span class="text-indigo-500 font-bold">›</span> <strong>Idée :</strong> Créer une base de données publique mesurant la "loyauté de vote". Comparer les déclarations publiques des députés avant un vote controversé avec leur vote final en séance. Collecter les SMS/mails de consigne de vote (lanceurs d'alerte).</li>
+                            <li class="flex items-start gap-2"><span class="text-indigo-500 font-bold">›</span> <strong>Avantage :</strong> Fournit la preuve factuelle de la "règle non écrite" nécessaire pour appuyer le recours juridique, transformant le soupçon en donnée auditable.</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-8 text-center text-sm">
+        <div class="max-w-6xl mx-auto px-4">
+            <p>Conçu comme un outil d'exploration civique et d'information juridique.</p>
+            <p class="mt-2 text-slate-500">Document basé sur l'analyse de la tension entre la Loi de 1989 (Art 15ter) et l'Article 42 de la Constitution belge.</p>
+        </div>
+    </footer>
+
+    <script>
+        // JS Logic for Step Navigation
+        function showStepDetail(stepNum, element) {
+            // Update active state of nodes
+            document.querySelectorAll('.step-node').forEach(node => {
+                node.classList.remove('active');
+                node.classList.replace('bg-indigo-600', 'bg-white');
+                node.classList.replace('text-white', 'text-slate-800');
+            });
+            element.classList.add('active');
+
+            // Hide all content
+            document.querySelectorAll('.step-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // Show selected content
+            document.getElementById(`step-${stepNum}-content`).classList.remove('hidden');
+            
+            // Add subtle animation
+            const container = document.getElementById('step-detail-container');
+            container.style.opacity = '0.5';
+            setTimeout(() => { container.style.opacity = '1'; }, 50);
+        }
+
+        // JS Logic for Accordion
+        function toggleAccordion(id, btnElement) {
+            const content = document.getElementById(id);
+            const icon = btnElement.querySelector('.icon');
+            
+            if (content.classList.contains('hidden')) {
+                // Close others (optional, keeps it cleaner)
+                document.querySelectorAll('[id^="acc"]').forEach(acc => acc.classList.add('hidden'));
+                document.querySelectorAll('.accordion-btn .icon').forEach(ic => {
+                    ic.textContent = '+';
+                    ic.style.transform = 'rotate(0deg)';
+                });
+
+                // Open this
+                content.classList.remove('hidden');
+                icon.textContent = '×';
+                icon.style.transform = 'rotate(90deg)';
+                btnElement.classList.add('bg-indigo-50');
+            } else {
+                // Close this
+                content.classList.add('hidden');
+                icon.textContent = '+';
+                icon.style.transform = 'rotate(0deg)';
+                btnElement.classList.remove('bg-indigo-50');
+            }
+        }
+
+        // JS Logic for Chart.js
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('auditChart').getContext('2d');
+            
+            // Data reflecting the legal analysis
+            const data = {
+                labels: [
+                    ['Faisabilité', 'Matérielle'], 
+                    ['Chances', 'Juridiques'], 
+                    ['Coût/Risque', 'Financier'], 
+                    ['Impact Médiatique', '(si posée)'], 
+                    ['Impact Politique', '(si échec)'],
+                    ['Impact Historique', '(si succès)']
+                ],
+                datasets: [{
+                    label: 'Évaluation de la Stratégie (0-10)',
+                    data: [8, 2, 3, 7, 6, 10],
+                    backgroundColor: 'rgba(79, 70, 229, 0.2)', // Indigo
+                    borderColor: 'rgba(79, 70, 229, 1)',
+                    pointBackgroundColor: 'rgba(245, 158, 11, 1)', // Amber accent
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(245, 158, 11, 1)',
+                    borderWidth: 2,
+                    fill: true
+                }]
+            };
+
+            const config = {
+                type: 'radar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                            pointLabels: {
+                                font: { family: 'Inter', size: 12, weight: '600' },
+                                color: '#475569' // text-slate-600
+                            },
+                            ticks: {
+                                display: false, // Hide numeric scale for cleaner look
+                                min: 0,
+                                max: 10
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)', // slate-900
+                            titleFont: { family: 'Inter', size: 14 },
+                            bodyFont: { family: 'Inter', size: 13 },
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                title: function(context) {
+                                    // Handle array labels
+                                    return context[0].label.replace(/,/g, ' ');
+                                },
+                                label: function(context) {
+                                    const value = context.raw;
+                                    let text = `Score : ${value}/10`;
+                                    // Add contextual explanation based on index
+                                    if(context.dataIndex === 0) text += " (Facile d'initier un litige)";
+                                    if(context.dataIndex === 1) text += " (Prouver une norme vs pratique est dur)";
+                                    if(context.dataIndex === 5) text += " (Créerait une jurisprudence inédite)";
+                                    return text;
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            new Chart(ctx, config);
+        });
+    </script>
+</body>
+</html>
