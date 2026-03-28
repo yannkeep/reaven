@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infographie Interactive : La Faille Démocratique Belge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Energetic Civic (Deep Indigo #4F46E5, Bright Amber #F59E0B, Emerald #10B981, Rose #E11D48, Slate #0F172A) -->
+    <!-- Application Structure Plan: The SPA is designed as a vertical scrollytelling infographic. It starts with the core legal paradox (Introduction), moves into quantitative evidence of the issue (Data Overview), outlines the proposed legal strategy via a process flow (Action Plan), evaluates the viability through a radar chart (Audit Analysis), and concludes with alternative strategies (Future Outlook). This structure transforms a dense legal argument into a digestible, logical narrative flow for the general public, using varying visual rhythms (cards, charts, process nodes) to maintain engagement. -->
+    <!-- Visualization & Content Choices: 
+         1. Intro Paradox: Text Cards (Goal: Compare) -> HTML/Tailwind styling. Best for direct text comparison without SVG.
+         2. Particracy Impact: Donut Chart (Goal: Inform/Proportion) -> Chart.js Canvas. Shows the overwhelming weight of party discipline.
+         3. Sanction Inequality: Bar Chart (Goal: Compare) -> Chart.js Canvas. Visually stark contrast between CEDH sanctions and Art. 42 impunity.
+         4. Legal Strategy: Flow Nodes (Goal: Organize/Process) -> HTML/Tailwind Flexbox. Clear step-by-step path to the Constitutional Court.
+         5. Risk/Reward Audit: Radar Chart (Goal: Evaluate/Relationships) -> Chart.js Canvas. Maps multidimensional attributes of the legal strategy.
+         All charts use NO SVG, strict canvas boundaries, and required tooltip/wrapping logic. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .serif-title { font-family: 'Playfair Display', serif; }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 380px; }
+        }
+
+        .stat-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        .process-node {
+            position: relative;
+            z-index: 10;
+        }
+        .process-line::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 4px;
+            background-color: #cbd5e1;
+            z-index: 0;
+            transform: translateY(-50%);
+        }
+        @media (max-width: 767px) {
+            .process-line::after {
+                top: 100%;
+                left: 50%;
+                width: 4px;
+                height: 100%;
+                transform: translateX(-50%);
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-indigo-200">
+
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">⚖️</span>
+                    <span class="font-bold text-xl tracking-tight text-slate-900">Audit<span class="text-indigo-600">Citoyen</span></span>
+                </div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="#paradoxe" class="text-sm font-semibold text-slate-600 hover:text-indigo-600 transition-colors">Le Paradoxe</a>
+                    <a href="#donnees" class="text-sm font-semibold text-slate-600 hover:text-indigo-600 transition-colors">L'Impact</a>
+                    <a href="#strategie" class="text-sm font-semibold text-slate-600 hover:text-indigo-600 transition-colors">La Stratégie</a>
+                    <a href="#audit" class="text-sm font-semibold text-slate-600 hover:text-indigo-600 transition-colors">L'Analyse</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="pt-20 pb-16 px-4 text-center max-w-4xl mx-auto">
+        <div class="inline-block bg-indigo-100 text-indigo-800 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-6">Dossier d'Investigation Constitutionnelle</div>
+        <h1 class="text-5xl md:text-6xl font-bold text-slate-900 leading-tight mb-6">
+            La Faille de la <span class="text-indigo-600">Particratie</span>
+        </h1>
+        <p class="text-lg md:text-xl text-slate-600 mb-8 leading-relaxed max-w-3xl mx-auto">
+            Une exploration visuelle de l'inégalité de traitement au cœur du système politique belge : quand la loi punit les atteintes aux droits humains, mais tolère la violation systématique du vote libre des députés.
+        </p>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 space-y-28">
+
+        <section id="paradoxe" class="scroll-mt-24">
+            <div class="max-w-3xl mb-10">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4 serif-title">1. Le Choc des Textes</h2>
+                <p class="text-slate-600 text-lg leading-relaxed">
+                    Au cœur de notre argumentation réside une asymétrie flagrante. Deux principes fondamentaux coexistent, mais un seul est protégé par des sanctions réelles. Cette situation crée une inégalité de traitement potentiellement contestable devant les tribunaux (Articles 10 et 11 de la Constitution).
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white rounded-2xl p-8 shadow-md border-t-8 border-amber-500 stat-card">
+                    <div class="text-4xl mb-4">📜</div>
+                    <div class="uppercase tracking-wider text-xs font-bold text-slate-500 mb-1">La Loi Sanctionnatrice</div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-4">Loi du 4 juillet 1989 <span class="text-amber-500">(Art. 15ter)</span></h3>
+                    <p class="text-slate-700 mb-6 leading-relaxed">
+                        Prévoit la privation de dotation financière pour les partis politiques démontrant une hostilité manifeste envers la Convention européenne des droits de l'homme (CEDH).
+                    </p>
+                    <div class="bg-amber-50 rounded-lg p-4 border border-amber-100">
+                        <span class="font-bold text-amber-700 text-sm uppercase tracking-wide">Constat :</span>
+                        <span class="text-sm text-amber-900 ml-2">Mécanisme punitif strict et effectif.</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-8 shadow-md border-t-8 border-indigo-600 stat-card">
+                    <div class="text-4xl mb-4">🏛️</div>
+                    <div class="uppercase tracking-wider text-xs font-bold text-slate-500 mb-1">Le Principe Ignoré</div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-4">Constitution Belge <span class="text-indigo-600">(Art. 42)</span></h3>
+                    <p class="text-slate-700 mb-6 leading-relaxed">
+                        "Les membres des deux Chambres représentent la Nation, et non uniquement ceux qui les ont élus." Consacre le mandat libre et interdit l'injonction de vote.
+                    </p>
+                    <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
+                        <span class="font-bold text-indigo-700 text-sm uppercase tracking-wide">Constat :</span>
+                        <span class="text-sm text-indigo-900 ml-2">Aucune sanction pour la discipline de parti imposée.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="donnees" class="scroll-mt-24 bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-slate-200">
+            <div class="max-w-3xl mb-12">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4 serif-title">2. La Réalité des Chiffres</h2>
+                <p class="text-slate-600 text-lg leading-relaxed">
+                    Pour comprendre l'urgence de la situation, il faut visualiser le poids de la "particratie". Bien que l'Article 42 garantisse l'indépendance de l'élu, la pratique démontre une obéissance quasi-absolue aux consignes des présidents de parti, créant un déséquilibre flagrant dans l'application des sanctions.
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <div class="space-y-6">
+                    <h3 class="text-xl font-bold text-slate-800 text-center">Estimation de la Discipline de Vote au Parlement</h3>
+                    <div class="chart-container">
+                        <canvas id="donutChart"></canvas>
+                    </div>
+                    <p class="text-sm text-slate-500 text-center bg-slate-50 p-4 rounded-xl">
+                        <strong class="text-slate-700">Contexte :</strong> Ce graphique illustre la domination écrasante de la consigne de parti. La marge d'action réelle de l'Article 42 (le vote libre) est marginalisée, rendant l'absence de protection légale d'autant plus critique.
+                    </p>
+                </div>
+
+                <div class="space-y-6">
+                    <h3 class="text-xl font-bold text-slate-800 text-center">Disparité des Sanctions Prévues</h3>
+                    <div class="chart-container">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                    <p class="text-sm text-slate-500 text-center bg-slate-50 p-4 rounded-xl">
+                        <strong class="text-slate-700">Contexte :</strong> L'inégalité de traitement est visible ici. Une violation de la CEDH entraîne un risque financier maximal (100% de perte possible), tandis que la violation systémique de la Constitution (Art. 42) entraîne 0% de pénalité.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="strategie" class="scroll-mt-24">
+            <div class="max-w-3xl mb-16 mx-auto text-center">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4 serif-title">3. Le Cheminement Contentieux</h2>
+                <p class="text-slate-600 text-lg leading-relaxed">
+                    Comment forcer le système à se confronter à cette faille sans attendre une réforme politique improbable ? La réponse réside dans la guérilla juridique : utiliser un litige ordinaire pour soulever une question préjudicielle jusqu'à la plus haute juridiction.
+                </p>
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-between relative max-w-5xl mx-auto">
+                
+                <div class="w-full md:w-1/3 p-4 relative process-node md:process-line">
+                    <div class="bg-white border-2 border-slate-200 rounded-2xl p-6 text-center shadow-lg hover:border-indigo-500 transition-colors h-full flex flex-col justify-center relative z-10">
+                        <div class="text-4xl mb-3 bg-slate-50 w-16 h-16 mx-auto rounded-full flex items-center justify-center">🧑‍⚖️</div>
+                        <h4 class="font-bold text-lg text-slate-900 mb-2">1. Le Litige Ordinaire</h4>
+                        <p class="text-sm text-slate-600">Un député sanctionné ou un citoyen lésé intente un procès civil. L'avocat lie le dommage à l'absence de sanction pour l'Art. 42.</p>
+                    </div>
+                </div>
+
+                <div class="w-full md:w-1/3 p-4 relative process-node md:process-line mt-8 md:mt-0">
+                    <div class="bg-white border-2 border-indigo-400 rounded-2xl p-6 text-center shadow-lg transform md:scale-105 h-full flex flex-col justify-center relative z-10">
+                        <div class="text-4xl mb-3 bg-indigo-50 w-16 h-16 mx-auto rounded-full flex items-center justify-center">❓</div>
+                        <h4 class="font-bold text-lg text-indigo-700 mb-2">2. La Question Préjudicielle</h4>
+                        <p class="text-sm text-slate-600">L'avocat demande au juge de suspendre l'audience et d'interroger la Cour constitutionnelle sur l'inégalité de traitement (Art 10-11).</p>
+                    </div>
+                </div>
+
+                <div class="w-full md:w-1/3 p-4 relative process-node mt-8 md:mt-0">
+                    <div class="bg-slate-900 border-2 border-slate-900 rounded-2xl p-6 text-center shadow-lg h-full flex flex-col justify-center relative z-10">
+                        <div class="text-4xl mb-3 bg-slate-800 w-16 h-16 mx-auto rounded-full flex items-center justify-center">🏛️</div>
+                        <h4 class="font-bold text-lg text-white mb-2">3. La Cour Constitutionnelle</h4>
+                        <p class="text-sm text-slate-300">La Cour est obligée de se prononcer. L'espace jurisprudentiel vierge sur la particratie vs le mandat libre est enfin brisé.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="audit" class="scroll-mt-24 bg-slate-900 rounded-3xl p-8 md:p-12 shadow-xl text-white">
+            <div class="max-w-3xl mb-12">
+                <h2 class="text-3xl font-bold text-white mb-4 serif-title">4. Audit des Probabilités</h2>
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    Cette action juridique est un risque calculé. Si les chances de victoire purement juridique sont minces (prouver qu'une "pratique" équivaut à une "norme"), le rendement politique et médiatique d'une telle saisine est asymétrique et extrêmement élevé.
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-5 gap-12 items-center">
+                <div class="lg:col-span-3">
+                    <div class="chart-container">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                    <p class="text-sm text-slate-400 text-center mt-6 max-w-xl mx-auto">
+                        <strong class="text-white">Analyse :</strong> Le graphique démontre que la valeur de l'action réside dans son impact historique et médiatique, compensant la faible probabilité de succès juridique strict.
+                    </p>
+                </div>
+                
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-slate-800/50 p-6 rounded-xl border border-slate-700 backdrop-blur-sm">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-2xl text-rose-500">⚠️</span>
+                            <h4 class="font-bold text-lg text-white">La Faiblesse Juridique</h4>
+                        </div>
+                        <p class="text-sm text-slate-300">
+                            La Cour constitutionnelle sanctionne des textes de loi, pas des pratiques politiques. L'absence de sanction de l'Art. 42 est un vide, pas une norme écrite. La Cour pourrait se déclarer incompétente.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-800/50 p-6 rounded-xl border border-indigo-500/50 backdrop-blur-sm shadow-[0_0_15px_rgba(79,70,229,0.2)]">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-2xl text-emerald-400">💡</span>
+                            <h4 class="font-bold text-lg text-white">La Victoire par l'Échec</h4>
+                        </div>
+                        <p class="text-sm text-slate-300">
+                            Même en cas de rejet, la Cour devra <strong>motiver</strong> sa décision. Cette motivation produira la toute première littérature jurisprudentielle sur la légalité des pratiques particratiques, ouvrant la voie à des réformes.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="scroll-mt-24 border-t border-slate-200 pt-16">
+            <div class="max-w-3xl mb-12">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4 serif-title">5. Pistes d'Action Alternatives</h2>
+                <p class="text-slate-600 text-lg leading-relaxed">
+                    Si l'attaque frontale via la Cour Constitutionnelle s'avère trop complexe, d'autres angles d'attaque, plus administratifs ou collectifs, peuvent être mobilisés par les acteurs de la société civile pour exploiter cette faille.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-white border border-slate-200 p-6 rounded-2xl hover:border-emerald-500 transition-colors group">
+                    <div class="text-3xl mb-4 bg-emerald-50 text-emerald-600 w-12 h-12 rounded-lg flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors">💰</div>
+                    <h4 class="font-bold text-slate-900 mb-2">Contrôle des Dotations</h4>
+                    <p class="text-sm text-slate-600">Saisir la Commission de contrôle des dépenses électorales. Exiger que l'argent public soit conditionné au respect de la démocratie interne et à l'interdiction des consignes de vote strictes documentées.</p>
+                </div>
+
+                <div class="bg-white border border-slate-200 p-6 rounded-2xl hover:border-amber-500 transition-colors group">
+                    <div class="text-3xl mb-4 bg-amber-50 text-amber-600 w-12 h-12 rounded-lg flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors">📢</div>
+                    <h4 class="font-bold text-slate-900 mb-2">Harcèlement Préjudiciel</h4>
+                    <p class="text-sm text-slate-600">Lancer une action collective où de multiples citoyens, dans divers tribunaux, soulèvent l'inconstitutionnalité de lois votées sous pression avérée du parti, créant un engorgement et un fait politique.</p>
+                </div>
+
+                <div class="bg-white border border-slate-200 p-6 rounded-2xl hover:border-indigo-500 transition-colors group">
+                    <div class="text-3xl mb-4 bg-indigo-50 text-indigo-600 w-12 h-12 rounded-lg flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">📊</div>
+                    <h4 class="font-bold text-slate-900 mb-2">L'Observatoire de la Loyauté</h4>
+                    <p class="text-sm text-slate-600">Créer un organisme de la société civile "datafiant" l'Article 42. Documenter formellement les revirements de vote suite aux injonctions de parti pour transformer la "rumeur politique" en preuve juridique.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-10 text-center">
+        <p class="text-sm text-slate-500 max-w-2xl mx-auto px-4">
+            Audit Démocratique Interactif. Conçu pour illustrer les mécanismes juridiques complexes reliant l'Article 42 de la Constitution et la Loi de 1989.
+        </p>
+    </footer>
+
+    <script>
+        const wrapLabel = (label) => {
+            if (typeof label !== 'string') return label;
+            if (label.length <= 16) return label;
+            
+            const words = label.split(' ');
+            let lines = [];
+            let currentLine = '';
+            
+            for (let word of words) {
+                if ((currentLine + word).length > 16) {
+                    if (currentLine) lines.push(currentLine.trim());
+                    currentLine = word + ' ';
+                } else {
+                    currentLine += word + ' ';
+                }
+            }
+            if (currentLine) lines.push(currentLine.trim());
+            return lines;
+        };
+
+        const universalTooltipConfig = {
+            tooltip: {
+                callbacks: {
+                    title: function(tooltipItems) {
+                        const item = tooltipItems[0];
+                        let label = item.chart.data.labels[item.dataIndex];
+                        if (Array.isArray(label)) {
+                            return label.join(' ');
+                        } else {
+                            return label;
+                        }
+                    }
+                }
+            }
+        };
+
+        const rawDonutLabels = ["Soumission stricte aux consignes de parti (Estimé)", "Votes libres basés sur la conviction (Estimé)"];
+        const wrappedDonutLabels = rawDonutLabels.map(wrapLabel);
+
+        const ctxDonut = document.getElementById('donutChart').getContext('2d');
+        new Chart(ctxDonut, {
+            type: 'doughnut',
+            data: {
+                labels: wrappedDonutLabels,
+                datasets: [{
+                    data: [98, 2],
+                    backgroundColor: ['#4F46E5', '#cbd5e1'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    ...universalTooltipConfig,
+                    legend: {
+                        position: 'bottom',
+                        labels: { font: { family: 'Inter' } }
+                    }
+                }
+            }
+        });
+
+        const rawBarLabels = ["Hostilité CEDH (Loi 1989)", "Violation Art.42 (Pratique)"];
+        const wrappedBarLabels = rawBarLabels.map(wrapLabel);
+
+        const ctxBar = document.getElementById('barChart').getContext('2d');
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: wrappedBarLabels,
+                datasets: [{
+                    label: 'Péril Financier Prévu (%)',
+                    data: [100, 0],
+                    backgroundColor: ['#F59E0B', '#10B981'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { color: '#f1f5f9' },
+                        ticks: { font: { family: 'Inter' } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { family: 'Inter' } }
+                    }
+                },
+                plugins: {
+                    ...universalTooltipConfig,
+                    legend: { display: false }
+                }
+            }
+        });
+
+        const rawRadarLabels = [
+            "Faisabilité du Litige", 
+            "Impact Historique Potentiel", 
+            "Risque Financier", 
+            "Impact Médiatique", 
+            "Probabilité de Succès Juridique"
+        ];
+        const wrappedRadarLabels = rawRadarLabels.map(wrapLabel);
+
+        const ctxRadar = document.getElementById('radarChart').getContext('2d');
+        new Chart(ctxRadar, {
+            type: 'radar',
+            data: {
+                labels: wrappedRadarLabels,
+                datasets: [{
+                    label: 'Score (0-10)',
+                    data: [8, 10, 3, 9, 2],
+                    backgroundColor: 'rgba(79, 70, 229, 0.4)',
+                    borderColor: '#818cf8',
+                    pointBackgroundColor: '#10B981',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#10B981',
+                    borderWidth: 2,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        pointLabels: {
+                            color: '#94a3b8',
+                            font: { family: 'Inter', size: 12, weight: '600' }
+                        },
+                        ticks: { display: false, min: 0, max: 10 }
+                    }
+                },
+                plugins: {
+                    ...universalTooltipConfig,
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        titleColor: '#0f172a',
+                        bodyColor: '#0f172a',
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                let label = item.chart.data.labels[item.dataIndex];
+                                if (Array.isArray(label)) return label.join(' ');
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
