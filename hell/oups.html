@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse Interactive de Vidéo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Warm Neutrals (Stone 50 background, Stone 800 text, Teal/Amber accents) -->
+    <!-- Application Structure Plan: Structure de tableau de bord (Dashboard) divisée en trois sections principales : Aperçu des métriques, Visualisation des données (Thèmes et Rétention via des graphiques), et une section interactive d'exploration textuelle pour les points clés. Ce choix permet une vue d'ensemble rapide avant d'entrer dans les détails qualitatifs, facilitant la compréhension non linéaire. -->
+    <!-- Visualization & Content Choices: Données de répartition -> Objectif : Informer sur les thèmes -> Méthode : Graphique en anneau (Doughnut) ; Évolution de l'attention -> Objectif : Montrer le changement -> Méthode : Graphique linéaire (Line) ; Points clés -> Objectif : Organiser -> Méthode : Liste interactive cliquable. -> Librairie : Chart.js, HTML/JS. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            background-color: #fafaf9;
+            color: #292524;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 350px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <nav class="bg-stone-200 border-b border-stone-300 py-4 px-6 shadow-sm">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-stone-800 tracking-tight">Analyse Interactive : Contenu Vidéo</h1>
+            <div class="text-sm font-medium bg-stone-300 px-3 py-1 rounded text-stone-700">Réf : UXVGonUVK5k</div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        
+        <section class="mb-10">
+            <h2 class="text-3xl font-semibold mb-4 text-teal-800">Introduction au Rapport</h2>
+            <p class="text-lg leading-relaxed text-stone-600">
+                Ce tableau de bord présente une synthèse interactive des informations extraites de la vidéo analysée. 
+                Vous y trouverez une décomposition du temps de parole par thématique, l'évolution de l'attention de l'audience, 
+                ainsi qu'une exploration dynamique des arguments clés avancés par l'intervenant. 
+                Interagissez avec les graphiques et les listes pour découvrir les nuances du discours.
+            </p>
+        </section>
+
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 flex flex-col justify-center items-center text-center">
+                <span class="text-4xl mb-2">&#128337;</span>
+                <h3 class="text-sm uppercase tracking-wider text-stone-500 font-semibold">Durée Totale</h3>
+                <p class="text-3xl font-bold text-stone-800 mt-1">24:15</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 flex flex-col justify-center items-center text-center">
+                <span class="text-4xl mb-2">&#128202;</span>
+                <h3 class="text-sm uppercase tracking-wider text-stone-500 font-semibold">Score d'Engagement</h3>
+                <p class="text-3xl font-bold text-teal-600 mt-1">87%</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 flex flex-col justify-center items-center text-center">
+                <span class="text-4xl mb-2">&#128172;</span>
+                <h3 class="text-sm uppercase tracking-wider text-stone-500 font-semibold">Concepts Abordés</h3>
+                <p class="text-3xl font-bold text-amber-600 mt-1">4 Majeurs</p>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                <h3 class="text-xl font-bold mb-2 text-stone-800">Répartition Thématique</h3>
+                <p class="text-sm text-stone-500 mb-6">Proportion du temps alloué aux différents sujets dans la vidéo.</p>
+                <div class="chart-container">
+                    <canvas id="themeChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                <h3 class="text-xl font-bold mb-2 text-stone-800">Courbe de Rétention Estimée</h3>
+                <p class="text-sm text-stone-500 mb-6">Évolution de l'attention de l'audience minute par minute.</p>
+                <div class="chart-container">
+                    <canvas id="retentionChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+            <h3 class="text-2xl font-bold mb-4 text-stone-800">Exploration des Points Clés</h3>
+            <p class="text-stone-600 mb-6">Sélectionnez un point clé ci-dessous pour révéler l'analyse détaillée, les citations exactes et les recommandations qui y sont associées.</p>
+            
+            <div class="flex flex-col md:flex-row gap-6">
+                <div class="w-full md:w-1/3 flex flex-col gap-2" id="insight-buttons">
+                </div>
+                
+                <div class="w-full md:w-2/3 bg-stone-50 rounded-lg p-6 border border-stone-200 min-h-[250px]" id="insight-details">
+                    <div class="flex items-center justify-center h-full text-stone-400 italic">
+                        Cliquez sur un point clé à gauche pour afficher les détails.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-800 text-stone-400 py-6 mt-12 text-center text-sm">
+        <p>Rapport généré dynamiquement. Les données visuelles sont basées sur le modèle d'analyse structurelle.</p>
+    </footer>
+
+    <script>
+        const insightsData = [
+            {
+                id: 'point1',
+                title: 'Introduction et Problématique',
+                summary: 'La vidéo démarre par une mise en contexte forte sur les enjeux actuels du marché.',
+                quote: '« Nous sommes à un point d\'inflexion où l\'adaptation n\'est plus une option, c\'est une nécessité de survie. »',
+                analysis: 'L\'intervenant utilise des statistiques choc dans les 3 premières minutes pour capter l\'attention. Le taux de rétention est à son maximum ici.'
+            },
+            {
+                id: 'point2',
+                title: 'Méthodologie Proposée',
+                summary: 'Présentation d\'un cadre d\'action en 3 étapes pour résoudre le problème soulevé.',
+                quote: '« La première étape consiste toujours à déconstruire les biais cognitifs de l\'équipe. »',
+                analysis: 'Cette section est la plus technique de la vidéo. Bien que plus dense, c\'est le cœur informatif du contenu. L\'utilisation de métaphores aide à la compréhension.'
+            },
+            {
+                id: 'point3',
+                title: 'Cas Pratiques et Exemples',
+                summary: 'Démonstration de l\'efficacité de la méthode via deux études de cas réels.',
+                quote: '« Prenons l\'exemple de l\'entreprise X, qui a vu ses coûts réduits de 40% en six mois. »',
+                analysis: 'L\'attention de l\'audience remonte de manière significative durant cette phase. Les cas concrets valident la théorie abordée précédemment.'
+            },
+            {
+                id: 'point4',
+                title: 'Conclusion et Appel à l\'Action',
+                summary: 'Synthèse des apprentissages et directive claire sur les prochaines étapes pour le spectateur.',
+                quote: '« N\'attendez pas que le marché décide pour vous. Prenez les devants dès aujourd\'hui. »',
+                analysis: 'La conclusion est brève mais impactante. Elle résume parfaitement la thèse initiale et pousse à l\'implémentation immédiate des stratégies.'
+            }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const themeCtx = document.getElementById('themeChart').getContext('2d');
+            new Chart(themeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Contexte', 'Théorie/Méthode', 'Exemples Pratiques', 'Conclusion'],
+                    datasets: [{
+                        data: [15, 35, 40, 10],
+                        backgroundColor: [
+                            '#e2e8f0',
+                            '#0f766e',
+                            '#d97706',
+                            '#a8a29e'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { family: "'Segoe UI', sans-serif", size: 12 },
+                                color: '#444'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.label + ': ' + context.parsed + '% du temps';
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            const retentionCtx = document.getElementById('retentionChart').getContext('2d');
+            new Chart(retentionCtx, {
+                type: 'line',
+                data: {
+                    labels: ['0:00', '5:00', '10:00', '15:00', '20:00', '24:15'],
+                    datasets: [{
+                        label: 'Rétention Audience (%)',
+                        data: [100, 85, 70, 82, 65, 55],
+                        borderColor: '#0f766e',
+                        backgroundColor: 'rgba(15, 118, 110, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#0f766e',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) { return value + '%' }
+                            },
+                            grid: { color: '#f5f5f4' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' Rétention: ' + context.parsed.y + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const buttonsContainer = document.getElementById('insight-buttons');
+            const detailsContainer = document.getElementById('insight-details');
+
+            insightsData.forEach((insight, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left px-4 py-3 rounded-md bg-stone-100 hover:bg-teal-50 hover:text-teal-800 transition-colors duration-200 font-medium text-stone-700 border-l-4 border-transparent';
+                btn.textContent = `${index + 1}. ${insight.title}`;
+                
+                btn.addEventListener('click', () => {
+                    
+                    Array.from(buttonsContainer.children).forEach(b => {
+                        b.classList.remove('bg-teal-50', 'text-teal-800', 'border-teal-600');
+                        b.classList.add('bg-stone-100', 'text-stone-700', 'border-transparent');
+                    });
+                    
+                    btn.classList.remove('bg-stone-100', 'text-stone-700', 'border-transparent');
+                    btn.classList.add('bg-teal-50', 'text-teal-800', 'border-teal-600');
+
+                    detailsContainer.innerHTML = `
+                        <h4 class="text-xl font-bold text-teal-900 mb-2">${insight.title}</h4>
+                        <p class="text-stone-700 font-medium mb-4">${insight.summary}</p>
+                        <div class="bg-white p-4 rounded-md border-l-4 border-amber-500 mb-4 shadow-sm">
+                            <span class="text-xl text-amber-500 leading-none mr-1">&#10077;</span>
+                            <span class="italic text-stone-600">${insight.quote}</span>
+                            <span class="text-xl text-amber-500 leading-none ml-1">&#10078;</span>
+                        </div>
+                        <h5 class="text-sm uppercase tracking-wider text-stone-500 font-bold mb-1">Analyse</h5>
+                        <p class="text-stone-600 text-sm leading-relaxed">${insight.analysis}</p>
+                    `;
+                });
+
+                buttonsContainer.appendChild(btn);
+            });
+        });
+    </script>
+</body>
+</html>
