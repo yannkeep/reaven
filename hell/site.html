@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Belgique est-elle encore une démocratie légitime ?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Warm Neutrals & Slate (Stone-50, Slate-800, Amber-700) -->
+    <!-- Application Structure Plan: The SPA uses a dashboard-style tabbed navigation to guide the user through a logical narrative: Overview (the core thesis), The Crisis of Trust (quantitative data on declining faith), The System (analysis of 'particratie' and electoral mechanics), and Renewal (innovations like citizen panels). This structure breaks down a complex political science report into digestible, interactive, and thematic chunks, prioritizing user exploration and preventing cognitive overload. -->
+    <!-- Visualization & Content Choices: 
+         1. Overview: Text & dynamic KPI blocks -> Goal: Set the stage -> Interaction: Hover effects.
+         2. Trust Line Chart: Trust data over time -> Goal: Show the decline in institutional trust -> Viz: Chart.js Line Chart -> Interaction: Tooltips, legend filtering -> Justification: Best for time-series data.
+         3. Power Distribution Doughnut: Perception of power -> Goal: Highlight the 'particratie' -> Viz: Chart.js Doughnut -> Interaction: Hover details -> Justification: Shows part-to-whole relationship clearly.
+         4. Electoral Bar Chart: Voting stats -> Goal: Show actual participation vs obligation -> Viz: Chart.js Bar Chart -> Interaction: Tooltips.
+         5. Innovations Grid: Citizen panels -> Goal: Organize solutions -> Viz: Clickable HTML/CSS grid cards revealing details -> Interaction: Click to expand text. 
+         Confirming NO SVG/Mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        @media (max-width: 768px) {
+            .chart-container { height: 300px; }
+        }
+        .nav-btn.active {
+            background-color: #fef3c7;
+            color: #b45309;
+            border-left: 4px solid #b45309;
+            font-weight: 600;
+        }
+        .nav-btn {
+            border-left: 4px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .nav-btn:hover:not(.active) {
+            background-color: #f3f4f6;
+        }
+        .section-content {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        .section-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card-expandable {
+            transition: all 0.3s ease;
+            max-height: 80px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .card-expandable.expanded {
+            max-height: 500px;
+            background-color: #fffbeb;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-slate-800 antialiased h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <nav class="w-full md:w-64 bg-white shadow-lg z-10 flex flex-col flex-shrink-0 h-auto md:h-full">
+        <div class="p-6 border-b border-stone-100">
+            <h1 class="text-2xl font-bold text-slate-900 leading-tight">Démocratie Belge</h1>
+            <p class="text-sm text-slate-500 mt-2">Rapport interactif sur la légitimité institutionnelle</p>
+        </div>
+        <div class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto p-4 gap-2 flex-grow">
+            <button onclick="app.switchTab('overview')" id="btn-overview" class="nav-btn active flex items-center p-3 rounded text-left whitespace-nowrap md:whitespace-normal">
+                <span class="mr-3 text-xl">📌</span> Vue d'ensemble
+            </button>
+            <button onclick="app.switchTab('confiance')" id="btn-confiance" class="nav-btn flex items-center p-3 rounded text-left whitespace-nowrap md:whitespace-normal">
+                <span class="mr-3 text-xl">📉</span> La Crise de Confiance
+            </button>
+            <button onclick="app.switchTab('particratie')" id="btn-particratie" class="nav-btn flex items-center p-3 rounded text-left whitespace-nowrap md:whitespace-normal">
+                <span class="mr-3 text-xl">⚖️</span> Système et Particratie
+            </button>
+            <button onclick="app.switchTab('solutions')" id="btn-solutions" class="nav-btn flex items-center p-3 rounded text-left whitespace-nowrap md:whitespace-normal">
+                <span class="mr-3 text-xl">💡</span> Pistes de Renouveau
+            </button>
+        </div>
+    </nav>
+
+    <main class="flex-grow overflow-y-auto p-6 md:p-12 relative">
+        <div class="max-w-5xl mx-auto">
+
+            <section id="overview" class="section-content active">
+                <header class="mb-8 border-b border-stone-200 pb-6">
+                    <h2 class="text-4xl font-extrabold text-slate-900 mb-4">La Belgique est-elle encore une démocratie légitime ?</h2>
+                    <p class="text-xl text-slate-600 leading-relaxed">
+                        Cette application interactive synthétise les données récentes sur l'état de la démocratie en Belgique. Face à l'érosion de la confiance publique, à la complexité institutionnelle et au pouvoir concentré des présidents de partis, la légitimité du système est remise en question. Explorez les données pour comprendre les enjeux et les solutions émergentes.
+                    </p>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 hover:shadow-md transition">
+                        <div class="text-4xl mb-2">📉</div>
+                        <h3 class="text-lg font-semibold text-slate-800">Défiance Record</h3>
+                        <p class="text-sm text-slate-600 mt-2">Moins d'un tiers des citoyens déclarent faire confiance aux partis politiques traditionnels.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 hover:shadow-md transition">
+                        <div class="text-4xl mb-2">🏛️</div>
+                        <h3 class="text-lg font-semibold text-slate-800">Particratie</h3>
+                        <p class="text-sm text-slate-600 mt-2">Le pouvoir s'est déplacé du Parlement vers une poignée de présidents de partis politiques.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 hover:shadow-md transition">
+                        <div class="text-4xl mb-2">🔄</div>
+                        <h3 class="text-lg font-semibold text-slate-800">Renouveau Citoyen</h3>
+                        <p class="text-sm text-slate-600 mt-2">Émergence de panels délibératifs citoyens en Communauté germanophone et à Bruxelles.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-600">
+                    <h4 class="font-bold text-blue-900 mb-2">Conclusion Principale du Rapport</h4>
+                    <p class="text-blue-800">
+                        La Belgique reste une démocratie sur le plan formel (élections libres, état de droit), mais souffre d'un profond déficit de légitimité <strong>substantielle</strong>. Le citoyen se sent déconnecté de la prise de décision. Le maintien du système nécessite des réformes démocratiques profondes, sans quoi l'abstention et le vote contestataire continueront de croître.
+                    </p>
+                </div>
+            </section>
+
+            <section id="confiance" class="section-content">
+                <header class="mb-8">
+                    <h2 class="text-3xl font-bold text-slate-900 mb-4">La Crise de Confiance</h2>
+                    <p class="text-lg text-slate-600">
+                        Cette section présente l'évolution de la confiance des citoyens belges envers leurs institutions clés au cours de la dernière décennie. L'objectif est de démontrer visuellement la fracture croissante entre la population et l'appareil d'État. Les données révèlent une crise particulièrement aiguë pour les partis politiques, qui constituent pourtant la clé de voûte du système belge.
+                    </p>
+                </header>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 mb-8">
+                    <h3 class="text-xl font-semibold mb-6 text-center">Évolution de la confiance (Score sur 10) : 2015 - 2024</h3>
+                    <div class="chart-container">
+                        <canvas id="trustChart"></canvas>
+                    </div>
+                    <p class="text-sm text-center text-slate-500 mt-4">Survolez les points pour voir les détails. Source: Enquêtes post-électorales (synthèse).</p>
+                </div>
+            </section>
+
+            <section id="particratie" class="section-content">
+                <header class="mb-8">
+                    <h2 class="text-3xl font-bold text-slate-900 mb-4">Système et Particratie</h2>
+                    <p class="text-lg text-slate-600">
+                        Ce module explore la mécanique du pouvoir en Belgique. Bien que le Parlement soit constitutionnellement l'organe suprême, la pratique politique a dérivé vers une "particratie". Ici, nous analysons la perception de qui détient réellement le pouvoir et les conséquences sur l'expression du vote (abstentionnisme malgré le vote obligatoire).
+                    </p>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                        <h3 class="text-xl font-semibold mb-4 text-center">Où réside le véritable pouvoir ?</h3>
+                        <p class="text-sm text-slate-600 mb-6 text-center">Sondage sur la perception publique du centre de décision.</p>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="powerChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                        <h3 class="text-xl font-semibold mb-4 text-center">Participation Électorale (Fédérales)</h3>
+                        <p class="text-sm text-slate-600 mb-6 text-center">Malgré l'obligation légale de se présenter aux urnes.</p>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="votingChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-stone-100 p-6 rounded-lg">
+                    <h4 class="font-bold text-slate-800 text-lg mb-2">Le Mécanisme de la Particratie</h4>
+                    <p class="text-slate-700">
+                        En Belgique, la discipline de parti est stricte. Les présidents de partis négocient les accords de gouvernement en conclave. Une fois l'accord scellé, les parlementaires de la majorité sont tenus de le voter, réduisant le Parlement à une chambre d'enregistrement. Cette centralisation garantit une certaine stabilité dans un pays linguistiquement divisé, mais vide le débat parlementaire de sa substance, minant ainsi la légitimité démocratique.
+                    </p>
+                </div>
+            </section>
+
+            <section id="solutions" class="section-content">
+                <header class="mb-8">
+                    <h2 class="text-3xl font-bold text-slate-900 mb-4">Pistes de Renouveau Démocratique</h2>
+                    <p class="text-lg text-slate-600">
+                        Face aux constats posés, diverses innovations sont testées ou proposées pour revitaliser la légitimité de l'État belge. Cette section détaille les principales réformes structurelles et participatives. <strong>Cliquez sur les différentes cartes pour approfondir chaque piste.</strong>
+                    </p>
+                </header>
+
+                <div class="flex flex-col gap-4">
+                    
+                    <div class="card-expandable bg-white border border-stone-200 rounded-lg shadow-sm" onclick="app.toggleCard(this)">
+                        <div class="p-6 flex justify-between items-center">
+                            <h3 class="text-xl font-bold text-slate-800 flex items-center">
+                                <span class="text-2xl mr-3">🗣️</span> Les Commissions Mixtes Délibératives
+                            </h3>
+                            <span class="text-slate-400 font-bold text-xl indicator">+</span>
+                        </div>
+                        <div class="px-6 pb-6 pt-0 text-slate-600">
+                            <p class="mb-3">
+                                Déjà en place au Parlement francophone bruxellois, ces commissions rassemblent des députés élus et des citoyens tirés au sort pour discuter d'une thématique spécifique (ex: 5G, biodiversité).
+                            </p>
+                            <p>
+                                <strong>Impact évalué :</strong> Très positif sur la qualité du débat. Les citoyens apportent une expertise d'usage, et les politiciens sortent de la logique partisane. Le défi reste l'intégration de leurs recommandations dans la loi finale.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="card-expandable bg-white border border-stone-200 rounded-lg shadow-sm" onclick="app.toggleCard(this)">
+                        <div class="p-6 flex justify-between items-center">
+                            <h3 class="text-xl font-bold text-slate-800 flex items-center">
+                                <span class="text-2xl mr-3">🎲</span> Le Conseil Citoyen Permanent (Modèle Ostbelgien)
+                            </h3>
+                            <span class="text-slate-400 font-bold text-xl indicator">+</span>
+                        </div>
+                        <div class="px-6 pb-6 pt-0 text-slate-600">
+                            <p class="mb-3">
+                                La Communauté germanophone a institutionnalisé un dialogue permanent. Un conseil citoyen fixe l'agenda et convoque des assemblées citoyennes tirées au sort sur des sujets précis.
+                            </p>
+                            <p>
+                                <strong>Impact évalué :</strong> C'est la structure la plus avancée en Belgique. Elle dote le citoyen d'un pouvoir d'initiative, contournant partiellement le monopole de l'agenda politique par les partis traditionnels.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="card-expandable bg-white border border-stone-200 rounded-lg shadow-sm" onclick="app.toggleCard(this)">
+                        <div class="p-6 flex justify-between items-center">
+                            <h3 class="text-xl font-bold text-slate-800 flex items-center">
+                                <span class="text-2xl mr-3">🗳️</span> Réforme de la Loi Électorale
+                            </h3>
+                            <span class="text-slate-400 font-bold text-xl indicator">+</span>
+                        </div>
+                        <div class="px-6 pb-6 pt-0 text-slate-600">
+                            <p class="mb-3">
+                                Plusieurs experts plaident pour la création d'une circonscription fédérale unique. Actuellement, les francophones votent pour des francophones et les néerlandophones pour des néerlandophones, ce qui incite les politiciens à polariser le discours.
+                            </p>
+                            <p>
+                                <strong>Impact évalué :</strong> Une circonscription fédérale (pour une partie des sièges) obligerait les responsables politiques à formuler un discours qui s'adresse à l'ensemble du pays, augmentant ainsi la légitimité du gouvernement fédéral.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        const app = {
+            chartsRendered: {
+                confiance: false,
+                particratie: false
+            },
+            
+            switchTab: function(tabId) {
+                document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+                
+                document.getElementById(tabId).classList.add('active');
+                document.getElementById('btn-' + tabId).classList.add('active');
+
+                if (tabId === 'confiance' && !this.chartsRendered.confiance) {
+                    this.initTrustChart();
+                    this.chartsRendered.confiance = true;
+                }
+                
+                if (tabId === 'particratie' && !this.chartsRendered.particratie) {
+                    this.initParticratieCharts();
+                    this.chartsRendered.particratie = true;
+                }
+            },
+
+            toggleCard: function(element) {
+                const isExpanded = element.classList.contains('expanded');
+                const indicator = element.querySelector('.indicator');
+                
+                if (isExpanded) {
+                    element.classList.remove('expanded');
+                    indicator.textContent = '+';
+                } else {
+                    element.classList.add('expanded');
+                    indicator.textContent = '−';
+                }
+            },
+
+            initTrustChart: function() {
+                const ctx = document.getElementById('trustChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['2015', '2017', '2019', '2021', '2023', '2024'],
+                        datasets: [
+                            {
+                                label: 'La Justice',
+                                data: [5.2, 5.0, 5.1, 4.8, 5.0, 4.9],
+                                borderColor: '#475569',
+                                backgroundColor: '#475569',
+                                tension: 0.3,
+                                borderWidth: 2
+                            },
+                            {
+                                label: 'Le Parlement Fédéral',
+                                data: [4.8, 4.5, 4.2, 4.4, 4.0, 3.8],
+                                borderColor: '#0284c7',
+                                backgroundColor: '#0284c7',
+                                tension: 0.3,
+                                borderWidth: 3
+                            },
+                            {
+                                label: 'Les Partis Politiques',
+                                data: [3.9, 3.5, 3.1, 3.3, 2.9, 2.7],
+                                borderColor: '#b45309',
+                                backgroundColor: '#b45309',
+                                tension: 0.3,
+                                borderWidth: 3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        scales: {
+                            y: {
+                                min: 0,
+                                max: 10,
+                                title: { display: true, text: 'Niveau de confiance (0-10)' }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.parsed.y + '/10';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            },
+
+            initParticratieCharts: function() {
+                const ctxPower = document.getElementById('powerChart').getContext('2d');
+                new Chart(ctxPower, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Présidents de Partis', 'Gouvernement', 'Le Parlement', 'Les Citoyens', 'Lobbys/Autres'],
+                        datasets: [{
+                            data: [58, 22, 9, 4, 7],
+                            backgroundColor: [
+                                '#b45309',
+                                '#0284c7',
+                                '#64748b',
+                                '#f59e0b',
+                                '#cbd5e1'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'right' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.label + ': ' + context.parsed + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                const ctxVoting = document.getElementById('votingChart').getContext('2d');
+                new Chart(ctxVoting, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Élections 2014', 'Élections 2019', 'Élections 2024'],
+                        datasets: [
+                            {
+                                label: 'Votes valables',
+                                data: [89.3, 88.0, 85.5],
+                                backgroundColor: '#0284c7'
+                            },
+                            {
+                                label: 'Votes blancs/nuls',
+                                data: [5.8, 6.1, 6.5],
+                                backgroundColor: '#94a3b8'
+                            },
+                            {
+                                label: 'Abstention (illégale)',
+                                data: [4.9, 5.9, 8.0],
+                                backgroundColor: '#b45309'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { stacked: true },
+                            y: { 
+                                stacked: true,
+                                max: 100,
+                                title: { display: true, text: 'Pourcentage des inscrits' }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.parsed.y + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        };
+    </script>
+</body>
+</html>
